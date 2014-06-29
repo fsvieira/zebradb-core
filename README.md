@@ -3,7 +3,8 @@ zebrajs
 
 Variable Constrains lib
 
-==== 
+Example zebra puzzle generator (aka Einstein puzzle).
+=======
 To run the generator just go to folder examples/zebra and type:
 
 <pre>
