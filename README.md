@@ -1,42 +1,218 @@
-zebrajs
-=======
+<h1>zebrajs</h1>
 
-Variable Constrains lib
+The core of zebra lib are the variables, there is a few things that you can do with them:
 
-Example zebra puzzle generator (aka Einstein puzzle).
-=======
-To run the generator just go to folder examples/zebra and type:
-
+<h3>Create a Variable</h3>
+After importing variables lib, you can create a variable like this:
 <pre>
-nodejs main.js
+var a = v();
 </pre>
 
-The generator is very slow so it may take several minutes to generate the puzzles.
+You can initialize a variable by passing a options object to the constructor, you can pass value and domain:
 
-The puzzles are saved on a file as json format like this:
-<pre>
-[{"constrains":[{"type":"next to","x":"dunhill","y":"dane"},{"type":"middle","x":"pallmall","y":null},{"type":"next to","x":"white","y":"tea"},{"type":"next to","x":"milk","y":"water"},{"type":"immediately to the left of","x":"water","y":"dog"},{"type":"next to","x":"beer","y":"norwegian"},{"type":"immediately to the left of","x":"prince","y":"horse"},{"type":"immediately to the left of","x":"horse","y":"cats"},{"type":"same position as","x":"yellow","y":"birds"},{"type":"immediately to the left of","x":"swede","y":"zebra"},{"type":"same position as","x":"blue","y":"dog"},{"type":"middle","x":"green","y":null},{"type":"middle","x":"coffee","y":null},{"type":"immediately to the left of","x":"german","y":"bluemaster"},{"type":"middle","x":"english","y":null},{"type":"immediately to the left of","x":"bluemaster","y":"prince"}],"missing":["red","blend"],"solution":{"houses":["yellow","blue","green","white","red"],"drinks":["water","milk","coffee","beer","tea"],"people":["german","swede","english","dane","norwegian"],"smokes":["blend","bluemaster","prince","pallmall","dunhill"],"animal":["birds","dog","zebra","horse","cats"]}}]
-</pre>
-
-Its an array of objects, every object is a generated puzzle and contains the following keys:
 <ul>
-<li>"constrains": the clues of the puzzle, every clue contain the type of the clue and one (x) or two (y) values.</li>
-<li>"missing": the values that are missing from the constrains/clues, normally this would be two. For example: "missing":["red","blend"].
-<p>Missing values can be presented to user like this:
-<ul>
-<li>One of the houses is red,</li>
-<li>Someone smokes blend.</li>
-<li>or as a question: Who lives in red house and who smokes blend.</li>
-<li>or in a graphical GUI like grids or something like that you can just present all values and no need to reference the missing values.
-</li></ul>
-</p>
-</li>
-<li>"solution": the solution for this puzzle, the solution is on the format of type: [values], for example:
-<p>{"houses":["yellow","blue","green","white","red"], "drinks":["water","milk","coffee","beer","tea"], ...}</p>
-<p>In this example the people living in yellow house drink water.</p>
-</li>
+<li>value (optional): the value of the variable,</li>
+<li>domain (optional): an array of possible values that the variable can take.</li>
 </ul>
 
-Now that I have something working I will try to optimize the lib and generator, first I will try to optimize the algorithms but when that is done I would like to try some web-workers/threads :) that would be fun ahhaha...
+Examples:
+<pre>
+var a = v();
+var b = v({value: "blue"});
+var c = v({domain: ["red", "blue", "green"]});
+var d = v({value: "blue", domain: ["red", "blue", "green"]});
+</pre>
 
-Happy coding. 
+<h3>Get value</h3>
+The function getValue(), returns the variable value or undefined if variable as no value.
+A variables with no initial value can return a value depending on variable manipulation and constrains.
+
+<pre>
+var a = v();
+var b = v({value: "blue"});
+var c = v({domain: ["red", "blue", "green"]});
+var d = v({value: "blue", domain: ["red", "blue", "green"]});
+console.log(a.getValue()); // undefined
+console.log(b.getValue()); // "blue"
+console.log(c.getValue()); // undefined
+console.log(d.getValue()); // "blue"
+</pre>
+
+<h3>Unify</h3>
+
+A variable can be unified with other var like this:
+<pre>
+var a = v();
+var b = v();
+console.log(a.unify(b)); // true
+</pre>
+
+Variable unification is like saying that variables are the same, meaning that if one of the unified vars get a value all other vars will have the same value.
+
+Not all variables can be unified, a variable can only be successful unified if doesn’t break any constrains, for example:
+<pre>
+var a = v({value: "blue"});
+var b = v({value: "yellow"});
+console.log(a.unify(b)); // false
+</pre>
+
+a and b can't be unified because they have different values.
+
+Other example: 
+<pre>
+var a = v();
+var b = v({value: "blue"});
+a.unify (b);
+console.log(a.getValue()); // "blue"
+</pre>
+
+After unifying var a with b, a will get the b value.
+
+A more interesting example:
+<pre>
+var a = v([{domain: [1, 2, 3]});
+var b = v([{domain: [3, 4, 5]});
+
+console.log(a.getValue()); // undefined
+console.log(b.getValue()); // undefined
+
+a.unify(b);
+console.log(a.getValue()); // 3
+console.log(b.getValue()); // 3
+</pre>
+
+Variable a and b, are initialized with possible values, but with no actual value. 
+After a is unified with b, the only possible value that a and b share is 3, since they must have the same value a and b can only be 3.
+
+<h3>Set Value</h3>
+A variable value can be set on initialization (always successful) or after initialization using setValue() function, like unify 
+a value can only be set if it doesn't break any constrain. 
+
+Example:
+<pre>
+var a = v();
+var b = v();
+a.unify(b);
+console.log(a.setValue("blue")); // true
+console.log(b.setValue("yellow")); // false
+</pre>
+
+a and b start with no values and then a is unified with b, after a is set with value "blue" b will also have the same value "blue", so setting b as "yellow" will
+fail. 
+
+<h3>Not Unify</h3>
+
+The function notUnify, sets a constrain on both variables than they can not have the same value.
+
+Example:
+<pre>
+var a = v();
+var b = v();
+a.notUnify(b);
+console.log(a.setValue("blue")); // true
+console.log(b.setValue("blue")); // false
+</pre>
+
+a and b start with no values, and notUnify makes a and b distinct, meaning they cant have the same value, next variable a is set to value "blue" with success, 
+but setting b to same value ("blue") will fail, since a and b cant have the same value.
+
+* notUnify also affects unify behaviour, and unify affects notUnify behaviour.
+
+Example: 
+<pre>
+var a = v();
+var b = v();
+var c = v();
+console.log(a.notUnify(b)); // true
+console.log(b.unify(c)); // true
+console.log(a.unify(c)); // false
+</pre>
+
+First a is set not to unify with b (a =/= b), next b is set to unify with c (b=c), so if a=/=b and b=c then a must be different from c, so unifying var a with c fails.
+
+<h3>Set no value</h3>
+The function setNoValue is used to discard possible values from the variable.
+
+Example:
+<pre>
+var a = v({domain: ["yellow", "blue", "red"]});
+console.log(a.getValue()); // undefined
+a.setNoValue("yellow");
+a.setNoValue("red");
+console.log(a.getValue()); // "blue"
+</pre>
+
+The variable a is declared with possible values "yellow", "blue" and "red", after discarding possible values "yellow" and "red", a can only be "blue". 
+
+<h3>Get Values</h3>
+The getValues functions will return all variable possible values (not the same as domain).
+
+Example: 
+<pre>
+var a = v({domain: ["yellow", "blue", "red"]});
+console.log(a.getValue()); // undefined
+a.setNoValue("yellow");
+console.log(a.getValues()); // ["blue", "red"]
+</pre> 
+
+While var a domain is "yellow", "blue" and "red", after discarding "yellow" as a possible value the only possible values remaining are "blue" and "red".
+
+<h3>Try Values</h3>
+TryValues function is a brute force function that will try all possible variable values and check if other constrained variables hold (if they are guaranteed to have a value). 
+
+Example:
+<pre>
+var a = v(domain: ["yellow", "blue", "red", "white", "green"]);
+var b = v(domain: ["blue", "red", "white"]);
+var c = v(domain: ["blue", "red", "white"]);
+var d = v(domain: ["blue", "red", "white"]);
+var e = v(domain: ["yellow", "blue", "red", "white", "green"]);
+
+a.notUnify(b);
+a.notUnify(c);
+a.notUnify(d);
+a.notUnify(e);
+
+b.notUnify(c);
+b.notUnify(d);
+b.notUnify(e);
+
+c.notUnify(d);
+c.notUnify(e);
+
+d.notUnify(e);
+
+a.tryValues();
+console.log(a.getValues()); // ["yellow", "green"]
+</pre>
+
+The notUnify sets vars a, b, c, d and e as distinct, meaning they cant have the same value.
+
+the a.tryValues will try to set all possible a values, and do the same to other vars, checking if all other vars still have at least on possible value. 
+For example, a=yellow, b=blue, c=red, d=white and e="green" , is a possible outcome so yellow is a possible value. 
+But in case a=blue, b=red, c=white, but d cant be set to any value, even if we set b=white and c=red, d will still have no possible value so a cant be blue.
+
+When tryValues end a can only have two possible values yellow and green.
+
+<h3>Events: onchange</h3>
+A function can be set to be triggered when a variable changes, a variable is considered to change if is value is change or possible values change.
+
+Exemple: 
+<pre>
+var a = v({domain: ["blue", "red", "yellow"]});
+a.onchange(function (v) {
+  console.log(v.getValues());
+});
+
+a.setNoValue("yellow"); // it will trigger function that will print ["blue", "red"]
+</pre>
+
+<h1>Thats almost it,</h1>
+I also made a genetic search algorithm and a example to generate zebra puzzles.
+
+
+Happy coding ;)
+
+
+
+
