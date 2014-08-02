@@ -211,6 +211,13 @@ a.onchange(function (v) {
 a.setNoValue("yellow"); // it will trigger function that will print ["blue", "red"]
 </pre>
 
+<h3>cloneShare</h3>
+
+The cloneShare methods clone the variable share object, this object keeps track of variable state and its shared on all unified variables, so this function can be used to save and restore variables state.
+
+See examples/zebra/genetic_search.js for a example on how to save and load variables. 
+
+
 <h1>Thats almost it,</h1>
 I also made a genetic search algorithm and a example to generate zebra puzzles.
 
