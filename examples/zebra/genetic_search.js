@@ -11,7 +11,7 @@ var fs = require("fs");
  * ===============
  */
 function genGrid (cols, lines, prefix) {
-	prefix = prefix || "var";
+	prefix = prefix || "tvar";
 	
 	var r = {
 		solution: [],
@@ -323,19 +323,24 @@ function countDiff (clues) {
 };
 
 function getSaveClues (grid, find) {
-	var filename = "templates/template-"+ grid.w + "x" + grid.h + "-" + find +".json";
+	var filename = "templates/template-"+ grid.w + "x" + grid.h + ".json";
 	console.log("Puzzles are going to be saved to " + filename);
 	var solutions = [];
 
-	// TODO: Do sync 
-	fs.readFile (filename, function (err, data) {
+	try {
+		solutions = JSON.parse(fs.readFileSync (filename)).solutions; // , function (err, data) {
+	}
+	catch (e) {
+		solutions = [];
+	}
+	/*
 		if (err) {
 			console.log(err);
 		}
 		else {
 			solutions = JSON.parse(data);
 		}
-	});
+	});*/
 
 	return function (clues) {
 		var r = [];
@@ -370,8 +375,15 @@ function getSaveClues (grid, find) {
 		console.log("Save Solution: " + solutions.length);
 		console.log(JSON.stringify(r));
 
-
-		fs.writeFileSync(filename, JSON.stringify(solutions));
+		var w = {
+			grid: {
+				w: grid.w,
+				h: grid.h
+			},
+			solutions: solutions
+		};
+		
+		fs.writeFileSync(filename, JSON.stringify(w));
 	};
 
 };
@@ -432,11 +444,13 @@ function gen (w, h, size, max) {
 	return solutions;
 };
 
-gen (5, 5, 20, 1);
-// gen (5, 5, 19, 10);
-// gen (5, 5, 19, 10);
-// gen (5, 5, 18, 10);
-// gen (5, 5, 17, 10); // ??
+// gen (5, 5, 20, 2);
+// gen (5, 5, 19, 2);
+// gen (5, 5, 18, 2);
+// gen (5, 5, 17, 2);
+// gen (5, 5, 16, 2);
+gen(4,4,10,1);
+
 
 
 
