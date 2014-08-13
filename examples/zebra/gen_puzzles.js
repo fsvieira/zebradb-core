@@ -1,4 +1,6 @@
+var puzzles = require("./puzzleslib");
 var fs = require("fs");
+
 
 //+ Jonas Raoni Soares Silva
 //@ http://jsfromhell.com/array/shuffle [v1.0]
@@ -6,12 +8,6 @@ function shuffle(o){ //v1.0
     for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
     return o;
 };
-
-
-function getTemplate (filename) {
-	var template = JSON.parse(fs.readFileSync(filename));
-	return template;
-}
 
 function replace(original, replace, clues) {
 	clues.forEach (function (clue) {
@@ -66,7 +62,7 @@ function getPuzzle (grid, clues) {
 
 
 function genPuzzles (filename) {
-	var template = getTemplate("templates/"+filename);
+	var template = puzzles.getJSON("templates/"+filename);
 	var grid = template.grid;
 
 	console.log("=== Puzzle " + grid.w + "x" + grid.h + " ===");
@@ -80,6 +76,9 @@ function genPuzzles (filename) {
 	fs.writeFileSync("puzzles/" + filename.replace("template", "puzzles"), JSON.stringify(template));
 }
 
+genPuzzles("template-2x2.json");
+genPuzzles("template-3x2.json");
+genPuzzles("template-3x3.json");
 genPuzzles("template-5x5.json");
 genPuzzles("template-4x4.json");
 
