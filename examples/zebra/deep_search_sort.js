@@ -177,16 +177,12 @@ function getSaveClues (grid, find) {
 
 };
 
-function find (remainder, clues, test, size, max, saveClues, solutions) {
+function find (remainder, clues, test, size, max, solutions) {
 	solutions = solutions || [];
-	
-	// console.log("level: " + clues.length);
 	
 	if (solutions.length >= max) {
 		return; // no need to find more solutions
 	}
-
-	// console.log("level: " + clues.length + ", remainder: " + remainder.length);
 	
 	if (clues.length >= size) {
 		return; // nothing to do
@@ -217,12 +213,9 @@ function find (remainder, clues, test, size, max, saveClues, solutions) {
 		
 		if (r.score.sol) {
 			solutions.push(r.clues);
-			console.log("Solution Found!");
-			saveClues(r.clues);
+			// console.log("Solution Found!");
 		}
-		else {
-			find (r.remainder, r.clues, test, size, max, saveClues, solutions);
-		}
+		find (r.remainder, r.clues, test, size, max, solutions);
 	});
 	
 	return solutions;
@@ -250,7 +243,7 @@ function gen (w, h, size, max) {
 
 	// var solutions = genetic(grid.constrains, size, test, max, saveClues, debugClues);
 	
-	var solutions = find(shuffle(grid.constrains), [], test, size, max, saveClues);
+	var solutions = find(shuffle(grid.constrains), [], test, size, max);
 	
 	// toJson (grid.constrains);
 
@@ -259,15 +252,14 @@ function gen (w, h, size, max) {
 
 // gen(2,2,2,1);
 // gen(3,2,4,1);
-// gen(3,3,6,1); 
-// gen(4,4,12,1);
-gen(4,4,11,1);
+// gen(3,3,10,1); 
 
-// gen (5, 5, 20, 1);
+gen (5, 5, 20, 1);
 // gen (5, 5, 19, 2);
 // gen (5, 5, 18, 2);
 // gen (5, 5, 17, 1);
-// gen (5, 5, 16, 1);
+// gen (5, 5, 16, 2);
 // gen(4,4,10,1);
+
 
 

@@ -79,6 +79,7 @@ function genPuzzles (filename) {
 genPuzzles("template-2x2.json");
 genPuzzles("template-3x2.json");
 genPuzzles("template-3x3.json");
+genPuzzles("template-4x4.json");
 genPuzzles("template-5x5.json");
 genPuzzles("template-4x4.json");
 

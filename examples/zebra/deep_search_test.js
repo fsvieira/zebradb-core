@@ -197,7 +197,7 @@ function find (remainder, clues, test, size, max, saveClues, solutions) {
 		var c = clues.slice(0);
 		
 		c.push(clue);
-		
+
 		result.push({
 			score: test(c),
 			clues: c,
@@ -205,20 +205,23 @@ function find (remainder, clues, test, size, max, saveClues, solutions) {
 		});
 	});
 
+	shuffle(result);
+	
 	result.sort(function (a, b) {
 		return b.score.count-a.score.count;
 	});
 	
 	// console.log("==== results ====");
-	
 	result.forEach (function (r) {
-		// console.log("==> result:" +  r.score.count);
-		// console.log(puzzles.cluesToString(clues));
 		
+		/*if (clues.length >= 1) {
+			console.log(r.score);
+		}*/
 		if (r.score.sol) {
 			solutions.push(r.clues);
 			console.log("Solution Found!");
 			saveClues(r.clues);
+			return; // nothing else to do
 		}
 		else {
 			find (r.remainder, r.clues, test, size, max, saveClues, solutions);
@@ -239,12 +242,11 @@ function gen (w, h, size, max) {
 	var saveClues = getSaveClues (grid, max);
 
 	function test (clues) {
-		var stats = puzzles.solve(grid, clues);
-
+		var stats = puzzles.solve2(grid, clues);
+		
 		return {
-			count: stats.items+stats.count+(size*grid.w*2 - stats.vcount),
+			count: stats.vcount,
 			sol: stats.solution,
-			debug: stats.debug
 		};
 	};
 
@@ -261,12 +263,12 @@ function gen (w, h, size, max) {
 // gen(3,2,4,1);
 // gen(3,3,6,1); 
 // gen(4,4,12,1);
-gen(4,4,11,1);
+// gen(4,4,15,1);
 
 // gen (5, 5, 20, 1);
 // gen (5, 5, 19, 2);
 // gen (5, 5, 18, 2);
-// gen (5, 5, 17, 1);
+gen (5, 5, 17, 1);
 // gen (5, 5, 16, 1);
 // gen(4,4,10,1);
 

@@ -1,6 +1,14 @@
 var fs = require("fs");
 var v = require("../../lib/variable").v;
 
+//+ Jonas Raoni Soares Silva
+//@ http://jsfromhell.com/array/shuffle [v1.0]
+function shuffle(o){ //v1.0
+    for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+    return o;
+};
+
+
 function getJSON (filename) {
 	var template = JSON.parse(fs.readFileSync(filename));
 	return template;
@@ -196,8 +204,8 @@ var constrains = {
 		a.x = v({domain:domain});
 		b.x = v({domain:domain});
 		
-		b.x.change (function (a) {
-			return function (b) {
+		a.x.change (function (b) {
+			return function (a) {
 				var da = a.getValues();
 				var db = b.getValues();
 						
@@ -210,10 +218,10 @@ var constrains = {
 					}
 				});
 			};
-		}(a.x));
+		}(b.x));
 				
-		a.x.change (function (b) {
-			return function (a) {
+		b.x.change (function (a) {
+			return function (b) {
 				var da = a.getValues();
 				var db = b.getValues();
 						
@@ -226,7 +234,7 @@ var constrains = {
 					}
 				});
 			};
-		}(b.x));
+		}(a.x));
 		
 	},
 	"middle": function (grid, a) {
@@ -254,8 +262,8 @@ var constrains = {
 		
 		b.x = v({domain:domain});
 		
-		b.x.change (function (a) {
-			return function (b) {
+		a.x.change (function (b) {
+			return function (a) {
 				var da = a.getValues();
 				var db = b.getValues();
 
@@ -265,20 +273,20 @@ var constrains = {
 					}
 				});
 			};
-		}(a.x));
+		}(b.x));
 				
-		a.x.change (function (b) {
-			return function (a) {
+		b.x.change (function (a) {
+			return function (b) {
 				var da = a.getValues();
 				var db = b.getValues();
-
+						
 				db.forEach (function (x) {
 					if (da.indexOf(x-1) === -1) {
 						b.setNoValue(x);
 					}
 				});
 			};
-		}(b.x));
+		}(a.x));
 	},
 	"same position as": function (grid, a, b) {
 		var domain = [];
@@ -289,8 +297,8 @@ var constrains = {
 		a.x = v({domain:domain});
 		b.x = v({domain:domain});
 		
-		b.x.change (function (a) {
-			return function (b) {
+		a.x.change (function (b) {
+			return function (a) {
 				var da = a.getValues();
 				var db = b.getValues();
 								
@@ -300,10 +308,10 @@ var constrains = {
 					}
 				});
 			};
-		}(a.x));
+		}(b.x));
 						
-		a.x.change (function (b) {
-			return function (a) {
+		b.x.change (function (a) {
+			return function (b) {
 				var da = a.getValues();
 				var db = b.getValues();
 								
@@ -313,7 +321,7 @@ var constrains = {
 					}
 				});
 			};
-		}(b.x));
+		}(a.x));
 	}
 };
 
@@ -635,13 +643,161 @@ function solve (grid, clues) {
 
 };
 
-exports.getJSON = getJSON;
-exports.setClueVars = setClueVars;
-exports.solve = solve;
-exports.solve2 = solve2;
 
-exports.genGrid = genGrid;
+//////////////// GEN
 
-exports.getVars = getVars;
-exports.cluesToString = cluesToString;
+/*
+function gen (w, h) {
+	
+	var grid = genGrid(w, h);
+	var vars;
+	var clues = grid.constrains.slice(0);
+	var l;
+	var s=0;
+	do {
+		l = clues.length;
+		
+		console.log(l+ "%%");
+
+		shuffle (clues);
+		setClueVars(grid, clues);
+		
+		vars = getVars(clues);
+		var sl = saveAndLoad(vars);
+		var items = {};
+		
+		for (var i=0; i<clues.length; i++) {
+			var clue = clues[i];
+			
+			items[clue.a.v] = items[clue.a.v] || clue.a.x;
+			items[clue.a.v].unify(clue.a.x);
+			if (clue.b) {
+				items[clue.b.v] = items[clue.b.v] || clue.b.x;	
+				items[clue.b.v].unify(clue.b.x);
+			}
+			
+			console.log("index:" + i);
+			if (i > clues.length-3) {
+				vars.forEach (function (v) {
+					v.tryValues(sl);
+				});
+			}
+			
+			var stateDebug = fillState(grid, clues);
+			var count = countValues(stateDebug.state);
+			
+			if (count === grid.w*grid.h) {
+				clues.splice(i+1);
+				break;
+			}
+			
+		}
+		
+		if (l <= clues.length) {
+			s++;
+		}
+	
+	} while ((s < 100000) && (l > clues.length));
+	
+	// try all,
+	
+	console.log(clues);
+	console.log(clues.length);
+	
+};
+*/
+
+
+function gen (w, h) {
+	
+	var grid = genGrid(w, h);
+	var vars;
+	var clues = grid.constrains.slice(0);
+	var save = getSaveClues(grid);
+
+	do {
+		l = clues.length;
+		console.log(l+ "%%");
+		shuffle (clues);
+
+		for (var c=0; c<clues.length; c++) {
+			setClueVars(grid, clues);
+			
+			var items = {};
+			var vars = getVars(clues);
+			var sl = saveAndLoad(vars);
+
+			console.log("try c=" + c);
+
+			for (var i=0; i<clues.length; i++) {
+				if (i !== c) {
+					var clue = clues[i];
+					
+					items[clue.a.v] = items[clue.a.v] || clue.a.x;
+					items[clue.a.v].unify(clue.a.x);
+					if (clue.b) {
+						items[clue.b.v] = items[clue.b.v] || clue.b.x;	
+						items[clue.b.v].unify(clue.b.x);
+					}
+					
+					var stateDebug = fillState(grid, clues);
+					var count = countValues(stateDebug.state);
+					
+					if (count === grid.w*grid.h) {
+						clues.splice(i+1);
+						break;
+					}
+				}
+			}
+			
+			vars.forEach (function (v) {
+				v.tryValues(sl);
+			});
+			
+			var stateDebug = fillState(grid, clues);
+			var count = countValues(stateDebug.state);
+				
+			if (count === grid.w*grid.h) {
+				console.log("= c= " + c + "=> " + clues.length);
+				clues.splice(c, 1);
+				console.log("= splice => " + clues.length);
+				break;
+			}
+		}
+
+		console.log(l);
+		console.log(clues.length);
+
+	} while (l > clues.length);
+	
+	console.log("== End ==");
+	// try all,
+	save(clues);
+	console.log(clues);
+	console.log(clues.length);
+	
+	
+	
+	return clues.length;
+};
+
+function find (w, h, max) {
+	
+	var r = 0;
+	gen(w, h);
+	
+	// while ((r = gen(w, h)) > max) {
+		//...
+	// }
+	
+	console.log(r);
+};
+
+find(5, 5, 20);
+
+// gen (5, 5);
+
+
+
+
 
