@@ -97,7 +97,7 @@ function tryfail (w, h, max) {
 	
 	console.log("==> " + clues.length);
 	
-	var r = puzzles.solve2(grid, clues);
+	var r = puzzles.solve(grid, clues);
 	console.log(r);
 	
 	return clues;
