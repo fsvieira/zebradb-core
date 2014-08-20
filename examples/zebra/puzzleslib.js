@@ -533,7 +533,7 @@ function stats (clues, grid) {
 };
 
 
-function solve2 (grid, clues) {
+function solve (grid, clues) {
 	var items = {}, vars;
 
 	setClueVars(grid, clues);
@@ -583,62 +583,9 @@ function solve2 (grid, clues) {
 	return {vcount: vcount, solution: (count === grid.w*grid.h)};
 };
 
-function solve (grid, clues) {
-	var icount = countItems(clues);
-
-	if (icount === grid.w*grid.h) {
-		var items = {}, vars;
-
-		setClueVars(grid, clues);
-		vars = getVars(clues);
-		console.log("=== start === ");
-		showState(grid, clues);
-
-		var sl = saveAndLoad(vars);
-		
-		clues.forEach (function (clue, index) {
-			clueToString(clue, index);
-			
-			items[clue.a.v] = items[clue.a.v] || clue.a.x;
-			items[clue.a.v].unify(clue.a.x);
-			if (clue.b) {
-				items[clue.b.v] = items[clue.b.v] || clue.b.x;	
-				items[clue.b.v].unify(clue.b.x);
-			}
-		});
-
-		vars.forEach (function (v) {
-			v.tryValues(sl);
-		});
-		
-		var valuesCount = countVarValues (vars);
-
-		console.log("=== Solution ===");
-		showState(grid, clues);
-
-		clues.forEach (function (clue, index) {
-			clueToString(clue, index);
-		});
-		
-		console.log(valuesCount);
-		
-		console.log("=== Solution End ===");
-
-		var stateDebug = fillState(grid, clues);
-		var count = countValues(stateDebug.state);
-
-		return {items: icount, vcount: valuesCount, count: count, solution: (count === grid.w*grid.h), debug: stateDebug.debug};
-	}
-	
-
-	return {items: icount, vcount: 0, count: 0, solution: false, debug: false};
-
-};
-
 exports.getJSON = getJSON;
 exports.setClueVars = setClueVars;
 exports.solve = solve;
-exports.solve2 = solve2;
 
 exports.genGrid = genGrid;
 
