@@ -68,9 +68,9 @@ function getSaveClues (grid, find) {
 };
 
 
-function tryfail () {
+function tryfail (w, h, max) {
 	
-	var grid = puzzles.genGrid(5, 5);
+	var grid = puzzles.genGrid(w, h);
 	var clues = grid.constrains.slice(0);
 	var l; 
 	
@@ -100,11 +100,31 @@ function tryfail () {
 	var r = puzzles.solve2(grid, clues);
 	console.log(r);
 	
-	var save = getSaveClues(grid);
-	
-	save(clues);
+	return clues;
 	 
 };
 
+function gen(w, h, n, max) {
+	var save = getSaveClues({w: w, h: h});
+	
+	while (n>0) {
+		var clues = tryfail(w,h);
+		
+		if (max === undefined) {
+			save(clues);
+			n--;
+		}
+		else if (clues.length < max) {
+			save(clues);
+			n--;
+		}
+	}
+}
 
-tryfail();
+gen(6,7,10);
+
+// gen(5,5,10, 18);
+// gen(6,6,10);
+// gen(7,7,10);
+
+
