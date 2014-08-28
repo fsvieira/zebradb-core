@@ -301,7 +301,8 @@ var constrains = {
 ...
 }
 </pre>
-So we call constrains[clue.type](grid, clue.a, clue.b), this function will create the new x variable with the correct domain for every variable.
+So we call 
+<pre>constrains[clue.type] (grid, clue.a, clue.b)</pre>,this function will create the new x variable with the correct domain for every variable.
 
 For example, if a is immediately to the left of b it means that in a grid of 5x5 "a" must be at possible x coordinates [0, 1, 2, 3] and "b" must be at [1, 2, 3, 4].
 After creating x variables with corresponding domains we can setup change event on both variables to update related variables, for example if "a" domain changes to [1, 2] than "b" domain must change to [2, 3] because we know that "b" must be immediately to the left of "a".
