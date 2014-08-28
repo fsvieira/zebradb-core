@@ -248,7 +248,10 @@ On the above case we have a clue with two variables "a" and "b", I call the "v" 
 The names of items are not important, what matters is that the same name refers to the same item.
 
 As I said before the goal of puzzle is to find all item positions, in our puzzles the "y" coordinate is already known and its saved on clue variable as property "y". You can thing of y as a class or group, for example in original zebra puzzle items are organized in category’s like: houses, people, animals, smokes and drinks.
+
+
 <h2>Solving</h2>
+
 Like I said before the goal of the puzzle is to find all item positions, we already know item y position so we only need to find out the x coordinate value.
 
 To solve the puzzle we are going to create a zebrajs variable (called x) for every clue variable, this variable will be initialized with the domain of all possible x coordinates and with appropriated change events for the item clue.
@@ -304,11 +307,10 @@ var constrains = {
 So we call 
 <pre>constrains[clue.type] (grid, clue.a, clue.b)</pre>,this function will create the new x variable with the correct domain for every variable.
 
-For example, if a is immediately to the left of b it means that in a grid of 5x5 "a" must be at possible x coordinates [0, 1, 2, 3] and "b" must be at [1, 2, 3, 4].
-After creating x variables with corresponding domains we can setup change event on both variables to update related variables, for example if "a" domain changes to [1, 2] than "b" domain must change to [2, 3] because we know that "b" must be immediately to the left of "a".
+For example, if a is immediately to the left of b it means that in a grid of 5x5 "a" must be at possible x coordinates 0, 1, 2, 3 and "b" must be at 1, 2, 3, 4.
+After creating x variables with corresponding domains we can setup change event on both variables to update related variables, for example if "a" domain changes to 1, 2 than "b" domain must change to 2, 3 because we know that "b" must be immediately to the left of "a".
 
 The last constrain that we need to setup on variables is that for every row "x" variable must have a distinct value, we can easily do it like this:
-<code>
 <pre>
         function setVars (a, b) {
 		if ((a && b) && (a.v!==b.v) && (a.y===b.y)){
@@ -333,7 +335,7 @@ The code simple compares all clue variables and if they have the same y value an
 
 Now that all variables are created with the correct constrains we just need to unify all equal variables (variables with same item name), we do it like this:
 
-</pre><pre>
+<pre>
         clues.forEach (function (clue, index) {
 		items[clue.a.v] = items[clue.a.v] || clue.a.x;
 		items[clue.a.v].unify(clue.a.x);
@@ -350,10 +352,10 @@ Well we have created all variables with the according constrains and domains dep
 
 A successful unified variable guaranties that no constrains on any unified variable are break and we can say that constrains are merged.
 
-For example, lets say that we have a item "var0_0" on a "middle" constrain with x domain  [1, 2, 3] and a immediately left constrain with same item "var0_0" and x domain [0, 1, 2, 3], 
+For example, lets say that we have a item "var0_0" on a "middle" constrain with x domain  1, 2, 3 and a immediately left constrain with same item "var0_0" and x domain 0, 1, 2, 3, 
 since the item is the same for both constrain variables we can unify the x variables and
  since x must be in the middle the result of "var0_0" x coordinates domain would be 
-[1, 2, 3], by continuing to unify equal variables we are limiting x coordinate values for that variable (item) and if we end up with only one possible value for x coordinate than 
+1, 2, 3, by continuing to unify equal variables we are limiting x coordinate values for that variable (item) and if we end up with only one possible value for x coordinate than 
 position is determined.
 
 
