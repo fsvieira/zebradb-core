@@ -262,14 +262,14 @@ var constrains = {
 ...
 "immediately to the left of": function (grid, a, b) {
 		var domain = [];
-		for (var i=0; i < grid .w-1; i++) {
+		for (var i=0; i &lt; grid .w-1; i++) {
 			domain.push(i);
 		}
 
 		a.x = v({domain:domain});
 		
 		var domain = [];
-		for (var i=1; i < grid.w; i++) {
+		for (var i=1; i &lt; grid.w; i++) {
 			domain.push(i);
 		}
 		
@@ -304,8 +304,11 @@ var constrains = {
 ...
 }
 </pre>
+
+
 So we call 
-<pre>constrains[clue.type] (grid, clue.a, clue.b)</pre>,this function will create the new x variable with the correct domain for every variable.
+<pre>
+constrains[clue.type] (grid, clue.a, clue.b)</pre>,this function will create the new x variable with the correct domain for every variable.
 
 For example, if a is immediately to the left of b it means that in a grid of 5x5 "a" must be at possible x coordinates 0, 1, 2, 3 and "b" must be at 1, 2, 3, 4.
 After creating x variables with corresponding domains we can setup change event on both variables to update related variables, for example if "a" domain changes to 1, 2 than "b" domain must change to 2, 3 because we know that "b" must be immediately to the left of "a".
@@ -318,9 +321,9 @@ The last constrain that we need to setup on variables is that for every row "x" 
 		}
 	};
 
-	for (var i=0; i < clues.length-1; i++) {
+	for (var i=0; i &lt; clues.length-1; i++) {
 		var clue1 = clues[i];
-		for (var j=i+1; j < clues .length; j++) {
+		for (var j=i+1; j &lt; clues .length; j++) {
 			var clue2 = clues[j];
 				
 			setVars(clue1.a, clue2.a);
