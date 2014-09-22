@@ -130,4 +130,32 @@ describe('Variable', function(){
 			should(a.getValue()).equal("blue");
 		});
 	});
-})
+	
+	describe('#onvalue()', function(){
+		it('should fire on value (once) when value is set', function(done) {
+			var a = v();
+			a.onvalue (function (a, value) {
+				should(a.getValue()).equal(value);
+				should(value).equal("blue");
+				done();
+			});
+			
+			a.setValue("blue");
+		});
+		
+		it('should fire on value (once) when value is found', function(done) {
+			var a = v({domain: ["blue", "yellow"]});
+			a.onvalue (function (a, value) {
+				should(a.getValue()).equal(value);
+				should(value).equal("blue");
+				done();
+			});
+			
+			a.setNoValue("yellow");
+		});
+	});
+
+});
+
+
+
