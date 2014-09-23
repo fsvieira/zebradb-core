@@ -14,7 +14,8 @@ function solve (filename, index) {
 	puzzles.solve(p.grid, puzzle.clues);
 };
 
-solve("puzzles/puzzles-5x5.json", 2);
+// solve("puzzles/puzzles-5x5.json", 2);
+solve("templates/template-2x2.json", 0);
 // solve("debug/debug-3x3.json", 0);
 
 

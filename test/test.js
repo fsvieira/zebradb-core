@@ -1,5 +1,6 @@
 var should = require("should");
-var v = require("../lib/variable").v;
+var Variable = require("../lib/variable");
+var v = Variable.v;
 
 describe('Variable', function(){
   describe('#getValue()', function(){
@@ -32,6 +33,22 @@ describe('Variable', function(){
 		should(v({domain: ["blue", "yellow"]}).unify(v({domain: ["blue", "yellow"]}))).equal(true);
 		should(v({domain: ["blue", "yellow", "red"]}).unify(v({domain: ["blue", "yellow", "white"]}))).equal(true);
 		should(v({domain: ["blue", "yellow"]}).unify(v({domain: ["red", "white"]}))).equal(false);
+	});
+	
+	it('should set values on unified variables', function () {
+		var a = v({domain: [1, 2, 3]});
+		var b = v();
+		var c = v({domain: [1, 2]});
+	
+		should(a.unify(b)).equal(true);
+		should(c.notUnify(b)).equal(true);
+
+		should(b.getValues()).eql([1, 2, 3]);
+
+		should(a.setValue(1)).equal(true);
+		should(a.getValue()).equal(1);
+		should(b.getValue()).equal(1);
+		should(c.getValue()).equal(2);
 	});
 	
 	it('should unify vars and setup domains', function () {
@@ -92,6 +109,47 @@ describe('Variable', function(){
 			var a = v({domain: ["blue"]});
 			var b = v({domain: ["blue"]});
 			should(a.notUnify(b)).equal(false);
+		});
+		
+		it('should use notUnify to make distinct variables', function () {
+			var a = v({domain: [0, 1, 2]});
+			var b = v({domain: [0, 1, 2]});
+			var c = v({domain: [0, 1, 2]});
+
+			should(a.getValue()).equal(undefined);
+			should(b.getValue()).equal(undefined);
+			should(c.getValue()).equal(undefined);
+
+			// a != b, a != c; b != c 
+			should(a.notUnify(b)).equal(true);
+			should(a.notUnify(c)).equal(true);
+			should(b.notUnify(c)).equal(true);
+
+			should(c.setValue(0)).equal(true);
+			should(a.getValues()).eql([1,2]);
+			should(b.getValues()).eql([1,2]);
+
+			should(a.getValue()).equal(undefined);
+			should(b.getValue()).equal(undefined);
+			should(c.getValue()).equal(0);
+			
+			should(a.setValue(2)).equal(true);
+			should(b.getValues()).eql([1]);
+
+			should(a.getValue()).equal(2);
+			should(b.getValue()).equal(1);
+			should(c.getValue()).equal(0);
+
+		});
+		
+		it('should set domain correct values when notUnify', function () {
+			var a = v({domain: [1]});
+			var b = v({domain: [0, 1]});
+
+			should(a.notUnify (b)).equal(true);
+			
+			should(a.getValue()).equal(1);
+			should(b.getValue()).equal(0);
 		});
 		
 	});

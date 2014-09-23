@@ -62,18 +62,23 @@ function getPuzzle (grid, clues) {
 
 
 function genPuzzles (filename) {
-	var template = puzzles.getJSON("templates/"+filename);
-	var grid = template.grid;
+	try {
+		var template = puzzles.getJSON("templates/"+filename);
+		var grid = template.grid;
 
-	console.log("=== Puzzle " + grid.w + "x" + grid.h + " ===");
-
-	template.solutions.forEach (function (clues, index) {
-		template.solutions[index] = getPuzzle(grid, clues);
-	});
-	
-	shuffle(template.solutions);
-	
-	fs.writeFileSync("puzzles/" + filename.replace("template", "puzzles"), JSON.stringify(template));
+		template.solutions.forEach (function (clues, index) {
+			template.solutions[index] = getPuzzle(grid, clues);
+		});
+		
+		shuffle(template.solutions);
+		
+		fs.writeFileSync("puzzles/" + filename.replace("template", "puzzles"), JSON.stringify(template));
+		console.log("Puzzle " + grid.w + "x" + grid.h + " Saved.");
+	}
+	catch (err) {
+		console.log("Cant generate puzzles from file: " + filename);
+		// console.log(err);
+	}
 }
 
 genPuzzles("template-2x2.json");

@@ -1,5 +1,7 @@
 var fs = require("fs");
-var v = require("../../lib/variable").v;
+var Variable = require("../../lib/variable");
+
+var v = Variable.v;
 
 function getJSON (filename) {
 	var template = JSON.parse(fs.readFileSync(filename));
@@ -192,11 +194,11 @@ var constrains = {
 		for (var i=0; i<grid.w; i++) {
 			domain.push(i);
 		}
-
+	
 		a.x = v({domain:domain});
 		b.x = v({domain:domain});
 		
-		b.x.change (function (a) {
+		b.x.ondomain (function (a) {
 			return function (b) {
 				var da = a.getValues();
 				var db = b.getValues();
@@ -212,7 +214,7 @@ var constrains = {
 			};
 		}(a.x));
 				
-		a.x.change (function (b) {
+		a.x.ondomain (function (b) {
 			return function (a) {
 				var da = a.getValues();
 				var db = b.getValues();
@@ -254,7 +256,7 @@ var constrains = {
 		
 		b.x = v({domain:domain});
 		
-		b.x.change (function (a) {
+		b.x.ondomain (function (a) {
 			return function (b) {
 				var da = a.getValues();
 				var db = b.getValues();
@@ -267,7 +269,7 @@ var constrains = {
 			};
 		}(a.x));
 				
-		a.x.change (function (b) {
+		a.x.ondomain (function (b) {
 			return function (a) {
 				var da = a.getValues();
 				var db = b.getValues();
@@ -289,7 +291,7 @@ var constrains = {
 		a.x = v({domain:domain});
 		b.x = v({domain:domain});
 		
-		b.x.change (function (a) {
+		b.x.ondomain (function (a) {
 			return function (b) {
 				var da = a.getValues();
 				var db = b.getValues();
@@ -302,7 +304,7 @@ var constrains = {
 			};
 		}(a.x));
 						
-		a.x.change (function (b) {
+		a.x.ondomain (function (b) {
 			return function (a) {
 				var da = a.getValues();
 				var db = b.getValues();
@@ -321,11 +323,13 @@ var constrains = {
 function setClueVars (grid, clues) {
 	clues.forEach (function (clue) {
 		constrains[clue.type](grid, clue.a, clue.b);
+		var a = clue.a;
+		var b = clue.b;
 	});
 	
 	function setVars (a, b) {
 		if ((a && b) && (a.v!==b.v) && (a.y===b.y)){
-			a.x.not_unify(b.x);
+			a.x.notUnify(b.x);
 		}
 	};
 
@@ -333,7 +337,6 @@ function setClueVars (grid, clues) {
 		var clue1 = clues[i];
 		for (var j=i+1; j<clues.length; j++) {
 			var clue2 = clues[j];
-				
 			setVars(clue1.a, clue2.a);
 			setVars(clue1.a, clue2.b);
 			setVars(clue1.b, clue2.a);
@@ -421,32 +424,7 @@ function countItems (clues) {
 	return items.length;
 };
 
-function saveAndLoad (vars) {
-	var stack = [];
 
-	function save () {
-		var save = [];
-		var check = [];
-		vars.forEach (function (v) {
-			if (check.indexOf(v.share) === -1){
-				save.push(v.cloneShare());
-			}
-		});
-		
-		stack.push(save);
-	}
-
-	function load () {
-		var load = stack.pop();
-		load.forEach (function (share) {
-			share.equal.forEach(function (v) {
-				v.share = share;
-			});
-		});
-	};
-
-	return {load: load, save: save};
-};
 
 function clueToString (clue, index) {
 	var r = "Clue " + index + " " + clue.type +": (" + clue.a.v + (clue.a.x? ", [" + clue.a.x.getValues() + "], ":", ") + clue.a.y + ")";
@@ -537,20 +515,19 @@ function solve (grid, clues) {
 	var items = {}, vars;
 
 	setClueVars(grid, clues);
+
 	vars = getVars(clues);
 	var valuesCountStart = countVarValues (vars);
 	
-	console.log("=== start === ");
-	showState(grid, clues);
 
-	var sl = saveAndLoad(vars);
-		
+	var sl = Variable.saveAndLoad(vars);
 		
 	clues.forEach (function (clue, index) {
 		clueToString(clue, index);
 			
 		items[clue.a.v] = items[clue.a.v] || clue.a.x;
 		items[clue.a.v].unify(clue.a.x);
+		
 		if (clue.b) {
 			items[clue.b.v] = items[clue.b.v] || clue.b.x;	
 			items[clue.b.v].unify(clue.b.x);
@@ -560,7 +537,7 @@ function solve (grid, clues) {
 	vars.forEach (function (v) {
 		v.tryValues(sl);
 	});
-		
+
 	var valuesCountEnd = countVarValues (vars);
 
 	console.log("=== Solution ===");
@@ -570,14 +547,11 @@ function solve (grid, clues) {
 		clueToString(clue, index);
 	});
 		
-	// console.log(valuesCountEnd);
-		
 	console.log("=== Solution End ===");
 
 	var stateDebug = fillState(grid, clues);
 	var count = countValues(stateDebug.state);
 
-	// var vcount = 1 - (count + valuesCountEnd) / (valuesCountStart + grid.w*grid.h);
 	var vcount = stats(clues, grid);
 
 	return {vcount: vcount, solution: (count === grid.w*grid.h)};

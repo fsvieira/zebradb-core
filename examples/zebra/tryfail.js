@@ -121,6 +121,7 @@ function gen(w, h, n, max) {
 	}
 }
 
+// gen(2,2,1);
 // gen(5,6,10);
 
 gen(5,5,10, 18);
