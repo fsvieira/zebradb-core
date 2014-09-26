@@ -1,5 +1,6 @@
 var should = require("should");
 var Variable = require("../lib/variable");
+var backtrack = require("../lib/backtrack");
 
 
 describe('Variable', function(){
@@ -322,6 +323,25 @@ describe('Variable', function(){
 		allBrave (solution.rows);
 		allBrave (solution.cols);
 		allBrave (solution.dig);
+	});
+	
+	describe('#backtrack', function(){
+		it("should generate all binary values [0, 1, 2, 3]", function () {
+			var factory = new Variable();  
+			var v = factory.v;
+  
+			var a = v({domain: [0, 1]});
+			var b = v({domain: [0, 1]});
+
+			var numbers = [];
+			function number() {
+				numbers.push(a.getValue() * 2 + b.getValue());
+			};
+
+			backtrack (factory, number);
+			
+			should(numbers).eql([0, 1, 2, 3]);
+		});
 	});
 });
 
