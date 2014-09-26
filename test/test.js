@@ -1,10 +1,11 @@
 var should = require("should");
 var Variable = require("../lib/variable");
-var v = Variable.v;
+
 
 describe('Variable', function(){
   describe('#getValue()', function(){
     it('should return variable init value', function() {
+		var v = new Variable().v;
 		should(v().getValue()).equal(undefined);
 		should(v({domain: ["blue"]}).getValue()).equal("blue");
 		should(v({domain: [5]}).getValue()).be.exactly(5).and.be.a.Number;
@@ -18,6 +19,7 @@ describe('Variable', function(){
   
   describe('#getValues()', function(){
     it('should return variable init domain', function() {
+		var v = new Variable().v;
 		should(v().getValues()).be.instanceof(Array).and.have.lengthOf(0);
 		should(v({domain: ["blue", "yellow"]}).getValues()).be.instanceof(Array).and.have.lengthOf(2);
     })
@@ -25,6 +27,7 @@ describe('Variable', function(){
   
   describe('#unify()', function(){
     it('should return true if unify ok, otherwise false', function() {
+		var v = new Variable().v;
 		should(v().unify(v())).equal(true);
 		should(v().unify(v({domain: ["blue"]}))).equal(true);
 		should(v({domain: ["blue"]}).unify(v())).equal(true);
@@ -36,6 +39,7 @@ describe('Variable', function(){
 	});
 	
 	it('should set values on unified variables', function () {
+		var v = new Variable().v;
 		var a = v({domain: [1, 2, 3]});
 		var b = v();
 		var c = v({domain: [1, 2]});
@@ -52,6 +56,7 @@ describe('Variable', function(){
 	});
 	
 	it('should unify vars and setup domains', function () {
+		var v = new Variable().v;
 		var a = v();
 		should(a.unify(v({domain: ["blue"]}))).equal(true);
 		should(a.getValue()).equal("blue");
@@ -73,6 +78,7 @@ describe('Variable', function(){
   
 	describe('#notUnify()', function(){
 		it('should notUnify by ref', function() {
+			var v = new Variable().v;
 			var a = v();
 			var b = v();
 			should(a.notUnify(b)).equal(true);
@@ -88,6 +94,7 @@ describe('Variable', function(){
 		});
 		
 		it('should notUnify by value', function() {
+			var v = new Variable().v;
 			var a = v({domain: ["blue"]});
 			var b = v({domain: ["yellow"]});
 			should(a.notUnify(b)).equal(true);
@@ -106,12 +113,14 @@ describe('Variable', function(){
 		});
 		
 		it('should not notUnify by value', function() {
+			var v = new Variable().v;
 			var a = v({domain: ["blue"]});
 			var b = v({domain: ["blue"]});
 			should(a.notUnify(b)).equal(false);
 		});
 		
 		it('should use notUnify to make distinct variables', function () {
+			var v = new Variable().v;
 			var a = v({domain: [0, 1, 2]});
 			var b = v({domain: [0, 1, 2]});
 			var c = v({domain: [0, 1, 2]});
@@ -163,6 +172,7 @@ describe('Variable', function(){
 		});
 		
 		it('should set domain correct values when notUnify', function () {
+			var v = new Variable().v;
 			var a = v({domain: [1]});
 			var b = v({domain: [0, 1]});
 
@@ -176,6 +186,7 @@ describe('Variable', function(){
   
 	describe('#setValue()', function(){
 		it('should return true if setValue ok, otherwise false', function() {
+			var v = new Variable().v;
 			var a=v();
 			should(a.setValue("a")).equal(true);
 			should(a.getValue("a")).equal("a");
@@ -201,6 +212,7 @@ describe('Variable', function(){
 	
 	describe('#setNoValue()', function(){
 		it('should return true if setValue ok, otherwise false', function() {
+			var v = new Variable().v;
 			var a = v({domain: ["yellow", "blue", "red"]});
 			should(a.getValue()).equal(undefined);
 			should(a.setNoValue("yellow")).equal(true);
@@ -211,6 +223,7 @@ describe('Variable', function(){
 	
 	describe('#onvalue()', function(){
 		it('should fire on value (once) when value is set', function(done) {
+			var v = new Variable().v;
 			var a = v();
 			a.onvalue (function (a, value) {
 				should(a.getValue()).equal(value);
@@ -222,6 +235,7 @@ describe('Variable', function(){
 		});
 		
 		it('should fire on value (once) when value is found', function(done) {
+			var v = new Variable().v;
 			var a = v({domain: ["blue", "yellow"]});
 			a.onvalue (function (a, value) {
 				should(a.getValue()).equal(value);
@@ -234,9 +248,9 @@ describe('Variable', function(){
 	});
 
 	it("should solve brave puzzle", function () {
-		/*
-		 * Every row, column AND the main diagonals contain all the letters in the word "BRAVE".
-		 */
+		// Every row, column AND the main diagonals contain all the letters in the word "BRAVE".
+
+		var v = new Variable().v;
 		var brave = [
 			"B", "R", "A", "V", "E",
 			"" , "E", "B", "R", "" ,
@@ -309,7 +323,6 @@ describe('Variable', function(){
 		allBrave (solution.cols);
 		allBrave (solution.dig);
 	});
-
 });
 
 

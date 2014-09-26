@@ -1,7 +1,9 @@
 var fs = require("fs");
 var Variable = require("../../lib/variable");
+var backtrack = require("../../lib/backtrack");
 
-var v = Variable.v;
+var factory = new Variable();
+var v = factory.v;
 
 function getJSON (filename) {
 	var template = JSON.parse(fs.readFileSync(filename));
@@ -519,9 +521,6 @@ function solve (grid, clues) {
 	vars = getVars(clues);
 	var valuesCountStart = countVarValues (vars);
 	
-
-	var sl = Variable.saveAndLoad(vars);
-		
 	clues.forEach (function (clue, index) {
 		clueToString(clue, index);
 			
@@ -534,9 +533,9 @@ function solve (grid, clues) {
 		}
 	});
 
-	vars.forEach (function (v) {
-		v.tryValues(sl);
-	});
+	if (countVarValues (vars) > grid.w*grid.h) {
+		factory.tryValues();
+	}
 
 	var valuesCountEnd = countVarValues (vars);
 
