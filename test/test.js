@@ -247,82 +247,84 @@ describe('Variable', function(){
 			a.setNoValue("yellow");
 		});
 	});
+	
+	describe('#puzzles', function(){
+		it("should solve brave puzzle", function () {
+			// Every row, column AND the main diagonals contain all the letters in the word "BRAVE".
 
-	it("should solve brave puzzle", function () {
-		// Every row, column AND the main diagonals contain all the letters in the word "BRAVE".
-
-		var v = new Variable().v;
-		var brave = [
-			"B", "R", "A", "V", "E",
-			"" , "E", "B", "R", "" ,
-			"" , "" , "V", "" , "B",
-			"" , "B", "R", "" , "" ,
-			"" , "" , "E", "B", "" 			
-		];
-		
-		var solution = {
-			rows: {},
-			cols: {},
-			dig: {a: [], b: []},
-			all: []
-		};
-		
-		brave.forEach (function (letter, index) {
-			var y = Math.floor(index/5);
-			var x = index - y*5;
-			var p = v((letter==="")?{domain: ["B", "R", "A", "V", "E"]}:{domain: [letter]});
+			var v = new Variable().v;
+			var brave = [
+				"B", "R", "A", "V", "E",
+				"" , "E", "B", "R", "" ,
+				"" , "" , "V", "" , "B",
+				"" , "B", "R", "" , "" ,
+				"" , "" , "E", "B", "" 			
+			];
 			
-			(solution.rows[y] = solution.rows[y] || []).push(p);
-			(solution.cols[x] = solution.cols[x] || []).push(p);
-			solution.all.push(p);
+			var solution = {
+				rows: {},
+				cols: {},
+				dig: {a: [], b: []},
+				all: []
+			};
 			
-			if (x === y) {solution.dig.a.push(p);}
-			if (x === (4-y)) {solution.dig.b.push(p);}
+			brave.forEach (function (letter, index) {
+				var y = Math.floor(index/5);
+				var x = index - y*5;
+				var p = v((letter==="")?{domain: ["B", "R", "A", "V", "E"]}:{domain: [letter]});
+				
+				(solution.rows[y] = solution.rows[y] || []).push(p);
+				(solution.cols[x] = solution.cols[x] || []).push(p);
+				solution.all.push(p);
+				
+				if (x === y) {solution.dig.a.push(p);}
+				if (x === (4-y)) {solution.dig.b.push(p);}
 
-		});
-		
-		function distinct (groups) {
-			for (var g in groups) {
-				var vars = groups[g];
+			});
+			
+			function distinct (groups) {
+				for (var g in groups) {
+					var vars = groups[g];
 
-				// mk all vars in this group distinct,
-				for (var i=0; i!==vars.length; i++) {
-					var a = vars[i];
-					for (var j=i+1; j!==vars.length; j++) {
-						var b = vars[j];
-						should(a.notUnify(b)).equal(true);
+					// mk all vars in this group distinct,
+					for (var i=0; i!==vars.length; i++) {
+						var a = vars[i];
+						for (var j=i+1; j!==vars.length; j++) {
+							var b = vars[j];
+							should(a.notUnify(b)).equal(true);
+						}
 					}
 				}
 			}
-		}
-		
-		distinct (solution.rows);
-		distinct (solution.cols);
-		distinct (solution.dig);
-
-		function isBrave (vars) {
-			var is = [];
 			
-			vars.forEach (function (v) {
-				is.push(v.getValue());
-			});
-			
-			is.sort(function (a, b) {
-				return b < a;
-			});
-		
-			return is;
-		};
+			distinct (solution.rows);
+			distinct (solution.cols);
+			distinct (solution.dig);
 
-		function allBrave (groups) {
-			for (var g in groups) {
-				should(isBrave(groups[g])).eql(["A", "B", "E", "R", "V"]);
-			}
-		};
-		
-		allBrave (solution.rows);
-		allBrave (solution.cols);
-		allBrave (solution.dig);
+			function isBrave (vars) {
+				var is = [];
+				
+				vars.forEach (function (v) {
+					is.push(v.getValue());
+				});
+				
+				is.sort(function (a, b) {
+					return b < a;
+				});
+			
+				return is;
+			};
+
+			function allBrave (groups) {
+				for (var g in groups) {
+					should(isBrave(groups[g])).eql(["A", "B", "E", "R", "V"]);
+				}
+			};
+			
+			allBrave (solution.rows);
+			allBrave (solution.cols);
+			allBrave (solution.dig);
+		});
 	});
 	
 	describe('#backtrack', function(){
