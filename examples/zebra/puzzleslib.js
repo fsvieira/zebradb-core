@@ -204,15 +204,18 @@ var constrains = {
 			return function (b) {
 				var da = a.getValues();
 				var db = b.getValues();
-						
+				var ok = true;
+				
 				da.forEach (function (x) {
 					if (
 						(db.indexOf(x+1) === -1)
 						&& (db.indexOf(x-1) === -1)
 					) {
-						a.setNoValue(x);
+						ok = ok && a.setNoValue(x);
 					}
 				});
+				
+				return ok;
 			};
 		}(a.x));
 				
@@ -220,15 +223,18 @@ var constrains = {
 			return function (a) {
 				var da = a.getValues();
 				var db = b.getValues();
+				var ok = true;
 						
 				db.forEach (function (x) {
 					if (
 						(da.indexOf(x-1) === -1)
 						&& (da.indexOf(x+1) === -1)
 					) {
-						b.setNoValue(x);
+						ok = ok && b.setNoValue(x);
 					}
 				});
+				
+				return ok;
 			};
 		}(b.x));
 		
@@ -262,12 +268,14 @@ var constrains = {
 			return function (b) {
 				var da = a.getValues();
 				var db = b.getValues();
-
+				var ok = true;
 				da.forEach (function (x) {
 					if (db.indexOf(x+1) === -1) {
-						a.setNoValue(x);
+						ok = ok && a.setNoValue(x);
 					}
 				});
+				
+				return ok;
 			};
 		}(a.x));
 				
@@ -275,12 +283,15 @@ var constrains = {
 			return function (a) {
 				var da = a.getValues();
 				var db = b.getValues();
-
+				var ok = true;
+				
 				db.forEach (function (x) {
 					if (da.indexOf(x-1) === -1) {
-						b.setNoValue(x);
+						ok = ok && b.setNoValue(x);
 					}
 				});
+				
+				return ok;
 			};
 		}(b.x));
 	},
@@ -297,12 +308,15 @@ var constrains = {
 			return function (b) {
 				var da = a.getValues();
 				var db = b.getValues();
+				var ok = true;
 								
 				da.forEach (function (x) {
 					if (db.indexOf(x) === -1) {
-						a.setNoValue(x);
+						ok = ok && a.setNoValue(x);
 					}
 				});
+				
+				return ok;
 			};
 		}(a.x));
 						
@@ -310,12 +324,15 @@ var constrains = {
 			return function (a) {
 				var da = a.getValues();
 				var db = b.getValues();
+				var ok = true;
 								
 				db.forEach (function (x) {
 					if (da.indexOf(x) === -1) {
-						b.setNoValue(x);
+						ok = ok && b.setNoValue(x);
 					}
 				});
+				
+				return ok;
 			};
 		}(b.x));
 	}
@@ -533,8 +550,10 @@ function solve (grid, clues) {
 		}
 	});
 
+	// TODO: try to find early solution, cut list on there.
+
 	if (countVarValues (vars) > grid.w*grid.h) {
-		factory.tryValues();
+		factory.tryValues(); // TODO: change this to backtrack, check if is able to find a solution with only the tested vars.
 	}
 
 	var valuesCountEnd = countVarValues (vars);

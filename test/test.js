@@ -26,10 +26,48 @@ describe('Variable', function(){
     })
   });
   
+  	describe('#setValue()', function(){
+		it('should return true if setValue ok, otherwise false', function() {
+			var v = new Variable().v;
+			var a=v();
+			should(a.setValue("a")).equal(true);
+			should(a.getValue()).equal("a");
+			
+			var a = v();
+			should(a.setValue(1)).equal(true);
+			should(a.getValue()).be.exactly(1).and.be.a.Number;
+			
+			var a = v({domain: [1, 2, 3]});
+			should(a.setValue(1)).equal(true);
+			should(a.getValue()).be.exactly(1).and.be.a.Number;
+			
+			var a = v({domain: [2, 3]});
+			should(a.setValue(1)).equal(false);
+			should(a.getValue()).equal(undefined);
+			should(a.getValues().indexOf(2) !== -1).equal(true);
+			should(a.getValues().indexOf(3) !== -1).equal(true);
+			should(a.getValues().indexOf(1) !== -1).equal(false);
+			should(a.getValues().indexOf("2") !== -1).equal(false);
+			
+		});
+	});
+	
+	describe('#setNoValue()', function(){
+		it('should afect variable domain when setting no values.', function() {
+			var v = new Variable().v;
+			var a = v({domain: ["yellow", "blue", "red"]});
+			should(a.getValue()).equal(undefined);
+			should(a.setNoValue("yellow")).equal(true);
+			should(a.setNoValue("red")).equal(true);
+			should(a.getValue()).equal("blue");
+		});
+	});
+  
   describe('#unify()', function(){
     it('should return true if unify ok, otherwise false', function() {
 		var v = new Variable().v;
 		should(v().unify(v())).equal(true);
+		should(v({domain: ["blue"]}).unify(v())).equal(true);
 		should(v().unify(v({domain: ["blue"]}))).equal(true);
 		should(v({domain: ["blue"]}).unify(v())).equal(true);
 		should(v({domain: ["blue"]}).unify(v({domain: ["blue"]}))).equal(true);
@@ -38,7 +76,7 @@ describe('Variable', function(){
 		should(v({domain: ["blue", "yellow", "red"]}).unify(v({domain: ["blue", "yellow", "white"]}))).equal(true);
 		should(v({domain: ["blue", "yellow"]}).unify(v({domain: ["red", "white"]}))).equal(false);
 	});
-	
+		
 	it('should set values on unified variables', function () {
 		var v = new Variable().v;
 		var a = v({domain: [1, 2, 3]});
@@ -46,14 +84,24 @@ describe('Variable', function(){
 		var c = v({domain: [1, 2]});
 	
 		should(a.unify(b)).equal(true);
-		should(c.notUnify(b)).equal(true);
-
+		should(a.getValues()).eql([1, 2, 3]);
 		should(b.getValues()).eql([1, 2, 3]);
+		should(c.getValues()).eql([1, 2]);
+		
+		should(a.unify(c)).equal(true);
+		should(a.getValues()).eql([1, 2]);
+		should(b.getValues()).eql([1, 2]);
+		should(c.getValues()).eql([1, 2]);
 
 		should(a.setValue(1)).equal(true);
+
 		should(a.getValue()).equal(1);
 		should(b.getValue()).equal(1);
-		should(c.getValue()).equal(2);
+		should(c.getValue()).equal(1);
+
+		should(a.getValues()).eql([1]);
+		should(b.getValues()).eql([1]);
+		should(c.getValues()).eql([1]);
 	});
 	
 	it('should unify vars and setup domains', function () {
@@ -92,6 +140,17 @@ describe('Variable', function(){
 			should(a.notUnify(b)).equal(true);
 			should(b.unify(c)).equal(true);
 			should(a.unify(c)).equal(false);
+		});
+		
+		it('should afect not unify variables with values.', function () {
+			var v = new Variable().v;
+
+			var a = v({domain: [1]});
+			var b = v({domain: [1, 2]});
+			
+			should(b.notUnify(a)).equal(true);
+			should(a.getValue()).equal(1);
+			should(b.getValue()).equal(2);
 		});
 		
 		it('should notUnify by value', function() {
@@ -184,43 +243,29 @@ describe('Variable', function(){
 		});
 		
 	});
-  
-	describe('#setValue()', function(){
-		it('should return true if setValue ok, otherwise false', function() {
+ 	
+	// --- 
+	describe("#unify() and #notUnify()", function (){
+		it('should propagate values to unified and not unified vars', function() {
 			var v = new Variable().v;
-			var a=v();
-			should(a.setValue("a")).equal(true);
-			should(a.getValue("a")).equal("a");
-			
-			var a = v();
-			should(a.setValue(1)).equal(true);
-			should(a.getValue()).be.exactly(1).and.be.a.Number;
-			
 			var a = v({domain: [1, 2, 3]});
+			var b = v();
+			var c = v({domain: [1, 2]});
+		
+			should(a.unify(b)).equal(true);
+			should(c.getValues()).eql([1, 2]);
+
+			should(c.notUnify(b)).equal(true);
+
+			should(b.getValues()).eql([1, 2, 3]);
+			should(c.getValues()).eql([1, 2]);
+
 			should(a.setValue(1)).equal(true);
-			should(a.getValue()).be.exactly(1).and.be.a.Number;
-			
-			var a = v({domain: [2, 3]});
-			should(a.setValue(1)).equal(false);
-			should(a.getValue()).equal(undefined);
-			should(a.getValues().indexOf(2) !== -1).equal(true);
-			should(a.getValues().indexOf(3) !== -1).equal(true);
-			should(a.getValues().indexOf(1) !== -1).equal(false);
-			should(a.getValues().indexOf("2") !== -1).equal(false);
-			
+			should(a.getValue()).equal(1);
+			should(b.getValue()).equal(1);
+			should(c.getValue()).equal(2);
 		});
-	});
-	
-	describe('#setNoValue()', function(){
-		it('should return true if setValue ok, otherwise false', function() {
-			var v = new Variable().v;
-			var a = v({domain: ["yellow", "blue", "red"]});
-			should(a.getValue()).equal(undefined);
-			should(a.setNoValue("yellow")).equal(true);
-			should(a.setNoValue("red")).equal(true);
-			should(a.getValue()).equal("blue");
-		});
-	});
+	}); 
 	
 	describe('#onvalue()', function(){
 		it('should fire on value (once) when value is set', function(done) {
