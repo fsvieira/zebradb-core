@@ -1,3 +1,4 @@
+// var Variable = require("../../lib/variable");
 var Variable = require("../../lib/variable");
 var backtrack = require("../../lib/backtrack");
 

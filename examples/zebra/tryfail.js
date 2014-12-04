@@ -75,30 +75,29 @@ function tryfail (w, h, max) {
 	var l; 
 	
 	do {
-		l = clues.length; 
 		shuffle(clues);
-	
-		for (var i=0; i<clues.length; i++) {
-			var cs = clues.slice(0);
+		l = clues.length; 
+
+		for (var i=clues.length-1; i>=0; i--) {
+			var r = puzzles.solve(grid, clues, i);
+
+			console.log("i = " + i + ", r = " + r);
 			
-			cs.splice(i, 1);
-			
-			var r = puzzles.solve(grid, cs);
-			
-			if (r.solution) {
-				console.log("FOUND SOLUTION!! ==> " + cs.length);
-				clues = cs;
-				break;
+			if (r) {
+				clues.splice(r+1, clues.length);
+				
+				if (i < clues.length) {
+					clues.splice(i, 1); // remove element
+				}
+				
+				i=r;
 			}
 		}
-		
-		console.log(l + "%");
+
+		console.log(l + ", clues = " + clues.length);
 	} while (l > clues.length);
 	
 	console.log("==> " + clues.length);
-	
-	var r = puzzles.solve(grid, clues);
-	console.log(r);
 	
 	return clues;
 	 
@@ -124,7 +123,7 @@ function gen(w, h, n, max) {
 // gen(2,2,1);
 // gen(5,6,10);
 
-gen(5,5,10, 18);
+gen(5,5,1);
 // gen(6,6,10);
 // gen(7,7,10);
 
