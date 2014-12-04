@@ -179,6 +179,18 @@ describe('Variable', function(){
 			should(a.notUnify(b)).equal(false);
 		});
 		
+		it('should not let to set same value as a notUnify variable', function () {
+			var v = new Variable().v;
+			var a = v();
+			var b = v({domain: ["yellow"]});
+			should(a.notUnify(b)).equal(true);
+			should(a.setValue("yellow")).equal(false);
+			
+			var c = v({domain: ["yellow", "blue"]});
+			should(c.notUnify(b)).equal(true);
+			should(c.setValue("yellow")).equal(false);
+		});
+		
 		it('should use notUnify to make distinct variables', function () {
 			var v = new Variable().v;
 			var a = v({domain: [0, 1, 2]});

@@ -203,28 +203,7 @@ function add_print (p, q, r) {
 
 };
 
-
-// var add = ADD(v(), v(), v(), v(), v(), print); add();
-
-// var add = ADDn(fromNumber(undefined, 4), fromNumber(undefined, 4), fromNumber(undefined, 5), add_print); add();
-
-// TODO: -14 + -9 = 9 (mal).
-// var a = add(4, 5, 9, 5, add_print); a();
-// var a = add(undefined, 5, 9, 5, add_print); a();
-// var a = add(4, undefined, 9, 5, add_print); a();
 var a = add(undefined, undefined, 9, 5, add_print); a();
-/*
-var a = add(4, 5, undefined, 5, add_print); a();
-var a = add(undefined, 5, undefined, 5, add_print); a();
-*/
-
-/*
-  11001 
-+ 10000
--------
-1.01001
-0.10111 = 7 + 16 = 23 
-*/
 
 function mul_print (p, q, r) {
 	var _p = toNumber(p, true);
@@ -233,8 +212,6 @@ function mul_print (p, q, r) {
 
 	console.log(_p + " * " + _q + " = " + _r);
 };
-
-// var m = MULn(fromNumber(undefined, 2), fromNumber(2, 2), fromNumber(4, 4), mul_print); m();
 
 var x = fromNumber(undefined, 3);
 var raiz = MULn(x, x, fromNumber(16, 6), mul_print); raiz();
@@ -247,12 +224,6 @@ var r1 = fromNumber(undefined, digits);
 var c  = fromNumber(undefined, digits);
 var r  = fromNumber(10, digits);
 
-/*var add3 = ADDn (a, b, r1, ADDn(r1, c, r, function () {
-	console.log(toNumber(a) + " + " + toNumber(b) + " + " + toNumber(c) + " = " + toNumber(r)); 
-}));
-
-add3();
-*/
 
 var add3 = ADDn (a, b, r1, MULn(r1, c, r, function () {
 	console.log("(" + toNumber(a) + " + " + toNumber(b) + ") * " + toNumber(c) + " = " + toNumber(r)); 
