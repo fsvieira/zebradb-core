@@ -17,6 +17,12 @@ function Variable (name) {
 	};
 }
 
+/* Reference Def */
+function Reference (object, context) {
+	this.object = object;
+	this.context = context;
+}
+
 /* ToString */
 Constant.prototype.toString = function () {
 	return this.value;
@@ -37,6 +43,7 @@ Tuple.prototype.toString = function () {
 Variable.prototype.toString = function () {
 	return "'" + this.name;
 };
+
 
 /* Get Value */
 /* Get Value Constant */
@@ -62,13 +69,6 @@ Variable.prototype.getValue = function (stop) {
 		}
 	}
 };
-
-
-/* Ref */
-function Reference (obj, ctx) {
-	this.obj = obj;
-	this.context = ctx;
-}
 
 
 
