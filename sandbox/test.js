@@ -4,24 +4,114 @@ function Constant (value) {
 }
 
 /* Tuple Def */
-function Tuple (tuple) {
+function Tuple (tuple, context) {
 	this.tuple = tuple;
+	this.context = context;
 }
 
 /* Variable Def */
-function Variable (name) {
+function Variable (name, context) {
 	this.name = name;
 	this.share = {
 		equals: [this],
 		notEquals: []
 	};
-}
 
-/* Reference Def */
-function Reference (object, context) {
-	this.object = object;
 	this.context = context;
 }
+
+/* Context Def */ 
+function Context () {
+	this.variables = {};
+	this.versions = [];
+}
+
+Context.prototype.commit = function () {
+	/* TODO: save share, not vars */
+	
+	var versionVars = [];
+	var update = false;
+	for (var id in this.variables) {
+		var v = this.variables[id];
+		update = update || v.share.update;
+		
+		if (versionVars.indexOf(v.cloneShare()) !== -1) {
+			versionVars.push(v.cloneShare());
+		}
+	}
+	
+	
+	if (update) {
+		this.versions.push(versionVars);
+	}
+	
+	return this.versions.length - 1;
+};
+
+Context.prototype.revert = function (version) {
+	version = version || this.versions.length - 1;
+	
+	if (version < this.versions.length) {
+		var versionVars = this.versions[version];
+		this.versions.length = version;
+		
+		for (var share in versionVars) {
+			share.equals.forEach(function (equal) {
+				equal.share = share;
+			});
+		}
+		
+	}
+};
+
+Context.prototype.get = function (v) {
+	var variable;
+	if (v.name) {
+		variable = new Variable(); // create new anonymous variables,
+	}
+	else {
+		variable = this.variables[v.name];
+		
+		if (!variable) {
+			variable = new Variable(v.name, this);
+		}
+	}
+	
+	return variable;
+};
+
+/* TODO: make this function internal, always make a clone if object as no context 
+   (except for constants that cant be changed.)
+*/
+Constant.prototype.clone = function () {
+	return this;
+};
+
+Tuple.prototype.clone = function (context) {
+	if (this.context) {
+		return this;
+	}
+	else {
+		var tuple = [];
+		
+		context = context || new Context();
+		for (var i=0;i<this.tuple.length; i++) {
+			tuple.push(this.tuple[i].clone(context));
+		}
+		
+		return new Tuple(tuple, context);
+	}
+};
+
+Variable.prototype.clone = function (context) {
+	if (this.context) {
+		return this;
+	}
+	else {
+		context = context || new Context();
+		return context.get(this);
+	}
+};
 
 /* ToString */
 Constant.prototype.toString = function () {
@@ -89,20 +179,34 @@ Constant.prototype.unify = function (v) {
 /* Unify Tuple */
 Tuple.prototype.unify = function (v) {
 	if (v instanceof Tuple) {
-		var tupleA = v.getValue();
-		var tupleB = this.getValue();
+		var tupleA = v.clone().getValue();
+		var tupleB = this.clone().getValue();
+		
+		var versionA = tupleA.context.commit();
+		var versionB = tupleB.context.commit();
+		
 		if (tupleA.length === tupleB.length) {
 			for (var i=0; i<tupleA.length; i++) {
 				if (!tupleA[i].unify(tupleB[i])) {
+					tupleA.context.revert(versionA);
+					tupleB.context.revert(versionB);
 					return false;
 				}
 			}
-			
+
+			tupleA.context.remove(versionA);
+			tupleB.context.remove(versionB);
+
+
 			return true;
 		}
+
+		tupleA.context.revert(versionA);
+		tupleB.context.revert(versionB);
+
 	}
 	else if (v instanceof Variable) {
-		return v.unify(this);
+		return v.clone().unify(this);
 	}
 	
 	// Tuple can't unify with anything else.
@@ -166,8 +270,8 @@ Variable.prototype.notUnify = function (v) {
 Tuple.prototype.notUnify = function (v) {
 	if (v instanceof Tuple) {
 		/* TODO: revert all changes even on success */
-		var tupleA = v.getValue();
-		var tupleB = this.getValue();
+		var tupleA = v.clone().getValue();
+		var tupleB = this.clone().getValue();
 		if (tupleA.length === tupleB.length) {
 			for (var i=0; i<tupleA.length; i++) {
 				if (tupleA[i].notUnify(tupleB[i])) {
@@ -179,12 +283,26 @@ Tuple.prototype.notUnify = function (v) {
 		}
 	}
 	else if (v instanceof Variable) {
-		return v.notUnify(this);
+		return v.clone().notUnify(this);
 	}
 	
 	// Tuple are not-unfiable with anything else.
 	return true;
 	
+};
+
+/* Variable clone share */
+Variable.prototype.cloneShare = function () {
+	if (!this.share._clone || this.share.update) {
+		this.share._clone = {
+			equals: this.share.equals.slice(0),
+			notEquals: this.share.notEquals.slice(0),
+		};
+		
+		this.share.update = false;
+	}
+	
+	return this.share._clone;
 };
 
 
