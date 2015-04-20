@@ -8,7 +8,7 @@ var ZQuery = require("../lib/zquery");
 
 describe('Prolog examples port Tests.', function() {
     describe('Simple Facts', function() {
-        /*it('Should query people about what they like.', function () {
+        it('Should query people about what they like.', function () {
             
             //    likes(mary,food).
             //    likes(mary,wine).
@@ -63,60 +63,106 @@ describe('Prolog examples port Tests.', function() {
                 "(mary likes 'stuff = wine)",
             ]);
             
-        });*/
+        });
         
         it('Should query people about what they like (Extended).', function () {
-            /*
-            How do you add the following facts?
+            // How do you add the following facts?
             
-            likes(mary,food).
-            likes(mary,wine).
-            likes(john,wine).
-            likes(john,mary).
+            // likes(mary,food).
+            // likes(mary,wine).
+            // likes(john,wine).
+            // likes(john,mary).
                 
-            1. John likes anything that Mary likes 
-            2. John likes anyone who likes wine 
-            3. John likes anyone who likes themselves
-            */
-            var run = new ZQuery.Run(
+            var result, run;
+            
+            run = new ZQuery.Run(
                 Z.d(
                     Z.t(Z.c("mary"), Z.c("likes"), Z.c("food"), Z.v()), // likes(mary,food).
                     Z.t(Z.c("mary"), Z.c("likes"), Z.c("wine"), Z.v()), // likes(mary,wine).
                     Z.t(Z.c("john"), Z.c("likes"), Z.c("wine"), Z.v()), // likes(john,wine).
                     Z.t(Z.c("john"), Z.c("likes"), Z.c("mary"), Z.v()), // likes(john,mary).
+
+                    // 1. John likes anything that Mary likes 
                     Z.t(
                         Z.c("john"), Z.c("likes"), Z.v("stuff"),
                         Z.t(
-                            Z.c("mary"), Z.c("likes"), Z.v("stuff")
+                            Z.c("mary"), Z.c("likes"), Z.v("stuff"), Z.v()
+                        )
+                    ),
+                    
+                    // 2. John likes anyone who likes wine 
+                    Z.t(
+                        Z.c("john"), Z.c("likes"), Z.v("person"),
+                        Z.t(
+                            Z.v("person"), Z.c("likes"), Z.c("wine"), Z.v()
                         )
                     )
+                    
+                    // 3. John likes anyone who likes themselves
+                    /*, Z.t(
+                        Z.c("john"), Z.c("likes"), Z.v("person"),
+                        Z.t(
+                            Z.v("person"), Z.c("likes"), Z.v("person"), Z.v()
+                        )
+                    )*/
+                    /*Z.t(
+                        Z.c("john"), Z.c("likes"), Z.v("john"),
+                        Z.v()
+                    )*/
                 )
             );
-            
-            // TODO: query inner tuples...
+
+            result = [];            
             run.query(
                 Z.t(
                     Z.c("john"), Z.c("likes"), Z.v("stuff"),
                     Z.v("p")
                 ),
                 function (q) {
-                    console.log(q.toString());
+                    result.push(q.toString());
                 }
             );
+            should(result).eql([
+                "(john likes 'stuff = wine 'p)",
+                "(john likes 'stuff = mary 'p)",
+                "(john likes 'stuff = food 'p = (mary likes 'stuff = food '))",
+                "(john likes 'stuff = wine 'p = (mary likes 'stuff = wine '))",
+                "(john likes 'stuff = mary 'p = ('person = mary likes wine '))",
+                "(john likes 'stuff = john 'p = ('person = john likes wine '))",
+                "(john likes 'stuff = john 'p = ('person = john likes wine ' = (mary likes 'stuff = wine ')))"
+            ]);
             
-            /*
-                Mary doesnt like things, even john doesnt like things 
-                so this should fail.
-            */
+            result = [];
+            // Mary doesnt like things, even john doesnt like things 
+            // so this should fail.
             run.query(
                 Z.t(
                     Z.c("john"), Z.c("likes"), Z.c("things"),
                     Z.v("p")
                 ),
                 function (q) {
-                    console.log(q.toString());
+                    result.push(q.toString());
                 }
             );
+            
+            should(result).eql([]);
+            
+            
+            result = [];
+            // Mary doesnt like things, even john doesnt like things 
+            // so this should fail.
+            run.query(
+                Z.t(
+                    Z.c("john"), Z.c("likes"), Z.c("food"),
+                    Z.v()
+                ),
+                function (q) {
+                    result.push(q.toString());
+                }
+            );
+            
+            should(result).eql(["(john likes food ' = (mary likes 'stuff = food '))"]);
+            
             
         });
     });
