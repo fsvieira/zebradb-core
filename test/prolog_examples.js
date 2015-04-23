@@ -1,6 +1,6 @@
 var should = require("should");
 var Z = require("../lib/z");
-var ZQuery = require("../lib/zquery");
+var ZQuery = require("../lib/zquery_debug");
 
 /*
   Online prolog examples converted to run on zebra lib
@@ -8,7 +8,7 @@ var ZQuery = require("../lib/zquery");
 
 describe('Prolog examples port Tests.', function() {
     describe('Simple Facts', function() {
-        it('Should query people about what they like.', function () {
+        /*it('Should query people about what they like.', function () {
             
             //    likes(mary,food).
             //    likes(mary,wine).
@@ -26,46 +26,63 @@ describe('Prolog examples port Tests.', function() {
             );
             
             // Query the facts,
-            run.query(
-                Z.t(Z.c("mary"), Z.c("likes"), Z.c("food")),
-                function (q) {
-                    should(q.toString()).equal("(mary likes food)");
-                }
-            );
+            should(run.queryArray(
+                Z.t(Z.c("mary"), Z.c("likes"), Z.c("food"))
+            )).eql(["(mary likes food)"]);
             
-            run.query(
-                Z.t(Z.c("john"), Z.c("likes"), Z.c("wine")),
-                function (q) {
-                    should(q.toString()).equal("(john likes wine)");
-                }
-            );
+            should(run.queryArray(
+                Z.t(Z.c("john"), Z.c("likes"), Z.c("wine"))
+            )).eql(["(john likes wine)"]);
             
-            result = 0;
-            run.query(
-                Z.t(Z.c("john"), Z.c("likes"), Z.c("food")),
-                function (q) {
-                    result++;
-                }
-            );
+            should(run.queryArray(
+                Z.t(Z.c("john"), Z.c("likes"), Z.c("food"))
+            )).eql([]);
 
-            should(result).equal(0);
-            
-            result = [];
-            run.query(
-                Z.t(Z.c("mary"), Z.c("likes"), Z.v("stuff")),
-                function (q) {
-                    result.push(q.toString());
-                }
-            );
-
-            should(result).eql([ 
+            should(run.queryArray(
+                Z.t(Z.c("mary"), Z.c("likes"), Z.v("stuff"))
+            )).eql([
                 "(mary likes 'stuff = food)",
-                "(mary likes 'stuff = wine)",
+                "(mary likes 'stuff = wine)"
             ]);
+        });*/
+        
+        it('Should query about what john likes.', function () {
+            var run; 
+            run = new ZQuery.Run(
+                Z.d(
+                    Z.t(Z.c("mary"), Z.c("likes"), Z.c("food"), Z.v()), // likes(mary,food).
+                    Z.t(Z.c("mary"), Z.c("likes"), Z.c("wine"), Z.v()), // likes(mary,wine).
+                    
+                    // 1. John likes anything that Mary likes 
+                    Z.t(
+                        Z.c("john"), Z.c("likes"), Z.v("stuff"),
+                        Z.t(
+                            Z.c("mary"), Z.c("likes"), Z.v("stuff"), Z.v()
+                        )
+                    )
+                )
+            );
+            
+            /*should(run.queryArray(
+                Z.t(
+                    Z.c("john"), Z.c("likes"), Z.v("stuff"),
+                    Z.v("p")
+                )
+            )).eql([
+                "(john likes 'stuff = food 'p = (mary likes 'stuff = food '))",
+                "(john likes 'stuff = wine 'p = (mary likes 'stuff = wine '))"
+            ]);*/
+            console.log(run.queryArray(
+                Z.t(
+                    Z.c("john"), Z.c("likes"), Z.v("stuff"),
+                    Z.v("p")
+                )
+            ));
+            console.log("--->" + ZQuery.Run.logger.toString());
             
         });
         
-        it('Should query people about what they like (Extended).', function () {
+        /*it('Should query people about what they like (Extended).', function () {
             // How do you add the following facts?
             
             // likes(mary,food).
@@ -99,16 +116,17 @@ describe('Prolog examples port Tests.', function() {
                     )
                     
                     // 3. John likes anyone who likes themselves
-                    /*, Z.t(
+                    , Z.t(
                         Z.c("john"), Z.c("likes"), Z.v("person"),
                         Z.t(
                             Z.v("person"), Z.c("likes"), Z.v("person"), Z.v()
                         )
-                    )*/
-                    /*Z.t(
-                        Z.c("john"), Z.c("likes"), Z.v("john"),
-                        Z.v()
-                    )*/
+                    ) 
+                    //,
+                    // Z.t(
+                    //    Z.c("john"), Z.c("likes"), Z.v("john"),
+                    //    Z.v()
+                    // )
                 )
             );
 
@@ -162,9 +180,7 @@ describe('Prolog examples port Tests.', function() {
             );
             
             should(result).eql(["(john likes food ' = (mary likes 'stuff = food '))"]);
-            
-            
-        });
+        });*/
     });
 
 });
