@@ -1,12 +1,13 @@
 var should = require("should");
 var Z = require("../lib/z");
+// var ZQuery = require("../lib/zquery_debug");
 var ZQuery = require("../lib/zquery");
 
 
 describe('Factorial Tests.', function() {
     describe('Natural Numbers', function() {
         it('Should declare ~Peanno numbers', function () {
-            var run, result;
+            var run; 
             
             run = new ZQuery.Run(
                 Z.d(
@@ -15,44 +16,19 @@ describe('Factorial Tests.', function() {
                 )
             );
             
-            result = [];
-            run.query (
-                Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("1"))),
-                function (q) {
-                    result.push(q.toString());
-                }
-            );
-            should(result.length).equal(0);
             
-            result = [];
-            run.query (
-                Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))),
-                function (q) {
-                    result.push(q.toString());
-                }
-            );
-            should(result).eql(["(nat (nat 0))"]);
+            should(run.queryArray (
+                Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("1")))
+            )).eql([]);
 
-            should(function () {
-                var results = []; 
-                try {
-                    run.query(
-                        Z.t(Z.c("nat"), Z.v("n")),
-                        function (q) {
-                            results.push(q.toString());
-                            if (results.length >= 10) {
-                                throw "Enough Results";
-                            }
-                        }
-                    );
-                } catch (e) {
-                    if (e !== "Enough Results") {
-                        throw e;
-                    }
-                }
-                
-                return results;
-            }()).eql ([
+            should(run.queryArray (
+                Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0")))
+            )).eql(["(nat (nat 0))"]);
+
+            should(run.queryArray(
+                Z.t(Z.c("nat"), Z.v("n")),
+                10
+            )).eql([
                 "(nat 'n = 0)",
                 "(nat 'n = (nat 'n = 0))",
                 "(nat 'n = (nat 'n = (nat 'n = 0)))",
@@ -67,7 +43,7 @@ describe('Factorial Tests.', function() {
         });
         
         it('Should declare a add func', function () {
-            var run, result;
+            var run;
             
             run = new ZQuery.Run(
                 Z.d(
@@ -101,50 +77,41 @@ describe('Factorial Tests.', function() {
             );
             
             // 0 + 0 = 0
-            run.query (
+            should(run.queryArray (
                 Z.t(
                     Z.c("add"),
                     Z.t(Z.c("nat"), Z.c("0")), // 0
                     Z.t(Z.c("nat"), Z.c("0")), // 0
                     Z.v("r"),
                     Z.v()
-                ),
-                function (q) {
-                    console.log("[1] " + q.toString());
-                }
-            );
+                )
+            )).eql(["(add (nat 0) (nat 0) 'r = (nat 'a = 0) ')" ]);
             
             // 1 + 0 = 1
-            run.query (
+            should(run.queryArray (
                 Z.t(
                     Z.c("add"),
                     Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))), // 1
                     Z.t(Z.c("nat"), Z.c("0")), // 0
                     Z.v("r"),
                     Z.v()
-                ),
-                function (q) {
-                    console.log("[2] " + q.toString());
-                }
-            );
+                )
+            )).eql(["(add (nat (nat 0)) (nat 0) 'r = (nat 'a = (nat 0)) ')"]);
             
             // 0 + 1 = 1
-            /*run.query (
+            should(run.queryArray (
                 Z.t(
                     Z.c("add"),
                     Z.t(Z.c("nat"), Z.c("0")), // 0
                     Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))), // 1
                     Z.v("r"),
                     Z.v()
-                ),
-                function (q) {
-                    console.log("[3] " + q.toString());
-                }
-            );*/
+                )
+            )).eql(["(add (nat 0) (nat (nat 0)) 'r = (nat 'r = (nat 'a = 0)) ' = (add (nat 'a = 0) (nat 'b = 0) 'r = (nat 'a = 0) '))"]);
         });
         
-        /*it('Should declare a factorial func', function () {
-            var run, result;
+        it('Should declare a factorial func', function () {
+            var run;
             
             run = new ZQuery.Run(
                 Z.d(
@@ -154,9 +121,11 @@ describe('Factorial Tests.', function() {
                     Z.t(
                         Z.c("fac"),
                         Z.t(Z.c("nat"), Z.c("0")), // 0
-                        Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("0"))), // 1
+                        Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))), // 1
                         Z.v()
-                    ), // 0! = 1.
+                    ), 
+                    
+                    // 0! = 1.
                     Z.t(
                         Z.c("fac"), 
                         Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("k"))), // > 0
@@ -176,8 +145,35 @@ describe('Factorial Tests.', function() {
                             )
                         )
                     )
+                    
+                    // TODO: mul is missing.
+                    //, Z.t(Z.v(), Z.v())
                 )
             );
-        });*/
+            
+            // fac(0) = 1
+            should(run.queryArray(
+                Z.t(
+                    Z.c("fac"),
+                    Z.t(Z.c("nat"), Z.c("0")), // 0
+                    Z.v("r"),
+                    Z.v()
+                )
+            )).eql(["(fac (nat 0) 'r = (nat (nat 0)) ')"]);
+            
+            
+            // fac(1) = 1
+            /*should(run.queryArray(
+                Z.t(
+                    Z.c("fac"),
+                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))), // 3
+                    Z.v("r"),
+                    Z.v()
+                )
+            )).eql([]);*/
+
+           // console.log(ZQuery.Run.logger.toString());
+
+        });
     });
 });
