@@ -110,18 +110,14 @@ describe('Prolog examples port Tests.', function() {
                         )
                     ),
                     
+                    Z.t(Z.c("notEqual"), Z.v("p"), Z.n(Z.v("p"))),
+                    Z.t(Z.v(), Z.v()),
+                    
                     // 3. John likes anyone who likes themselves
-                    /*Z.t(
+                    Z.t(
                         Z.c("john"), Z.c("likes"), Z.v("person"),
-                        Z.t(
-                            Z.v("person"), Z.c("likes"), Z.v("person"),
-                            Z.n(
-                                Z.t( 
-                                    Z.c("john"), Z.c("likes"), Z.c("john"), Z.v()
-                                )
-                            )
-                        )
-                    ),*/
+                        Z.t(Z.v("person"), Z.c("likes"), Z.v("person"), Z.t(Z.c("notEqual"), Z.v("person"), Z.c("john")))
+                    ),
                     
                     // john likes john
                     Z.t(
@@ -143,14 +139,15 @@ describe('Prolog examples port Tests.', function() {
                 "(john likes 'stuff = mary 'p = ('person = mary likes wine '))",
                 "(john likes 'stuff = john 'p = ('person = john likes wine '))",
                 "(john likes 'stuff = john 'p = ('person = john likes wine ' = (mary likes 'stuff = wine ')))",
-                "(john likes 'stuff = peter 'p = ('person = peter likes 'person = peter '))",
-                "(john likes 'stuff = john 'p = ('person = john likes 'person = john '))",
+                "(john likes 'stuff = peter 'p = ('person = peter likes 'person = peter (notEqual 'person = peter john)))",
                 "(john likes 'stuff = john 'p)"
             ]);
             
+            // console.log(ZQuery.Run.logger.toString());
+            
             // Mary doesnt like things, even john doesnt like things 
             // so this should fail.
-            should(run.queryArray(
+            /*should(run.queryArray(
                 Z.t(
                     Z.c("john"), Z.c("likes"), Z.c("things"),
                     Z.v("p")
@@ -166,7 +163,7 @@ describe('Prolog examples port Tests.', function() {
                     Z.v()
                 )
             )).eql(["(john likes food ' = (mary likes 'stuff = food '))"]);
-            
+            */
         });
     });
 
