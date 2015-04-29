@@ -83,7 +83,7 @@ describe('Prolog examples port Tests.', function() {
             // likes(john,wine).
             // likes(john,mary).
                 
-            var result, run;
+            var run;
             
             run = new ZQuery.Run(
                 Z.d(
@@ -91,6 +91,8 @@ describe('Prolog examples port Tests.', function() {
                     Z.t(Z.c("mary"), Z.c("likes"), Z.c("wine"), Z.v()), // likes(mary,wine).
                     Z.t(Z.c("john"), Z.c("likes"), Z.c("wine"), Z.v()), // likes(john,wine).
                     Z.t(Z.c("john"), Z.c("likes"), Z.c("mary"), Z.v()), // likes(john,mary).
+
+                    Z.t(Z.c("peter"), Z.c("likes"), Z.c("peter"), Z.v()), // likes(peter,peter).
 
                     // 1. John likes anything that Mary likes 
                     Z.t(
@@ -106,81 +108,65 @@ describe('Prolog examples port Tests.', function() {
                         Z.t(
                             Z.v("person"), Z.c("likes"), Z.c("wine"), Z.v()
                         )
-                    )
+                    ),
                     
                     // 3. John likes anyone who likes themselves
-                    , Z.t(
+                    /*Z.t(
                         Z.c("john"), Z.c("likes"), Z.v("person"),
                         Z.t(
-                            Z.v("person"), Z.c("likes"), Z.v("person"), // Z.v()
+                            Z.v("person"), Z.c("likes"), Z.v("person"),
                             Z.n(
-                                Z.t(
-                                    Z.c("john"), Z.c("likes"), Z.v("person"),
-                                    Z.t(
-                                        Z.v("person"), Z.c("likes"), Z.v("person"), Z.v()
-                                    )
+                                Z.t( 
+                                    Z.c("john"), Z.c("likes"), Z.c("john"), Z.v()
                                 )
                             )
                         )
+                    ),*/
+                    
+                    // john likes john
+                    Z.t(
+                        Z.c("john"), Z.c("likes"), Z.c("john"), Z.v()
                     )
-                    //,
-                    // Z.t(
-                    //    Z.c("john"), Z.c("likes"), Z.v("john"),
-                    //    Z.v()
-                    // )
                 )
             );
 
-            result = [];            
-            run.query(
+            should(run.queryArray(
                 Z.t(
                     Z.c("john"), Z.c("likes"), Z.v("stuff"),
                     Z.v("p")
-                ),
-                function (q) {
-                    result.push(q.toString());
-                }
-            );
-            should(result).eql([
+                )
+            )).eql([
                 "(john likes 'stuff = wine 'p)",
                 "(john likes 'stuff = mary 'p)",
                 "(john likes 'stuff = food 'p = (mary likes 'stuff = food '))",
                 "(john likes 'stuff = wine 'p = (mary likes 'stuff = wine '))",
                 "(john likes 'stuff = mary 'p = ('person = mary likes wine '))",
                 "(john likes 'stuff = john 'p = ('person = john likes wine '))",
-                "(john likes 'stuff = john 'p = ('person = john likes wine ' = (mary likes 'stuff = wine ')))"
+                "(john likes 'stuff = john 'p = ('person = john likes wine ' = (mary likes 'stuff = wine ')))",
+                "(john likes 'stuff = peter 'p = ('person = peter likes 'person = peter '))",
+                "(john likes 'stuff = john 'p = ('person = john likes 'person = john '))",
+                "(john likes 'stuff = john 'p)"
             ]);
             
-            result = [];
             // Mary doesnt like things, even john doesnt like things 
             // so this should fail.
-            run.query(
+            should(run.queryArray(
                 Z.t(
                     Z.c("john"), Z.c("likes"), Z.c("things"),
                     Z.v("p")
-                ),
-                function (q) {
-                    result.push(q.toString());
-                }
-            );
-            
-            should(result).eql([]);
+                )
+            )).eql([]);
             
             
-            result = [];
             // Mary doesnt like things, even john doesnt like things 
             // so this should fail.
-            run.query(
+            should(run.queryArray(
                 Z.t(
                     Z.c("john"), Z.c("likes"), Z.c("food"),
                     Z.v()
-                ),
-                function (q) {
-                    result.push(q.toString());
-                }
-            );
+                )
+            )).eql(["(john likes food ' = (mary likes 'stuff = food '))"]);
             
-            should(result).eql(["(john likes food ' = (mary likes 'stuff = food '))"]);
         });
     });
 

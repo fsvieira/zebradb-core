@@ -108,6 +108,17 @@ describe('Factorial Tests.', function() {
                     Z.v()
                 )
             )).eql(["(add (nat 0) (nat (nat 0)) 'r = (nat 'r = (nat 'a = 0)) ' = (add (nat 'a = 0) (nat 'b = 0) 'r = (nat 'a = 0) '))"]);
+            
+            // 2 + 3 = 5
+            should(run.queryArray (
+                Z.t(
+                    Z.c("add"),
+                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0")))), // 2
+                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))))), // 3
+                    Z.v("r"),
+                    Z.v()
+                )
+            )).eql(["(add (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0)))))) ' = (add (nat 'a = (nat (nat 0))) (nat 'b = (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))) ' = (add (nat 'a = (nat (nat 0))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat (nat 0)))) ' = (add (nat 'a = (nat (nat 0))) (nat 'b = 0) 'r = (nat 'a = (nat (nat 0))) '))))"]);
         });
         
         it('Should declare a factorial func', function () {
