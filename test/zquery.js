@@ -207,7 +207,65 @@ describe('ZQuery Tests.', function() {
             ], ctxA))).equal(true);
             
             should(r.toString()).equal("'r = (nat 'a = 0)");
-        }); 
+        });
+
+        it("Should unify tuples variables.", function () {
+            // 'rm = (nat 'a = (nat (nat 0))) <=> (nat (nat 'b = (nat 0)))
+            
+            // 'rm = (nat 'a = (nat (nat 0)))
+            var ctxA = new ZQuery.Context();
+            var rm = ctxA.get("rm");
+            var a = ctxA.get("a");
+            a.unify(
+                new ZQuery.Tuple([
+                    new ZQuery.Constant("nat"),
+                    new ZQuery.Tuple([
+                        new ZQuery.Constant("nat"),
+                        new ZQuery.Constant("0")
+                    ])
+                ])
+            );
+            
+            should(a.toString()).equal("'a = (nat (nat 0))");
+            
+            rm.unify(new ZQuery.Tuple([
+                new ZQuery.Constant("nat"),
+                a
+            ]));
+            
+            should(rm.toString()).equal("'rm = (nat 'a = (nat (nat 0)))");
+            
+            
+            // (nat (nat 'b = (nat 0)))
+            var ctxB = new ZQuery.Context();
+            var b = ctxB.get("b");
+
+            b.unify(
+                new ZQuery.Tuple([
+                        new ZQuery.Constant("nat"),
+                        new ZQuery.Constant("0")
+                ])
+            );
+            
+            should(b.toString()).equal("'b = (nat 0)");
+
+            var tupleB = new ZQuery.Tuple([
+                new ZQuery.Constant("nat"),
+                new ZQuery.Tuple([
+                    new ZQuery.Constant("nat"),
+                    b
+                ])
+            ]);
+            
+            should(tupleB.toString()).equal("(nat (nat 'b = (nat 0)))");
+            
+            should(rm.unify(tupleB)).equal(true);
+
+            should(rm.toString()).equal("'rm = (nat 'a = (nat (nat 0)))");
+            should(tupleB.toString()).equal("(nat (nat 'b = (nat 0)))");
+
+        });
+            
     });
 
 });

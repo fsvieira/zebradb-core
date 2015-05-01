@@ -111,8 +111,7 @@ describe('Prolog examples port Tests.', function() {
                     ),
                     
                     Z.t(Z.c("notEqual"), Z.v("p"), Z.n(Z.v("p"))),
-                    Z.t(Z.v(), Z.v()),
-                    
+
                     // 3. John likes anyone who likes themselves
                     Z.t(
                         Z.c("john"), Z.c("likes"), Z.v("person"),
@@ -147,7 +146,7 @@ describe('Prolog examples port Tests.', function() {
             
             // Mary doesnt like things, even john doesnt like things 
             // so this should fail.
-            /*should(run.queryArray(
+            should(run.queryArray(
                 Z.t(
                     Z.c("john"), Z.c("likes"), Z.c("things"),
                     Z.v("p")
@@ -163,7 +162,6 @@ describe('Prolog examples port Tests.', function() {
                     Z.v()
                 )
             )).eql(["(john likes food ' = (mary likes 'stuff = food '))"]);
-            */
         });
     });
 
