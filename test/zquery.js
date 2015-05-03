@@ -265,7 +265,7 @@ describe('ZQuery Tests.', function() {
             should(tupleB.toString()).equal("(nat (nat 'b = (nat 0)))");
 
         });
-            
+   
     });
 
 });

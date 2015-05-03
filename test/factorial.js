@@ -1,8 +1,7 @@
 var should = require("should");
 var Z = require("../lib/z");
-var ZQuery = require("../lib/zquery_debug");
-// var ZQuery = require("../lib/zquery");
-
+var ZQuery = require("../lib/zquery");
+var D = require("../lib/zquery_debug");
 
 describe('Factorial Tests.', function() {
     describe('Natural Numbers', function() {
@@ -330,16 +329,33 @@ describe('Factorial Tests.', function() {
                 )
             )).eql(["(mul (nat (nat (nat 0))) (nat (nat 0)) 'r = (nat 'a = (nat (nat 0))) ' = (list (add (nat 'a = (nat (nat 0))) 'rm = (nat 0) 'r = (nat 'a = (nat (nat 0))) ') (list (mul (nat 'a = (nat (nat 0))) (nat 'b = 0) 'rm = (nat 0) ') (list))))"]);
 */
-            // 1 * 2 = 1
-            should(run.queryArray(
-                Z.t(
-                    Z.c("mul"),
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))), // 1
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0")))), // 2
-                    Z.v("r"), // r
-                    Z.v()
-                )
-            )).eql([]);
+            // 1 * 2 = 2
+            D.logger (function () {
+                should(run.queryArray(
+                    Z.t(
+                        Z.c("mul"),
+                        Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))), // 1
+                        Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0")))), // 2
+                        Z.v("r"), // r
+                        Z.v()
+                    )
+                )).eql([""]);
+            }, {
+                log: "logs/fac_1_mul_2.json",
+                /*status: [
+                    "VAR_UNIFY_TRUE",
+                    "TUPLE_UNIFY_TRUE",
+                    "CONST_UNIFY_TRUE"
+                ]*/
+                testcase: "test/gen_fac_1_mul_2.js",
+                exceptions: [
+                    {
+                        "message": "variable unify end: 'a = (nat 0) <=> (nat 'b = 0)",
+                        "status": "VAR_UNIFY_FALSE"
+                    }
+                ]
+            });
+            
 
             // 2 * 2
             /*
@@ -377,7 +393,7 @@ describe('Factorial Tests.', function() {
             )).eql(["(mul (nat (nat (nat 0))) (nat (nat 0)) 'r = (nat 'a = (nat (nat 0))) ' = (list (add (nat 'a = (nat (nat 0))) 'rm = (nat 0) 'r = (nat 'a = (nat (nat 0))) ') (list (mul (nat 'a = (nat (nat 0))) (nat 'b = 0) 'rm = (nat 0) ') (list))))"]);
             */
 
-            console.log(ZQuery.Run.logger.toString());
+            // console.log(ZQuery.Run.logger.toString());
         });
         
         /*

@@ -1,0 +1,2 @@
+(nat 0)
+(nat (nat 'n))
