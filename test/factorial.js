@@ -5,7 +5,6 @@ var D = require("../lib/zquery_debug");
 
 describe('Factorial Tests.', function() {
     describe('Natural Numbers', function() {
-        /*
         it('Should declare ~Peanno numbers', function () {
             var run; 
             
@@ -15,8 +14,7 @@ describe('Factorial Tests.', function() {
                     Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("n")))
                 )
             );
-            
-            
+
             should(run.queryArray (
                 Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("1")))
             )).eql([]);
@@ -191,9 +189,7 @@ describe('Factorial Tests.', function() {
                 "(list (fruit 'p = strawberry) (list (fruit ' = papaya) (list)))",
                 "(list (fruit 'p = apple) (list (fruit ' = papaya) (list)))"    
             ]);
-
-
-        });*/
+        });
         
         it('Should declare a mul func', function () {
             var run;
@@ -272,7 +268,6 @@ describe('Factorial Tests.', function() {
                 )
             );
 
-/*
             // 0 * 0 = 0
             should(run.queryArray(
                 Z.t(
@@ -328,37 +323,19 @@ describe('Factorial Tests.', function() {
                     Z.v()
                 )
             )).eql(["(mul (nat (nat (nat 0))) (nat (nat 0)) 'r = (nat 'a = (nat (nat 0))) ' = (list (add (nat 'a = (nat (nat 0))) 'rm = (nat 0) 'r = (nat 'a = (nat (nat 0))) ') (list (mul (nat 'a = (nat (nat 0))) (nat 'b = 0) 'rm = (nat 0) ') (list))))"]);
-*/
+
             // 1 * 2 = 2
-            D.logger (function () {
-                should(run.queryArray(
-                    Z.t(
-                        Z.c("mul"),
-                        Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))), // 1
-                        Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0")))), // 2
-                        Z.v("r"), // r
-                        Z.v()
-                    )
-                )).eql([""]);
-            }, {
-                log: "logs/fac_1_mul_2.json",
-                /*status: [
-                    "VAR_UNIFY_TRUE",
-                    "TUPLE_UNIFY_TRUE",
-                    "CONST_UNIFY_TRUE"
-                ]*/
-                testcase: "test/gen_fac_1_mul_2.js",
-                exceptions: [
-                    {
-                        "message": "variable unify end: 'a = (nat 0) <=> (nat 'b = 0)",
-                        "status": "VAR_UNIFY_FALSE"
-                    }
-                ]
-            });
-            
+            should(run.queryArray(
+                Z.t(
+                    Z.c("mul"),
+                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))), // 1
+                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0")))), // 2
+                    Z.v("r"), // r
+                    Z.v()
+                )
+            )).eql(["(mul (nat (nat 0)) (nat (nat (nat 0))) 'r = (nat 'r = (nat 'a = (nat 0))) ' = (list (add (nat 'a = (nat 0)) 'rm = (nat 'a = (nat 0)) 'r = (nat 'r = (nat 'a = (nat 0))) ' = (add (nat 'a = (nat 0)) (nat 'b = 0) 'r = (nat 'a = (nat 0)) ')) (list (mul (nat 'a = (nat 0)) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat 0)) ' = (list (add (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (mul (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list))))"]);
 
             // 2 * 2
-            /*
             should(run.queryArray(
                 Z.t(
                     Z.c("mul"),
@@ -367,10 +344,9 @@ describe('Factorial Tests.', function() {
                     Z.v("r"), // r
                     Z.v()
                 )
-            )).eql(["(mul (nat (nat (nat 0))) (nat (nat 0)) 'r = (nat 'a = (nat (nat 0))) ' = (list (add (nat 'a = (nat (nat 0))) 'rm = (nat 0) 'r = (nat 'a = (nat (nat 0))) ') (list (mul (nat 'a = (nat (nat 0))) (nat 'b = 0) 'rm = (nat 0) ') (list))))"]);
+            )).eql(["(mul (nat (nat (nat 0))) (nat (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))) ' = (list (add (nat 'a = (nat (nat 0))) 'rm = (nat 'a = (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))) ' = (add (nat 'a = (nat (nat 0))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat (nat 0)))) ' = (add (nat 'a = (nat (nat 0))) (nat 'b = 0) 'r = (nat 'a = (nat (nat 0))) '))) (list (mul (nat 'a = (nat (nat 0))) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat (nat 0))) ' = (list (add (nat 'a = (nat (nat 0))) 'rm = (nat 0) 'r = (nat 'a = (nat (nat 0))) ') (list (mul (nat 'a = (nat (nat 0))) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list))))"]);
 
             // 2 * 3 = 6
-
             should(run.queryArray(
                 Z.t(
                     Z.c("mul"),
@@ -379,7 +355,7 @@ describe('Factorial Tests.', function() {
                     Z.v("r"), // r
                     Z.v()
                 )
-            )).eql([]);
+            )).eql(["(mul (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))))) ' = (list (add (nat 'a = (nat (nat 0))) 'rm = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))))) ' = (add (nat 'a = (nat (nat 0))) (nat 'b = (nat 'a = (nat (nat 0)))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0)))))) ' = (add (nat 'a = (nat (nat 0))) (nat 'b = (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))) ' = (add (nat 'a = (nat (nat 0))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat (nat 0)))) ' = (add (nat 'a = (nat (nat 0))) (nat 'b = 0) 'r = (nat 'a = (nat (nat 0))) '))))) (list (mul (nat 'a = (nat (nat 0))) (nat 'b = (nat (nat 0))) 'rm = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))) ' = (list (add (nat 'a = (nat (nat 0))) 'rm = (nat 'a = (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))) ' = (add (nat 'a = (nat (nat 0))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat (nat 0)))) ' = (add (nat 'a = (nat (nat 0))) (nat 'b = 0) 'r = (nat 'a = (nat (nat 0))) '))) (list (mul (nat 'a = (nat (nat 0))) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat (nat 0))) ' = (list (add (nat 'a = (nat (nat 0))) 'rm = (nat 0) 'r = (nat 'a = (nat (nat 0))) ') (list (mul (nat 'a = (nat (nat 0))) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list)))) (list))))"]);
             
             // 3 * 2 = 6
             should(run.queryArray(
@@ -390,10 +366,7 @@ describe('Factorial Tests.', function() {
                     Z.v("r"), // r
                     Z.v()
                 )
-            )).eql(["(mul (nat (nat (nat 0))) (nat (nat 0)) 'r = (nat 'a = (nat (nat 0))) ' = (list (add (nat 'a = (nat (nat 0))) 'rm = (nat 0) 'r = (nat 'a = (nat (nat 0))) ') (list (mul (nat 'a = (nat (nat 0))) (nat 'b = 0) 'rm = (nat 0) ') (list))))"]);
-            */
-
-            // console.log(ZQuery.Run.logger.toString());
+            )).eql(["(mul (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat (nat 0))))))) ' = (list (add (nat 'a = (nat (nat (nat 0)))) 'rm = (nat 'a = (nat (nat (nat 0)))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat (nat 0))))))) ' = (add (nat 'a = (nat (nat (nat 0)))) (nat 'b = (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat (nat 0)))))) ' = (add (nat 'a = (nat (nat (nat 0)))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat (nat (nat 0))))) ' = (add (nat 'a = (nat (nat (nat 0)))) (nat 'b = 0) 'r = (nat 'a = (nat (nat (nat 0)))) ')))) (list (mul (nat 'a = (nat (nat (nat 0)))) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat (nat (nat 0)))) ' = (list (add (nat 'a = (nat (nat (nat 0)))) 'rm = (nat 0) 'r = (nat 'a = (nat (nat (nat 0)))) ') (list (mul (nat 'a = (nat (nat (nat 0)))) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list))))"]);
         });
         
         /*

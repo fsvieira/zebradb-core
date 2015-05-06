@@ -3,64 +3,68 @@ var Z = require("../lib/z");
 var ZQuery = require("../lib/zquery");
 
 describe('ZQuery Tests.', function() {
-    describe('Context Versions', function() {
-        it('Define context and save, load and keep (empty)', function () {
-            var ctx, q;
-            ctx = new ZQuery.Context();
-
-            should(ctx.save()).equal(0);
-            should(ctx.load()).equal(0);
-            should(ctx.keep()).equal(0);
-
-        });
-        
-        it('Define context and save, load and keep (no changes)', function () {
-            var ctx, q;
+    describe('Save and Load', function() {
+        it('Should save and load empty variable with no changes.', function () {
+            var q, load;
             
-            ctx = new ZQuery.Context();
-            q = ctx.get("q");
-
-            should(ctx.save()).equal(1);
-            should(ctx.load()).equal(0);
-            should(ctx.keep()).equal(0);
+            q = new ZQuery.Variable("q");
+            load = q.save();
+            should(q.getValue()).equal(undefined);
+            load();
+            should(q.getValue()).equal(undefined);
         });
 
-        it('Define context and save, load and keep (with changes)', function () {
-            var ctx, q, yellow;
-            
-            ctx = new ZQuery.Context();
-            q = ctx.get("q");
+        it('Should save and load variable with changes.', function () {
+            var q, yellow;
+
+            q = new ZQuery.Variable("q");
             yellow = new ZQuery.Constant("yellow");
             
-            should(ctx.save()).equal(1);
+            var load = q.save();
             
             should(q.unify(yellow)).equal(true);
             should(q.getValue().toString()).equal("yellow");
             
-            should(ctx.load()).equal(0);
+            load();
             should(q.getValue()).equal(undefined);
-            
-            // Test keep
-            should(q.unify(yellow)).equal(true);
-            should(q.getValue().toString()).equal("yellow");
-            
-            should(ctx.keep()).equal(0);
-            should(q.getValue().toString()).equal("yellow");
-
         });
         
-        it('Should create a new tuple with a variable and keep version.', function () {
-            var ctxA, ctxB, tA, tB;
+        it('Should save and load tuple. (revert side efects)', function () {
+            var tA, tB, tC, loadA, loadA_1, loadB, loadC;
             
-            ctxA = new ZQuery.Context();
-            tA = ZQuery.create(Z.t(Z.v("q")), ctxA);
+            tA = ZQuery.create(Z.t(Z.v("pA"), Z.v("qA")));
+            tB = ZQuery.create(Z.t(Z.c("yellow"), Z.v("qB")));
             
-            ctxB = new ZQuery.Context();
-            tB = ZQuery.create(Z.t(Z.c("yellow")), ctxB);
+            should(tA.toString()).equal("('pA 'qA)");
+            should(tB.toString()).equal("(yellow 'qB)");
+            
+            loadA = tA.save();
+            loadB = tB.save();
+            
+            should(tA.unify(tB)).equal(true);
 
-            should(tA.context.save()).equal(1);
-            should(tB.context.save()).equal(0);
+            should(tA.toString()).equal("('pA = yellow 'qA)");
+            should(tB.toString()).equal("(yellow 'qB)");
+            
+            loadA_1 = tA.save();
 
+            tC = ZQuery.create(Z.t(Z.v("pC"), Z.c("blue")));
+            loadC = tC.save();
+            should(tA.unify(tC)).equal(true);
+            
+            should(tA.toString()).equal("('pA = yellow 'qA = blue)");
+            should(tB.toString()).equal("(yellow 'qB = blue)");
+            should(tC.toString()).equal("('pC = yellow blue)");
+            
+            loadA_1();
+            
+            should(tA.toString()).equal("('pA = yellow 'qA)"); // ('p 'q = blue)
+            should(tB.toString()).equal("(yellow 'qB)");
+            should(tC.toString()).equal("('pC = yellow blue)");
+            
+            loadA();
+            should(tA.toString()).equal("('pA 'qA)");
+            
         });
 
     });
@@ -122,29 +126,26 @@ describe('ZQuery Tests.', function() {
         
         it("Should unify variables with tuple values", function () {
             // (nat 'r = (nat 'a = 0)) = (nat (nat 'n))
-            var ctxA = new ZQuery.Context();
-
-            var r = ctxA.get("r");
-            var a = ctxA.get("a");
+            var r = new ZQuery.Variable("r");
+            var a = new ZQuery.Variable("a");
             a.unify(new ZQuery.Constant("0"));
             r.unify(new ZQuery.Tuple([
                 new ZQuery.Constant("nat"),
                 a
-            ], ctxA));
+            ]));
 
             var tA = new ZQuery.Tuple([
-                            new ZQuery.Constant("nat"),
-                            r
-                        ], ctxA);
+                        new ZQuery.Constant("nat"),
+                        r
+                    ]);
 
-            var ctxB = new ZQuery.Context();
             var tB = new ZQuery.Tuple([
+                        new ZQuery.Constant("nat"),
+                        new ZQuery.Tuple([
                             new ZQuery.Constant("nat"),
-                            new ZQuery.Tuple([
-                                new ZQuery.Constant("nat"),
-                                ctxB.get("n")
-                            ])
-                        ], ctxB);            
+                            new ZQuery.Variable("n")
+                        ])
+                    ]);            
             
             should(tA.toString()).equal("(nat 'r = (nat 'a = 0))");
             should(tB.toString()).equal("(nat (nat 'n))");
@@ -153,29 +154,26 @@ describe('ZQuery Tests.', function() {
             should(tB.unify(tA)).equal(true);
 
             // Invert order
-            ctxA = new ZQuery.Context();
-
-            r = ctxA.get("r");
-            a = ctxA.get("a");
+            r = new ZQuery.Variable("r");
+            a = new ZQuery.Variable("a");
             a.unify(new ZQuery.Constant("0"));
             r.unify(new ZQuery.Tuple([
                 new ZQuery.Constant("nat"),
                 a
-            ], ctxA));
+            ]));
 
             tA = new ZQuery.Tuple([
-                            new ZQuery.Constant("nat"),
-                            r
-                        ], ctxA);
+                new ZQuery.Constant("nat"),
+                r
+            ]);
 
-            ctxB = new ZQuery.Context();
             tB = new ZQuery.Tuple([
-                            new ZQuery.Constant("nat"),
-                            new ZQuery.Tuple([
-                                new ZQuery.Constant("nat"),
-                                ctxB.get("n")
-                            ])
-                        ], ctxB);            
+                new ZQuery.Constant("nat"),
+                new ZQuery.Tuple([
+                    new ZQuery.Constant("nat"),
+                        new ZQuery.Variable("n")
+                ])
+            ]);            
             
             should(tA.toString()).equal("(nat 'r = (nat 'a = 0))");
             should(tB.toString()).equal("(nat (nat 'n))");
@@ -187,24 +185,23 @@ describe('ZQuery Tests.', function() {
 
        it("Should reset tuples variables", function () {
             // (nat 'r = (nat 'a = 0)) = (nat (nat 'n))
-            var ctxA = new ZQuery.Context();
-
-            var r = ctxA.get("r");
-            var a = ctxA.get("a");
+            var r = new ZQuery.Variable("r");
+            var a = new ZQuery.Variable("a");
+            
             a.unify(new ZQuery.Constant("0"));
             r.unify(new ZQuery.Tuple([
                 new ZQuery.Constant("nat"),
                 a
-            ], ctxA));
+            ]));
 
-            r.context.save();
+            var load = r.save();
             should(r.unify(new ZQuery.Constant("0"))).equal(false);
 
-            r.context.load();
+            load();
             should(r.unify(new ZQuery.Tuple([
                 new ZQuery.Constant("nat"),
                 a
-            ], ctxA))).equal(true);
+            ]))).equal(true);
             
             should(r.toString()).equal("'r = (nat 'a = 0)");
         });
@@ -213,9 +210,9 @@ describe('ZQuery Tests.', function() {
             // 'rm = (nat 'a = (nat (nat 0))) <=> (nat (nat 'b = (nat 0)))
             
             // 'rm = (nat 'a = (nat (nat 0)))
-            var ctxA = new ZQuery.Context();
-            var rm = ctxA.get("rm");
-            var a = ctxA.get("a");
+            var rm = new ZQuery.Variable("rm");
+            var a = new ZQuery.Variable("a");
+            
             a.unify(
                 new ZQuery.Tuple([
                     new ZQuery.Constant("nat"),
@@ -237,8 +234,7 @@ describe('ZQuery Tests.', function() {
             
             
             // (nat (nat 'b = (nat 0)))
-            var ctxB = new ZQuery.Context();
-            var b = ctxB.get("b");
+            var b = new ZQuery.Variable("b");
 
             b.unify(
                 new ZQuery.Tuple([
