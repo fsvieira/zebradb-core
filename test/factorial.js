@@ -459,18 +459,18 @@ describe('Factorial Tests.', function() {
                         Z.t(
                             Z.c("list"),
                             Z.t(
-                                Z.c("fac"), 
-                                Z.t(Z.c("nat"), Z.v("k")),
+                                Z.c("mul"), 
                                 Z.v("n1"),
+                                Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("k"))),
+                                Z.v("n"),
                                 Z.v()
-                            ),
+                            ),                            
                             Z.t(
                                 Z.c("list"),
                                 Z.t(
-                                    Z.c("mul"), 
+                                    Z.c("fac"), 
+                                    Z.t(Z.c("nat"), Z.v("k")),
                                     Z.v("n1"),
-                                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("k"))),
-                                    Z.v("n"),
                                     Z.v()
                                 ),
                                 Z.t(Z.c("list"))
@@ -492,16 +492,34 @@ describe('Factorial Tests.', function() {
             
             // TODO:
             // fac(1) = 1
-            /*should(run.queryArray(
+            should(run.queryArray(
                 Z.t(
                     Z.c("fac"),
                     Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))), // 1
                     Z.v("r"),
                     Z.v()
                 )
-            )).eql([""]);*/
+            )).eql(["(fac (nat (nat 0)) 'r = (nat 'a = (nat 0)) ' = (list (mul 'n1 = (nat (nat 0)) (nat (nat 'k = 0)) 'n = (nat 'a = (nat 0)) ' = (list (add (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (mul (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list (fac (nat 'k = 0) 'n1 = (nat (nat 0)) ') (list))))"]);
 
-           // console.log(ZQuery.Run.logger.toString());
+            // fac(2) = 2
+            should(run.queryArray(
+                Z.t(
+                    Z.c("fac"),
+                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0")))), // 2
+                    Z.v("r"),
+                    Z.v()
+                )
+            )).eql(["(fac (nat (nat (nat 0))) 'r = (nat 'r = (nat 'a = (nat 0))) ' = (list (mul 'n1 = (nat 'a = (nat 0)) (nat (nat 'k = (nat 0))) 'n = (nat 'r = (nat 'a = (nat 0))) ' = (list (add (nat 'a = (nat 0)) 'rm = (nat 'a = (nat 0)) 'r = (nat 'r = (nat 'a = (nat 0))) ' = (add (nat 'a = (nat 0)) (nat 'b = 0) 'r = (nat 'a = (nat 0)) ')) (list (mul (nat 'a = (nat 0)) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat 0)) ' = (list (add (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (mul (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list)))) (list (fac (nat 'k = (nat 0)) 'n1 = (nat 'a = (nat 0)) ' = (list (mul 'n1 = (nat (nat 0)) (nat (nat 'k = 0)) 'n = (nat 'a = (nat 0)) ' = (list (add (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (mul (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list (fac (nat 'k = 0) 'n1 = (nat (nat 0)) ') (list)))) (list))))"]);
+
+            // fac(3) = 6
+            should(run.queryArray(
+                Z.t(
+                    Z.c("fac"),
+                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))))), // 3
+                    Z.v("r"),
+                    Z.v()
+                )
+            )).eql(["(fac (nat (nat (nat (nat 0)))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))))) ' = (list (mul 'n1 = (nat 'r = (nat 'a = (nat 0))) (nat (nat 'k = (nat (nat 0)))) 'n = (nat 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))))) ' = (list (add (nat 'a = (nat 'a = (nat 0))) 'rm = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))))) ' = (add (nat 'a = (nat 'a = (nat 0))) (nat 'b = (nat 'a = (nat 'a = (nat 0)))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0)))))) ' = (add (nat 'a = (nat 'a = (nat 0))) (nat 'b = (nat 'a = (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))) ' = (add (nat 'a = (nat 'a = (nat 0))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0)))) ' = (add (nat 'a = (nat 'a = (nat 0))) (nat 'b = 0) 'r = (nat 'a = (nat 'a = (nat 0))) '))))) (list (mul (nat 'a = (nat 'a = (nat 0))) (nat 'b = (nat (nat 0))) 'rm = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))) ' = (list (add (nat 'a = (nat 'a = (nat 0))) 'rm = (nat 'a = (nat 'a = (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))) ' = (add (nat 'a = (nat 'a = (nat 0))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0)))) ' = (add (nat 'a = (nat 'a = (nat 0))) (nat 'b = 0) 'r = (nat 'a = (nat 'a = (nat 0))) '))) (list (mul (nat 'a = (nat 'a = (nat 0))) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat 'a = (nat 0))) ' = (list (add (nat 'a = (nat 'a = (nat 0))) 'rm = (nat 0) 'r = (nat 'a = (nat 'a = (nat 0))) ') (list (mul (nat 'a = (nat 'a = (nat 0))) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list)))) (list)))) (list (fac (nat 'k = (nat (nat 0))) 'n1 = (nat 'r = (nat 'a = (nat 0))) ' = (list (mul 'n1 = (nat 'a = (nat 0)) (nat (nat 'k = (nat 0))) 'n = (nat 'r = (nat 'a = (nat 0))) ' = (list (add (nat 'a = (nat 0)) 'rm = (nat 'a = (nat 0)) 'r = (nat 'r = (nat 'a = (nat 0))) ' = (add (nat 'a = (nat 0)) (nat 'b = 0) 'r = (nat 'a = (nat 0)) ')) (list (mul (nat 'a = (nat 0)) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat 0)) ' = (list (add (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (mul (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list)))) (list (fac (nat 'k = (nat 0)) 'n1 = (nat 'a = (nat 0)) ' = (list (mul 'n1 = (nat (nat 0)) (nat (nat 'k = 0)) 'n = (nat 'a = (nat 0)) ' = (list (add (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (mul (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list (fac (nat 'k = 0) 'n1 = (nat (nat 0)) ') (list)))) (list)))) (list))))"]);
 
         });
     });
