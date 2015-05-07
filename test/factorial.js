@@ -490,7 +490,6 @@ describe('Factorial Tests.', function() {
                 )
             )).eql(["(fac (nat 0) 'r = (nat (nat 0)) ')"]);
             
-            // TODO:
             // fac(1) = 1
             should(run.queryArray(
                 Z.t(
