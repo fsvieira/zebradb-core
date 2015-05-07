@@ -369,7 +369,6 @@ describe('Factorial Tests.', function() {
             )).eql(["(mul (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat (nat 0))))))) ' = (list (add (nat 'a = (nat (nat (nat 0)))) 'rm = (nat 'a = (nat (nat (nat 0)))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat (nat 0))))))) ' = (add (nat 'a = (nat (nat (nat 0)))) (nat 'b = (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat (nat 0)))))) ' = (add (nat 'a = (nat (nat (nat 0)))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat (nat (nat 0))))) ' = (add (nat 'a = (nat (nat (nat 0)))) (nat 'b = 0) 'r = (nat 'a = (nat (nat (nat 0)))) ')))) (list (mul (nat 'a = (nat (nat (nat 0)))) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat (nat (nat 0)))) ' = (list (add (nat 'a = (nat (nat (nat 0)))) 'rm = (nat 0) 'r = (nat 'a = (nat (nat (nat 0)))) ') (list (mul (nat 'a = (nat (nat (nat 0)))) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list))))"]);
         });
         
-        /*
         it('Should declare a factorial func', function () {
             var run;
             
@@ -377,6 +376,73 @@ describe('Factorial Tests.', function() {
                 Z.d(
                     Z.t(Z.c("nat"), Z.c("0")),
                     Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("n"))),
+    
+                    // a . 0 = a,                
+                    Z.t(
+                        Z.c("add"),
+                        Z.t(Z.c("nat"), Z.v("a")), // a 
+                        Z.t(Z.c("nat"), Z.c("0")), // 0
+                        Z.t(Z.c("nat"), Z.v("a")), // a + 0 = a
+                        Z.v()
+                    ),
+                    
+                    // a . S(b) = a + (a . b)
+                    Z.t(
+                        Z.c("add"),
+                        Z.t(Z.c("nat"), Z.v("a")), // a 
+                        Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("b"))), // S(b)
+                        Z.t(Z.c("nat"), Z.v("r")), // r = a + 1 + r
+                        Z.t(
+                            Z.c("add"), 
+                            Z.t(Z.c("nat"), Z.v("a")),
+                            Z.t(Z.c("nat"), Z.v("b")),
+                            Z.v("r"),
+                            Z.v()
+                        )
+                    ),
+
+                    // List
+                    Z.t(Z.c("list")), // empty list,
+                    Z.t(Z.c("list"), Z.v("item"), Z.t(Z.c("list"), Z.v(), Z.v())),
+                    Z.t(Z.c("list"), Z.v("item"), Z.t(Z.c("list"))),
+                    
+                    // a . 0 = 0
+                    Z.t(
+                        Z.c("mul"),
+                        Z.t(Z.c("nat"), Z.v("a")), // a 
+                        Z.t(Z.c("nat"), Z.c("0")), // 0
+                        Z.t(Z.c("nat"), Z.c("0")), // 0
+                        Z.v()
+                    ),
+                    
+                    // a . S(b) = a + (a . b)
+                    Z.t(
+                        Z.c("mul"),
+                        Z.t(Z.c("nat"), Z.v("a")),  // a 
+                        Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("b"))), // S(b)
+                        Z.v("r"), // r
+                        Z.t(
+                            Z.c("list"),
+                            Z.t(
+                                Z.c("add"),
+                                Z.t(Z.c("nat"), Z.v("a")),
+                                Z.v("rm"),
+                                Z.v("r"),
+                                Z.v()
+                            ),
+                            Z.t(
+                                Z.c("list"),
+                                Z.t(
+                                    Z.c("mul"),
+                                    Z.t(Z.c("nat"), Z.v("a")), // a
+                                    Z.t(Z.c("nat"), Z.v("b")), // b
+                                    Z.v("rm"),
+                                    Z.v()
+                                ),
+                                Z.t(Z.c("list"))
+                            )
+                        )
+                    ),
                     
                     Z.t(
                         Z.c("fac"),
@@ -391,23 +457,26 @@ describe('Factorial Tests.', function() {
                         Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("k"))), // > 0
                         Z.v("n"), 
                         Z.t(
+                            Z.c("list"),
                             Z.t(
                                 Z.c("fac"), 
                                 Z.t(Z.c("nat"), Z.v("k")),
                                 Z.v("n1"),
                                 Z.v()
                             ),
-                            Z.t(Z.c("mul"), 
-                                Z.v("n1"),
-                                Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("k"))),
-                                Z.v("n"),
-                                Z.v()
+                            Z.t(
+                                Z.c("list"),
+                                Z.t(
+                                    Z.c("mul"), 
+                                    Z.v("n1"),
+                                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("k"))),
+                                    Z.v("n"),
+                                    Z.v()
+                                ),
+                                Z.t(Z.c("list"))
                             )
                         )
                     )
-                    
-                    // TODO: mul is missing.
-                    //, Z.t(Z.v(), Z.v())
                 )
             );
             
@@ -423,18 +492,17 @@ describe('Factorial Tests.', function() {
             
             
             // fac(1) = 1
-            // should(run.queryArray(
-            //    Z.t(
-            //        Z.c("fac"),
-            //        Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))), // 3
-            //        Z.v("r"),
-            //        Z.v()
-            //    )
-            // )).eql([]);
+            should(run.queryArray(
+                Z.t(
+                    Z.c("fac"),
+                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))), // 1
+                    Z.v("r"),
+                    Z.v()
+                )
+            )).eql([""]);
 
            // console.log(ZQuery.Run.logger.toString());
 
         });
-        */
     });
 });
