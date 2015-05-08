@@ -121,336 +121,134 @@ describe('Factorial Parser Tests.', function() {
             ]);
         });
 
-/*        
         it('Should declare a mul func', function () {
             var run;
             
             run = new ZQuery.Run(
-                Z.d(
-                    Z.t(Z.c("nat"), Z.c("0")),
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("n"))),
-    
-                    // a . 0 = a,                
-                    Z.t(
-                        Z.c("+"),
-                        Z.t(Z.c("nat"), Z.v("a")), // a 
-                        Z.t(Z.c("nat"), Z.c("0")), // 0
-                        Z.t(Z.c("nat"), Z.v("a")), // a + 0 = a
-                        Z.v()
-                    ),
-                    
-                    // a . S(b) = a + (a . b)
-                    Z.t(
-                        Z.c("+"),
-                        Z.t(Z.c("nat"), Z.v("a")), // a 
-                        Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("b"))), // S(b)
-                        Z.t(Z.c("nat"), Z.v("r")), // r = a + 1 + r
-                        Z.t(
-                            Z.c("+"), 
-                            Z.t(Z.c("nat"), Z.v("a")),
-                            Z.t(Z.c("nat"), Z.v("b")),
-                            Z.v("r"),
-                            Z.v()
-                        )
-                    ),
+                // Nat
+                "(nat 0)" +
+                "(nat (nat 'n))" +
 
-                    // List
-                    Z.t(Z.c("list")), // empty list,
-                    Z.t(Z.c("list"), Z.v("item"), Z.t(Z.c("list"), Z.v(), Z.v())),
-                    Z.t(Z.c("list"), Z.v("item"), Z.t(Z.c("list"))),
-                    
-                    // a . 0 = 0
-                    Z.t(
-                        Z.c("mul"),
-                        Z.t(Z.c("nat"), Z.v("a")), // a 
-                        Z.t(Z.c("nat"), Z.c("0")), // 0
-                        Z.t(Z.c("nat"), Z.c("0")), // 0
-                        Z.v()
-                    ),
-                    
-                    // a . S(b) = a + (a . b)
-                    Z.t(
-                        Z.c("mul"),
-                        Z.t(Z.c("nat"), Z.v("a")),  // a 
-                        Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("b"))), // S(b)
-                        Z.v("r"), // r
-                        Z.t(
-                            Z.c("list"),
-                            Z.t(
-                                Z.c("+"),
-                                Z.t(Z.c("nat"), Z.v("a")),
-                                Z.v("rm"),
-                                Z.v("r"),
-                                Z.v()
-                            ),
-                            Z.t(
-                                Z.c("list"),
-                                Z.t(
-                                    Z.c("mul"),
-                                    Z.t(Z.c("nat"), Z.v("a")), // a
-                                    Z.t(Z.c("nat"), Z.v("b")), // b
-                                    Z.v("rm"),
-                                    Z.v()
-                                ),
-                                Z.t(Z.c("list"))
-                            )
-                        )
-                    )
-                )
+                // Add
+                // a . 0 = a,
+                "(+ (nat 'a) (nat 0) (nat 'a) ')" +
+
+                // a . S(b) = a + (a . b)
+                "(+ (nat 'a) (nat (nat 'b)) (nat 'r) (+ (nat 'a) (nat 'b) 'r '))" +
+
+                // List
+                "(list)" +
+                "(list 'item (list ' '))" +
+                "(list 'item (list))" +
+
+                // Mul                    
+                // a . 0 = 0
+                "(* (nat 'a) (nat 0) (nat 0) ')" +
+
+                // a . S(b) = a + (a . b)
+                "(* (nat 'a) (nat (nat 'b)) 'r (list (+ (nat 'a) 'rm 'r ') (list (* (nat 'a) (nat 'b) 'rm ') (list))))"
             );
 
             // 0 * 0 = 0
             should(run.queryArray(
-                Z.t(
-                    Z.c("mul"),
-                    Z.t(Z.c("nat"), Z.c("0")), // 0
-                    Z.t(Z.c("nat"), Z.c("0")), // 0
-                    Z.v("r"), // r
-                    Z.v()
-                )
-            )).eql(["(mul (nat 0) (nat 0) 'r = (nat 0) ')"]);
+                "(* (nat 0) (nat 0) 'r ')"
+            )).eql(["(* (nat 0) (nat 0) 'r = (nat 0) ')"]);
 
             
             // 1 * 0 = 0
             should(run.queryArray(
-                Z.t(
-                    Z.c("mul"),
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))), // 1
-                    Z.t(Z.c("nat"), Z.c("0")), // 0
-                    Z.v("r"), // r
-                    Z.v()
-                )
-            )).eql(["(mul (nat (nat 0)) (nat 0) 'r = (nat 0) ')"]);
+                "(* (nat (nat 0)) (nat 0) 'r ')"
+            )).eql(["(* (nat (nat 0)) (nat 0) 'r = (nat 0) ')"]);
             
             // 0 * 1 = 0
             should(run.queryArray(
-                Z.t(
-                    Z.c("mul"),
-                    Z.t(Z.c("nat"), Z.c("0")), // 0
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))), // 1
-                    Z.v("r"), // r
-                    Z.v()
-                )
-            )).eql(["(mul (nat 0) (nat (nat 0)) 'r = (nat 'a = 0) ' = (list (+ (nat 'a = 0) 'rm = (nat 0) 'r = (nat 'a = 0) ') (list (mul (nat 'a = 0) (nat 'b = 0) 'rm = (nat 0) ') (list))))"]);
+                "(* (nat 0) (nat (nat 0)) 'r ')"
+            )).eql(["(* (nat 0) (nat (nat 0)) 'r = (nat 'a = 0) ' = (list (+ (nat 'a = 0) 'rm = (nat 0) 'r = (nat 'a = 0) ') (list (* (nat 'a = 0) (nat 'b = 0) 'rm = (nat 0) ') (list))))"]);
 
             // 1 * 1 = 1
             should(run.queryArray(
-                Z.t(
-                    Z.c("mul"),
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))), // 1
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))), // 1
-                    Z.v("r"), // r
-                    Z.v()
-                )
-            )).eql(["(mul (nat (nat 0)) (nat (nat 0)) 'r = (nat 'a = (nat 0)) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (mul (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list))))"]);
+                "(* (nat (nat 0)) (nat (nat 0)) 'r ')"
+            )).eql(["(* (nat (nat 0)) (nat (nat 0)) 'r = (nat 'a = (nat 0)) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (* (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list))))"]);
             
             // 2 * 1 = 1
             should(run.queryArray(
-                Z.t(
-                    Z.c("mul"),
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0")))), // 2
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))), // 1
-                    Z.v("r"), // r
-                    Z.v()
-                )
-            )).eql(["(mul (nat (nat (nat 0))) (nat (nat 0)) 'r = (nat 'a = (nat (nat 0))) ' = (list (+ (nat 'a = (nat (nat 0))) 'rm = (nat 0) 'r = (nat 'a = (nat (nat 0))) ') (list (mul (nat 'a = (nat (nat 0))) (nat 'b = 0) 'rm = (nat 0) ') (list))))"]);
+                "(* (nat (nat (nat 0))) (nat (nat 0)) 'r ')"
+            )).eql(["(* (nat (nat (nat 0))) (nat (nat 0)) 'r = (nat 'a = (nat (nat 0))) ' = (list (+ (nat 'a = (nat (nat 0))) 'rm = (nat 0) 'r = (nat 'a = (nat (nat 0))) ') (list (* (nat 'a = (nat (nat 0))) (nat 'b = 0) 'rm = (nat 0) ') (list))))"]);
 
             // 1 * 2 = 2
             should(run.queryArray(
-                Z.t(
-                    Z.c("mul"),
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))), // 1
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0")))), // 2
-                    Z.v("r"), // r
-                    Z.v()
-                )
-            )).eql(["(mul (nat (nat 0)) (nat (nat (nat 0))) 'r = (nat 'r = (nat 'a = (nat 0))) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 'a = (nat 0)) 'r = (nat 'r = (nat 'a = (nat 0))) ' = (+ (nat 'a = (nat 0)) (nat 'b = 0) 'r = (nat 'a = (nat 0)) ')) (list (mul (nat 'a = (nat 0)) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat 0)) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (mul (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list))))"]);
+                "(* (nat (nat 0)) (nat (nat (nat 0))) 'r ')"
+            )).eql(["(* (nat (nat 0)) (nat (nat (nat 0))) 'r = (nat 'r = (nat 'a = (nat 0))) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 'a = (nat 0)) 'r = (nat 'r = (nat 'a = (nat 0))) ' = (+ (nat 'a = (nat 0)) (nat 'b = 0) 'r = (nat 'a = (nat 0)) ')) (list (* (nat 'a = (nat 0)) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat 0)) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (* (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list))))"]);
 
             // 2 * 2
             should(run.queryArray(
-                Z.t(
-                    Z.c("mul"),
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0")))), // 2
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0")))), // 2
-                    Z.v("r"), // r
-                    Z.v()
-                )
-            )).eql(["(mul (nat (nat (nat 0))) (nat (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))) ' = (list (+ (nat 'a = (nat (nat 0))) 'rm = (nat 'a = (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))) ' = (+ (nat 'a = (nat (nat 0))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat (nat 0)))) ' = (+ (nat 'a = (nat (nat 0))) (nat 'b = 0) 'r = (nat 'a = (nat (nat 0))) '))) (list (mul (nat 'a = (nat (nat 0))) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat (nat 0))) ' = (list (+ (nat 'a = (nat (nat 0))) 'rm = (nat 0) 'r = (nat 'a = (nat (nat 0))) ') (list (mul (nat 'a = (nat (nat 0))) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list))))"]);
+                "(* (nat (nat (nat 0))) (nat (nat (nat 0))) 'r ')"
+            )).eql(["(* (nat (nat (nat 0))) (nat (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))) ' = (list (+ (nat 'a = (nat (nat 0))) 'rm = (nat 'a = (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))) ' = (+ (nat 'a = (nat (nat 0))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat (nat 0)))) ' = (+ (nat 'a = (nat (nat 0))) (nat 'b = 0) 'r = (nat 'a = (nat (nat 0))) '))) (list (* (nat 'a = (nat (nat 0))) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat (nat 0))) ' = (list (+ (nat 'a = (nat (nat 0))) 'rm = (nat 0) 'r = (nat 'a = (nat (nat 0))) ') (list (* (nat 'a = (nat (nat 0))) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list))))"]);
 
             // 2 * 3 = 6
             should(run.queryArray(
-                Z.t(
-                    Z.c("mul"),
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0")))), // 2
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))))), // 3
-                    Z.v("r"), // r
-                    Z.v()
-                )
-            )).eql(["(mul (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))))) ' = (list (+ (nat 'a = (nat (nat 0))) 'rm = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))))) ' = (+ (nat 'a = (nat (nat 0))) (nat 'b = (nat 'a = (nat (nat 0)))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0)))))) ' = (+ (nat 'a = (nat (nat 0))) (nat 'b = (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))) ' = (+ (nat 'a = (nat (nat 0))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat (nat 0)))) ' = (+ (nat 'a = (nat (nat 0))) (nat 'b = 0) 'r = (nat 'a = (nat (nat 0))) '))))) (list (mul (nat 'a = (nat (nat 0))) (nat 'b = (nat (nat 0))) 'rm = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))) ' = (list (+ (nat 'a = (nat (nat 0))) 'rm = (nat 'a = (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))) ' = (+ (nat 'a = (nat (nat 0))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat (nat 0)))) ' = (+ (nat 'a = (nat (nat 0))) (nat 'b = 0) 'r = (nat 'a = (nat (nat 0))) '))) (list (mul (nat 'a = (nat (nat 0))) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat (nat 0))) ' = (list (+ (nat 'a = (nat (nat 0))) 'rm = (nat 0) 'r = (nat 'a = (nat (nat 0))) ') (list (mul (nat 'a = (nat (nat 0))) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list)))) (list))))"]);
+                "(* (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) 'r ')"
+            )).eql(["(* (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))))) ' = (list (+ (nat 'a = (nat (nat 0))) 'rm = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))))) ' = (+ (nat 'a = (nat (nat 0))) (nat 'b = (nat 'a = (nat (nat 0)))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0)))))) ' = (+ (nat 'a = (nat (nat 0))) (nat 'b = (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))) ' = (+ (nat 'a = (nat (nat 0))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat (nat 0)))) ' = (+ (nat 'a = (nat (nat 0))) (nat 'b = 0) 'r = (nat 'a = (nat (nat 0))) '))))) (list (* (nat 'a = (nat (nat 0))) (nat 'b = (nat (nat 0))) 'rm = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))) ' = (list (+ (nat 'a = (nat (nat 0))) 'rm = (nat 'a = (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat 0))))) ' = (+ (nat 'a = (nat (nat 0))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat (nat 0)))) ' = (+ (nat 'a = (nat (nat 0))) (nat 'b = 0) 'r = (nat 'a = (nat (nat 0))) '))) (list (* (nat 'a = (nat (nat 0))) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat (nat 0))) ' = (list (+ (nat 'a = (nat (nat 0))) 'rm = (nat 0) 'r = (nat 'a = (nat (nat 0))) ') (list (* (nat 'a = (nat (nat 0))) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list)))) (list))))"]);
             
             // 3 * 2 = 6
             should(run.queryArray(
-                Z.t(
-                    Z.c("mul"),
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))))), // 3
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0")))), // 2
-                    Z.v("r"), // r
-                    Z.v()
-                )
-            )).eql(["(mul (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat (nat 0))))))) ' = (list (+ (nat 'a = (nat (nat (nat 0)))) 'rm = (nat 'a = (nat (nat (nat 0)))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat (nat 0))))))) ' = (+ (nat 'a = (nat (nat (nat 0)))) (nat 'b = (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat (nat 0)))))) ' = (+ (nat 'a = (nat (nat (nat 0)))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat (nat (nat 0))))) ' = (+ (nat 'a = (nat (nat (nat 0)))) (nat 'b = 0) 'r = (nat 'a = (nat (nat (nat 0)))) ')))) (list (mul (nat 'a = (nat (nat (nat 0)))) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat (nat (nat 0)))) ' = (list (+ (nat 'a = (nat (nat (nat 0)))) 'rm = (nat 0) 'r = (nat 'a = (nat (nat (nat 0)))) ') (list (mul (nat 'a = (nat (nat (nat 0)))) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list))))"]);
+                "(* (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) 'r ')"
+            )).eql(["(* (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat (nat 0))))))) ' = (list (+ (nat 'a = (nat (nat (nat 0)))) 'rm = (nat 'a = (nat (nat (nat 0)))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat (nat 0))))))) ' = (+ (nat 'a = (nat (nat (nat 0)))) (nat 'b = (nat (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat (nat (nat 0)))))) ' = (+ (nat 'a = (nat (nat (nat 0)))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat (nat (nat 0))))) ' = (+ (nat 'a = (nat (nat (nat 0)))) (nat 'b = 0) 'r = (nat 'a = (nat (nat (nat 0)))) ')))) (list (* (nat 'a = (nat (nat (nat 0)))) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat (nat (nat 0)))) ' = (list (+ (nat 'a = (nat (nat (nat 0)))) 'rm = (nat 0) 'r = (nat 'a = (nat (nat (nat 0)))) ') (list (* (nat 'a = (nat (nat (nat 0)))) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list))))"]);
         });
-        
+
         it('Should declare a factorial func', function () {
             var run;
             
             run = new ZQuery.Run(
-                Z.d(
-                    Z.t(Z.c("nat"), Z.c("0")),
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("n"))),
-    
-                    // a . 0 = a,                
-                    Z.t(
-                        Z.c("+"),
-                        Z.t(Z.c("nat"), Z.v("a")), // a 
-                        Z.t(Z.c("nat"), Z.c("0")), // 0
-                        Z.t(Z.c("nat"), Z.v("a")), // a + 0 = a
-                        Z.v()
-                    ),
-                    
-                    // a . S(b) = a + (a . b)
-                    Z.t(
-                        Z.c("+"),
-                        Z.t(Z.c("nat"), Z.v("a")), // a 
-                        Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("b"))), // S(b)
-                        Z.t(Z.c("nat"), Z.v("r")), // r = a + 1 + r
-                        Z.t(
-                            Z.c("+"), 
-                            Z.t(Z.c("nat"), Z.v("a")),
-                            Z.t(Z.c("nat"), Z.v("b")),
-                            Z.v("r"),
-                            Z.v()
-                        )
-                    ),
+                                // Nat
+                "(nat 0)" +
+                "(nat (nat 'n))" +
 
-                    // List
-                    Z.t(Z.c("list")), // empty list,
-                    Z.t(Z.c("list"), Z.v("item"), Z.t(Z.c("list"), Z.v(), Z.v())),
-                    Z.t(Z.c("list"), Z.v("item"), Z.t(Z.c("list"))),
-                    
-                    // a . 0 = 0
-                    Z.t(
-                        Z.c("mul"),
-                        Z.t(Z.c("nat"), Z.v("a")), // a 
-                        Z.t(Z.c("nat"), Z.c("0")), // 0
-                        Z.t(Z.c("nat"), Z.c("0")), // 0
-                        Z.v()
-                    ),
-                    
-                    // a . S(b) = a + (a . b)
-                    Z.t(
-                        Z.c("mul"),
-                        Z.t(Z.c("nat"), Z.v("a")),  // a 
-                        Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("b"))), // S(b)
-                        Z.v("r"), // r
-                        Z.t(
-                            Z.c("list"),
-                            Z.t(
-                                Z.c("+"),
-                                Z.t(Z.c("nat"), Z.v("a")),
-                                Z.v("rm"),
-                                Z.v("r"),
-                                Z.v()
-                            ),
-                            Z.t(
-                                Z.c("list"),
-                                Z.t(
-                                    Z.c("mul"),
-                                    Z.t(Z.c("nat"), Z.v("a")), // a
-                                    Z.t(Z.c("nat"), Z.v("b")), // b
-                                    Z.v("rm"),
-                                    Z.v()
-                                ),
-                                Z.t(Z.c("list"))
-                            )
-                        )
-                    ),
-                    
-                    Z.t(
-                        Z.c("fac"),
-                        Z.t(Z.c("nat"), Z.c("0")), // 0
-                        Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))), // 1
-                        Z.v()
-                    ), 
-                    
-                    // 0! = 1.
-                    Z.t(
-                        Z.c("fac"), 
-                        Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("k"))), // > 0
-                        Z.v("n"), 
-                        Z.t(
-                            Z.c("list"),
-                            Z.t(
-                                Z.c("mul"), 
-                                Z.v("n1"),
-                                Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("k"))),
-                                Z.v("n"),
-                                Z.v()
-                            ),                            
-                            Z.t(
-                                Z.c("list"),
-                                Z.t(
-                                    Z.c("fac"), 
-                                    Z.t(Z.c("nat"), Z.v("k")),
-                                    Z.v("n1"),
-                                    Z.v()
-                                ),
-                                Z.t(Z.c("list"))
-                            )
-                        )
-                    )
-                )
+                // Add
+                // a . 0 = a,
+                "(+ (nat 'a) (nat 0) (nat 'a) ')" +
+
+                // a . S(b) = a + (a . b)
+                "(+ (nat 'a) (nat (nat 'b)) (nat 'r) (+ (nat 'a) (nat 'b) 'r '))" +
+
+                // List
+                "(list)" +
+                "(list 'item (list ' '))" +
+                "(list 'item (list))" +
+
+                // Mul                    
+                // a . 0 = 0
+                "(* (nat 'a) (nat 0) (nat 0) ')" +
+
+                // a . S(b) = a + (a . b)
+                "(* (nat 'a) (nat (nat 'b)) 'r (list (+ (nat 'a) 'rm 'r ') (list (* (nat 'a) (nat 'b) 'rm ') (list))))" +
+
+                // 0! = 1
+                "(fac (nat 0) (nat (nat 0)) ')" +
+                "(fac (nat (nat 'k)) 'n (list (* 'n1 (nat (nat 'k)) 'n ') (list (fac (nat 'k) 'n1 ') (list))))"
             );
             
             // fac(0) = 1
             should(run.queryArray(
-                Z.t(
-                    Z.c("fac"),
-                    Z.t(Z.c("nat"), Z.c("0")), // 0
-                    Z.v("r"),
-                    Z.v()
-                )
+                "(fac (nat 0) 'r ')"
             )).eql(["(fac (nat 0) 'r = (nat (nat 0)) ')"]);
-            
+
+
             // fac(1) = 1
             should(run.queryArray(
-                Z.t(
-                    Z.c("fac"),
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))), // 1
-                    Z.v("r"),
-                    Z.v()
-                )
-            )).eql(["(fac (nat (nat 0)) 'r = (nat 'a = (nat 0)) ' = (list (mul 'n1 = (nat (nat 0)) (nat (nat 'k = 0)) 'n = (nat 'a = (nat 0)) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (mul (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list (fac (nat 'k = 0) 'n1 = (nat (nat 0)) ') (list))))"]);
+                "(fac (nat (nat 0)) 'r ')"
+            )).eql(["(fac (nat (nat 0)) 'r = (nat 'a = (nat 0)) ' = (list (* 'n1 = (nat (nat 0)) (nat (nat 'k = 0)) 'n = (nat 'a = (nat 0)) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (* (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list (fac (nat 'k = 0) 'n1 = (nat (nat 0)) ') (list))))"]);
 
             // fac(2) = 2
             should(run.queryArray(
-                Z.t(
-                    Z.c("fac"),
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0")))), // 2
-                    Z.v("r"),
-                    Z.v()
-                )
-            )).eql(["(fac (nat (nat (nat 0))) 'r = (nat 'r = (nat 'a = (nat 0))) ' = (list (mul 'n1 = (nat 'a = (nat 0)) (nat (nat 'k = (nat 0))) 'n = (nat 'r = (nat 'a = (nat 0))) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 'a = (nat 0)) 'r = (nat 'r = (nat 'a = (nat 0))) ' = (+ (nat 'a = (nat 0)) (nat 'b = 0) 'r = (nat 'a = (nat 0)) ')) (list (mul (nat 'a = (nat 0)) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat 0)) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (mul (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list)))) (list (fac (nat 'k = (nat 0)) 'n1 = (nat 'a = (nat 0)) ' = (list (mul 'n1 = (nat (nat 0)) (nat (nat 'k = 0)) 'n = (nat 'a = (nat 0)) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (mul (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list (fac (nat 'k = 0) 'n1 = (nat (nat 0)) ') (list)))) (list))))"]);
+                "(fac (nat (nat (nat 0))) 'r ')"
+            )).eql(["(fac (nat (nat (nat 0))) 'r = (nat 'r = (nat 'a = (nat 0))) ' = (list (* 'n1 = (nat 'a = (nat 0)) (nat (nat 'k = (nat 0))) 'n = (nat 'r = (nat 'a = (nat 0))) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 'a = (nat 0)) 'r = (nat 'r = (nat 'a = (nat 0))) ' = (+ (nat 'a = (nat 0)) (nat 'b = 0) 'r = (nat 'a = (nat 0)) ')) (list (* (nat 'a = (nat 0)) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat 0)) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (* (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list)))) (list (fac (nat 'k = (nat 0)) 'n1 = (nat 'a = (nat 0)) ' = (list (* 'n1 = (nat (nat 0)) (nat (nat 'k = 0)) 'n = (nat 'a = (nat 0)) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (* (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list (fac (nat 'k = 0) 'n1 = (nat (nat 0)) ') (list)))) (list))))"]);
 
             // fac(3) = 6
             should(run.queryArray(
-                Z.t(
-                    Z.c("fac"),
-                    Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.c("0"))))), // 3
-                    Z.v("r"),
-                    Z.v()
-                )
-            )).eql(["(fac (nat (nat (nat (nat 0)))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))))) ' = (list (mul 'n1 = (nat 'r = (nat 'a = (nat 0))) (nat (nat 'k = (nat (nat 0)))) 'n = (nat 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))))) ' = (list (+ (nat 'a = (nat 'a = (nat 0))) 'rm = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))))) ' = (+ (nat 'a = (nat 'a = (nat 0))) (nat 'b = (nat 'a = (nat 'a = (nat 0)))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0)))))) ' = (+ (nat 'a = (nat 'a = (nat 0))) (nat 'b = (nat 'a = (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))) ' = (+ (nat 'a = (nat 'a = (nat 0))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0)))) ' = (+ (nat 'a = (nat 'a = (nat 0))) (nat 'b = 0) 'r = (nat 'a = (nat 'a = (nat 0))) '))))) (list (mul (nat 'a = (nat 'a = (nat 0))) (nat 'b = (nat (nat 0))) 'rm = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))) ' = (list (+ (nat 'a = (nat 'a = (nat 0))) 'rm = (nat 'a = (nat 'a = (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))) ' = (+ (nat 'a = (nat 'a = (nat 0))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0)))) ' = (+ (nat 'a = (nat 'a = (nat 0))) (nat 'b = 0) 'r = (nat 'a = (nat 'a = (nat 0))) '))) (list (mul (nat 'a = (nat 'a = (nat 0))) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat 'a = (nat 0))) ' = (list (+ (nat 'a = (nat 'a = (nat 0))) 'rm = (nat 0) 'r = (nat 'a = (nat 'a = (nat 0))) ') (list (mul (nat 'a = (nat 'a = (nat 0))) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list)))) (list)))) (list (fac (nat 'k = (nat (nat 0))) 'n1 = (nat 'r = (nat 'a = (nat 0))) ' = (list (mul 'n1 = (nat 'a = (nat 0)) (nat (nat 'k = (nat 0))) 'n = (nat 'r = (nat 'a = (nat 0))) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 'a = (nat 0)) 'r = (nat 'r = (nat 'a = (nat 0))) ' = (+ (nat 'a = (nat 0)) (nat 'b = 0) 'r = (nat 'a = (nat 0)) ')) (list (mul (nat 'a = (nat 0)) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat 0)) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (mul (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list)))) (list (fac (nat 'k = (nat 0)) 'n1 = (nat 'a = (nat 0)) ' = (list (mul 'n1 = (nat (nat 0)) (nat (nat 'k = 0)) 'n = (nat 'a = (nat 0)) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (mul (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list (fac (nat 'k = 0) 'n1 = (nat (nat 0)) ') (list)))) (list)))) (list))))"]);
+                "(fac (nat (nat (nat (nat 0)))) 'r ')"
+            )).eql(["(fac (nat (nat (nat (nat 0)))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))))) ' = (list (* 'n1 = (nat 'r = (nat 'a = (nat 0))) (nat (nat 'k = (nat (nat 0)))) 'n = (nat 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))))) ' = (list (+ (nat 'a = (nat 'a = (nat 0))) 'rm = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))))) ' = (+ (nat 'a = (nat 'a = (nat 0))) (nat 'b = (nat 'a = (nat 'a = (nat 0)))) 'r = (nat 'r = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0)))))) ' = (+ (nat 'a = (nat 'a = (nat 0))) (nat 'b = (nat 'a = (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))) ' = (+ (nat 'a = (nat 'a = (nat 0))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0)))) ' = (+ (nat 'a = (nat 'a = (nat 0))) (nat 'b = 0) 'r = (nat 'a = (nat 'a = (nat 0))) '))))) (list (* (nat 'a = (nat 'a = (nat 0))) (nat 'b = (nat (nat 0))) 'rm = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))) ' = (list (+ (nat 'a = (nat 'a = (nat 0))) 'rm = (nat 'a = (nat 'a = (nat 0))) 'r = (nat 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0))))) ' = (+ (nat 'a = (nat 'a = (nat 0))) (nat 'b = (nat 0)) 'r = (nat 'r = (nat 'a = (nat 'a = (nat 0)))) ' = (+ (nat 'a = (nat 'a = (nat 0))) (nat 'b = 0) 'r = (nat 'a = (nat 'a = (nat 0))) '))) (list (* (nat 'a = (nat 'a = (nat 0))) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat 'a = (nat 0))) ' = (list (+ (nat 'a = (nat 'a = (nat 0))) 'rm = (nat 0) 'r = (nat 'a = (nat 'a = (nat 0))) ') (list (* (nat 'a = (nat 'a = (nat 0))) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list)))) (list)))) (list (fac (nat 'k = (nat (nat 0))) 'n1 = (nat 'r = (nat 'a = (nat 0))) ' = (list (* 'n1 = (nat 'a = (nat 0)) (nat (nat 'k = (nat 0))) 'n = (nat 'r = (nat 'a = (nat 0))) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 'a = (nat 0)) 'r = (nat 'r = (nat 'a = (nat 0))) ' = (+ (nat 'a = (nat 0)) (nat 'b = 0) 'r = (nat 'a = (nat 0)) ')) (list (* (nat 'a = (nat 0)) (nat 'b = (nat 0)) 'rm = (nat 'a = (nat 0)) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (* (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list)))) (list (fac (nat 'k = (nat 0)) 'n1 = (nat 'a = (nat 0)) ' = (list (* 'n1 = (nat (nat 0)) (nat (nat 'k = 0)) 'n = (nat 'a = (nat 0)) ' = (list (+ (nat 'a = (nat 0)) 'rm = (nat 0) 'r = (nat 'a = (nat 0)) ') (list (* (nat 'a = (nat 0)) (nat 'b = 0) 'rm = (nat 0) ') (list)))) (list (fac (nat 'k = 0) 'n1 = (nat (nat 0)) ') (list)))) (list)))) (list))))"]);
 
-        });*/
+        });
     });
 });

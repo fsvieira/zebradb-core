@@ -443,7 +443,8 @@ describe('Factorial Tests.', function() {
                             )
                         )
                     ),
-                    
+
+                    // 0! = 1.                    
                     Z.t(
                         Z.c("fac"),
                         Z.t(Z.c("nat"), Z.c("0")), // 0
@@ -451,7 +452,6 @@ describe('Factorial Tests.', function() {
                         Z.v()
                     ), 
                     
-                    // 0! = 1.
                     Z.t(
                         Z.c("fac"), 
                         Z.t(Z.c("nat"), Z.t(Z.c("nat"), Z.v("k"))), // > 0
