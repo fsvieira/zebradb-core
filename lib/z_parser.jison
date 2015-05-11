@@ -8,10 +8,11 @@
 "'"[a-zA-Z\-]+[a-zA-Z0-9\-]*("_"[0-9]+)?\b  return 'VARIABLE'
 "'"                   return "ANONYMOUS_VARIABLE"
 "^"                   return '^'
+"_"                   return 'IGNORE'
 "("                   return '('
 ")"                   return ')'
 <<EOF>>               return 'EOF'
-[^ \s()\^']+          return 'CONSTANT'
+[^ \s()\^'_]+         return 'CONSTANT'
 .                     return 'INVALID'
 
 /lex
@@ -52,4 +53,5 @@ value_expr
     | ANONYMOUS_VARIABLE {$$={type: "variable", name: ""};}
     | tuple {$$=$1;}
     | CONSTANT {$$={type: "constant", value: yytext};}
+    | IGNORE {$$={type: "ignore"};}
     ;
