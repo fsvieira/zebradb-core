@@ -2,38 +2,61 @@
 
 /* lexical grammar */
 %lex
-%%
 
-\s+                   /* skip whitespace */
-"'"[a-zA-Z\-]+[a-zA-Z0-9\-]*("_"[0-9]+)?\b  return 'VARIABLE'
-"'"                   return "ANONYMOUS_VARIABLE"
+%x path
+%x line-comment
+%x multi-comment
+
+%%
+\s+             /* skip white spaces */
+
+"["               this.begin("path");
+<path>[^\]\n]+   {return "PATH";}
+<path>"]"         this.popState();
+
+"//"           this.begin("line-comment");
+<line-comment>[^\n] /* Ignore everything */
+<line-comment>[\n] this.popState();
+
+"/*"           this.begin("multi-comment");
+<multi-comment>[^*] /* Ignore everything */
+<multi-comment>"*"[^/] /* Ignore everything */
+<multi-comment>"*/" this.popState();
+
 "^"                   return '^'
-"_"                   return 'IGNORE'
 "("                   return '('
 ")"                   return ')'
-<<EOF>>               return 'EOF'
+"?"                   return '?'
+"'"[a-zA-Z\-]+[a-zA-Z0-9\-]*("_"[0-9]+)?\b  return 'VARIABLE'
+"'"                   return "ANONYMOUS_VARIABLE"
+"_"                   return 'IGNORE'
 [^ \s()\^'_]+         return 'CONSTANT'
-.                     return 'INVALID'
+<<EOF>>     /* ignore */
+.           return 'INVALID'
 
 /lex
 
 /* operator associations and precedence */
-
-
 
 %start declarations
 
 %% /* language grammar */
 
 declarations
-    : tuples EOF {return $1;}
+    : decls {return $1;}
     ;
 
-tuples
-    : tuple {$$=[$1];}
-    | tuples tuple {$$=$1.concat($2);}
+decls
+    : decl {$$=[$1];}
+    | decls decl {$$=$1.concat($2);}
     ;
 
+decl
+    : tuple {$$=$1;}
+    | "?" tuple {$$={type: "query", tuple: $2};}
+    | PATH {$$={type: "import", path: yytext};}
+    ;
+    
 tuple
     : '(' values ')' {$$={type: "tuple", tuple: $2};}
     ;
@@ -45,13 +68,13 @@ values
 
 value
     : value_expr {$$=$1;}
+    | IGNORE {$$={type: "ignore"};}
     | '^' value_expr {$$={type: "variable", notEqual: $2};} 
     ;
 
 value_expr
     : VARIABLE {$$={type: "variable", name: yytext.substring(1)};}
     | ANONYMOUS_VARIABLE {$$={type: "variable", name: ""};}
-    | tuple {$$=$1;}
     | CONSTANT {$$={type: "constant", value: yytext};}
-    | IGNORE {$$={type: "ignore"};}
+    | tuple {$$=$1;}
     ;

@@ -1,0 +1,55 @@
+[../../zlib/list]
+
+(letter B)
+(letter R)
+(letter A)
+(letter V)
+(letter E)
+
+(not 'p ^'p ^'p ^'p ^'p)
+
+(group (letter 'a) (letter 'b) (letter 'c) (letter 'd) (letter 'e) 
+    (list (not 'a 'b 'c 'd 'e) 
+    (list (not 'b 'a 'c 'd 'e) 
+    (list (not 'c 'b 'a 'd 'e) 
+    (list (not 'd 'c 'b 'a 'e) 
+    (list (not 'e 'd 'c 'b 'a)
+    (list))))))
+)
+
+(   brave
+    'x1y1 'x2y1 'x3y1 'x4y1 'x5y1
+    'x1y2 'x2y2 'x3y2 'x4y2 'x5y2
+    'x1y3 'x2y3 'x3y3 'x4y3 'x5y3
+    'x1y4 'x2y4 'x3y4 'x4y4 'x5y4
+    'x1y5 'x2y5 'x3y5 'x4y5 'x5y5
+    
+    (list (group 'x1y1 'x2y1 'x3y1 'x4y1 'x5y1 ')
+    (list (group 'x1y2 'x2y2 'x3y2 'x4y2 'x5y2 ')
+    (list (group 'x1y3 'x2y3 'x3y3 'x4y3 'x5y3 ')
+    (list (group 'x1y4 'x2y4 'x3y4 'x4y4 'x5y4 ')
+    (list (group 'x1y5 'x2y5 'x3y5 'x4y5 'x5y5 ')
+    
+    (list (group 'x1y1 'x1y2 'x1y3 'x1y4 'x1y5 ')
+    (list (group 'x2y1 'x2y2 'x2y3 'x2y4 'x2y5 ')
+    (list (group 'x3y1 'x3y2 'x3y3 'x3y4 'x3y5 ')
+    (list (group 'x4y1 'x4y2 'x4y3 'x4y4 'x4y5 ')
+    (list (group 'x5y1 'x5y2 'x5y3 'x5y4 'x5y5 ')
+
+    (list (group 'x1y1 'x2y2 'x3y3 'x4y4 'x5y5 ')
+    (list (group 'x5y1 'x4y2 'x3y3 'x2y4 'x1y5 ')
+    
+    (list)))))))))))))
+)
+
+?(
+    brave
+    (letter B) (letter R) (letter A) (letter V) (letter E)
+    (letter ') (letter E) (letter B) (letter R) (letter ')
+    (letter ') (letter ') (letter V) (letter ') (letter B)
+    (letter ') (letter B) (letter R) (letter ') (letter ')
+    (letter ') (letter ') (letter E) (letter B) (letter ')
+    '
+)
+
+

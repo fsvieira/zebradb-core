@@ -16,14 +16,14 @@
 (nat 0)
 (nat (nat 'n))
 
-(nat 0) +
-(nat (nat 'n))" +
+(nat 0)
+(nat (nat 'n))
 
 // Add
 // a . 0 = a,
 (+ (nat 'a) (nat 0) (nat 'a) ')
 
-a . S(b) = a + (a . b)
+// a . S(b) = a + (a . b)
 (+ (nat 'a) (nat (nat 'b)) (nat 'r) (+ (nat 'a) (nat 'b) 'r '))
 
 // Mul                    
@@ -34,5 +34,5 @@ a . S(b) = a + (a . b)
 (* (nat 'a) (nat (nat 'b)) 'r (list (+ (nat 'a) 'rm 'r ') (list (* (nat 'a) (nat 'b) 'rm ') (list))))
 
 // 0! = 1
-(fac (nat 0) (nat (nat 0)) ')" +
+(fac (nat 0) (nat (nat 0)) ')
 (fac (nat (nat 'k)) 'n (list (* 'n1 (nat (nat 'k)) 'n ') (list (fac (nat 'k) 'n1 ') (list))))
