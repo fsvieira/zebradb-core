@@ -1,5 +1,31 @@
 [../../zlib/list]
 
+/*
+    -- Run with "tools/run.js examples/z/brave" (root folder).
+    -- Solve Brave puzzle (source: http://www.mathsisfun.com/puzzles/a-brave-puzzle.html).
+    
+    * Only for the brave, this one!
+    * This square has eleven letters missing, which you have to replace:
+    
+    B R A V E
+    _ E B R _
+    _ _ V _ B
+    _ B R _ _
+    _ _ E B _
+    
+    * Every row, column AND the main diagonals contain all the letters in the word "BRAVE".
+    * That reminds me, I must see the Postman about all those missing letters.
+    
+    -- Solution:
+    
+    B R A V E
+    V E B R A
+    R A V E B
+    E B R A V
+    A V E B R
+
+*/
+
 (letter B)
 (letter R)
 (letter A)
