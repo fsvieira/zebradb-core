@@ -76,6 +76,17 @@
     (letter ') (letter B) (letter R) (letter ') (letter ')
     (letter ') (letter ') (letter E) (letter B) (letter ')
     '
-)
+) {
+    var s='';
+    for (var i=1; i<q.tuple.length-1; i++) {
+        if ((i-1)%5===0) {
+            s+="\n";
+        }
+        
+        s += q.tuple[i].getValue().tuple[1].getValue().toString() + " ";
+    }
+    
+    return s;
+}
 
 

@@ -6,6 +6,7 @@
 %x path
 %x line-comment
 %x multi-comment
+%s code
 
 %%
 \s+             /* skip white spaces */
@@ -22,6 +23,11 @@
 <multi-comment>[^*] /* Ignore everything */
 <multi-comment>"*"[^/] /* Ignore everything */
 <multi-comment>"*/" this.popState();
+
+"{"            {this.begin("code");return '{';}
+<code>[^{}]+   return 'CODEBLOCK'
+<code>"}"      {this.popState();return '}';}
+
 
 "^"                   return '^'
 "("                   return '('
@@ -54,9 +60,21 @@ decls
 decl
     : tuple {$$=$1;}
     | "?" tuple {$$={type: "query", tuple: $2};}
+    | "?" tuple code {$$={type: "query", tuple: $2, code: "(function (q) {" + $3 + "})"};}
     | PATH {$$={type: "import", path: yytext};}
     ;
-    
+
+code
+   : code_st  {$$=$1;}
+   | code code_st {$$=$1 + $2;}
+   ;
+
+code_st
+    : '{'       {$$="{";} 
+    | '}'       {$$="}";}
+    | CODEBLOCK {$$=$1;}
+    ;
+
 tuple
     : '(' values ')' {$$={type: "tuple", tuple: $2};}
     ;
