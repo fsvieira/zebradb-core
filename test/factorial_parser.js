@@ -23,6 +23,7 @@ describe('Factorial Parser Tests.', function() {
 
             should(run.queryArray(
                 "(nat 'n)",
+                undefined,
                 10
             )).eql([
                 "(nat 'n = 0)",
@@ -200,7 +201,7 @@ describe('Factorial Parser Tests.', function() {
             var run;
             
             run = new ZQuery.Run(
-                                // Nat
+                // Nat
                 "(nat 0)" +
                 "(nat (nat 'n))" +
 

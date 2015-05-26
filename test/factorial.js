@@ -25,6 +25,7 @@ describe('Factorial Tests.', function() {
 
             should(run.queryArray(
                 Z.t(Z.c("nat"), Z.v("n")),
+                undefined,
                 10
             )).eql([
                 "(nat 'n = 0)",

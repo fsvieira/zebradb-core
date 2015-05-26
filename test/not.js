@@ -60,5 +60,24 @@ describe('ZQuery Tests.', function() {
                 "(notEqual yellow blue)"
             ]);
         });
+        
+        it('Should make distinct tuples', function () {
+            var run;
+            run = new ZQuery.Run(
+                "(color yellow)" +
+                "(color blue)" +
+                "(color red)" +
+                "(distinct 'item ^'item)"
+            );
+            
+            should(run.queryArray("(distinct (color 'a) (color 'b))")).eql([
+                "(distinct (color 'a = blue) (color 'b = yellow))",
+                "(distinct (color 'a = red) (color 'b = yellow))",
+                "(distinct (color 'a = yellow) (color 'b = blue))",
+                "(distinct (color 'a = red) (color 'b = blue))",
+                "(distinct (color 'a = yellow) (color 'b = red))",
+                "(distinct (color 'a = blue) (color 'b = red))"
+            ]);
+        });
     });
 });

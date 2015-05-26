@@ -2,5 +2,23 @@
 (list 'item (list))
 (list 'item (list ''))
 
-// ?(list ' ')
-// ?(list banana (list))
+// (not _ (list) (list))
+// (not 'item (list ^'item 'tail) (not 'item 'tail))
+
+/*(set)
+(set 'item (set) ')
+(set 'item (set ^'item 'tail ') (set 'item 'tail '))
+
+? (set a (set b (set c (set) ') ') ')*/
+
+(number 1)
+(number 2)
+(number 3)
+
+(set)
+(set (number 'n) (set) ')
+(set (number 'n) (set (number ^'n) 'tail ') (set (number 'n) 'tail '))
+
+? (set (number 'a) (set (number 'b) (set) ') ')
+? (set (number 1) (set (number 1) (set) ') ')
+? (set (number 2) (set (number 1) (set) ') ')
