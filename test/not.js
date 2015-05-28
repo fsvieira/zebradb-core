@@ -1,10 +1,11 @@
 var should = require("should");
 var Z = require("../lib/z");
 var ZQuery = require("../lib/zquery");
+var log = require("../lib/zquery_debug");
 
 describe('ZQuery Tests.', function() {
     describe('Not Tests', function() {
-        it('Should test the Not Constants', function () {
+        /*it('Should test the Not Constants', function () {
             var run;
             run = new ZQuery.Run(Z.d(
                 Z.t(Z.c("color"), Z.c("yellow")),
@@ -60,7 +61,7 @@ describe('ZQuery Tests.', function() {
                 "(notEqual yellow blue)"
             ]);
         });
-        
+
         it('Should make distinct tuples', function () {
             var run;
             run = new ZQuery.Run(
@@ -69,6 +70,11 @@ describe('ZQuery Tests.', function() {
                 "(color red)" +
                 "(distinct 'item ^'item)"
             );
+            
+            should(run.queryArray("(distinct (color yellow) (color yellow))")).eql([]);
+            should(run.queryArray("(distinct (color blue) (color yellow))")).eql([
+                "(distinct (color blue) (color yellow))"
+            ]);
             
             should(run.queryArray("(distinct (color 'a) (color 'b))")).eql([
                 "(distinct (color 'a = blue) (color 'b = yellow))",
@@ -79,5 +85,53 @@ describe('ZQuery Tests.', function() {
                 "(distinct (color 'a = blue) (color 'b = red))"
             ]);
         });
+
+        it('Should declare a Set (inv)', function () {
+            var run;
+            run = new ZQuery.Run(
+                "(number 0)" +
+                "(number 1)" +
+                "(set)" +
+                "(set 'item (set) ')" +
+                "(set ^'item (set 'item 'tail ') (set ^'item 'tail '))"
+            );
+            
+            should(run.queryArray("(set (number 'a) (set (number 'b) (set) ') ')")).eql([
+                "(set (number 'a = 1) (set (number 'b = 0) (set) ') ' = (set ' 'tail = (set) '))",
+                "(set (number 'a = 0) (set (number 'b = 1) (set) ') ' = (set ' 'tail = (set) '))"
+            ]);
+        });
+*/
+
+        it('Should declare simple not.', function () {
+            var run;
+            run = new ZQuery.Run(
+                "(number 0)" +
+                "(number 1)" +
+                "(not 'a ^'a)"
+            );
+            
+            should(run.queryArray("(not (number 'p) (number 'q))")).eql([
+                "(not (number 'p = 1) (number 'q = 0))",
+                "(not (number 'p = 0) (number 'q = 1))"
+            ]);
+        });
+        
+        /* TODO: fix this bug...
+        it('Should declare a Set', function () {
+            var run;
+            run = new ZQuery.Run(
+                "(number 0)" +
+                "(number 1)" +
+                "(set)" +
+                "(set 'item (set) ')" +
+                "(set 'item (set ^'item 'tail ') (set 'item 'tail '))"
+            );
+            
+            should(run.queryArray("(set (number 'a) (set (number 'b) (set) ') ')")).eql([
+                "(set (number 'a = 0) (set (number 'b = 1) (set) ') ' = (set 'item = (number 'a = 0) 'tail = (set) '))",
+                "(set (number 'a = 1) (set (number 'b = 0) (set) ') ' = (set 'item = (number 'a = 1) 'tail = (set) '))"
+            ]);
+        });*/
     });
 });
