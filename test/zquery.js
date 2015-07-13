@@ -1,96 +1,52 @@
 var should = require("should");
 var Z = require("../lib/z");
-var ZQuery = require("../lib/zquery");
+
 
 describe('ZQuery Tests.', function() {
-    describe('Save and Load', function() {
-        it('Should save and load empty variable with no changes.', function () {
-            var q, load;
-            
-            q = new ZQuery.Variable("q");
-            load = q.save();
-            should(q.getValue()).equal(undefined);
-            load();
-            should(q.getValue()).equal(undefined);
-        });
-
-        it('Should save and load variable with changes.', function () {
-            var q, yellow;
-
-            q = new ZQuery.Variable("q");
-            yellow = new ZQuery.Constant("yellow");
-            
-            var load = q.save();
-            
-            should(q.unify(yellow)).equal(true);
-            should(q.getValue().toString()).equal("yellow");
-            
-            load();
-            should(q.getValue()).equal(undefined);
-        });
-        
-        it('Should save and load tuple. (revert side efects)', function () {
-            var tA, tB, tC, loadA, loadA_1, loadB, loadC;
-            
-            tA = ZQuery.create(Z.t(Z.v("pA"), Z.v("qA")));
-            tB = ZQuery.create(Z.t(Z.c("yellow"), Z.v("qB")));
-            
-            should(tA.toString()).equal("('pA 'qA)");
-            should(tB.toString()).equal("(yellow 'qB)");
-            
-            loadA = tA.save();
-            loadB = tB.save();
-            
-            should(tA.unify(tB)).equal(true);
-
-            should(tA.toString()).equal("('pA = yellow 'qA)");
-            should(tB.toString()).equal("(yellow 'qB)");
-            
-            loadA_1 = tA.save();
-
-            tC = ZQuery.create(Z.t(Z.v("pC"), Z.c("blue")));
-            loadC = tC.save();
-            should(tA.unify(tC)).equal(true);
-            
-            should(tA.toString()).equal("('pA = yellow 'qA = blue)");
-            should(tB.toString()).equal("(yellow 'qB = blue)");
-            should(tC.toString()).equal("('pC = yellow blue)");
-            
-            loadA_1();
-            
-            should(tA.toString()).equal("('pA = yellow 'qA)"); // ('p 'q = blue)
-            should(tB.toString()).equal("(yellow 'qB)");
-            should(tC.toString()).equal("('pC = yellow blue)");
-            
-            loadA();
-            should(tA.toString()).equal("('pA 'qA)");
-            
-        });
-
-    });
-
     describe('Querys', function() {
         it('Query with single tuple constant.', function () {
-            var run = new ZQuery.Run(
-                Z.d(
+            var query = Z.run([
+                Z.t(Z.c("yellow"))
+            ]);
+            
+            
+            should(
+                query(
                     Z.t(Z.c("yellow"))
                 )
-            );
+            ).eql({
+                query: {
+                    bound: [],
+                    tuple: [ { type: 'constant', value: 'yellow' } ],
+                    type: 'tuple'
+                },
+                result: [ { bound: [] } ]
+            });
             
-            run.query(
-                Z.t(Z.c("yellow")),
-                function (q) {
-                    should(q.toString()).equal("(yellow)");
-                }
-            );
-            
-            run.query(
-                Z.t(Z.v("q")),
-                function (q) {
-                    should(q.toString()).equal("('q = yellow)");
-                }
-            );
-            
+            should(
+                query(
+                    Z.t(Z.v("q"))
+                )
+            ).eql({
+                query: {
+                    bound: [ 'q' ],
+                    tuple: [ { name: 'q', type: 'variable' } ],
+                    type: 'tuple'
+                },
+                result: [
+                    {
+                      bound: [ 'q' ],
+                      vars: {
+                            q: {
+                                notEquals: undefined,
+                                type: 'value',
+                                value: { type: 'constant', value: 'yellow' },
+                                variable: { name: 'q', type: 'variable' } // TODO: change var to name.
+                            }
+                        }
+                    }
+                ]
+            });
         });
         
         it('Should identify variables by name.', function () {

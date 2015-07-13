@@ -23,29 +23,20 @@ describe('Z Constructors test.', function() {
     describe('Not', function() {
         it('Declare a Not ...', function() {
             should(Z.n(Z.c("yellow"))).eql({
-                notEqual: { type: 'constant', value: 'yellow' },
+                notEquals: [{ type: 'constant', value: 'yellow' }],
                 type: 'variable'
             });
             
             should(Z.n(Z.v("q"))).eql({
-                notEqual: { name: 'q', type: 'variable' }, 
+                notEquals: [{ name: 'q', type: 'variable' }], 
                 type: 'variable' 
             
             });
             
             should(Z.n(Z.t(Z.v("q")))).eql({
-                notEqual: { tuple: [ { name: 'q', type: 'variable' } ], type: 'tuple' },
+                notEquals: [{ tuple: [ { name: 'q', type: 'variable' } ], type: 'tuple' }],
                 type: 'variable'
             });
         });
     });
-    
-    describe('Definition', function() {
-        it('Declare a Tuple', function() {
-            should(Z.d(Z.t(Z.v("q")))).eql([
-                { tuple: [ { name: 'q', type: 'variable' } ], type: 'tuple' }
-            ]);
-        });
-    });
-
 });

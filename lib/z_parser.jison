@@ -1,4 +1,6 @@
-/* description: Parses end executes mathematical expressions. */
+%{
+var types = require("./types.js");
+%}
 
 /* lexical grammar */
 %lex
@@ -76,7 +78,7 @@ code_st
     ;
 
 tuple
-    : '(' values ')' {$$={type: "tuple", tuple: $2};}
+    : '(' values ')' {$$=types.t($2);}
     ;
 
 values
@@ -87,12 +89,12 @@ values
 value
     : value_expr {$$=$1;}
     | IGNORE {$$={type: "ignore"};}
-    | '^' value_expr {$$={type: "variable", notEqual: $2};} 
+    | '^' value_expr {$$=types.n($2);}
     ;
 
 value_expr
-    : VARIABLE {$$={type: "variable", name: yytext.substring(1)};}
-    | ANONYMOUS_VARIABLE {$$={type: "variable", name: ""};}
-    | CONSTANT {$$={type: "constant", value: yytext};}
+    : VARIABLE {$$=types.v(yytext.substring(1));}
+    | ANONYMOUS_VARIABLE {$$=types.v();}
+    | CONSTANT {$$=types.c(yytext);}
     | tuple {$$=$1;}
     ;
