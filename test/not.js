@@ -45,69 +45,79 @@ describe('ZQuery Tests.', function() {
                         vars: { x$0: '(color \'x$1)', x$1: 'white' }
                     }
                 ]
-});
-            
-            /*
-            should(run.queryArray(
-                Z.t(Z.c("notYellow"), Z.v())
-            )).eql([
-                "(notYellow ' = (color ' = blue))",
-                "(notYellow ' = (color ' = red))",
-                "(notYellow ' = (color ' = white))"
-            ]);*/
+            });
         });
-        
-        /*it('Should declare a Not-Equal', function () {
-            var run;
-            run = new ZQuery.Run(Z.d(
-                Z.t(Z.c("equal"), Z.v("p"), Z.v("p")),
-                Z.t(Z.c("notEqual"), Z.v("p"), Z.n(Z.v("p")))
-            ));
+
+        it('Should declare a Not-Equal', function () {
+            var query = Z.run(
+                "(equal 'p 'p)" +
+                "(notEqual 'p ^'p)"
+            );
+
+            // Query the facts,
+            should(utils.tableFieldsToString(
+                query("(equal yellow yellow)")
+            )).eql({
+                query: '?(equal yellow yellow)',
+                result: [ { bound: [ 'p' ], vars: { p: 'yellow' } } ]
+            });
             
-            should(run.queryArray(
-                Z.t(Z.c("equal"), Z.c("yellow"), Z.c("yellow"))
-            )).eql([
-                "(equal yellow yellow)"
-            ]);
-            
-            should(run.queryArray(
-                Z.t(Z.c("equal"), Z.c("yellow"), Z.c("blue"))
-            )).eql([]);
-            
-            
-            should(run.queryArray(
-                Z.t(Z.c("notEqual"), Z.c("yellow"), Z.c("yellow"))
-            )).eql([]);
-            
-            should(run.queryArray(
-                Z.t(Z.c("notEqual"), Z.c("yellow"), Z.c("blue"))
-            )).eql([
-                "(notEqual yellow blue)"
-            ]);
+            should(utils.tableFieldsToString(
+                query("(equal yellow blue)")
+            )).eql({ query: '?(equal yellow blue)' });
+
+            should(utils.tableFieldsToString(
+                query("(notEqual yellow yellow)")
+            )).eql({ query: '?(notEqual yellow yellow)' });
+
+            should(utils.tableFieldsToString(
+                query("(notEqual yellow blue)")
+            )).eql({
+                query: '?(notEqual yellow blue)',
+                result: [
+                    { bound: [ 'p', 'x$0' ], vars: { p: 'yellow', x$0: 'blue' } }
+                ]
+            });
         });
 
         it('Should make distinct tuples', function () {
-            var run;
-            run = new ZQuery.Run(
+            var query = Z.run(
                 "(color yellow)" +
                 "(color blue)" +
                 "(color red)" +
                 "(distinct 'item ^'item)"
             );
+
+            // Query the facts,
+            should(utils.tableFieldsToString(
+                query("(distinct (color yellow) (color yellow))")
+            )).eql({ query: '?(distinct (color yellow) (color yellow))' });
+
+            should(utils.tableFieldsToString(
+                query("(distinct (color blue) (color yellow))")
+            )).eql({
+                query: '?(distinct (color blue) (color yellow))',
+                result: [
+                    {
+                        bound: [ 'item', 'x$0' ],
+                        vars: { item: '(color blue)', x$0: '(color yellow)' }
+                    }
+                ]
+            });
+
+            should(utils.tableFieldsToString(
+                query("(distinct (color 'a) (color 'b))")
+            )).eql({});
+
             
-            should(run.queryArray("(distinct (color yellow) (color yellow))")).eql([]);
-            should(run.queryArray("(distinct (color blue) (color yellow))")).eql([
-                "(distinct (color blue) (color yellow))"
-            ]);
-            
-            should(run.queryArray("(distinct (color 'a) (color 'b))")).eql([
-                "(distinct (color 'a = blue) (color 'b = yellow))",
-                "(distinct (color 'a = red) (color 'b = yellow))",
-                "(distinct (color 'a = yellow) (color 'b = blue))",
-                "(distinct (color 'a = red) (color 'b = blue))",
-                "(distinct (color 'a = yellow) (color 'b = red))",
-                "(distinct (color 'a = blue) (color 'b = red))"
-            ]);
+            // should(run.queryArray("(distinct (color 'a) (color 'b))")).eql([
+            //    "(distinct (color 'a = blue) (color 'b = yellow))",
+            //    "(distinct (color 'a = red) (color 'b = yellow))",
+            //    "(distinct (color 'a = yellow) (color 'b = blue))",
+            //    "(distinct (color 'a = red) (color 'b = blue))",
+            //    "(distinct (color 'a = yellow) (color 'b = red))",
+            //    "(distinct (color 'a = blue) (color 'b = red))"
+            // ]);
         });
 
         it('Should declare a Set (inv)', function () {
@@ -125,7 +135,6 @@ describe('ZQuery Tests.', function() {
                 "(set (number 'a = 0) (set (number 'b = 1) (set) ') ' = (set ' 'tail = (set) '))"
             ]);
         });
-*/
 
         it('Should declare simple not.', function () {
             var run;
@@ -141,7 +150,6 @@ describe('ZQuery Tests.', function() {
             ]);
         });
         
-        /* TODO: fix this bug...
         it('Should declare a Set', function () {
             var run;
             run = new ZQuery.Run(
@@ -156,6 +164,6 @@ describe('ZQuery Tests.', function() {
                 "(set (number 'a = 0) (set (number 'b = 1) (set) ') ' = (set 'item = (number 'a = 0) 'tail = (set) '))",
                 "(set (number 'a = 1) (set (number 'b = 0) (set) ') ' = (set 'item = (number 'a = 1) 'tail = (set) '))"
             ]);
-        });*/
+        });
     });
 });

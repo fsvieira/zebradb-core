@@ -121,8 +121,16 @@ describe('Prolog examples port Tests.', function() {
                 "(john likes 'person ('person likes wine '))" +
 
                 // 3. John likes anyone who likes themselves
-                "(john likes 'person ('person likes 'person '))" // this is recursive by itself.
-
+                "(list)" +
+                "(list 'item (list))" +
+                "(list 'item (list ''))" +
+                // "(john likes 'person ('person likes 'person '))" // this is recursive by itself.
+                "(john likes 'person (list " +
+                    "('person likes 'person ')" +
+                    "(list (equal 'person ^john) (list))" +
+                "))" +
+                
+                "(equal 'x 'x)"
                 // ---
                 // (john likes 'stuff ') . (john likes 'person ('person likes 'person '))
                 // (john likes 'stuff='person '=('person likes 'person '))
@@ -132,7 +140,7 @@ describe('Prolog examples port Tests.', function() {
             
             should(utils.tableFieldsToString(
                 // TODO: solve query with no deep restrictions.
-                query("(john likes 'stuff 'p)", 2)
+                query("(john likes 'stuff 'p)")
             )).eql({
                   query: '?(john likes \'stuff \'p)',
                   result: [

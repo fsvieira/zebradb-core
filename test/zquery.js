@@ -89,6 +89,7 @@ describe('ZQuery Tests.', function() {
                                 variable: { name: 'p', type: 'variable' }
                             },
                             q: {
+                                notEquals: [],
                                 type: 'value',
                                 value: { type: 'constant', value: 'yellow' },
                                 variable: { name: 'q', type: 'variable' }
