@@ -50,7 +50,7 @@ describe('ZQuery Tests.', function() {
         });
 
         it('Should identify variables by name.', function () {
-            
+
             var defs = [Z.t(Z.v("q"), Z.v("q"))];
             var query = Z.run(defs);
 
@@ -72,7 +72,7 @@ describe('ZQuery Tests.', function() {
                 )
             )).eql({
                 query: '?(yellow \'p)',
-                result: [ { bound: [ 'p', 'q' ], vars: { p: '\'q', q: 'yellow' } } ]
+                result: [ { bound: [ 'p', 'q' ], vars: { p: 'yellow', q: '\'p' } } ]
             });
 
             query = Z.run([ 
@@ -83,7 +83,6 @@ describe('ZQuery Tests.', function() {
                 )
             ]);
 
-            // TOOD: while anwser are rigth they should be duplicated.
             should(
                 utils.tableFieldsToString(
                     query(
@@ -97,15 +96,8 @@ describe('ZQuery Tests.', function() {
                 query: '?((yellow) (\'p))',
                 result: [
                     {
-                        bound: [ 'p', 'q', 'x$0', 'x$1', 'x$2', 'x$3' ],
-                        vars: {
-                            p: 'yellow',
-                            q: '\'p',
-                            x$0: 'yellow',
-                            x$1: '\'p',
-                            x$2: '\'p',
-                            x$3: 'yellow'
-                        }
+                      bound: [ 'p', 'q', 'x$0', 'x$1' ],
+                      vars: { p: '\'q', q: 'yellow', x$0: 'yellow', x$1: '' }
                     }
                 ]
             });
@@ -159,7 +151,7 @@ describe('ZQuery Tests.', function() {
                 )
             ).eql({
                 query: '?(yellow \'c)',
-                result: [ { bound: [ 'a', 'c' ], vars: { a: 'yellow', c: '\'a' } } ]
+                result: [ { bound: [ 'a', 'c' ], vars: { a: '\'c', c: 'yellow' } } ]
             });
 
 
@@ -178,8 +170,8 @@ describe('ZQuery Tests.', function() {
                 query: '?((yellow \'c))',
                 result: [
                     {
-                        bound: [ 'a', 'c', 'x', 'y' ],
-                        vars: { a: 'yellow', c: '\'a', x: 'yellow', y: '\'a' }
+                      bound: [ 'a', 'c', 'x', 'y' ],
+                      vars: { a: '\'c', c: 'yellow', x: 'yellow', y: '\'c' }
                     }
                 ]
             });
@@ -206,17 +198,8 @@ describe('ZQuery Tests.', function() {
                 query: '?((yellow \'c) (blue \'d))',
                 result: [
                     {
-                        bound: [ 'a', 'b', 'c', 'd', 'x$0', 'x$1', 'x$2', 'x$3' ],
-                        vars: {
-                            a: 'yellow',
-                            b: '\'c',
-                            c: 'blue',
-                            d: '\'a',
-                            x$0: 'blue',
-                            x$1: '\'a',
-                            x$2: 'yellow',
-                            x$3: '\'c'
-                        }
+                        bound: [ 'a', 'b', 'c', 'd' ],
+                        vars: { a: 'yellow', b: '\'c', c: 'blue', d: '\'a' }
                     }
                 ]
             });
