@@ -8,6 +8,7 @@ var utils = require("../lib/utils");
 
 describe('Prolog examples port Tests.', function() {
     describe('Simple Facts', function() {
+/*        
         it('Should query people about what they like.', function () {
 
             var query = Z.run(
@@ -103,9 +104,25 @@ describe('Prolog examples port Tests.', function() {
                 "query": "?(john likes 'stuff 'p)"
             });
         });
+*/
 
-/*
         it('Should query what john likes, he likes anyone who likes wine.', function () {
+
+            var query = Z.run(
+                "(mary likes wine ')" + // likes(mary,wine).
+                "(john likes wine ')" + // likes(john,wine).
+
+                // 2. John likes anyone who likes wine
+                "(john likes 'person ('person likes wine '))"
+            );
+            
+            should(utils.tableFieldsToString(
+                query("(john likes 'stuff 'p)")
+            )).eql({});
+        });
+
+/*        
+        it('Should query what john likes, he likes what mary likes and people that like wine.', function () {
 
             var query = Z.run(
                 "(mary likes food ')" + // likes(mary,food).
@@ -190,7 +207,6 @@ describe('Prolog examples port Tests.', function() {
             });
         });
 
-        // TODO: is not stoping.
         it('Should query people about what they like (Extended).', function () {
             var query = Z.run(
                 "(mary likes food ')" + // likes(mary,food).

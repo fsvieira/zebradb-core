@@ -4,7 +4,6 @@ var utils = require("../lib/utils");
 
 describe('ZQuery Tests.', function() {
     describe('Not Tests', function() {
-/*        
         it('Should test the Not Constants', function () {
             var query = Z.run(
                 "(color yellow)" +
@@ -162,7 +161,7 @@ describe('ZQuery Tests.', function() {
                 ]
             });
         });
-*/
+
         // TODO: rever unificações etc.
         it('Should declare a Set', function () {
             var query = Z.run(
@@ -246,7 +245,6 @@ describe('ZQuery Tests.', function() {
             });
         });
 
-/*
         it('Should declare a number Set', function () {
             var query = Z.run(
                 "(number 0)" +
@@ -305,6 +303,6 @@ describe('ZQuery Tests.', function() {
                     }
                 ]
             });
-        });*/
+        });
     });
 });

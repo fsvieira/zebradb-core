@@ -96,8 +96,8 @@ describe('ZQuery Tests.', function() {
                 query: '?((yellow) (\'p))',
                 result: [
                     {
-                      bound: [ 'p', 'q', 'x$0', 'x$1' ],
-                      vars: { p: '\'q', q: 'yellow', x$0: 'yellow', x$1: '' }
+                        bound: [ 'p', 'q', 'x$0', 'x$1' ],
+                        vars: { p: '\'q', q: 'yellow', x$0: 'yellow', x$1: '\'q' }
                     }
                 ]
             });
