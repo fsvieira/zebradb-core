@@ -8,7 +8,6 @@ var utils = require("../lib/utils");
 
 describe('Prolog examples port Tests.', function() {
     describe('Simple Facts', function() {
-/*        
         it('Should query people about what they like.', function () {
 
             var query = Z.run(
@@ -58,28 +57,28 @@ describe('Prolog examples port Tests.', function() {
 
             should(utils.tableFieldsToString(
                 query("(john likes 'stuff 'p)")
-            )).eql( {
+            )).eql({
                 query: '?(john likes \'stuff \'p)',
                 result: [
                     {
-                        bound: [ 'p', 'stuff', 'x$0', 'x$1', 'x$2' ],
-                        vars: {
-                            p: '(mary likes \'x$1 \'x$0)',
-                            stuff: 'food',
-                            x$0: '',
-                            x$1: '\'stuff',
-                            x$2: '\'x$0'
-                        }
+                      bound: [ 'p', 'stuff', 'x$0', 'x$1', 'x$2' ],
+                      vars: {
+                        p: '(mary likes \'x$1 \'x$0)',
+                        stuff: '\'x$1',
+                        x$0: '\'x$2',
+                        x$1: 'food',
+                        x$2: ''
+                      }
                     },
                     {
-                        bound: [ 'p', 'stuff', 'x$0', 'x$1', 'x$2' ],
-                        vars: {
-                            p: '(mary likes \'x$1 \'x$0)',
-                            stuff: 'wine',
-                            x$0: '',
-                            x$1: '\'stuff',
-                            x$2: '\'x$0'
-                        }
+                      bound: [ 'p', 'stuff', 'x$0', 'x$1', 'x$2' ],
+                      vars: {
+                        p: '(mary likes \'x$1 \'x$0)',
+                        stuff: '\'x$1',
+                        x$0: '\'x$2',
+                        x$1: 'wine',
+                        x$2: ''
+                      }
                     }
                 ]
             });
@@ -104,7 +103,6 @@ describe('Prolog examples port Tests.', function() {
                 "query": "?(john likes 'stuff 'p)"
             });
         });
-*/
 
         it('Should query what john likes, he likes anyone who likes wine.', function () {
 
@@ -114,14 +112,50 @@ describe('Prolog examples port Tests.', function() {
 
                 // 2. John likes anyone who likes wine
                 "(john likes 'person ('person likes wine '))"
+                
+                // (john likes 'stuff 'p) . (john likes 'person ('person likes wine '))
+                // =>   stuff = person
+                //      p = (person likes wine ')
+                // (person likes wine ') . (mary likes wine ') => person = mary
+                // (person likes wine ') . (john likes wine ') => person = john
+                // (person1 likes wine ') . (john likes 'person2 ('person2 likes wine ')) 
+                // =>   person1 = john, person2 = wine
+                //      (wine likes wine ') FAIL. 
             );
             
             should(utils.tableFieldsToString(
                 query("(john likes 'stuff 'p)")
-            )).eql({});
+            )).eql({
+                query: '?(john likes \'stuff \'p)',
+                result: [
+                    {
+                      bound: [ 'p', 'stuff', 'x$0' ],
+                      vars: { p: '\'x$0', stuff: 'wine', x$0: '' }
+                    },
+                    {
+                      bound: [ 'p', 'person', 'stuff', 'x$0', 'x$1' ],
+                      vars: {
+                        p: '(\'person likes wine \'x$0)',
+                        person: 'mary',
+                        stuff: '\'person',
+                        x$0: '\'x$1',
+                        x$1: ''
+                      }
+                    },
+                    {
+                      bound: [ 'p', 'person', 'stuff', 'x$0', 'x$1' ],
+                      vars: {
+                        p: '(\'person likes wine \'x$0)',
+                        person: 'john',
+                        stuff: '\'person',
+                        x$0: '\'x$1',
+                        x$1: ''
+                      }
+                    }
+                ]
+            });
         });
 
-/*        
         it('Should query what john likes, he likes what mary likes and people that like wine.', function () {
 
             var query = Z.run(
@@ -207,6 +241,7 @@ describe('Prolog examples port Tests.', function() {
             });
         });
 
+/*
         it('Should query people about what they like (Extended).', function () {
             var query = Z.run(
                 "(mary likes food ')" + // likes(mary,food).

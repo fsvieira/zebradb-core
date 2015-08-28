@@ -50,7 +50,6 @@ describe('ZQuery Tests.', function() {
         });
 
         it('Should identify variables by name.', function () {
-
             var defs = [Z.t(Z.v("q"), Z.v("q"))];
             var query = Z.run(defs);
 
@@ -72,7 +71,7 @@ describe('ZQuery Tests.', function() {
                 )
             )).eql({
                 query: '?(yellow \'p)',
-                result: [ { bound: [ 'p', 'q' ], vars: { p: 'yellow', q: '\'p' } } ]
+                result: [ { bound: [ 'p', 'q' ], vars: { p: '\'q', q: 'yellow' } } ]
             });
 
             query = Z.run([ 
@@ -96,8 +95,8 @@ describe('ZQuery Tests.', function() {
                 query: '?((yellow) (\'p))',
                 result: [
                     {
-                        bound: [ 'p', 'q', 'x$0', 'x$1' ],
-                        vars: { p: '\'q', q: 'yellow', x$0: 'yellow', x$1: '\'q' }
+                      bound: [ 'p', 'q', 'x$0', 'x$1' ],
+                      vars: { p: 'yellow', q: '\'p', x$0: 'yellow', x$1: '\'p' }
                     }
                 ]
             });
@@ -151,7 +150,7 @@ describe('ZQuery Tests.', function() {
                 )
             ).eql({
                 query: '?(yellow \'c)',
-                result: [ { bound: [ 'a', 'c' ], vars: { a: '\'c', c: 'yellow' } } ]
+                result: [ { bound: [ 'a', 'c' ], vars: { a: 'yellow', c: '\'a' } } ]
             });
 
 
@@ -171,7 +170,7 @@ describe('ZQuery Tests.', function() {
                 result: [
                     {
                       bound: [ 'a', 'c', 'x', 'y' ],
-                      vars: { a: '\'c', c: 'yellow', x: 'yellow', y: '\'c' }
+                      vars: { a: 'yellow', c: '\'a', x: 'yellow', y: '\'a' }
                     }
                 ]
             });

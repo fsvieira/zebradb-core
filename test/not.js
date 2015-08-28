@@ -4,6 +4,7 @@ var utils = require("../lib/utils");
 
 describe('ZQuery Tests.', function() {
     describe('Not Tests', function() {
+/*
         it('Should test the Not Constants', function () {
             var query = Z.run(
                 "(color yellow)" +
@@ -162,7 +163,6 @@ describe('ZQuery Tests.', function() {
             });
         });
 
-        // TODO: rever unificações etc.
         it('Should declare a Set', function () {
             var query = Z.run(
                 "(number 0)" +
@@ -173,7 +173,7 @@ describe('ZQuery Tests.', function() {
             );
 
             should(utils.tableFieldsToString(
-                query("(set (number 'a) (set (number 'b) (set) ') ')", 1)
+                query("(set (number 'a) (set (number 'b) (set) ') ')")
             )).eql({
                 query: '?(set (number \'a) (set (number \'b) (set) \'x$0) \'x$1)',
                 result: [
@@ -243,7 +243,14 @@ describe('ZQuery Tests.', function() {
                     }
                 ]
             });
+            
+            should(utils.tableFieldsToString(
+                query("(set (number 'a) (set (number 'b) (set (number 'c) (set) ') ') ')")
+            )).eql({
+                query: '?(set (number \'a) (set (number \'b) (set (number \'c) (set) \'x$0) \'x$1) \'x$2)'
+            });
         });
+*/
 
         it('Should declare a number Set', function () {
             var query = Z.run(
@@ -255,7 +262,7 @@ describe('ZQuery Tests.', function() {
             );
 
             should(utils.tableFieldsToString(
-                query("(set (number 'a) 'tail ')")
+                query("(set (number 'a) 'tail ')", 4)
             )).eql({
               query: '?(set (number \'a) \'tail \'x$0)',
               result: [
