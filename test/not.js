@@ -175,81 +175,73 @@ describe('ZQuery Tests.', function() {
             should(utils.tableFieldsToString(
                 query("(set (number 'a) (set (number 'b) (set) ') ')")
             )).eql({
-                query: '?(set (number \'a) (set (number \'b) (set) \'x$0) \'x$1)',
-                result: [
-                    {
-                        bound: [
-                            'a',
-                            'b',
-                            'item',
-                            'tail',
-                            'x$0',
-                            'x$1',
-                            'x$10',
-                            'x$2',
-                            'x$3',
-                            'x$4',
-                            'x$5',
-                            'x$6',
-                            'x$7',
-                            'x$8',
-                            'x$9'
-                        ],
-                        vars: {
-                            a: '0',
-                            b: '1',
-                            item: '(number \'a)',
-                            tail: '(set)',
-                            x$0: '\'x$4',
-                            x$1: '(set \'item \'tail \'x$2)',
-                            x$10: '\'item',
-                            x$2: '',
-                            x$3: '(number \'b)',
-                            x$4: '',
-                            x$5: '(number \'b)',
-                            x$6: '\'x$4',
-                            x$7: '\'x$2',
-                            x$8: '\'item',
-                            x$9: '\'x$2'
-                        }
-                    },
-                    {
-                        bound: [
-                            'a',
-                            'b',
-                            'item',
-                            'tail',
-                            'x$0',
-                            'x$1',
-                            'x$10',
-                            'x$2',
-                            'x$3',
-                            'x$4',
-                            'x$5',
-                            'x$6',
-                            'x$7',
-                            'x$8',
-                            'x$9'
-                        ],
-                        vars: {
-                            a: '1',
-                            b: '0',
-                            item: '(number \'a)',
-                            tail: '(set)',
-                            x$0: '\'x$4',
-                            x$1: '(set \'item \'tail \'x$2)',
-                            x$10: '\'item',
-                            x$2: '',
-                            x$3: '(number \'b)',
-                            x$4: '',
-                            x$5: '(number \'b)',
-                            x$6: '\'x$4',
-                            x$7: '\'x$2',
-                            x$8: '\'item',
-                            x$9: '\'x$2'
-                        }
-                    }
-                ]
+              query: '?(set (number \'a) (set (number \'b) (set) \'x$0) \'x$1)',
+              result: [
+                {
+                  bound: [
+                    'a',
+                    'b',
+                    'item',
+                    'tail',
+                    'x$0',
+                    'x$1',
+                    'x$2',
+                    'x$3',
+                    'x$4',
+                    'x$5',
+                    'x$6',
+                    'x$7',
+                    'x$8'
+                  ],
+                  vars: {
+                    a: '0',
+                    b: '1',
+                    item: '(number \'a)',
+                    tail: '(set)',
+                    x$0: '\'x$4',
+                    x$1: '(set \'item \'tail \'x$2)',
+                    x$2: '',
+                    x$3: '(number \'b)',
+                    x$4: '',
+                    x$5: '(number \'b)',
+                    x$6: '\'x$4',
+                    x$7: '\'x$2',
+                    x$8: '\'item'
+                  }
+                },
+                {
+                  bound: [
+                    'a',
+                    'b',
+                    'item',
+                    'tail',
+                    'x$0',
+                    'x$1',
+                    'x$2',
+                    'x$3',
+                    'x$4',
+                    'x$5',
+                    'x$6',
+                    'x$7',
+                    'x$8'
+                  ],
+                  vars: {
+                    a: '1',
+                    b: '0',
+                    item: '(number \'a)',
+                    tail: '(set)',
+                    x$0: '\'x$4',
+                    x$1: '(set \'item \'tail \'x$2)',
+                    x$2: '',
+                    x$3: '(number \'b)',
+                    x$4: '',
+                    x$5: '(number \'b)',
+                    x$6: '\'x$4',
+                    x$7: '\'x$2',
+                    x$8: '\'item'
+                  }
+                }
+              ]
             });
             
             should(utils.tableFieldsToString(
@@ -258,7 +250,7 @@ describe('ZQuery Tests.', function() {
                 query: '?(set (number \'a) (set (number \'b) (set (number \'c) (set) \'x$0) \'x$1) \'x$2)'
             });
         });
-/*
+
         it('Should declare a number Set', function () {
             var query = Z.run(
                 "(number 0)" +
@@ -273,50 +265,50 @@ describe('ZQuery Tests.', function() {
             )).eql({
               query: '?(set (number \'a) \'tail \'x$0)',
               result: [
-                    {
-                      bound: [ 'a', 'tail', 'x$0', 'x$1', 'x$2' ],
-                      vars: { a: '0', tail: '(set)', x$0: '\'x$2', x$1: '\'a', x$2: '' }
-                    },
-                    {
-                      bound: [ 'a', 'tail', 'x$0', 'x$1', 'x$2' ],
-                      vars: { a: '1', tail: '(set)', x$0: '\'x$2', x$1: '\'a', x$2: '' }
-                    },
-                    {
-                      bound: [ 'a', 'tail', 'x$0', 'x$1', 'x$2', 'x$3', 'x$4', 'x$5', 'x$6', 'x$7', 'x$8', 'x$9' ],
-                      vars: {
-                        a: '\'x$3',
-                        tail: '(set (number \'x$5) \'x$4 \'x$1)',
-                        x$0: '(set (number \'x$3) \'x$4 \'x$2)',
-                        x$1: '',
-                        x$2: '1',
-                        x$3: '0',
-                        x$4: '(set)',
-                        x$5: '\'x$2',
-                        x$6: '\'x$1',
-                        x$7: '',
-                        x$8: '',
-                        x$9: '\'x$2'
-                      }
-                    },
-                    {
-                        bound: [ 'a', 'tail', 'x$0', 'x$1', 'x$2', 'x$3', 'x$4', 'x$5', 'x$6', 'x$7', 'x$8', 'x$9'],
-                        vars: {
-                            a: '\'x$3',
-                            tail: '(set (number \'x$5) \'x$4 \'x$1)',
-                            x$0: '(set (number \'x$3) \'x$4 \'x$2)',
-                            x$1: '',
-                            x$2: '0',
-                            x$3: '1',
-                            x$4: '(set)',
-                            x$5: '\'x$2',
-                            x$6: '\'x$1',
-                            x$7: '',
-                            x$8: '',
-                            x$9: '\'x$2'
-                        }
-                    }
-                ]
+                {
+                  bound: [ 'a', 'tail', 'x$0', 'x$1', 'x$2' ],
+                  vars: { a: '0', tail: '(set)', x$0: '\'x$2', x$1: '\'a', x$2: '' }
+                },
+                {
+                  bound: [ 'a', 'tail', 'x$0', 'x$1', 'x$2' ],
+                  vars: { a: '1', tail: '(set)', x$0: '\'x$2', x$1: '\'a', x$2: '' }
+                },
+                {
+                  bound: [ 'a', 'tail', 'x$0', 'x$1', 'x$2', 'x$3', 'x$4', 'x$5', 'x$6', 'x$7', 'x$8', 'x$9' ],
+                  vars: {
+                    a: '0',
+                    tail: '(set (number \'x$5:[^\'a]) \'x$4 \'x$1)',
+                    x$0: '(set (number \'x$3) \'x$4 \'x$2)',
+                    x$1: '\'x$6',
+                    x$2: '\'x$9',
+                    x$3: '\'a',
+                    x$4: '(set)',
+                    x$5: '1',
+                    x$6: '',
+                    x$7: '\'x$5:[^\'a]',
+                    x$8: '\'a',
+                    x$9: ''
+                  }
+                },
+                {
+                  bound: [ 'a', 'tail', 'x$0', 'x$1', 'x$2', 'x$3', 'x$4', 'x$5', 'x$6', 'x$7', 'x$8', 'x$9' ],
+                  vars: {
+                    a: '1',
+                    tail: '(set (number \'x$5:[^\'a]) \'x$4 \'x$1)',
+                    x$0: '(set (number \'x$3) \'x$4 \'x$2)',
+                    x$1: '\'x$6',
+                    x$2: '\'x$9',
+                    x$3: '\'a',
+                    x$4: '(set)',
+                    x$5: '0',
+                    x$6: '',
+                    x$7: '\'x$5:[^\'a]',
+                    x$8: '\'a',
+                    x$9: ''
+                  }
+                }
+              ]
             });
-        });*/
+        });
     });
 });
