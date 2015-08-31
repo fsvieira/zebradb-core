@@ -22,7 +22,7 @@ describe('ZQuery Tests.', function() {
                 },
                 result: [ {vars: {}, bound: [] } ]
             });
-            
+
             should(
                 query(
                     Z.t(Z.v("q"))
@@ -198,7 +198,7 @@ describe('ZQuery Tests.', function() {
                 result: [
                     {
                         bound: [ 'a', 'b', 'c', 'd' ],
-                        vars: { a: 'yellow', b: '\'c', c: 'blue', d: '\'a' }
+                        vars: { a: '\'d', b: 'blue', c: '\'b', d: 'yellow' }
                     }
                 ]
             });

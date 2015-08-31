@@ -4,7 +4,7 @@ var utils = require("../lib/utils");
 
 describe('ZQuery Tests.', function() {
     describe('Not Tests', function() {
-/*
+
         it('Should test the Not Constants', function () {
             var query = Z.run(
                 "(color yellow)" +
@@ -35,15 +35,15 @@ describe('ZQuery Tests.', function() {
                 result: [
                     {
                         bound: [ 'x$0', 'x$1' ],
-                        vars: { x$0: '(color \'x$1)', x$1: 'blue' }
+                        vars: { x$0: '(color \'x$1:[^yellow])', x$1: 'blue' }
                     },
                     {
                         bound: [ 'x$0', 'x$1' ],
-                        vars: { x$0: '(color \'x$1)', x$1: 'red' }
+                        vars: { x$0: '(color \'x$1:[^yellow])', x$1: 'red' }
                     },
                     {
                         bound: [ 'x$0', 'x$1' ],
-                        vars: { x$0: '(color \'x$1)', x$1: 'white' }
+                        vars: { x$0: '(color \'x$1:[^yellow])', x$1: 'white' }
                     }
                 ]
             });
@@ -185,28 +185,32 @@ describe('ZQuery Tests.', function() {
                             'tail',
                             'x$0',
                             'x$1',
+                            'x$10',
                             'x$2',
                             'x$3',
                             'x$4',
                             'x$5',
                             'x$6',
                             'x$7',
-                            'x$8'
+                            'x$8',
+                            'x$9'
                         ],
                         vars: {
                             a: '0',
                             b: '1',
-                            item: '\'x$8',
+                            item: '(number \'a)',
                             tail: '(set)',
-                            x$0: '',
+                            x$0: '\'x$4',
                             x$1: '(set \'item \'tail \'x$2)',
-                            x$2: '\'x$7',
+                            x$10: '\'item',
+                            x$2: '',
                             x$3: '(number \'b)',
-                            x$4: '\'x$0',
-                            x$5: '\'x$0',
-                            x$6: '(number \'b)',
-                            x$7: '',
-                            x$8: '(number \'a)'
+                            x$4: '',
+                            x$5: '(number \'b)',
+                            x$6: '\'x$4',
+                            x$7: '\'x$2',
+                            x$8: '\'item',
+                            x$9: '\'x$2'
                         }
                     },
                     {
@@ -217,28 +221,32 @@ describe('ZQuery Tests.', function() {
                             'tail',
                             'x$0',
                             'x$1',
+                            'x$10',
                             'x$2',
                             'x$3',
                             'x$4',
                             'x$5',
                             'x$6',
                             'x$7',
-                            'x$8'
+                            'x$8',
+                            'x$9'
                         ],
                         vars: {
                             a: '1',
                             b: '0',
-                            item: '\'x$8',
+                            item: '(number \'a)',
                             tail: '(set)',
-                            x$0: '',
+                            x$0: '\'x$4',
                             x$1: '(set \'item \'tail \'x$2)',
-                            x$2: '\'x$7',
+                            x$10: '\'item',
+                            x$2: '',
                             x$3: '(number \'b)',
-                            x$4: '\'x$0',
-                            x$5: '\'x$0',
-                            x$6: '(number \'b)',
-                            x$7: '',
-                            x$8: '(number \'a)'
+                            x$4: '',
+                            x$5: '(number \'b)',
+                            x$6: '\'x$4',
+                            x$7: '\'x$2',
+                            x$8: '\'item',
+                            x$9: '\'x$2'
                         }
                     }
                 ]
@@ -250,8 +258,7 @@ describe('ZQuery Tests.', function() {
                 query: '?(set (number \'a) (set (number \'b) (set (number \'c) (set) \'x$0) \'x$1) \'x$2)'
             });
         });
-*/
-
+/*
         it('Should declare a number Set', function () {
             var query = Z.run(
                 "(number 0)" +
@@ -262,7 +269,7 @@ describe('ZQuery Tests.', function() {
             );
 
             should(utils.tableFieldsToString(
-                query("(set (number 'a) 'tail ')", 4)
+                query("(set (number 'a) 'tail ')", 3)
             )).eql({
               query: '?(set (number \'a) \'tail \'x$0)',
               result: [
@@ -310,6 +317,6 @@ describe('ZQuery Tests.', function() {
                     }
                 ]
             });
-        });
+        });*/
     });
 });
