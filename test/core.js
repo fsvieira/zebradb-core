@@ -2,20 +2,452 @@ var should = require("should");
 var operators = require("../lib/operators");
 
 describe('Test Core Functions.', function() {
+	it("should merge two tables", function () {
+	
+		var dbg = operators.dbg({
+                	prefix: "operators.",
+                	out: "logs/operators",
+                	replace: true,
+                	init: "var operators = require('../lib/operators.js');\n\n",
+                	enable: true,
+                	split: true,
+                	json: false,
+                	// filter: /\(nat 'x\$7\)/g
+		});
+	
+		// dbg(function () {
+		should(operators.setValue({
+			"vars": {
+				"a": {
+					"type": "value",
+					"variable": {
+						"type": "variable",
+						"name": "a"
+					},
+					"notEquals": [],
+					"value": {
+						"type": "constant",
+						"value": "0"
+					}
+				},
+				"x$4": {
+					"type": "defered",
+					"variable": {
+						"type": "variable",
+						"name": "x$4"
+					},
+					"defered": {
+						"type": "variable",
+						"name": "a"
+					}
+				},
+				"x$2": {
+					"type": "value",
+					"variable": {
+						"type": "variable",
+						"name": "x$2"
+					},
+					"notEquals": []
+				},
+				"x$5": {
+					"type": "defered",
+					"variable": {
+						"type": "variable",
+						"name": "x$5"
+					},
+					"defered": {
+						"type": "variable",
+						"name": "x$2"
+					}
+				},
+				"x$1": {
+					"type": "value",
+					"variable": {
+						"type": "variable",
+						"name": "x$1"
+					},
+					"value": {
+						"type": "tuple",
+						"tuple": [
+							{
+								"type": "constant",
+								"value": "nat"
+							},
+							{
+								"type": "variable",
+								"name": "x$3"
+							}
+						]
+					}
+				}
+			},
+			"bound": [
+				"x$4",
+				"x$5",
+				"x$3"
+			]
+		},
+		{
+			"type": "variable",
+			"name": "x$1"
+		},
+		{
+			"type": "value",
+			"variable": {
+				"type": "variable",
+				"name": "x$1"
+			},
+			"value": {
+				"type": "tuple",
+				"tuple": [
+					{
+						"type": "constant",
+						"value": "nat"
+					},
+					{
+						"type": "variable",
+						"name": "x$4"
+					}
+				]
+			}
+		})).eql({
+			  bound: [ 'x$4', 'x$5', 'x$3' ],
+			  vars: {
+			    a: {
+			      defered: { name: 'x$4', type: 'variable' },
+			      type: 'defered',
+			      variable: { name: 'a', type: 'variable' }
+			    },
+			    x$1: {
+			      notEquals: undefined,
+			      type: 'value',
+			      value: {
+			        tuple: [
+			          { type: 'constant', value: 'nat' },
+			          { name: 'x$3', type: 'variable' }
+			        ],
+			        type: 'tuple'
+			      },
+			      variable: { name: 'x$1', type: 'variable' }
+			    },
+			    x$2: {
+			      defered: { name: 'x$5', type: 'variable' },
+			      type: 'defered',
+			      variable: { name: 'x$2', type: 'variable' }
+			    },
+			    x$3: {
+			      defered: { name: 'x$4', type: 'variable' },
+			      type: 'defered',
+			      variable: { name: 'x$3', type: 'variable' }
+			    },
+			    x$4: {
+			      notEquals: [],
+			      type: 'value',
+			      value: { type: 'constant', value: '0' },
+			      variable: { name: 'x$4', type: 'variable' }
+			    },
+			    x$5: {
+			      notEquals: [],
+			      type: 'value',
+			      value: undefined,
+			      variable: { name: 'x$5', type: 'variable' }
+			    }
+			  }
+		});
+
+		// });
+
+		should(operators.merge({
+			"vars": {
+				"a": {
+					"type": "value",
+					"variable": {
+						"type": "variable",
+						"name": "a"
+					},
+					"notEquals": [],
+					"value": {
+						"type": "constant",
+						"value": "0"
+					}
+				},
+				"x$4": {
+					"type": "defered",
+					"variable": {
+						"type": "variable",
+						"name": "x$4"
+					},
+					"defered": {
+						"type": "variable",
+						"name": "a"
+					}
+				},
+				"x$2": {
+					"type": "value",
+					"variable": {
+						"type": "variable",
+						"name": "x$2"
+					},
+					"notEquals": []
+				},
+				"x$5": {
+					"type": "defered",
+					"variable": {
+						"type": "variable",
+						"name": "x$5"
+					},
+					"defered": {
+						"type": "variable",
+						"name": "x$2"
+					}
+				},
+				"b": {
+					"type": "value",
+					"variable": {
+						"type": "variable",
+						"name": "b"
+					},
+					"value": {
+						"type": "constant",
+						"value": "0"
+					}
+				},
+				"r": {
+					"type": "value",
+					"variable": {
+						"type": "variable",
+						"name": "r"
+					},
+					"value": {
+						"type": "tuple",
+						"tuple": [
+							{
+								"type": "constant",
+								"value": "nat"
+							},
+							{
+								"type": "variable",
+								"name": "x$1"
+							}
+						]
+					}
+				},
+				"x$0": {
+					"type": "value",
+					"variable": {
+						"type": "variable",
+						"name": "x$0"
+					},
+					"value": {
+						"type": "tuple",
+						"tuple": [
+							{
+								"type": "constant",
+								"value": "+"
+							},
+							{
+								"type": "tuple",
+								"tuple": [
+									{
+										"type": "constant",
+										"value": "nat"
+									},
+									{
+										"type": "variable",
+										"name": "a"
+									}
+								]
+							},
+							{
+								"type": "tuple",
+								"tuple": [
+									{
+										"type": "constant",
+										"value": "nat"
+									},
+									{
+										"type": "variable",
+										"name": "b"
+									}
+								]
+							},
+							{
+								"type": "variable",
+								"name": "x$1"
+							},
+							{
+								"type": "variable",
+								"name": "x$2"
+							}
+						]
+					}
+				},
+				"n": {
+					"type": "value",
+					"variable": {
+						"type": "variable",
+						"name": "n"
+					},
+					"value": {
+						"type": "constant",
+						"value": "0"
+					}
+				},
+				"x$1": {
+					"type": "value",
+					"variable": {
+						"type": "variable",
+						"name": "x$1"
+					},
+					"value": {
+						"type": "tuple",
+						"tuple": [
+							{
+								"type": "constant",
+								"value": "nat"
+							},
+							{
+								"type": "variable",
+								"name": "x$3"
+							}
+						]
+					}
+				}
+			},
+			"bound": [
+				"x$4",
+				"x$5",
+				"x$3"
+			]
+		},
+		{
+			"vars": {
+				"x$4": {
+					"type": "value",
+					"variable": {
+						"type": "variable",
+						"name": "x$4"
+					},
+					"notEquals": []
+				},
+				"x$3": {
+					"type": "defered",
+					"variable": {
+						"type": "variable",
+						"name": "x$3"
+					},
+					"defered": {
+						"type": "variable",
+						"name": "x$4"
+					}
+				}
+			},
+			"bound": []
+		})).eql({
+			bound: [ 'x$6', 'x$5', 'x$7' ],
+			vars: {
+			    a: {
+			      defered: { name: 'x$6', type: 'variable' },
+			      type: 'defered',
+			      variable: { name: 'a', type: 'variable' }
+			    },
+			    b: {
+			      notEquals: undefined,
+			      type: 'value',
+			      value: { type: 'constant', value: '0' },
+			      variable: { name: 'b', type: 'variable' }
+			    },
+			    n: {
+			      notEquals: undefined,
+			      type: 'value',
+			      value: { type: 'constant', value: '0' },
+			      variable: { name: 'n', type: 'variable' }
+			    },
+			    r: {
+			      notEquals: undefined,
+			      type: 'value',
+			      value: {
+			        tuple: [
+			          { type: 'constant', value: 'nat' },
+			          { name: 'x$1', type: 'variable' }
+			        ],
+			        type: 'tuple'
+			      },
+			      variable: { name: 'r', type: 'variable' }
+			    },
+			    x$0: {
+			      notEquals: undefined,
+			      type: 'value',
+			      value: {
+			        tuple: [
+			          { type: 'constant', value: '+' },
+			          {
+			            tuple: [
+			              { type: 'constant', value: 'nat' },
+			              { name: 'a', type: 'variable' }
+			            ],
+			            type: 'tuple'
+			          },
+			          {
+			            tuple: [
+			              { type: 'constant', value: 'nat' },
+			              { name: 'b', type: 'variable' }
+			            ],
+			            type: 'tuple'
+			          },
+			          { name: 'x$1', type: 'variable' },
+			          { name: 'x$2', type: 'variable' }
+			        ],
+			        type: 'tuple'
+			      },
+			      variable: { name: 'x$0', type: 'variable' }
+			    },
+			    x$1: {
+			      notEquals: undefined,
+			      type: 'value',
+			      value: {
+			        tuple: [
+			          { type: 'constant', value: 'nat' },
+			          { name: 'x$7', type: 'variable' }
+			        ],
+			        type: 'tuple'
+			      },
+			      variable: { name: 'x$1', type: 'variable' }
+			    },
+			    x$2: {
+			      defered: { name: 'x$5', type: 'variable' },
+			      type: 'defered',
+			      variable: { name: 'x$2', type: 'variable' }
+			    },
+			    x$3: {
+			      notEquals: [],
+			      type: 'value',
+			      value: undefined,
+			      variable: { name: 'x$3', type: 'variable' }
+			    },
+			    x$4: {
+			      defered: { name: 'x$3', type: 'variable' },
+			      type: 'defered',
+			      variable: { name: 'x$4', type: 'variable' }
+			    },
+			    x$5: {
+			      notEquals: [],
+			      type: 'value',
+			      value: undefined,
+			      variable: { name: 'x$5', type: 'variable' }
+			    },
+			    x$6: {
+			      notEquals: [],
+			      type: 'value',
+			      value: { type: 'constant', value: '0' },
+			      variable: { name: 'x$6', type: 'variable' }
+			    }
+			  }
+			});
+	});
+
 	it("should merge table tables", function () {
 			should(operators.mergeTableTables(
-				/*{
-					"vars": {
-						"x$1": "food",
-						"stuff": "'x$1",
-						"x$2": "",
-						"x$0": "'x$2",
-						"p": "(mary likes 'x$1 'x$0)"
-					},
-					"bound": [
-						"x$2"
-					]
-				} ==> */ 
 				{
 				"vars": {
 					"x$1": {
@@ -93,10 +525,7 @@ describe('Test Core Functions.', function() {
 					"x$2"
 				]
 			},
-			/*[
-				"{\n\t\"vars\": {\n\t\t\"x$0\": \"\",\n\t\t\"x$2\": \"'x$0\",\n\t\t\"x$1\": \"food\"\n\t},\n\t\"bound\": [\n\t\t\"x$2\"\n\t]\n}",
-				"{\n\t\"vars\": {\n\t\t\"x$0\": \"\",\n\t\t\"x$2\": \"'x$0\",\n\t\t\"x$1\": \"wine\"\n\t},\n\t\"bound\": [\n\t\t\"x$2\"\n\t]\n}"
-			] ==>*/ [
+			[
 				{
 					"vars": {
 						"x$0": {
