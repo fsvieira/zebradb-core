@@ -27,7 +27,7 @@ describe('ZQuery Tests.', function() {
                 query(
                     Z.t(Z.v("q"))
                 )
-            ).eql({
+            ).eql( {
                 query: {
                     bound: [ 'q' ],
                     tuple: [ { name: 'q', type: 'variable' } ],
@@ -35,8 +35,8 @@ describe('ZQuery Tests.', function() {
                 },
                 result: [
                     {
-                      bound: [ 'q' ],
-                      vars: {
+                        bound: [],
+                        vars: {
                             q: {
                                 notEquals: undefined,
                                 type: 'value',
@@ -71,7 +71,7 @@ describe('ZQuery Tests.', function() {
                 )
             )).eql({
                 query: '?(yellow \'p)',
-                result: [ { bound: [ 'p', 'q' ], vars: { p: '\'q', q: 'yellow' } } ]
+                result: [ { bound: [], vars: { p: 'yellow' } } ]
             });
 
             query = Z.run([ 
@@ -93,12 +93,7 @@ describe('ZQuery Tests.', function() {
                 )
             ).eql({
                 query: '?((yellow) (\'p))',
-                result: [
-                    {
-                      bound: [ 'p', 'q', 'x$0', 'x$1' ],
-                      vars: { p: 'yellow', q: '\'p', x$0: 'yellow', x$1: '\'p' }
-                    }
-                ]
+                result: [ { bound: [], vars: { p: 'yellow' } } ]
             });
         });
 
@@ -122,17 +117,8 @@ describe('ZQuery Tests.', function() {
                     )
                 )
             ).eql({
-                query: "?('a 'b 'c)",
-                result: [
-                    {
-                        bound: [ 'a', 'b', 'c' ],
-                        vars: {
-                            a: 'blue',
-                            b: 'red',
-                            c: 'yellow'
-                        }
-                    }
-                ]
+                query: '?(\'a \'b \'c)',
+                result: [ { bound: [], vars: { a: 'blue', b: 'red', c: 'yellow' } } ]
             });
         });
 
@@ -150,9 +136,8 @@ describe('ZQuery Tests.', function() {
                 )
             ).eql({
                 query: '?(yellow \'c)',
-                result: [ { bound: [ 'a', 'c' ], vars: { a: 'yellow', c: '\'a' } } ]
+                result: [ { bound: [], vars: { c: 'yellow' } } ]
             });
-
 
             query = Z.run([
                 Z.t(Z.v("x"), Z.v("y")),
@@ -167,12 +152,7 @@ describe('ZQuery Tests.', function() {
                 )
             ).eql({
                 query: '?((yellow \'c))',
-                result: [
-                    {
-                      bound: [ 'a', 'c', 'x', 'y' ],
-                      vars: { a: 'yellow', c: '\'a', x: 'yellow', y: '\'a' }
-                    }
-                ]
+                result: [ { bound: [], vars: { c: 'yellow' } } ]
             });
 
             query = Z.run([
@@ -195,12 +175,7 @@ describe('ZQuery Tests.', function() {
                 )
             ).eql({
                 query: '?((yellow \'c) (blue \'d))',
-                result: [
-                    {
-                        bound: [ 'a', 'b', 'c', 'd' ],
-                        vars: { a: '\'d', b: 'blue', c: '\'b', d: 'yellow' }
-                    }
-                ]
+                result: [ { bound: [], vars: { c: 'blue', d: 'yellow' } } ]
             });
         });
     });
