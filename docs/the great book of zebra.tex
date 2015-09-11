@@ -50,6 +50,9 @@ a certain formal syntax, and a set of transformation rules.
 \item $c \in \mathbb{C}$: $\mathbb{C}$ is the set of terminal symbols called constants, $c$ is a terminal symbol. Constants are \zm\ terms.
 \item $'p \in \mathbb{V}$: $\mathbb{V}$ is the set of variables, $p$ is a variable. Variables are \zm\ terms.
 \item $(p_{0} \ldots p_{n}) \in \mathbb{T}$: $\mathbb{T}$ is the set of tuples, $(p_{0} \ldots p_{n})$ its a n-tuple of \zm\ terms and is a \zm\ term.
+\item $\sigma \rightarrow (p_{0} \ldots p_{n}) \in \mathbb{T} \wedge \sigma \in \mathcal{P}(\mathbb{V})$
+\item $p \unify q$
+\item $p \notUnify q$
 \item Nothing else is a \zm\ term.
 \end{enumerate}
 
@@ -96,6 +99,22 @@ and by the rules,
     \subitem If two tuples are not-unifiable then at least one of the elements is not-unifiable.
 \end{enumerate}
 
+
+
+\paragraph{Substitution ($\mathcal{S}$, function)} defined as
+
+\begin{align}
+    \mathcal{S}&: \mathbb{V} \times \mathbb{L} \times \mathbb{L} \rightarrow \mathbb{L}\\
+    \mathcal{S}&(v, w, t) = 
+    \begin{cases}
+        \hfill w \hfill &\text{, if } t = v,\\
+        \hfill (\mathcal{S}(v, w, t_{0}) \ldots \mathcal{S}(v, w, t_{n})) \hfill & \text{, if } t = (t_{0} \ldots t_{n})\\
+        \hfill t \hfill & \text{, otherwise}
+    \end{cases}
+\end{align}
+
+
+
 \subsection{\zm\ Computation}
 \paragraph{A \zm\ computation is expressed as 4-tuple $(\sigma, \delta, q, \alpha)$ where:}
 
@@ -106,14 +125,29 @@ and by the rules,
 \item $\alpha$ is the set of possible computational answers to query $q$ based on $delta$ definitions.
 \end{enumerate}
 
+
+\paragraph{A definition} is a fact in the system. The inner tuples of a definition are considered and called queries, therefor 
+for a definition to be true all of its inner tuples/queries must also be true.
+
+\paragraph{A query} is a question to the system that is true if and only if it unifies at least with 
+one definition.
+
+\paragraph{Free and bound variables} on the context of a definition all definition variables are considered 
+to be bound to the definition, on the context of queries all variables are free.
+
+
 \section{Computing Examples}
 
 \paragraph{Unification}
 \begin{enumerate}
-\item $yellow \unify yellow \implies yellow$, succed.
-\item $blue \unify yellow$, fail: can't unify constants with diferent value.
-\item $yellow \unify (yellow)$, fail: can't unify constant and tuple.
-\item $(blue\ yellow) \unify (blue\ yellow) \implies (blue \unify blue\ yellow \unify yellow) \implies (blue\ yellow)$, succed.
+\item $yellow \unify yellow \implies yellow$
+    \subitem succed.
+\item $blue \unify yellow$
+    \subitem fail: can't unify constants with diferent value.
+\item $yellow \unify (yellow)$
+    \subitem fail: can't unify constant and tuple.
+\item $(blue\ yellow) \unify (blue\ yellow) \implies (blue \unify blue\ yellow \unify yellow) \implies (blue\ yellow)$
+    \subitem succed.
 \end{enumerate}
 
 
