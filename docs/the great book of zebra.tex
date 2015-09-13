@@ -47,13 +47,13 @@ a certain formal syntax, and a set of transformation rules.
 \paragraph{The \zm\ language ($\mathbb{L}$) of terms are defined as:}
 
 \begin{enumerate}
-\item $c \in \mathbb{C}$: $\mathbb{C}$ is the set of terminal symbols called constants, $c$ is a terminal symbol. Constants are \zm\ terms.
-\item $'p \in \mathbb{V}$: $\mathbb{V}$ is the set of variables, $p$ is a variable. Variables are \zm\ terms.
-\item $(p_{0} \ldots p_{n}) \in \mathbb{T}$: $\mathbb{T}$ is the set of tuples, $(p_{0} \ldots p_{n})$ its a n-tuple of \zm\ terms and is a \zm\ term.
-\item $\sigma \rightarrow (p_{0} \ldots p_{n}) \in \mathbb{T} \wedge \sigma \in \mathcal{P}(\mathbb{V})$
-\item $p \unify q$
-\item $p \notUnify q$
+\item $\mathbb{L}_{0}$ and $\mathbb{L}_{not}$ are sets of \zm\ terms.
+\item $c \in \mathbb{C}$: $\mathbb{C}$ is the set of terminal symbols called constants, $c$ is a terminal symbol. $c \in \mathbb{L}_{0}$.
+\item $'p \in \mathbb{V}$: $\mathbb{V}$ is the set of variables, $p$ is a variable. $\var{p} \in \mathbb{L}_{0}$.
+\item $(p_{0} \ldots p_{n}) \in \mathbb{T}$: $\mathbb{T}$ is the set of tuples, $(p_{0} \ldots p_{n})$ its a n-tuple of \zm\ terms. $(p_{0} \ldots p_{n}) \in \mathbb{L}_{0}$.
+\item $\overline{p}$ can be any term that is not equal to $p$, $p \in \mathbb{L}_{0}$. $\overline{p} \in \mathbb{L}_{not}$. 
 \item Nothing else is a \zm\ term.
+\item $\mathbb{L} = \mathbb{L}_{0} \cup \mathbb{L}_{not}$,
 \end{enumerate}
 
 
@@ -66,40 +66,52 @@ a certain formal syntax, and a set of transformation rules.
 
 and by the rules,
 
+\[
+    \unify: \mathbb{L}_{0} \times \mathbb{L}_{0} \rightarrow \mathbb{L}_{0} 
+\]
+
 \begin{enumerate}
-\item $p \unify p \implies p$
-    \subitem $p$ unifies with itself, resulting on itself.
+\item $Q \unify Q = Q$
+    \subitem $Q$ unifies with itself, resulting on itself.
 
-\item $\var{p} \unify Q \iff \var{p} = Q$, $p \in \mathbb{V} \wedge Q \in \mathbb{L}$
-    \subitem $\var{p}$ is a variable and $Q$ is a \zm\ term, they unify iff $\var{p} = Q$.
-
-\item $Q \unify \var{p} \iff \var{p} = Q$, $p \in \mathbb{V} \wedge Q \in \mathbb{L}$
-    \subitem $\var{p}$ is a variable and $Q$ is a \zm\ term, they unify iff $\var{p} = Q$.
+\item $\var{p} \unify Q = Q \iff \var{p} = Q$
+\item $Q \unify \var{p} = Q \iff \var{p} = Q$
+    \subitem note that if $Q \in \mathbb{V}$ then rule [2] will also apply, since both $p$ and $Q$ are the same the result is also the same. 
 
 \item $(p_{0} \ldots p_{n}) \unify (q_{0} \ldots q_{n}) \iff (p_{0} \unify q_{0} \ldots p_{n} \unify q_{n})$
     \subitem $(p_{0} \ldots p_{n})$ z-tuple only unifies with other z-tuple if they have same size and all sub \zm\ terms unify.
     
-\item Anything else fails to unify.
 \end{enumerate}
 
-\paragraph{Not-unify ($\notUnify$, binary operation)} defined as
 
 \[
-    \notUnify: \mathbb{L} \times \mathbb{L} \rightarrow \mathbb{L}
+    \unify: \mathbb{L}_{0} \times \mathbb{L}_{not} \rightarrow \mathbb{L}_{0} 
 \]
 
-and by the rules,
-
 \begin{enumerate}
-    \item $P \notUnify Q = P \iff \overline{P \unify Q}$, $P \in \mathbb{L} \wedge Q \in \mathbb{L}$
-    \subitem Two \zm\ terms not-unify if they dont unify.
-\item Note:
-    \subitem In case of variables their values must also not-unify,
-    \subitem Tuples and constants will never unify,
-    \subitem If two tuples are not-unifiable then at least one of the elements is not-unifiable.
+\item $Q \unify \overline{p} = Q \iff p \neq Q$
 \end{enumerate}
 
 
+\[
+    \unify: \mathbb{L}_{not} \times \mathbb{L}_{0} \rightarrow \mathbb{L}_{0} 
+\]
+
+\begin{enumerate}
+\item $\overline{p} \unify Q = Q \iff p \neq Q$
+\end{enumerate}
+
+\[
+    \unify: \mathbb{L}_{not} \times \mathbb{L}_{not} \rightarrow \mathbb{L}_{0} 
+\]
+
+\begin{enumerate}
+\item $\overline{P} \unify \overline{Q} = \var{p} \iff \var{p} \unify \overline{P} \wedge \var{p} \unify \overline{Q}$
+    \subitem where $\var{p}$ is a new variable.
+    \subitem note that if $P = Q$, then $\var{p} \neq (P \unify Q)$. 
+\end{enumerate}
+
+Anything else is not unifiable.
 
 \paragraph{Substitution ($\mathcal{S}$, function)} defined as
 
@@ -135,33 +147,175 @@ one definition.
 \paragraph{Free and bound variables} on the context of a definition all definition variables are considered 
 to be bound to the definition, on the context of queries all variables are free.
 
+\paragraph{Metadata} will be used on intermidiate computations steps to track information about \zm\ terms, 
+this information may contain bound variables and constrains.
+
+The metadata will be expressed as,
+\[
+    Q[\text{bound}: v_{0} \ldots v_{n}, \text{constrains}: \ldots ]
+\]
+
+Where $Q$ is \zm\ term and inside of $[]$ is the metadata associeted to $Q$, with label bound representing a set of bound variables to $Q$, and constrains representing 
+variable constrains.
+
+
+Bound information is used to rename variables with same name but are not the same.
+
+\paragraph{Variable renaming} its necessary to ensure that distinct variables with same name are not handled as being the same.
+
+ex: 
+\[
+    (\var{p}\ \var{q})[\text{bound}: p] \unify (\var{p}\ \var{q})[\text{bound}: p\ q]
+\]
+
+The first tuple has only $\var{p}$ as bound variable and the second tuple as $\var{p}$ and $\var{q}$ declared as bound variables.
+To ensure that this variables keep their meaning, we rename the bound variables like this:
+
+\[
+    (\var{p_{0}}\ \var{q})[\text{bound}: p_{0}] \unify (\var{p_{1}}\ \var{q_{1}})[\text{bound}: p_{1}\ q_{1}]
+\]
+
+Afther unification we get
+
+\[
+    (\var{p_{0}}\ \var{q})[\text{bound}: p_{0}\ p_{1}\ q_{1}, \text{constrains}: p_{0}=p_{1}\ q=q_{1}]
+\]
+
+
+
+\paragraph{A computation} is done with the following setps:
+
+\begin{enumerate}
+    \item $\alpha = \{q \unify p[\text{bound}: v_{0} \ldots v_{n}] :\forall p \in \delta\}$,
+    \item $t \in \alpha$, for every subtuple $s$ in $t$ we repeate the computation step as
+    \[(\sigma, \delta, s, \alpha)\]
+    \item if there is no more sub-tuples to be processed the computation ends.
+\end{enumerate}
 
 \section{Computing Examples}
 
-\paragraph{Unification}
+\subsection{Defining a not equal}
+
+\[ 
+    (\text{notEqual}\ \var{p}\ \overline{\var{p}})
+\] 
+
+Ex:
+\[(\sigma, \delta, q, \alpha ) = (\{\text{yellow}, \text{blue}\}, \{(\text{notEqual}\ \var{p}\ \overline{\var{p}})\}, q, \alpha)\]
+
 \begin{enumerate}
-\item $yellow \unify yellow \implies yellow$
-    \subitem succed.
-\item $blue \unify yellow$
-    \subitem fail: can't unify constants with diferent value.
-\item $yellow \unify (yellow)$
-    \subitem fail: can't unify constant and tuple.
-\item $(blue\ yellow) \unify (blue\ yellow) \implies (blue \unify blue\ yellow \unify yellow) \implies (blue\ yellow)$
-    \subitem succed.
+\item $q = (\text{notEqual}\ \var{x}\ \var{x})$
+\subitem $(\text{notEqual}\ \var{x}\ \var{x}) \unify (\text{notEqual}\ \var{p}\ \overline{\var{p}})[\text{bound}: p]$
+\subitem $(\text{notEqual} \unify \text{notEqual}\ \var{x} \unify \var{p}\ \var{x} \unify \overline{\var{p}})[\text{bound}: p]$ 
+\subitem $(\text{notEqual} \unify \text{notEqual}\ \var{x} \unify \var{p}\ \var{x} \unify \overline{\var{p}})[\text{bound}: p]$ 
+\subitem $(\text{notEqual} \var{x} \var{x})[\text{bound}: p, \text{constrains}: \var{x}=\var{p} \wedge \var{x} \neq \var{p}]$
+\subitem variable $x$ cant be equal and not equal to $\var{p}$ at same time,
+\subitem query fails to unify with any of the definitions,
+\subitem $\alpha=\emptyset$, no awnsers existe for this query.
+
+\item $q = (\text{notEqual}\  \text{yellow}\ \text{yellow})$
+\subitem $(\text{notEqual}\ \text{yellow}\ \text{yellow}) \unify (\text{notEqual}\ \var{p}\ \overline{\var{p}})[\text{bound}: p]$
+\subitem $(\text{notEqual} \unify \text{notEqual}\ \text{yellow} \unify \var{p}\ \text{yellow} \unify \overline{\var{p}})[\text{bound}: p]$ 
+\subitem $(\text{notEqual} \text{yellow} \text{yellow})[\text{bound}: p, \text{constrains}: \text{yellow}=\var{p} \wedge \text{yellow} \neq \var{p}]$
+\subitem variable $p$ cant be equal and not equal to $\text{yellow}$ vablue at same time,
+\subitem query fails to unify with any of the definitions,
+\subitem $\alpha=\emptyset$, no awnsers existe for this query.
+
+\item $q = (\text{notEqual}\  \text{blue}\ \text{yellow})$
+
+\subitem $(\text{notEqual}\ \text{blue}\ \text{yellow}) \unify (\text{notEqual}\ \var{p}\ \overline{\var{p}})[\text{bound}: p]$
+\subitem $(\text{notEqual} \unify \text{notEqual}\ \text{blue} \unify \var{p}\ \text{yellow} \unify \overline{\var{p}})[\text{bound}: p]$ 
+\subitem $(\text{notEqual} \text{blue} \text{yellow})[\text{bound}: p, \text{constrains}: \text{blue}=\var{p} \wedge \text{yellow} \neq \var{p} \wedge \text{blue} \neq \text{yellow}]$
+\subitem $\alpha=\{(\text{notEqual}\  \text{blue}\ \text{yellow})\}$.
+
+\item $q = (\text{notEqual}\ \var{p}\ \text{yellow})$
+
+\subitem $(\text{notEqual}\ \var{p}\ \text{yellow}) \unify (\text{notEqual}\ \var{p}\ \overline{\var{p}})[\text{bound}: p]$
+\subitem rename bound variable, $p \rightarrow x$, 
+\subitem $(\text{notEqual}\ \var{p}\ \text{yellow}) \unify (\text{notEqual}\ \var{x}\ \overline{\var{x}})[\text{bound}: x]$
+\subitem $(\text{notEqual} \unify \text{notEqual}\ \var{p} \unify \var{x}\ \text{yellow} \unify \overline{\var{x}})[\text{bound}: x]$ 
+\subitem $(\text{notEqual} \text{p} \text{yellow})[\text{bound}: x, \text{constrains}: \text{p}=\var{x} \wedge \text{yellow} \neq \var{x}]$
+\subitem $\alpha=\{(\text{notEqual}\  \var{p}\ \text{yellow})[\text{constrains}: \var{p} \neq \text{yellow}]\}$.
+
 \end{enumerate}
 
+\subsection{Defining a list}
 
-\paragraph{Not-Unify}
-\begin{itemize}
-\item $yellow\notUnify blue$, 
-    \subitem $yellow$ and $blue$ are constants and $yellow \neq blue$.
-\item $(blue\ yellow)\notUnify (yellow\ blue)$, 
-    \subitem $(blue\ yellow) \neq (yellow\ blue)$
-\item $(blue\ 'p)\notUnify (yellow\ blue)$, 
-    \subitem $'p$ is a variable and since $(blue 'p) \neq (yellow\ blue)$ then $'p \neq blue$
-\item $'p\notUnify 'q$,
-    \subitem $'p$ and $'q$ are variables, $'p \neq 'q$.
-\end{itemize}
+\begin{enumerate}
+\item $(\text{list})$
+\item $(\text{list}\ \var{item}\ (\text{list}))$
+\item $(\text{list}\ \var{item}\ (\text{list}\ \var{i}\ \var{tail}))$
+\end{enumerate}
+
+Ex:
+\[
+    (\sigma, \delta, q, \alpha ) = (\{\text{yellow}, \text{blue}\}, 
+    \{
+(\text{list}),
+(\text{list}\ \var{item}\ (\text{list})),
+(\text{list}\ \var{item}\ (\text{list}\ \var{i}\ \var{tail}))
+    \}, q, \alpha)
+\]
+
+\begin{enumerate}
+\item $q = (\text{list})$, query a empty list.
+\subitem $(\text{list}) \unify (\text{list}) = (\text{list})$
+\subitem all other definitions fail to unify because the number of elements in remainding defintions dont match query tuple.
+\subitem $\alpha = {(\text{list})}$
+\item $q = (\text{list}\ \text{yellow}\ (\text{list}\ \text{blue}\ (\text{list})))$
+\subitem Starting with defintion $\text{list}$,
+\subitem $(\text{list}\ \text{yellow}\ (\text{list}\ \text{blue}\ (\text{list}))) \unify (\text{list})$, fail.
+\subitem Next defintion $(\text{list}\ \var{item}\ (\text{list}))$,
+\subitem $(\text{list}\ \text{yellow}\ (\text{list}\ \text{blue}\ (\text{list}))) \unify (\text{list}\ \var{item}\ (\text{list}))[\text{bound}: \text{item} ]$
+\subitem $(\text{list} \unify \text{list}\ \text{yellow} \unify \var{item}\ (\text{list}\ \text{blue}\ (\text{list})) \unify (\text{list}))[\text{bound}: \text{item}]$
+\subitem fail to unify $(list)$ with $(\text{list}\ \text{blue}\ (\text{list}))$.
+\subitem Next defintion $(\text{list}\ \var{item}\ (\text{list}\ \var{i}\ \var{tail}))$,
+\subitem $(\text{list}\ \text{yellow}\ (\text{list}\ \text{blue}\ (\text{list}))) \unify (\text{list}\ \var{item}\ (\text{list}\ \var{i}\ \var{tail}))[\text{bound}: \text{item}\ \text{i}\ \text{tail}]$
+\subitem $(\text{list}\unify \text{list}\ \text{yellow} \unify \var{item}\ (\text{list}\ \text{blue}\ (\text{list})) \unify (\text{list}\ \var{i}\ \var{tail}))[\text{bound}: \text{item}\ \text{i}\ \text{tail}]$
+\subitem $(\text{list}\ \text{yellow} (\text{list}\unify \text{list}\ \text{blue} \unify \var{i}\ (\text{list}) \unify \var{tail}))[\text{bound}: \text{item}\ \text{i}\ \text{tail}, \text{constrains}: \var{item} = \text{yellow}]$
+\subitem $(\text{list}\ \text{yellow} (\text{list}\ \text{blue}\ (\text{list})))
+[\text{bound}: \text{item}\ \text{i}\ \text{tail}, \text{constrains}: \var{item} = \text{yellow}\ \var{i}=\text{blue}\ \var{tail}=(\text{list})]$
+\subitem the next step is to unify all sub-tuples that are not yet checked with definitions, this are: $(\text{list}\ \text{blue}\ (\text{list}))$ and $(\text{list}))$,
+\subitem $(\text{list}\ \text{blue}\ (\text{list})) \unify (list)$, fail.
+\subitem $(\text{list}\ \text{blue}\ (\text{list})) \unify (\text{list}\ \var{item}\ (\text{list}))[\text{bound}: item]$
+\subitem $(\text{list}\unify \text{list}\ \text{blue}\unify \var{item}\ (\text{list}) \unify (\text{list}))[\text{bound}: item]$
+\subitem $(\text{list} \text{blue} (\text{list})))[\text{bound}: item, \text{constrains}: \var{item}=\text{blue}]$, succed.
+\subitem $(\text{list}\ \text{blue}\ (\text{list})) \unify (\text{list}\ \var{item}\ (\text{list}\ \var{i}\ \var{tail}))$, fail.
+\subitem Finally $(list)$ will only unify with $(list)$ definition, ending the process and resulting on $\alpha = \{ (\text{list}\ \text{yellow}\ (\text{list}\ \text{blue}\ (\text{list}))) \}$
+\end{enumerate}
+
+\subsection{What john likes?}
+
+A simple example of queryng facts.
+
+We start with the definitions/facts:
+\begin{enumerate}
+
+\item $(\text{mary}\ \text{likes}\ \text{wine}\ \var{p})$
+\subitem mary likes wine.
+
+\item $(\text{mary}\ \text{likes}\ \text{john}\ \var{p})$
+\subitem mary likes john.
+
+\item $(\text{peter}\ \text{likes}\ \text{peter}\ \var{p})$
+\subitem peter likes himself.
+
+\item $(\text{john}\ \text{likes}\ \var{stuff}\ (\text{mary}\ \text{likes}\ \var{stuff}\ \var{p}))$
+\subitem john likes everything that mary likes.
+
+\item $(\text{john}\ \text{likes}\ \var{stuff}\ (\text{mary}\ \text{likes}\ \var{stuff}\ \var{p}))$
+\subitem john likes everything that mary likes.
+
+\item $(\text{john}\ \text{likes}\ \var{person}\ (\var{person}\ \text{likes}\ \text{wine}\ \var{p}))$
+\subitem john likes anyone that likes wine.
+
+\item \[
+    (\text{john}\ \text{likes}\ \var{person}\ (\text{list}\ (\var{person}\ \text{likes}\ \var{person}\ \var{p}) (\text{list}\ (\text{notEqual}\ \var{person} \text{john})\ (\text{list}))))
+\]
+\subitem john likes anyone that likes themselves.
+
+\end{enumerate}
+
 
 \section{Contributors}
 \label{sec:contributors}
