@@ -3,9 +3,11 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 
+\usepackage{mathrsfs}
+
 \newcommand{\zm}{ZM}
 \newcommand{\zsystem}{Zebra-machine (\zm)}
-\newcommand{\var}[1]{'#1}
+\newcommand{\var}[1]{`#1}
 
 \newcommand{\unify}{\otimes}
 \newcommand{\notUnify}{\ominus}
@@ -49,7 +51,7 @@ a certain formal syntax, and a set of transformation rules.
 \begin{enumerate}
 \item $\mathbb{L}_{0}$ and $\mathbb{L}_{not}$ are sets of \zm\ terms.
 \item $c \in \mathbb{C}$: $\mathbb{C}$ is the set of terminal symbols called constants, $c$ is a terminal symbol. $c \in \mathbb{L}_{0}$.
-\item $'p \in \mathbb{V}$: $\mathbb{V}$ is the set of variables, $p$ is a variable. $\var{p} \in \mathbb{L}_{0}$.
+\item $\var{p} \in \mathbb{V}$: $\mathbb{V}$ is the set of variables, $p$ is a variable. $\var{p} \in \mathbb{L}_{0}$.
 \item $(p_{0} \ldots p_{n}) \in \mathbb{T}$: $\mathbb{T}$ is the set of tuples, $(p_{0} \ldots p_{n})$ its a n-tuple of \zm\ terms. $(p_{0} \ldots p_{n}) \in \mathbb{L}_{0}$.
 \item $\overline{p}$ can be any term that is not equal to $p$, $p \in \mathbb{L}_{0}$. $\overline{p} \in \mathbb{L}_{not}$. 
 \item Nothing else is a \zm\ term.
