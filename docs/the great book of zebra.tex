@@ -149,7 +149,7 @@ one definition.
 \paragraph{Free and bound variables} on the context of a definition all definition variables are considered 
 to be bound to the definition, on the context of queries all variables are free.
 
-\paragraph{Metadata} will be used on intermidiate computations steps to track information about \zm\ terms, 
+\paragraph{Metadata} will be used on intermediate computations steps to track information about \zm\ terms, 
 this information may contain bound variables and constrains.
 
 The metadata will be expressed as,
@@ -157,7 +157,7 @@ The metadata will be expressed as,
     Q[\text{bound}: v_{0} \ldots v_{n}, \text{constrains}: \ldots ]
 \]
 
-Where $Q$ is \zm\ term and inside of $[]$ is the metadata associeted to $Q$, with label bound representing a set of bound variables to $Q$, and constrains representing 
+Where $Q$ is \zm\ term and inside of $[]$ is the metadata associated to $Q$, with label bound representing a set of bound variables to $Q$, and constrains representing 
 variable constrains.
 
 
@@ -177,7 +177,7 @@ To ensure that this variables keep their meaning, we rename the bound variables 
     (\var{p_{0}}\ \var{q})[\text{bound}: p_{0}] \unify (\var{p_{1}}\ \var{q_{1}})[\text{bound}: p_{1}\ q_{1}]
 \]
 
-Afther unification we get
+After unification we get
 
 \[
     (\var{p_{0}}\ \var{q})[\text{bound}: p_{0}\ p_{1}\ q_{1}, \text{constrains}: p_{0}=p_{1}\ q=q_{1}]
@@ -185,11 +185,11 @@ Afther unification we get
 
 
 
-\paragraph{A computation} is done with the following setps:
+\paragraph{A computation} is done with the following steps:
 
 \begin{enumerate}
     \item $\alpha = \{q \unify p[\text{bound}: v_{0} \ldots v_{n}] :\forall p \in \delta\}$,
-    \item $t \in \alpha$, for every subtuple $s$ in $t$ we repeate the computation step as
+    \item $t \in \alpha$, for every sub-tuple $s$ in $t$ we repeat the computation step as
     \[(\sigma, \delta, s, \alpha)\]
     \item if there is no more sub-tuples to be processed the computation ends.
 \end{enumerate}
@@ -221,7 +221,7 @@ Ex:
 \subitem $(\text{notEqual} \text{yellow} \text{yellow})[\text{bound}: p, \text{constrains}: \text{yellow}=\var{p} \wedge \text{yellow} \neq \var{p}]$
 \subitem variable $p$ cant be equal and not equal to $\text{yellow}$ vablue at same time,
 \subitem query fails to unify with any of the definitions,
-\subitem $\alpha=\emptyset$, no awnsers existe for this query.
+\subitem $\alpha=\emptyset$, no answers exist for this query.
 
 \item $q = (\text{notEqual}\  \text{blue}\ \text{yellow})$
 
@@ -262,16 +262,16 @@ Ex:
 \begin{enumerate}
 \item $q = (\text{list})$, query a empty list.
 \subitem $(\text{list}) \unify (\text{list}) = (\text{list})$
-\subitem all other definitions fail to unify because the number of elements in remainding defintions dont match query tuple.
+\subitem all other definitions fail to unify because the number of elements in remaining definitions don't match query tuple.
 \subitem $\alpha = {(\text{list})}$
 \item $q = (\text{list}\ \text{yellow}\ (\text{list}\ \text{blue}\ (\text{list})))$
-\subitem Starting with defintion $\text{list}$,
+\subitem Starting with definition $\text{list}$,
 \subitem $(\text{list}\ \text{yellow}\ (\text{list}\ \text{blue}\ (\text{list}))) \unify (\text{list})$, fail.
-\subitem Next defintion $(\text{list}\ \var{item}\ (\text{list}))$,
+\subitem Next definition $(\text{list}\ \var{item}\ (\text{list}))$,
 \subitem $(\text{list}\ \text{yellow}\ (\text{list}\ \text{blue}\ (\text{list}))) \unify (\text{list}\ \var{item}\ (\text{list}))[\text{bound}: \text{item} ]$
 \subitem $(\text{list} \unify \text{list}\ \text{yellow} \unify \var{item}\ (\text{list}\ \text{blue}\ (\text{list})) \unify (\text{list}))[\text{bound}: \text{item}]$
 \subitem fail to unify $(list)$ with $(\text{list}\ \text{blue}\ (\text{list}))$.
-\subitem Next defintion $(\text{list}\ \var{item}\ (\text{list}\ \var{i}\ \var{tail}))$,
+\subitem Next definition $(\text{list}\ \var{item}\ (\text{list}\ \var{i}\ \var{tail}))$,
 \subitem $(\text{list}\ \text{yellow}\ (\text{list}\ \text{blue}\ (\text{list}))) \unify (\text{list}\ \var{item}\ (\text{list}\ \var{i}\ \var{tail}))[\text{bound}: \text{item}\ \text{i}\ \text{tail}]$
 \subitem $(\text{list}\unify \text{list}\ \text{yellow} \unify \var{item}\ (\text{list}\ \text{blue}\ (\text{list})) \unify (\text{list}\ \var{i}\ \var{tail}))[\text{bound}: \text{item}\ \text{i}\ \text{tail}]$
 \subitem $(\text{list}\ \text{yellow} (\text{list}\unify \text{list}\ \text{blue} \unify \var{i}\ (\text{list}) \unify \var{tail}))[\text{bound}: \text{item}\ \text{i}\ \text{tail}, \text{constrains}: \var{item} = \text{yellow}]$
@@ -281,14 +281,14 @@ Ex:
 \subitem $(\text{list}\ \text{blue}\ (\text{list})) \unify (list)$, fail.
 \subitem $(\text{list}\ \text{blue}\ (\text{list})) \unify (\text{list}\ \var{item}\ (\text{list}))[\text{bound}: item]$
 \subitem $(\text{list}\unify \text{list}\ \text{blue}\unify \var{item}\ (\text{list}) \unify (\text{list}))[\text{bound}: item]$
-\subitem $(\text{list} \text{blue} (\text{list})))[\text{bound}: item, \text{constrains}: \var{item}=\text{blue}]$, succed.
+\subitem $(\text{list} \text{blue} (\text{list})))[\text{bound}: item, \text{constrains}: \var{item}=\text{blue}]$, succeed.
 \subitem $(\text{list}\ \text{blue}\ (\text{list})) \unify (\text{list}\ \var{item}\ (\text{list}\ \var{i}\ \var{tail}))$, fail.
 \subitem Finally $(list)$ will only unify with $(list)$ definition, ending the process and resulting on $\alpha = \{ (\text{list}\ \text{yellow}\ (\text{list}\ \text{blue}\ (\text{list}))) \}$
 \end{enumerate}
 
 \subsection{What john likes?}
 
-A simple example of queryng facts.
+A simple example of querying facts.
 
 We start with the definitions/facts:
 \begin{enumerate}
