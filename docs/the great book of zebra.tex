@@ -2,7 +2,7 @@
 \usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{amssymb}
-
+\usepackage{verbatim}
 \usepackage{mathrsfs}
 
 \newcommand{\zm}{ZM}
@@ -10,8 +10,6 @@
 \newcommand{\var}[1]{`#1}
 
 \newcommand{\unify}{\otimes}
-\newcommand{\computeunify}{\underline{\otimes}}
-
 
 \begin{document}
 
@@ -22,7 +20,7 @@
 
 \chapter*{Preface}
 
-This book is a collaborative work from the \href{zebrajs}{https://github.com/fsvieira/zebrajs} project community 
+This book is a collaborative work from the \href{zebrajs}{https://github.com/fsvieira/zebrajs} project community
 and everyone is invited to participate.
 
 The list of contributors is at the contributors section~\ref{sec:contributors} and your name can be there too :D.
@@ -33,16 +31,16 @@ This is a work in progress.
 
 \chapter{Introduction}
 
-This is the official book of \zsystem. Here you will find anything you need to understand in deep the \zm , 
+This is the official book of \zsystem. Here you will find anything you need to understand in deep the \zm ,
 the book covers both theoretical and practical definitions.
 
-\zsystem is a logical symbolic computation query system, given a set of computational definitions it will 
+\zsystem is a logical symbolic computation query system, given a set of computational definitions it will
 answer questions about them, therefor \zm is better suited for software validation and constrain satisfaction problems.
 
 \section{The \zsystem}
 
-As mentioned before \zm\ is a logical symbolic computation query system, and it consists of two parts 
-the definitions and the query, both parts share the same language of \zm\ terms, which is defined by 
+As mentioned before \zm\ is a logical symbolic computation query system, and it consists of two parts
+the definitions and the query, both parts share the same language of \zm\ terms, which is defined by
 a certain formal syntax, and a set of transformation rules.
 
 \subsection{\zm\ Language ($\mathbb{L}$)}
@@ -53,7 +51,7 @@ a certain formal syntax, and a set of transformation rules.
 \item $c \in \mathbb{C}$: $\mathbb{C}$ is the set of terminal symbols called constants, $c$ is a terminal symbol. $c \in \mathbb{L}_{0}$.
 \item $\var{p} \in \mathbb{V}$: $\mathbb{V}$ is the set of variables, $p$ is a variable. $\var{p} \in \mathbb{L}_{0}$.
 \item $(p_{0} \ldots p_{n}) \in \mathbb{T}$: $\mathbb{T}$ is the set of tuples, $(p_{0} \ldots p_{n})$ its a n-tuple of \zm\ terms. $(p_{0} \ldots p_{n}) \in \mathbb{L}_{0}$.
-\item $\overline{p}$ can be any term that is not equal to $p$, $p \in \mathbb{L}_{0}$. $\overline{p} \in \mathbb{L}_{not}$. 
+\item $\overline{p}$ can be any term that is not equal to $p$, $p \in \mathbb{L}_{0}$. $\overline{p} \in \mathbb{L}_{not}$.
 \item Nothing else is a \zm\ term.
 \item $\mathbb{L} = \mathbb{L}_{0} \cup \mathbb{L}_{not}$,
 \end{enumerate}
@@ -63,15 +61,15 @@ a certain formal syntax, and a set of transformation rules.
 
 \paragraph{The powerset of set $\mathbb{S}$ is expressed as $\mathrm{P}(\mathbb{S})$}.
 
-\paragraph{Unification ($\unify$, binary operation)} defined as 
+\paragraph{Unification ($\unify$, binary operation)} defined as
 \[
     \unify: \mathbb{L} \times \mathbb{L} \rightarrow \mathbb{L}
-\] 
+\]
 
 and by the rules,
 
 \[
-    \unify: \mathbb{L}_{0} \times \mathbb{L}_{0} \rightarrow \mathbb{L}_{0} 
+    \unify: \mathbb{L}_{0} \times \mathbb{L}_{0} \rightarrow \mathbb{L}_{0}
 \]
 
 \begin{enumerate}
@@ -80,16 +78,16 @@ and by the rules,
 
 \item $\var{p} \unify Q = Q \iff \var{p} = Q$
 \item $Q \unify \var{p} = Q \iff \var{p} = Q$
-    \subitem note that if $Q \in \mathbb{V}$ then rule [2] will also apply, since both $p$ and $Q$ are the same the result is also the same. 
+    \subitem note that if $Q \in \mathbb{V}$ then rule [2] will also apply, since both $p$ and $Q$ are the same the result is also the same.
 
 \item $(p_{0} \ldots p_{n}) \unify (q_{0} \ldots q_{n}) \iff (p_{0} \unify q_{0} \ldots p_{n} \unify q_{n})$
     \subitem $(p_{0} \ldots p_{n})$ z-tuple only unifies with other z-tuple if they have same size and all sub \zm\ terms unify.
-    
+
 \end{enumerate}
 
 
 \[
-    \unify: \mathbb{L}_{0} \times \mathbb{L}_{not} \rightarrow \mathbb{L}_{0} 
+    \unify: \mathbb{L}_{0} \times \mathbb{L}_{not} \rightarrow \mathbb{L}_{0}
 \]
 
 \begin{enumerate}
@@ -98,7 +96,7 @@ and by the rules,
 
 
 \[
-    \unify: \mathbb{L}_{not} \times \mathbb{L}_{0} \rightarrow \mathbb{L}_{0} 
+    \unify: \mathbb{L}_{not} \times \mathbb{L}_{0} \rightarrow \mathbb{L}_{0}
 \]
 
 \begin{enumerate}
@@ -106,13 +104,13 @@ and by the rules,
 \end{enumerate}
 
 \[
-    \unify: \mathbb{L}_{not} \times \mathbb{L}_{not} \rightarrow \mathbb{L}_{0} 
+    \unify: \mathbb{L}_{not} \times \mathbb{L}_{not} \rightarrow \mathbb{L}_{0}
 \]
 
 \begin{enumerate}
 \item $\overline{P} \unify \overline{Q} = \var{p} \iff \var{p} \unify \overline{P} \wedge \var{p} \unify \overline{Q}$
     \subitem where $\var{p}$ is a new variable.
-    \subitem note that if $P = Q$, then $\var{p} \neq (P \unify Q)$. 
+    \subitem note that if $P = Q$, then $\var{p} \neq (P \unify Q)$.
 \end{enumerate}
 
 Anything else is not unifiable.
@@ -121,7 +119,7 @@ Anything else is not unifiable.
 
 \begin{align}
     \mathcal{S}&: \mathbb{V} \times \mathbb{L} \times \mathbb{L} \rightarrow \mathbb{L}\\
-    \mathcal{S}&(v, w, t) = 
+    \mathcal{S}&(v, w, t) =
     \begin{cases}
         \hfill w \hfill &\text{, if } t = v,\\
         \hfill (\mathcal{S}(v, w, t_{0}) \ldots \mathcal{S}(v, w, t_{n})) \hfill & \text{, if } t = (t_{0} \ldots t_{n})\\
@@ -142,13 +140,13 @@ Anything else is not unifiable.
 \item $\alpha$ is the set of possible computational answers to query $q$ based on $delta$ definitions.
 \end{enumerate}
 
-\paragraph{A definition} is a fact in the system. The inner tuples of a definition are considered and called queries, therefor 
+\paragraph{A definition} is a fact in the system. The inner tuples of a definition are considered and called queries, therefor
 for a definition to be true all of its inner tuples/queries must also be true.
 
-\paragraph{A query} is a question to the system that is true if and only if it unifies at least with 
+\paragraph{A query} is a question to the system that is true if and only if it unifies at least with
 one definition.
 
-\paragraph{Free and bound variables} on the context of a definition all definition variables are considered 
+\paragraph{Free and bound variables} on the context of a definition all definition variables are considered
 to be bound to the definition, on the context of queries all variables are free.
 
 Bound variables will be expressed as:
@@ -168,7 +166,7 @@ Bound information and notation is used on intermidiate computation steps, theref
 
 \paragraph{Variable renaming} its necessary to ensure that distinct variables with same name are not handled as being the same.
 
-ex: 
+ex:
 \[
     ([p]\ \var{p}\ \var{q}) \unify ([p\ q]\ \var{p}\ \var{q})
 \]
@@ -194,12 +192,14 @@ After unification we get
     \subitem where $v_{0} \ldots v_{n}$ are all (bound) variables found on $(p_{0} \ldots p_{n})$ tuple.
     \subitem $\delta_{1}$ is the set of definitions with bound variables.
     \item $\alpha = \{q \unify p :\forall p \in \delta_{1}\ \wedge \forall t \in \mathcal{T}_{q \unify q} \rightarrow (\sigma, \delta, t, \alpha) \}$
-    \subitem the $\alpha$ set is the result of the unification of the query $q$ with all definitions $p$ and the resulting innter tuples are 
-    also a valid computation. 
-    \subitem a computational will stop if the set of inner tuples are empty. 
+    \subitem the $\alpha$ set is the result of the unification of the query $q$ with all definitions $p$ and the resulting innter tuples are
+    also a valid computation.
+    \subitem a computational will stop if the set of inner tuples are empty.
     \subitem a computational may not stop for some cases.
 \end{enumerate}
 
+
+\begin{comment}
 \section{Algorithm}
 
 The definition of a \zsystem query computation is abstract and can be implemented in several ways.
@@ -207,12 +207,32 @@ In this section we discuss some of them.
 
 \subsection{Lazy Evaluation and Unification specialization}
 
-\paragraph{Unification specialization} uses bound variable information to specialize some rules 
-of unification that will result on better manage of variables.
-
-\paragraph{Lazy evaluation only} evaluates expressions that can be reduced without losing meaning, in this 
+\paragraph{Lazy evaluation} only evaluates expressions that can be reduced without losing meaning, in this
 way we dont need to keep track of constrains.
 
+\paragraph{Unification specialization} uses bound variable information to specialize some rules
+of unification that will result on better manage of variables.
+
+The following definitions are unifications specializations:
+
+\paragraph{Two tuples}
+\[
+    (p_{1} \ldots p_{n}) \unify (q_{1} \ldots q_{n}) = (p_{1} \unify q_{1} \ldots p_{1} \unify q_{n})
+\]
+
+Anything else delay to unify.
+
+\paragraph{Let $([v_{1} \ldots v_{i}] p_{0} \ldots p_{n})$ be a tuple and $p$}
+
+
+
+
+\paragraph{Unify Tuples ($\unifytuple$, binary operation)}, will only evalute unify of expressions with tuples, anything else 
+will remain the same.
+
+\begin{itemize}
+\item $(p_{1} \ldots p_{n}) \unifytuple (q_{1} \ldots q_{n}) = (p_{1} \unifytuple q_{1} \ldots p_{1} \unifytuple q_{n})$
+\end{itemize}
 
 \begin{itemize}
 \item \textbf{algorithm} Z \textbf{is}
@@ -223,55 +243,61 @@ way we dont need to keep track of constrains.
     \item \textbf{output:}
     \subitem the awnsers to the query $q$ as a set of tuples.
     \item $\delta_{1} \leftarrow { ([v_{0} \ldots v_{n}]\ p_{0}\ p_{k}): \forall (p_{0} \ldots p_{n}) \in \delta)}$
+    \item $Q \rightarrow []$
+    \item \textbf{for each} $p$ \textbf{in} $\delta_{1}$ \textbf{do}
+    \subitem $q \unify p \leftarrow t$, only evaluate tuple expressions.
+    
+    \subitem insert $t$ on $Q$ list.
 \end{itemize}
 
 \end{itemize}
 
+\end{comment}
 
 \section{Computing Examples}
 
 \subsection{Defining a not equal}
 
-\[ 
+\[
     (\text{notEqual}\ \var{p}\ \overline{\var{p}})
-\] 
+\]
 
 Ex:
 \[(\sigma, \delta, q, \alpha ) = (\{\text{yellow}, \text{blue}\}, \{(\text{notEqual}\ \var{p}\ \overline{\var{p}})\}, q, \alpha)\]
 
 \begin{enumerate}
 \item $q = (\text{notEqual}\ \var{x}\ \var{x})$
-\subitem $(\text{notEqual}\ \var{x}\ \var{x}) \unify (\text{notEqual}\ \var{p}\ \overline{\var{p}})[\text{bound}: p]$
-\subitem $(\text{notEqual} \unify \text{notEqual}\ \var{x} \unify \var{p}\ \var{x} \unify \overline{\var{p}})[\text{bound}: p]$ 
-\subitem $(\text{notEqual} \unify \text{notEqual}\ \var{x} \unify \var{p}\ \var{x} \unify \overline{\var{p}})[\text{bound}: p]$ 
-\subitem $(\text{notEqual} \var{x} \var{x})[\text{bound}: p, \text{constrains}: \var{x}=\var{p} \wedge \var{x} \neq \var{p}]$
-\subitem variable $x$ cant be equal and not equal to $\var{p}$ at same time,
+\subitem $(\text{notEqual}\ \var{x}\ \var{x}) \unify ([p]\ \text{notEqual}\ \var{p}\ \overline{\var{p}})$
+\subitem $([p]\ \text{notEqual} \unify \text{notEqual}\ \var{x} \unify \var{p}\ \var{x} \unify \overline{\var{p}})$
+\subitem $([p]\ \text{notEqual} \unify \text{notEqual}\ \var{x} \unify \var{p}\ \var{x} \unify \overline{\var{p}})$
+\subitem $([p]\ \text{notEqual}\ \var{x}\ \var{x}), \text{constrains}: \var{x}=\var{p} \wedge \var{x} \neq \var{p}$
+\subitem variable $x$ can't be equal and not equal to $\var{p}$ at same time,
 \subitem query fails to unify with any of the definitions,
 \subitem $\alpha=\emptyset$, no awnsers existe for this query.
 
 \item $q = (\text{notEqual}\  \text{yellow}\ \text{yellow})$
-\subitem $(\text{notEqual}\ \text{yellow}\ \text{yellow}) \unify (\text{notEqual}\ \var{p}\ \overline{\var{p}})[\text{bound}: p]$
-\subitem $(\text{notEqual} \unify \text{notEqual}\ \text{yellow} \unify \var{p}\ \text{yellow} \unify \overline{\var{p}})[\text{bound}: p]$ 
-\subitem $(\text{notEqual} \text{yellow} \text{yellow})[\text{bound}: p, \text{constrains}: \text{yellow}=\var{p} \wedge \text{yellow} \neq \var{p}]$
-\subitem variable $p$ cant be equal and not equal to $\text{yellow}$ vablue at same time,
+\subitem $([p]\ \text{notEqual}\ \text{yellow}\ \text{yellow}) \unify (\text{notEqual}\ \var{p}\ \overline{\var{p}})$
+\subitem $([p]\ \text{notEqual} \unify \text{notEqual}\ \text{yellow} \unify \var{p}\ \text{yellow} \unify \overline{\var{p}})$
+\subitem $([p]\ \text{notEqual} \text{yellow} \text{yellow}), \text{constrains}: \text{yellow}=\var{p} \wedge \text{yellow} \neq \var{p}$
+\subitem variable $p$ can't be equal and not equal to $\text{yellow}$ value at same time,
 \subitem query fails to unify with any of the definitions,
 \subitem $\alpha=\emptyset$, no answers exist for this query.
 
 \item $q = (\text{notEqual}\  \text{blue}\ \text{yellow})$
 
-\subitem $(\text{notEqual}\ \text{blue}\ \text{yellow}) \unify (\text{notEqual}\ \var{p}\ \overline{\var{p}})[\text{bound}: p]$
-\subitem $(\text{notEqual} \unify \text{notEqual}\ \text{blue} \unify \var{p}\ \text{yellow} \unify \overline{\var{p}})[\text{bound}: p]$ 
-\subitem $(\text{notEqual} \text{blue} \text{yellow})[\text{bound}: p, \text{constrains}: \text{blue}=\var{p} \wedge \text{yellow} \neq \var{p} \wedge \text{blue} \neq \text{yellow}]$
+\subitem $([p]\ \text{notEqual}\ \text{blue}\ \text{yellow}) \unify (\text{notEqual}\ \var{p}\ \overline{\var{p}})$
+\subitem $([p]\ \text{notEqual} \unify \text{notEqual}\ \text{blue} \unify \var{p}\ \text{yellow} \unify \overline{\var{p}})$
+\subitem $([p]\ \text{notEqual} \text{blue} \text{yellow}), \text{constrains}: \text{blue}=\var{p} \wedge \text{yellow} \neq \var{p} \wedge \text{blue} \neq \text{yellow}$
 \subitem $\alpha=\{(\text{notEqual}\  \text{blue}\ \text{yellow})\}$.
 
 \item $q = (\text{notEqual}\ \var{p}\ \text{yellow})$
 
-\subitem $(\text{notEqual}\ \var{p}\ \text{yellow}) \unify (\text{notEqual}\ \var{p}\ \overline{\var{p}})[\text{bound}: p]$
-\subitem rename bound variable, $p \rightarrow x$, 
-\subitem $(\text{notEqual}\ \var{p}\ \text{yellow}) \unify (\text{notEqual}\ \var{x}\ \overline{\var{x}})[\text{bound}: x]$
-\subitem $(\text{notEqual} \unify \text{notEqual}\ \var{p} \unify \var{x}\ \text{yellow} \unify \overline{\var{x}})[\text{bound}: x]$ 
-\subitem $(\text{notEqual} \text{p} \text{yellow})[\text{bound}: x, \text{constrains}: \text{p}=\var{x} \wedge \text{yellow} \neq \var{x}]$
-\subitem $\alpha=\{(\text{notEqual}\  \var{p}\ \text{yellow})[\text{constrains}: \var{p} \neq \text{yellow}]\}$.
+\subitem $([p]\ \text{notEqual}\ \var{p}\ \text{yellow}) \unify (\text{notEqual}\ \var{p}\ \overline{\var{p}})$
+\subitem rename bound variable, $p \rightarrow x$,
+\subitem $([p]\ \text{notEqual}\ \var{p}\ \text{yellow}) \unify (\text{notEqual}\ \var{x}\ \overline{\var{x}})$
+\subitem $([p]\ \text{notEqual} \unify \text{notEqual}\ \var{p} \unify \var{x}\ \text{yellow} \unify \overline{\var{x}})$
+\subitem $([p]\ \text{notEqual} \text{p} \text{yellow}), \text{constrains}: \text{p}=\var{x} \wedge \text{yellow} \neq \var{x}$
+\subitem $\alpha=\{(\text{notEqual}\  \var{p}\ \text{yellow}), \text{constrains}: \var{p} \neq \text{yellow}\}$.
 
 \end{enumerate}
 
@@ -285,7 +311,7 @@ Ex:
 
 Ex:
 \[
-    (\sigma, \delta, q, \alpha ) = (\{\text{yellow}, \text{blue}\}, 
+    (\sigma, \delta, q, \alpha ) = (\{\text{yellow}, \text{blue}\},
     \{
 (\text{list}),
 (\text{list}\ \var{item}\ (\text{list})),
