@@ -188,7 +188,8 @@ After unification we get
 \paragraph{A computation} is done with the following steps:
 
 \begin{enumerate}
-    \item $\delta_{1} = { ([v_{0} \ldots v_{n}]\ p_{0}\ p_{k}): \forall (p_{0} \ldots p_{n}) \in \delta)}$
+    \item $\delta_{0} = \{ p_{0} \unify \ldots \unify p_{|x|} : \forall x \in \mathrm{P}(\delta) \wedge \forall p_{i} \in x, i=0 \ldots |x| \}$
+    \item $\delta_{1} = \{ ([v_{0} \ldots v_{n}]\ p_{0}\ p_{k}): \forall (p_{0} \ldots p_{n}) \in \delta_{0})\}$
     \subitem where $v_{0} \ldots v_{n}$ are all (bound) variables found on $(p_{0} \ldots p_{n})$ tuple.
     \subitem $\delta_{1}$ is the set of definitions with bound variables.
     \item $\alpha = \{q \unify p :\forall p \in \delta_{1}\ \wedge \forall t \in \mathcal{T}_{q \unify q} \rightarrow (\sigma, \delta, t, \alpha) \}$
@@ -198,62 +199,7 @@ After unification we get
     \subitem a computational may not stop for some cases.
 \end{enumerate}
 
-
 \begin{comment}
-\section{Algorithm}
-
-The definition of a \zsystem query computation is abstract and can be implemented in several ways.
-In this section we discuss some of them.
-
-\subsection{Lazy Evaluation and Unification specialization}
-
-\paragraph{Lazy evaluation} only evaluates expressions that can be reduced without losing meaning, in this
-way we dont need to keep track of constrains.
-
-\paragraph{Unification specialization} uses bound variable information to specialize some rules
-of unification that will result on better manage of variables.
-
-The following definitions are unifications specializations:
-
-\paragraph{Two tuples}
-\[
-    (p_{1} \ldots p_{n}) \unify (q_{1} \ldots q_{n}) = (p_{1} \unify q_{1} \ldots p_{1} \unify q_{n})
-\]
-
-Anything else delay to unify.
-
-\paragraph{Let $([v_{1} \ldots v_{i}] p_{0} \ldots p_{n})$ be a tuple and $p$}
-
-
-
-
-\paragraph{Unify Tuples ($\unifytuple$, binary operation)}, will only evalute unify of expressions with tuples, anything else 
-will remain the same.
-
-\begin{itemize}
-\item $(p_{1} \ldots p_{n}) \unifytuple (q_{1} \ldots q_{n}) = (p_{1} \unifytuple q_{1} \ldots p_{1} \unifytuple q_{n})$
-\end{itemize}
-
-\begin{itemize}
-\item \textbf{algorithm} Z \textbf{is}
-\begin{itemize}
-    \item \textbf{input:}
-    \subitem $\delta$, a set of definitions,
-    \subitem $q$, a query.
-    \item \textbf{output:}
-    \subitem the awnsers to the query $q$ as a set of tuples.
-    \item $\delta_{1} \leftarrow { ([v_{0} \ldots v_{n}]\ p_{0}\ p_{k}): \forall (p_{0} \ldots p_{n}) \in \delta)}$
-    \item $Q \rightarrow []$
-    \item \textbf{for each} $p$ \textbf{in} $\delta_{1}$ \textbf{do}
-    \subitem $q \unify p \leftarrow t$, only evaluate tuple expressions.
-    
-    \subitem insert $t$ on $Q$ list.
-\end{itemize}
-
-\end{itemize}
-
-\end{comment}
-
 \section{Computing Examples}
 
 \subsection{Defining a not equal}
@@ -365,9 +311,6 @@ We start with the definitions/facts:
 \item $(\text{john}\ \text{likes}\ \var{stuff}\ (\text{mary}\ \text{likes}\ \var{stuff}\ \var{p}))$
 \subitem john likes everything that mary likes.
 
-\item $(\text{john}\ \text{likes}\ \var{stuff}\ (\text{mary}\ \text{likes}\ \var{stuff}\ \var{p}))$
-\subitem john likes everything that mary likes.
-
 \item $(\text{john}\ \text{likes}\ \var{person}\ (\var{person}\ \text{likes}\ \text{wine}\ \var{p}))$
 \subitem john likes anyone that likes wine.
 
@@ -377,6 +320,115 @@ We start with the definitions/facts:
 \subitem john likes anyone that likes themselves.
 
 \end{enumerate}
+
+\end{comment}
+
+\section{Computing Examples (implementation)}
+
+\subsection{Defining a not equal}
+
+\[
+    (\text{notEqual}\ \var{p}\ \overline{\var{p}})
+\]
+
+Ex:
+\[(\sigma, \delta, q, \alpha ) = (\{\text{yellow}, \text{blue}\}, \{(\text{notEqual}\ \var{p}\ \overline{\var{p}})\}, q, \alpha)\]
+
+
+\begin{enumerate}
+\item $q = (\text{notEqual}\ \var{x}\ \var{x})$
+\subitem $(\text{notEqual}\ \var{x}\ \var{x}) \unify ([p]\ \text{notEqual}\ \var{p}\ \overline{\var{p}})$
+\subitem $([p]\ \text{notEqual} \unify \text{notEqual}\ \var{x} \unify \var{p}\ \var{x} \unify \overline{\var{p}})$
+\subitem unify constants, $([p]\ \text{notEqual}\ \var{x} \unify \var{p}\ \var{x} \unify \overline{\var{p}})$,
+\subitem replace bound variables $[p]$ by their unifing part, and dispose the variable.
+\subitem in this case $\var{p} \rightarrow \var{x}$, $(\text{notEqual}\ \var{x} \var{x} \unify \overline{\var{x}})$,
+\subitem variable $x$ can't be equal and not equal to $x$ at same time,
+\subitem query fails to unify with any of the definitions,
+\subitem $\alpha=\emptyset$, no awnsers existe for this query.
+
+\item $q = (\text{notEqual}\  \text{yellow}\ \text{yellow})$
+\subitem $(\text{notEqual}\ \text{yellow}\ \text{yellow}) \unify ([p]\ \text{notEqual}\ \var{p}\ \overline{\var{p}})$
+\subitem $([p]\ \text{notEqual} \unify \text{notEqual}\ \text{yellow} \unify \var{p}\ \text{yellow} \unify \overline{\var{p}})$
+\subitem unify constants, $([p]\ \text{notEqual}\ \text{yellow} \unify \var{p}\ \text{yellow} \unify \overline{\var{p}})$,
+\subitem replace bound variables $[p]$ by their unifing part, and dispose the variable.
+\subitem in this case $\var{p} \rightarrow \text{yellow}$, $(\text{notEqual}\ \text{yellow}\ \text{yellow} \unify \overline{\text{yellow}})$,
+\subitem $\text{yellow}$ can't unify with not $\text{yellow}$,
+\subitem query fails to unify with any of the definitions,
+\subitem $\alpha=\emptyset$, no answers exist for this query.
+
+\item $q = (\text{notEqual}\  \text{blue}\ \text{yellow})$
+\subitem $(\text{notEqual}\ \text{blue}\ \text{yellow}) \unify ([p]\ \text{notEqual}\ \var{p}\ \overline{\var{p}})$
+\subitem $([p]\ \text{notEqual} \unify \text{notEqual}\ \text{blue} \unify \var{p}\ \text{yellow} \unify \overline{\var{p}})$
+\subitem unify constants, $([p]\ \text{notEqual}\ \text{blue} \unify \var{p}\ \text{yellow} \unify \overline{\var{p}})$,
+\subitem replace bound variables $[p]$ by their unifing part, and dispose the variable.
+\subitem in this case $\var{p} \rightarrow \text{blue}$, $(\text{notEqual}\ \text{blue} \text{yellow} \unify \overline{\text{blue}})$,
+\subitem $\text{yellow}$, will never be unifiable with $\text{blue}$, so it can be solved to $(\text{notEqual}\ \text{blue}\ \text{yellow})$,
+\subitem $\alpha=\{(\text{notEqual}\ \text{blue}\ \text{yellow})\}$.
+
+\item $q = (\text{notEqual}\ \var{p}\ \text{yellow})$
+
+\subitem $(\text{notEqual}\ \var{p}\ \text{yellow}) \unify ([p]\ \text{notEqual}\ \var{p}\ \overline{\var{p}})$
+\subitem rename bound variable, $p \rightarrow x$,
+\subitem $(\text{notEqual}\ \var{p}\ \text{yellow}) \unify ([x]\ \text{notEqual}\ \var{x}\ \overline{\var{x}})$
+\subitem $([x]\ \text{notEqual} \unify \text{notEqual}\ \var{p} \unify \var{x}\ \text{yellow} \unify \overline{\var{x}})$
+\subitem unify constants, $([x]\ \text{notEqual}\ \var{p} \unify \var{x}\ \text{yellow} \unify \overline{\var{x}})$
+\subitem replace bound variables $[x]$ by their unifing part, and dispose the variable.
+\subitem in this case $\var{x} \rightarrow \var{p}$, $(\text{notEqual}\ \var{p} \text{yellow} \unify \overline{\var{p}})$
+\subitem $\alpha=\{(\text{notEqual}\ \var{p} \text{yellow} \unify \overline{\var{p}})\}$.
+\end{enumerate}
+
+
+\subsection{Defining a list}
+
+\begin{enumerate}
+\item $(\text{list})$
+\item $(\text{list}\ \var{item}\ (\text{list}))$
+\item $(\text{list}\ \var{item}\ (\text{list}\ \var{i}\ \var{tail}))$
+\end{enumerate}
+
+Ex:
+\[
+    (\sigma, \delta, q, \alpha ) = (\{\text{yellow}, \text{blue}\},
+    \{
+(\text{list}),
+(\text{list}\ \var{item}\ (\text{list})),
+(\text{list}\ \var{item}\ (\text{list}\ \var{i}\ \var{tail}))
+    \}, q, \alpha)
+\]
+
+\begin{enumerate}
+\item $q = (\text{list})$, query a empty list.
+\subitem $(\text{list}) \unify (\text{list}) = (\text{list} \unify \text{list}) = (\text{list})$
+\subitem all other definitions fail to unify because the number of elements in remaining definitions don't match query tuple.
+\subitem $\alpha = \{(\text{list})\}$
+\item $q = (\text{list}\ \text{yellow}\ (\text{list}\ \text{blue}\ (\text{list})))$
+\subitem Starting with definition $(\text{list})$,
+\subitem $(\text{list}\ \text{yellow}\ (\text{list}\ \text{blue}\ (\text{list}))) \unify (\text{list})$, fail.
+\subitem Next definition $(\text{list}\ \var{item}\ (\text{list}))$,
+\subitem $(\text{list}\ \text{yellow}\ (\text{list}\ \text{blue}\ (\text{list}))) \unify ([item]\ \text{list}\ \var{item}\ (\text{list}))$
+\subitem $([item]\ \text{list} \unify \text{list}\ \text{yellow} \unify \var{item}\ (\text{list}\ \text{blue}\ (\text{list})) \unify (\text{list}))$
+\subitem fail to unify $(list)$ with $(\text{list}\ \text{blue}\ (\text{list}))$.
+\subitem Next definition $(\text{list}\ \var{item}\ (\text{list}\ \var{i}\ \var{tail}))$,
+\subitem $(\text{list}\ \text{yellow}\ (\text{list}\ \text{blue}\ (\text{list}))) \unify ([\text{item}\ \text{i}\ \text{tail}]\ \text{list}\ \var{item}\ (\text{list}\ \var{i}\ \var{tail}))$
+\subitem $([\text{item}\ \text{i}\ \text{tail}]\ \text{list}\unify \text{list}\ \text{yellow} \unify \var{item}\ (\text{list}\ \text{blue}\ (\text{list})) \unify (\text{list}\ \var{i}\ \var{tail}))$
+\subitem unify constants,
+\subitem $([\text{item}\ \text{i}\ \text{tail}]\ \text{list}\ \text{yellow} \unify \var{item}\ (\text{list}\ \text{blue}\ (\text{list})) \unify (\text{list}\ \var{i}\ \var{tail}))$
+\subitem $([\text{item}\ \text{i}\ \text{tail}]\ \text{list}\ \text{yellow} \unify \var{item}\ (\text{list} \unify \text{list}\ \text{blue}\ \unify \var{i}\ (\text{list}) \unify \var{tail}))$
+\subitem unify constants,
+\subitem $([\text{item}\ \text{i}\ \text{tail}]\ \text{list}\ \text{yellow} \unify \var{item}\ (\text{list}\ \text{blue}\ \unify \var{i}\ (\text{list}) \unify \var{tail}))$
+
+\subitem ---
+\subitem $(\text{list}\ \text{yellow}\ (\text{list}\ \text{blue}\ (\text{list})))
+[\text{bound}: \text{item}\ \text{i}\ \text{tail}, \text{constrains}: \var{item} = \text{yellow}\ \var{i}=\text{blue}\ \var{tail}=(\text{list})]$
+\subitem the next step is to unify all sub-tuples that are not yet checked with definitions, this are: $(\text{list}\ \text{blue}\ (\text{list}))$ and $(\text{list}))$,
+\subitem $(\text{list}\ \text{blue}\ (\text{list})) \unify (list)$, fail.
+\subitem $(\text{list}\ \text{blue}\ (\text{list})) \unify (\text{list}\ \var{item}\ (\text{list}))[\text{bound}: item]$
+\subitem $(\text{list}\unify \text{list}\ \text{blue}\unify \var{item}\ (\text{list}) \unify (\text{list}))[\text{bound}: item]$
+\subitem $(\text{list} \text{blue} (\text{list})))[\text{bound}: item, \text{constrains}: \var{item}=\text{blue}]$, succeed.
+\subitem $(\text{list}\ \text{blue}\ (\text{list})) \unify (\text{list}\ \var{item}\ (\text{list}\ \var{i}\ \var{tail}))$, fail.
+\subitem Finally $(list)$ will only unify with $(list)$ definition, ending the process and resulting on $\alpha = \{ (\text{list}\ \text{yellow}\ (\text{list}\ \text{blue}\ (\text{list}))) \}$
+\end{enumerate}
+
 
 
 \section{Contributors}
