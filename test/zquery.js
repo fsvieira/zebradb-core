@@ -1,104 +1,74 @@
 var should = require("should");
-var Z = require("../lib/z");
-var utils = require("../lib/utils");
+var Z = require("../lib/unify");
 
 describe('ZQuery Tests.', function() {
     describe('Querys', function() {
         it('Query with single tuple constant.', function () {
-            var query = Z.run([
+            var zquery = Z.run([
                 Z.t(Z.c("yellow"))
             ]);
             
+            var query = function (q) {
+                return Z.toString(zquery(q));
+            };
             
             should(
                 query(
                     Z.t(Z.c("yellow"))
                 )
-            ).eql({
-                query: {
-                    bound: [],
-                    tuple: [ { type: 'constant', value: 'yellow' } ],
-                    type: 'tuple'
-                },
-                result: [ {vars: {}, bound: [] } ]
-            });
+            ).eql("(yellow)");
 
             should(
                 query(
                     Z.t(Z.v("q"))
                 )
-            ).eql( {
-                query: {
-                    bound: [ 'q' ],
-                    tuple: [ { name: 'q', type: 'variable' } ],
-                    type: 'tuple'
-                },
-                result: [
-                    {
-                        bound: [],
-                        vars: {
-                            q: {
-                                notEquals: undefined,
-                                type: 'value',
-                                value: { type: 'constant', value: 'yellow' },
-                                variable: { name: 'q', type: 'variable' }
-                            }
-                        }
-                    }
-                ]
-            });
+            ).eql("(yellow)");
         });
 
         it('Should identify variables by name.', function () {
             var defs = [Z.t(Z.v("q"), Z.v("q"))];
-            var query = Z.run(defs);
-
+            var zquery = Z.run(defs);
+            var query = function (q) {
+                return Z.toString(zquery(q));
+            };
+            
             should(defs).eql(
                 [
                     {
-                        tuple: [
-                            { name: 'q', type: 'variable' },
-                            { name: 'q', type: 'variable' }
+                        data: [
+                            { data: 'q', type: 'variable' },
+                            { data: 'q', type: 'variable' }
                         ],
                         type: 'tuple'
                     }
                 ]
             );
 
-            should(utils.tableFieldsToString(
-                query(
+            should(query(
                     Z.t(Z.c("yellow"), Z.v("p"))
                 )
-            )).eql({
-                query: '?(yellow \'p)',
-                result: [ { bound: [], vars: { p: 'yellow' } } ]
-            });
+            ).eql("(yellow yellow)");
 
-            query = Z.run([ 
+            zquery = Z.run([ 
                 Z.t(Z.v("q")), // ('q)
                 Z.t( // (('q) ('q))
                     Z.t(Z.v("q")), 
                     Z.t(Z.v("q"))
                 )
             ]);
-
+            
             should(
-                utils.tableFieldsToString(
-                    query(
-                        Z.t(
-                            Z.t(Z.c("yellow")),
-                            Z.t(Z.v("p"))
-                        )
+                query(
+                    Z.t(
+                        Z.t(Z.c("yellow")),
+                        Z.t(Z.v("p"))
                     )
                 )
-            ).eql({
-                query: '?((yellow) (\'p))',
-                result: [ { bound: [], vars: { p: 'yellow' } } ]
-            });
+            ).eql("((yellow) (yellow))");
         });
 
         it("Should unify variables with tuple values", function () {
-            var query = Z.run([ 
+            var zquery = Z.run([ 
                 Z.t(
                     Z.c("blue"),
                     Z.c("red"), 
@@ -106,56 +76,50 @@ describe('ZQuery Tests.', function() {
                 )
             ]);
             
+            var query = function (q) {
+                return Z.toString(zquery(q));
+            };
+            
             should(
-                utils.tableFieldsToString(
-                    query(
-                        Z.t(
-                            Z.v("a"),
-                            Z.v("b"), 
-                            Z.v("c")
-                        )
+                query(
+                    Z.t(
+                        Z.v("a"),
+                        Z.v("b"), 
+                        Z.v("c")
                     )
                 )
-            ).eql({
-                query: '?(\'a \'b \'c)',
-                result: [ { bound: [], vars: { a: 'blue', b: 'red', c: 'yellow' } } ]
-            });
+            ).eql("(blue red yellow)");
         });
 
         it("Should unify tuples variables.", function () {
             
-            var query = Z.run([ 
+            var zquery = Z.run([ 
                 Z.t(Z.v("a"), Z.v("a"))
             ]);
             
-            should(
-                utils.tableFieldsToString(
-                    query(
-                        Z.t(Z.c("yellow"), Z.v("c")) 
-                    )
-                )
-            ).eql({
-                query: '?(yellow \'c)',
-                result: [ { bound: [], vars: { c: 'yellow' } } ]
-            });
+            var query = function (q) {
+                return Z.toString(zquery(q));
+            };
 
-            query = Z.run([
+            should(
+                query(
+                    Z.t(Z.c("yellow"), Z.v("c")) 
+                )
+            ).eql("(yellow yellow)");
+
+            zquery = Z.run([
                 Z.t(Z.v("x"), Z.v("y")),
                 Z.t(Z.t(Z.v("a"), Z.v("a"))) 
             ]);
-            
             should(
-                utils.tableFieldsToString(
-                    query(
-                        Z.t(Z.t(Z.c("yellow"), Z.v("c")))
-                    )
+                query(
+                    Z.t(Z.t(Z.c("yellow"), Z.v("c")))
                 )
-            ).eql({
-                query: '?((yellow \'c))',
-                result: [ { bound: [], vars: { c: 'yellow' } } ]
-            });
+            ).eql("((yellow yellow))");
 
-            query = Z.run([
+
+/* TODO
+            zquery = Z.run([
                 Z.t(Z.c("yellow"), Z.c("blue")),
                 Z.t(Z.c("blue"), Z.c("yellow")),
                 Z.t(
@@ -163,20 +127,15 @@ describe('ZQuery Tests.', function() {
                     Z.t(Z.v("b"), Z.v("a"))
                 )
             ]);
-            
+
             should(
-                utils.tableFieldsToString(
-                    query(
-                        Z.t(
-                            Z.t(Z.c("yellow"), Z.v("c")), 
-                            Z.t(Z.c("blue"), Z.v("d"))
-                        )
+                query(
+                    Z.t(
+                        Z.t(Z.c("yellow"), Z.v("c")), 
+                        Z.t(Z.c("blue"), Z.v("d"))
                     )
                 )
-            ).eql({
-                query: '?((yellow \'c) (blue \'d))',
-                result: [ { bound: [], vars: { c: 'blue', d: 'yellow' } } ]
-            });
+            ).eql("((yellow blue) (blue yellow))");*/
         });
     });
 });

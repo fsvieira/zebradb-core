@@ -1,12 +1,10 @@
 var should = require("should");
-var Z = require("../lib/z");
-var utils = require("../lib/utils");
+var Z = require("../lib/unify");
 
 describe('ZQuery Tests.', function() {
     describe('Not Tests', function() {
-
         it('Should test the Not Constants', function () {
-            var query = Z.run(
+            var zquery = Z.run(
                 "(color yellow)" +
                 "(color blue)" +
                 "(color red)" +
@@ -14,89 +12,78 @@ describe('ZQuery Tests.', function() {
                 "(notYellow (color ^yellow))"
             );
 
+            var query = function (q) {
+                return Z.toString(zquery(q));
+            };
+            
             // Query the facts,
 
-            should(utils.tableFieldsToString(
+            should(
                 query("(color ')")
-            )).eql({
-                query: '?(color \'x$0)',
-                result: [
-                    { bound: [], vars: { x$0: 'yellow' } },
-                    { bound: [], vars: { x$0: 'blue' } },
-                    { bound: [], vars: { x$0: 'red' } },
-                    { bound: [], vars: { x$0: 'white' } }
-                ]
-            });
+            ).eql(
+                "(color yellow)\n" +
+                "(color blue)\n" + 
+                "(color red)\n" +
+                "(color white)"
+            );
 
-            should(utils.tableFieldsToString(
+            should(
                 query("(notYellow ')")
-            )).eql({
-                query: '?(notYellow \'x$0)',
-                result: [
-                    {
-                        bound: [ 'x$0', 'x$1' ],
-                        vars: { x$0: '(color \'x$1:[^yellow])', x$1: 'blue' }
-                    },
-                    {
-                        bound: [ 'x$0', 'x$1' ],
-                        vars: { x$0: '(color \'x$1:[^yellow])', x$1: 'red' }
-                    },
-                    {
-                        bound: [ 'x$0', 'x$1' ],
-                        vars: { x$0: '(color \'x$1:[^yellow])', x$1: 'white' }
-                    }
-                ]
-            });
+            ).eql(
+                '(notYellow (color blue))\n' + 
+                '(notYellow (color red))\n' +
+                '(notYellow (color white))'
+            );
         });
-/*
+
         it('Should declare a Not-Equal', function () {
-            var query = Z.run(
+            var zquery = Z.run(
                 "(equal 'p 'p)" +
                 "(notEqual 'p ^'p)"
             );
+            
+            var query = function (q) {
+                return Z.toString(zquery(q));
+            };
 
             // Query the facts,
-            should(utils.tableFieldsToString(
+            should(
                 query("(equal yellow yellow)")
-            )).eql({
-                query: '?(equal yellow yellow)',
-                result: [ { bound: [], vars: {} } ]
-            });
-            
-            should(utils.tableFieldsToString(
+            ).eql("(equal yellow yellow)");
+
+            should(
                 query("(equal yellow blue)")
-            )).eql({ query: '?(equal yellow blue)' });
+            ).eql("");
 
-            should(utils.tableFieldsToString(
+            should(
                 query("(notEqual yellow yellow)")
-            )).eql({ query: '?(notEqual yellow yellow)' });
+            ).eql("");
 
-            should(utils.tableFieldsToString(
+            should(
                 query("(notEqual yellow blue)")
-            )).eql({
-                query: '?(notEqual yellow blue)',
-                result: [
-                    { bound: [ 'p', 'x$0' ], vars: { p: 'yellow', x$0: 'blue' } }
-                ]
-            });
+            ).eql("(notEqual yellow blue)");
         });
 
         it('Should make distinct tuples', function () {
-            var query = Z.run(
+            var zquery = Z.run(
                 "(color yellow)" +
                 "(color blue)" +
                 "(color red)" +
                 "(distinct 'item ^'item)"
             );
 
+            var query = function (q) {
+                return Z.toString(zquery(q));
+            };
+            
             // Query the facts,
-            should(utils.tableFieldsToString(
+            should(
                 query("(distinct (color yellow) (color yellow))")
-            )).eql({ query: '?(distinct (color yellow) (color yellow))' });
+            ).eql({ query: '?(distinct (color yellow) (color yellow))' });
 
-            should(utils.tableFieldsToString(
+            should(
                 query("(distinct (color blue) (color yellow))")
-            )).eql({
+            ).eql({
                 query: '?(distinct (color blue) (color yellow))',
                 result: [
                     {
@@ -106,9 +93,9 @@ describe('ZQuery Tests.', function() {
                 ]
             });
 
-            should(utils.tableFieldsToString(
+            should(
                 query("(distinct (color 'a) (color 'b))")
-            )).eql({
+            ).eql({
                 query: '?(distinct (color \'a) (color \'b))',
                 result: [
                     {
@@ -146,9 +133,9 @@ describe('ZQuery Tests.', function() {
                 "(not 'a ^'a)"
             );
             
-            should(utils.tableFieldsToString(
+            should(
                 query("(not (number 'p) (number 'q))")
-            )).eql({
+            ).eql({
                 query: '?(not (number \'p) (number \'q))',
                 result: [
                     {
@@ -172,9 +159,9 @@ describe('ZQuery Tests.', function() {
                 "(set 'item (set ^'item 'tail ') (set 'item 'tail '))"
             );
 
-            should(utils.tableFieldsToString(
+            should(
                 query("(set (number 'a) (set (number 'b) (set) ') ')")
-            )).eql({
+            ).eql({
               query: '?(set (number \'a) (set (number \'b) (set) \'x$0) \'x$1)',
               result: [
                 {
@@ -244,9 +231,9 @@ describe('ZQuery Tests.', function() {
               ]
             });
             
-            should(utils.tableFieldsToString(
+            should(
                 query("(set (number 'a) (set (number 'b) (set (number 'c) (set) ') ') ')")
-            )).eql({
+            ).eql({
                 query: '?(set (number \'a) (set (number \'b) (set (number \'c) (set) \'x$0) \'x$1) \'x$2)'
             });
         });
@@ -260,9 +247,9 @@ describe('ZQuery Tests.', function() {
                 "(set (number 'a) (set (number ^'a) 'tail ') (set (number 'a) 'tail '))"
             );
 
-            should(utils.tableFieldsToString(
+            should(
                 query("(set (number 'a) 'tail ')", 3)
-            )).eql({
+            ).eql({
               query: '?(set (number \'a) \'tail \'x$0)',
               result: [
                 {
@@ -309,6 +296,6 @@ describe('ZQuery Tests.', function() {
                 }
               ]
             });
-        });*/
+        });
     });
 });
