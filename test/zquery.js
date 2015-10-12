@@ -9,9 +9,10 @@ describe('ZQuery Tests.', function() {
             ]);
             
             var query = function (q) {
-                return Z.toString(zquery(q));
+                var r = zquery(q);
+                return Z.toString(r);
             };
-            
+
             should(
                 query(
                     Z.t(Z.c("yellow"))
@@ -117,8 +118,6 @@ describe('ZQuery Tests.', function() {
                 )
             ).eql("((yellow yellow))");
 
-
-/* TODO
             zquery = Z.run([
                 Z.t(Z.c("yellow"), Z.c("blue")),
                 Z.t(Z.c("blue"), Z.c("yellow")),
@@ -135,7 +134,7 @@ describe('ZQuery Tests.', function() {
                         Z.t(Z.c("blue"), Z.v("d"))
                     )
                 )
-            ).eql("((yellow blue) (blue yellow))");*/
+            ).eql("((yellow blue) (blue yellow))");
         });
     });
 });
