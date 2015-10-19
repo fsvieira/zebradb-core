@@ -3,7 +3,7 @@ var Z = require("../lib/unify");
 
 describe('ZQuery Tests.', function() {
     describe('Not Tests', function() {
-/*        it('Should test the Not Constants', function () {
+        it('Should test the Not Constants', function () {
             var zquery = Z.run(
                 "(color yellow)" +
                 "(color blue)" +
@@ -139,7 +139,7 @@ describe('ZQuery Tests.', function() {
                 query("(set (number 'a) (set (number 'b) (set (number 'c) (set) ') ') ')")
             ).eql('');
         });
-*/
+
         it('Should declare a number Set', function () {
             var zquery = Z.run(
                 "(number 0)" +
@@ -155,7 +155,12 @@ describe('ZQuery Tests.', function() {
             
             should(
                 query("(set (number 'a) 'tail ')")
-            ).eql('');
+            ).eql(
+                "(set (number 0) (set) \'x$2)\n" +
+                "(set (number 1) (set) \'x$2)\n" +
+                "(set (number 0) (set (number 1) (set) \'x$0) (set (number 0) (set) \'x$3))\n" + 
+                "(set (number 1) (set (number 0) (set) \'x$0) (set (number 1) (set) \'x$3))"
+            );
         });
     });
 });
