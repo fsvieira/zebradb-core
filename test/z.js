@@ -1,5 +1,5 @@
 var should = require("should");
-var Z = require("../lib/z");
+var Z = require("../lib/types");
 
 describe('Z Constructors test.', function() {
     describe('Constants', function() {
