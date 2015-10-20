@@ -1,6 +1,5 @@
 var should = require("should");
-var Z = require("../lib/z");
-var utils = require("../lib/utils");
+var Z = require("../lib/unify");
 
 /*
   Online prolog examples converted to run on zebra lib
@@ -10,85 +9,64 @@ describe('Prolog examples port Tests.', function() {
     describe('Simple Facts', function() {
         it('Should query people about what they like.', function () {
 
-            var query = Z.run(
+            var zquery = Z.run(
                 "(mary likes food)" + // likes(mary,food).
                 "(mary likes wine)" + // likes(mary,wine).
                 "(john likes wine)" + // likes(john,wine).
                 "(john likes mary)"   // likes(john,mary).
             );
+            
+            var query = function (q) {
+                return Z.toString(zquery(q));
+            };
 
             // Query the facts,
-            should(utils.tableFieldsToString(
+            should(
                 query("(mary likes food)")
-            )).eql({
-                "query":"?(mary likes food)",
-                "result":[{"vars":{},"bound":[]}]
-            });
+            ).eql("(mary likes food)");
 
-            should(utils.tableFieldsToString(
+            should(
                 query("(john likes wine)")
-            )).eql({
-                "query":"?(john likes wine)",
-                "result":[{"vars":{},"bound":[]}]
-            });
+            ).eql("(john likes wine)");
 
-            should(utils.tableFieldsToString(
+            should(
                 query("(john likes food)")
-            )).eql({ query: "?(john likes food)" });
+            ).eql("");
             
-            should(utils.tableFieldsToString(
+            should(
                 query("(mary likes 'stuff)")
-            )).eql({
-                query: "?(mary likes 'stuff)",
-                result: [
-                    { bound: [ 'stuff' ], vars: { stuff: 'food' } },
-                    { bound: [ 'stuff' ], vars: { stuff: 'wine' } }
-                ]
-            });
+            ).eql("(mary likes food)\n(mary likes wine)");
         });
 
         it('Should query about what john likes.', function () {
-            var query = Z.run(
+            var zquery = Z.run(
                 "(mary likes food ')" + // likes(mary,food).
                 "(mary likes wine ')" + // likes(mary,wine).
                 // 1. John likes anything that Mary likes 
                 "(john likes 'stuff (mary likes 'stuff '))"
             );
 
-            should(utils.tableFieldsToString(
+            var query = function (q) {
+                return Z.toString(zquery(q));
+            };
+
+            should(
                 query("(john likes 'stuff 'p)")
-            )).eql({
-                query: '?(john likes \'stuff \'p)',
-                result: [
-                    {
-                      bound: [ 'p', 'stuff', 'x$0', 'x$1', 'x$2' ],
-                      vars: {
-                        p: '(mary likes \'x$1 \'x$0)',
-                        stuff: '\'x$1',
-                        x$0: '\'x$2',
-                        x$1: 'food',
-                        x$2: ''
-                      }
-                    },
-                    {
-                      bound: [ 'p', 'stuff', 'x$0', 'x$1', 'x$2' ],
-                      vars: {
-                        p: '(mary likes \'x$1 \'x$0)',
-                        stuff: '\'x$1',
-                        x$0: '\'x$2',
-                        x$1: 'wine',
-                        x$2: ''
-                      }
-                    }
-                ]
-            });
+            ).eql(
+                "(john likes food (mary likes food \'x$2))\n" +
+                "(john likes wine (mary likes wine \'x$2))"
+            );
         });
 
         it('Should fail on insufficient definitions.', function () {
 
-            var query = Z.run(
+            var zquery = Z.run(
                 "(john likes 'person ('person likes wine '))"
             );
+            
+            var query = function (q) {
+                return Z.toString(zquery(q));
+            };
             
             // (john likes 'stuff 'p).(john likes 'person ('person likes wine '))
             // (john likes 'stuff='person 'p=('person likes wine '))
@@ -97,16 +75,14 @@ describe('Prolog examples port Tests.', function() {
             // ('person2=wine likes wine ').(john likes 'person ('person likes wine '))
             // wine != john -> fail.
 
-            should(utils.tableFieldsToString(
+            should(
                 query("(john likes 'stuff 'p)")
-            )).eql({
-                "query": "?(john likes 'stuff 'p)"
-            });
+            ).eql("");
         });
 
         it('Should query what john likes, he likes anyone who likes wine.', function () {
 
-            var query = Z.run(
+            var zquery = Z.run(
                 "(mary likes wine ')" + // likes(mary,wine).
                 "(john likes wine ')" + // likes(john,wine).
 
@@ -123,42 +99,21 @@ describe('Prolog examples port Tests.', function() {
                 //      (wine likes wine ') FAIL. 
             );
             
-            should(utils.tableFieldsToString(
+            var query = function (q) {
+                return Z.toString(zquery(q));
+            };
+            
+            should(
                 query("(john likes 'stuff 'p)")
-            )).eql({
-                query: '?(john likes \'stuff \'p)',
-                result: [
-                    {
-                      bound: [ 'p', 'stuff', 'x$0' ],
-                      vars: { p: '\'x$0', stuff: 'wine', x$0: '' }
-                    },
-                    {
-                      bound: [ 'p', 'person', 'stuff', 'x$0', 'x$1' ],
-                      vars: {
-                        p: '(\'person likes wine \'x$0)',
-                        person: 'mary',
-                        stuff: '\'person',
-                        x$0: '\'x$1',
-                        x$1: ''
-                      }
-                    },
-                    {
-                      bound: [ 'p', 'person', 'stuff', 'x$0', 'x$1' ],
-                      vars: {
-                        p: '(\'person likes wine \'x$0)',
-                        person: 'john',
-                        stuff: '\'person',
-                        x$0: '\'x$1',
-                        x$1: ''
-                      }
-                    }
-                ]
-            });
+            ).eql(
+                "(john likes wine \'x$0)\n" +
+                "(john likes mary (mary likes wine \'x$1))\n" +
+                "(john likes john (john likes wine \'x$1))");
         });
 
         it('Should query what john likes, he likes what mary likes and people that like wine.', function () {
 
-            var query = Z.run(
+            var zquery = Z.run(
                 "(mary likes food ')" + // likes(mary,food).
                 "(mary likes wine ')" + // likes(mary,wine).
                 "(john likes wine ')" + // likes(john,wine).
@@ -172,77 +127,26 @@ describe('Prolog examples port Tests.', function() {
                 "(john likes 'person ('person likes wine '))"
             );
             
-            should(utils.tableFieldsToString(
+            var query = function (q) {
+                return Z.toString(zquery(q));
+            };
+            
+            should(
                 query("(john likes 'stuff 'p)")
-            )).eql( {
-                query: '?(john likes \'stuff \'p)',
-                result: [
-                    {
-                        bound: [ 'p', 'stuff', 'x$0' ],
-                        vars: { p: '\'x$0', stuff: 'wine', x$0: '' }
-                    },
-                    {
-                        bound: [ 'p', 'stuff', 'x$0' ],
-                        vars: { p: '\'x$0', stuff: 'mary', x$0: '' }
-                    },
-                    {
-                        bound: [ 'p', 'stuff', 'x$0', 'x$1', 'x$2' ],
-                        vars: {
-                            p: '(mary likes \'x$1 \'x$0)',
-                            stuff: '\'x$1',
-                            x$0: '\'x$2',
-                            x$1: 'food',
-                            x$2: ''
-                      }
-                    },
-                    {
-                        bound: [ 'p', 'stuff', 'x$0', 'x$1', 'x$2' ],
-                        vars: {
-                            p: '(mary likes \'x$1 \'x$0)',
-                            stuff: '\'x$1',
-                            x$0: '\'x$2',
-                            x$1: 'wine',
-                            x$2: ''
-                        }
-                    },
-                    {
-                        bound: [ 'p', 'person', 'stuff', 'x$0', 'x$1' ],
-                        vars: {
-                            p: '(\'person likes wine \'x$0)',
-                            person: 'mary',
-                            stuff: '\'person',
-                            x$0: '\'x$1',
-                            x$1: ''
-                        }
-                    },
-                    {
-                        bound: [ 'p', 'person', 'stuff', 'x$0', 'x$1' ],
-                        vars: {
-                            p: '(\'person likes wine \'x$0)',
-                            person: 'john',
-                            stuff: '\'person',
-                            x$0: '\'x$1',
-                            x$1: ''
-                        }
-                    },
-                    {
-                        bound: [ 'p', 'person', 'stuff', 'x$0', 'x$1', 'x$2', 'x$3' ],
-                        vars: {
-                            p: '(\'person likes wine \'x$0)',
-                            person: 'john',
-                            stuff: '\'person',
-                            x$0: '(mary likes \'x$2 \'x$1)',
-                            x$1: '',
-                            x$2: 'wine',
-                            x$3: '\'x$1'
-                        }
-                    }
-                ]
-            });
+            ).eql(
+                "(john likes wine \'x$0)\n" +
+                "(john likes mary \'x$0)\n" +
+                "(john likes food (mary likes food \'x$2))\n" +
+                "(john likes wine (mary likes wine \'x$2))\n" +
+                "(john likes mary (mary likes wine \'x$1))\n" +
+                "(john likes john (john likes wine \'x$1))\n" +
+                "(john likes john (john likes wine (mary likes wine \'x$0)))"
+            );
+            
         });
 
         it('Should query people about what they like (Extended).', function () {
-            var query = Z.run(
+            var zquery = Z.run(
                 "(mary likes food ')" + // likes(mary,food).
                 "(mary likes wine ')" + // likes(mary,wine).
                 "(john likes wine ')" + // likes(john,wine).
@@ -281,101 +185,35 @@ describe('Prolog examples port Tests.', function() {
                 // (john likes john '=(john likes john '))
             );
             
-            should(utils.tableFieldsToString(
+            var query = function (q) {
+                return Z.toString(zquery(q));
+            };
+            
+            should(
                 query("(john likes 'stuff 'p)")
-            )).eql({
-              query: '?(john likes \'stuff \'p)',
-              result: [
-                {
-                  bound: [ 'p', 'stuff', 'x$0' ],
-                  vars: { p: '\'x$0', stuff: 'wine', x$0: '' }
-                },
-                {
-                  bound: [ 'p', 'stuff', 'x$0' ],
-                  vars: { p: '\'x$0', stuff: 'mary', x$0: '' }
-                },
-                {
-                  bound: [ 'p', 'stuff', 'x$0', 'x$1', 'x$2' ],
-                  vars: {
-                    p: '(mary likes \'x$1 \'x$0)',
-                    stuff: '\'x$1',
-                    x$0: '\'x$2',
-                    x$1: 'food',
-                    x$2: ''
-                  }
-                },
-                {
-                  bound: [ 'p', 'stuff', 'x$0', 'x$1', 'x$2' ],
-                  vars: {
-                    p: '(mary likes \'x$1 \'x$0)',
-                    stuff: '\'x$1',
-                    x$0: '\'x$2',
-                    x$1: 'wine',
-                    x$2: ''
-                  }
-                },
-                {
-                  bound: [ 'p', 'person', 'stuff', 'x$0', 'x$1' ],
-                  vars: {
-                    p: '(\'person likes wine \'x$0)',
-                    person: 'mary',
-                    stuff: '\'person',
-                    x$0: '\'x$1',
-                    x$1: ''
-                  }
-                },
-                {
-                  bound: [ 'p', 'person', 'stuff', 'x$0', 'x$1' ],
-                  vars: {
-                    p: '(\'person likes wine \'x$0)',
-                    person: 'john',
-                    stuff: '\'person',
-                    x$0: '\'x$1',
-                    x$1: ''
-                  }
-                },
-                {
-                  bound: [ 'p', 'person', 'stuff', 'x$0', 'x$1', 'x$2', 'x$3' ],
-                  vars: {
-                    p: '(\'person likes wine \'x$0)',
-                    person: 'john',
-                    stuff: '\'person',
-                    x$0: '(mary likes \'x$2 \'x$1)',
-                    x$1: '',
-                    x$2: 'wine',
-                    x$3: '\'x$1'
-                  }
-                },
-                {
-                  bound: [ 'item', 'p', 'person', 'stuff', 'x', 'x$0', 'x$1', 'x$2', 'x$3', 'x$4', 'x$5' ],
-                  vars: {
-                    item: '(\'person likes \'person \'x$0)',
-                    p: '(list (\'person likes \'person \'x$0) (list (notEqual \'person john) (list)))',
-                    person: 'peter',
-                    stuff: '\'person',
-                    x: '\'person',
-                    x$0: '',
-                    x$1: '(list)',
-                    x$2: '(notEqual \'person john)',
-                    x$3: '\'x$0',
-                    x$4: '(notEqual \'person john)',
-                    x$5: 'john'
-                  }
-                }
-              ]
-            });
+            ).eql(
+                "(john likes wine \'x$0)\n" +
+                "(john likes mary \'x$0)\n" +
+                "(john likes food (mary likes food \'x$2))\n" +
+                "(john likes wine (mary likes wine \'x$2))\n" +
+                "(john likes mary (mary likes wine \'x$1))\n" +
+                "(john likes john (john likes wine \'x$1))\n" +
+                "(john likes john (john likes wine (mary likes wine \'x$0)))\n" +
+                "(john likes peter (list (peter likes peter \'x$1) (list (notEqual peter john) (list))))");
         });
-        
+
         it('Should give no results to circular definition.', function () {
-            var query = Z.run(
+            var zquery = Z.run(
                 "(john likes 'person ('person likes 'person '))"
             );
             
-            should(utils.tableFieldsToString(
-                query("(john likes 'stuff 'p)", 5)
-            )).eql({
-                query: '?(john likes \'stuff \'p)',
-            });
+            var query = function (q, len) {
+                return Z.toString(zquery(q, len));
+            };
+            
+            should(
+                query("(john likes 'stuff 'p)", 5000)
+            ).eql("");
         });
     });
 });
