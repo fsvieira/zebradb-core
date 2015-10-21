@@ -1,28 +1,24 @@
 #!/usr/bin/env node
 
-var fs = require("fs");
-var ZQuery = require("../lib/zquery");
+var Z = require("../lib/unify");
+var utils = require("../lib/utils");
 
-/*
-var data = "";
-for (var i=2; i<process.argv.length; i++) {
-    var file = process.argv[i];
-    data += fs.readFileSync(file) + "\n";
-    console.log(file);        
-}*/
+function print (query, result) {
+  console.log("Query: " + utils.toString(query));
+  for (var i=0; i<result.length; i++) {
+    console.log("\t" + (i+1) + ". " + utils.toString(result[i]));
+  }
+}
 
-/*for ( var i=0; i< process.argv.length; i++) {
-  console.log(i + ": " + process.argv[i]);
-}*/
-
+var maxLen = 2000;
 
 if (process.argv.length > 2) {
   var zfile = process.argv[2];
-  var run = new ZQuery.Run();
-  run.add("["+zfile+"]", 10);
+  var run = new Z.Run();
+  run.add("["+zfile+"]", print , maxLen);
 }
 else {
-  var run = new ZQuery.Run([]);
+  var run = new Z.Run([]);
   
   var readline = require('readline'),
       rl = readline.createInterface(process.stdin, process.stdout);
@@ -37,15 +33,7 @@ else {
     if (line.length > 0) {
         if (line[line.length-1] === ";") {
             cmd += line.substring(0, line.length-1);
-            
-            if (cmd.search(/query /i) === 0) {
-                console.log("QUERY: " + cmd.substring(6).trim());
-                console.log(run.queryArray(cmd.substring(6).trim(), 10));
-            }
-            else {
-                console.log(cmd);
-            }
-            
+            run.add(cmd, print, maxLen);
             cmd = "";
         }
         else {

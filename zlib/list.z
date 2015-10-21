@@ -1,16 +1,8 @@
-(list)
-(list 'item (list))
-(list 'item (list ''))
-
-
 /*
-TODO: 
-    * Fix bug to put this working,
-    * Should this be part of set definition ? 
-    
-(set)
-(set 'item (set) ')
-(set 'item (set ^'item 'tail ') (set 'item 'tail '))
+    A List definition,
 */
 
+(list)
+(list 'item (list))
+(list 'item (list ' '))
 
