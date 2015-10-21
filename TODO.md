@@ -5,7 +5,7 @@
     * Make examples.
 * alfa version
     * Add "multiply" results support,
-    * Fix tools,
-    * Fix imports and zlib tests,
     * Clean up and rename files, functions, ...
+    * ~~Fix tools,~~
+    * ~~Fix imports and zlib tests,~~
     * ~~Add ignore "_" term support.~~
