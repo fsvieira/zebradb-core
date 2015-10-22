@@ -5,7 +5,7 @@ var Z = require("../lib/unify");
 describe('Ignore Tests', function() {
     describe('If ... then ... else', function() {
         it('should declare simple if then else.', function () {
-            var zquery = new Z.run(
+            var run = new Z.Run(
                 "(bool true)" +
                 "(bool false)" +
                 "(if (bool true) 'p _ 'p)" +
@@ -13,7 +13,7 @@ describe('Ignore Tests', function() {
             );
             
             var query = function (q) {
-                return Z.toString(zquery(q));
+                return Z.toString(run.query(q));
             };
             
             should(
@@ -34,7 +34,7 @@ describe('Ignore Tests', function() {
         });
         
         it('should declare simple if then else (with recursive definitions).', function () {
-            var zquery = new Z.run(
+            var run = new Z.Run(
                 "(nat 0)" +
                 "(nat (nat 'n))" +
                 "(bool true)" +
@@ -44,7 +44,7 @@ describe('Ignore Tests', function() {
             );
             
             var query = function (q, len) {
-                return Z.toString(zquery(q, len));
+                return Z.toString(run.query(q, len));
             };
             
             should(

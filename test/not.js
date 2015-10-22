@@ -4,7 +4,7 @@ var Z = require("../lib/unify");
 describe('ZQuery Tests.', function() {
     describe('Not Tests', function() {
         it('Should test the Not Constants', function () {
-            var zquery = Z.run(
+            var run = new Z.Run(
                 "(color yellow)" +
                 "(color blue)" +
                 "(color red)" +
@@ -13,7 +13,7 @@ describe('ZQuery Tests.', function() {
             );
 
             var query = function (q) {
-                return Z.toString(zquery(q));
+                return Z.toString(run.query(q));
             };
             
             // Query the facts,
@@ -36,13 +36,13 @@ describe('ZQuery Tests.', function() {
         });
 
         it('Should declare a Not-Equal', function () {
-            var zquery = Z.run(
+            var run = new Z.Run(
                 "(equal 'p 'p)" +
                 "(notEqual 'p ^'p)"
             );
             
             var query = function (q) {
-                return Z.toString(zquery(q));
+                return Z.toString(run.query(q));
             };
 
             // Query the facts,
@@ -64,7 +64,7 @@ describe('ZQuery Tests.', function() {
         });
 
         it('Should make distinct tuples', function () {
-            var zquery = Z.run(
+            var run = new Z.Run(
                 "(color yellow)" +
                 "(color blue)" +
                 "(color red)" +
@@ -72,7 +72,7 @@ describe('ZQuery Tests.', function() {
             );
 
             var query = function (q) {
-                return Z.toString(zquery(q));
+                return Z.toString(run.query(q));
             };
             
             // Query the facts,
@@ -97,14 +97,14 @@ describe('ZQuery Tests.', function() {
         });
 
         it('Should declare simple not.', function () {
-            var zquery = Z.run(
+            var run = new Z.Run(
                 "(number 0)" +
                 "(number 1)" +
                 "(not 'a ^'a)"
             );
             
             var query = function (q) {
-                return Z.toString(zquery(q));
+                return Z.toString(run.query(q));
             };
             
             should(
@@ -116,7 +116,7 @@ describe('ZQuery Tests.', function() {
         });
 
         it('Should declare a Set', function () {
-            var zquery = Z.run(
+            var run = new Z.Run(
                 "(number 0)" +
                 "(number 1)" +
                 "(set)" +
@@ -125,7 +125,7 @@ describe('ZQuery Tests.', function() {
             );
 
             var query = function (q) {
-                return Z.toString(zquery(q));
+                return Z.toString(run.query(q));
             };
 
             should(
@@ -141,7 +141,7 @@ describe('ZQuery Tests.', function() {
         });
 
         it('Should declare a number Set', function () {
-            var zquery = Z.run(
+            var run = new Z.Run(
                 "(number 0)" +
                 "(number 1)" +
                 "(set)" +
@@ -150,7 +150,7 @@ describe('ZQuery Tests.', function() {
             );
 
             var query = function (q) {
-                return Z.toString(zquery(q));
+                return Z.toString(run.query(q));
             };
             
             should(
@@ -164,3 +164,5 @@ describe('ZQuery Tests.', function() {
         });
     });
 });
+
+

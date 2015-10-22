@@ -5,13 +5,13 @@ describe('Factorial Parser Tests.', function() {
     describe('Natural Numbers', function() {
         it('Should declare ~Peanno numbers', function () {
 
-            var zquery = new Z.run(
+            var run = new Z.Run(
                 "(nat 0)\n" +
                 "(nat (nat 'n))"
             );
 
             var query = function (q, len) {
-                return Z.toString(zquery(q, len));
+                return Z.toString(run.query(q, len));
             };
             
             should(
@@ -37,7 +37,7 @@ describe('Factorial Parser Tests.', function() {
 
         it('Should declare a add func', function () {
 
-            var zquery = new Z.run(
+            var run = new Z.Run(
                 "(nat 0)" +
                 "(nat (nat 'n))" +
 
@@ -49,7 +49,7 @@ describe('Factorial Parser Tests.', function() {
             );
 
             var query = function (q, len) {
-                return Z.toString(zquery(q, len));
+                return Z.toString(run.query(q, len));
             };
 
             // 0 + 0 = 0
@@ -106,7 +106,7 @@ describe('Factorial Parser Tests.', function() {
         });
 
         it('Should declare a list', function () {
-            var zquery = new Z.run(
+            var run = new Z.Run(
                 "(list)" +
                 "(list 'item (list ' '))" +
                 "(list 'item (list))" +
@@ -118,7 +118,7 @@ describe('Factorial Parser Tests.', function() {
             );
 
             var query = function (q, len) {
-                return Z.toString(zquery(q, len));
+                return Z.toString(run.query(q, len));
             };
             
             should(query("(list)")).eql("(list)");
@@ -154,7 +154,7 @@ describe('Factorial Parser Tests.', function() {
         it('Should declare a mul func', function () {
             this.timeout(1000*60*5);
             
-            var zquery = new Z.run(
+            var run = new Z.Run(
                 // Nat
                 "(nat 0)" +
                 "(nat (nat 'n))" +
@@ -180,7 +180,7 @@ describe('Factorial Parser Tests.', function() {
             );
 
             var query = function (q, len) {
-                return Z.toString(zquery(q, len));
+                return Z.toString(run.query(q, len));
             };
 
             // 0 * 0 = 0
@@ -268,7 +268,7 @@ describe('Factorial Parser Tests.', function() {
 
         it('Should declare a factorial func', function () {
             this.timeout(1000*60*5);
-            var zquery = new Z.run(
+            var run = new Z.Run(
                 // Nat
                 "(nat 0)" +
                 "(nat (nat 'n))" +
@@ -298,7 +298,7 @@ describe('Factorial Parser Tests.', function() {
             );
             
             var query = function (q, len) {
-                return Z.toString(zquery(q, len));
+                return Z.toString(run.query(q, len));
             };
             
             // fac(0) = 1

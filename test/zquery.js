@@ -4,12 +4,12 @@ var Z = require("../lib/unify");
 describe('ZQuery Tests.', function() {
     describe('Querys', function() {
         it('Query with single tuple constant.', function () {
-            var zquery = Z.run([
+            var run = new Z.Run([
                 Z.t(Z.c("yellow"))
             ]);
             
             var query = function (q) {
-                var r = zquery(q);
+                var r = run.query(q);
                 return Z.toString(r);
             };
 
@@ -28,9 +28,9 @@ describe('ZQuery Tests.', function() {
 
         it('Should identify variables by name.', function () {
             var defs = [Z.t(Z.v("q"), Z.v("q"))];
-            var zquery = Z.run(defs);
+            var run = new Z.Run(defs);
             var query = function (q) {
-                return Z.toString(zquery(q));
+                return Z.toString(run.query(q));
             };
             
             should(defs).eql(
@@ -50,7 +50,7 @@ describe('ZQuery Tests.', function() {
                 )
             ).eql("(yellow yellow)");
 
-            zquery = Z.run([ 
+            run = new Z.Run([ 
                 Z.t(Z.v("q")), // ('q)
                 Z.t( // (('q) ('q))
                     Z.t(Z.v("q")), 
@@ -69,7 +69,7 @@ describe('ZQuery Tests.', function() {
         });
 
         it("Should unify variables with tuple values", function () {
-            var zquery = Z.run([ 
+            var run = new Z.Run([ 
                 Z.t(
                     Z.c("blue"),
                     Z.c("red"), 
@@ -78,7 +78,7 @@ describe('ZQuery Tests.', function() {
             ]);
             
             var query = function (q) {
-                return Z.toString(zquery(q));
+                return Z.toString(run.query(q));
             };
             
             should(
@@ -94,12 +94,12 @@ describe('ZQuery Tests.', function() {
 
         it("Should unify tuples variables.", function () {
             
-            var zquery = Z.run([ 
+            var run = new Z.Run([ 
                 Z.t(Z.v("a"), Z.v("a"))
             ]);
             
             var query = function (q) {
-                return Z.toString(zquery(q));
+                return Z.toString(run.query(q));
             };
 
             should(
@@ -108,17 +108,18 @@ describe('ZQuery Tests.', function() {
                 )
             ).eql("(yellow yellow)");
 
-            zquery = Z.run([
+            run = new Z.Run([
                 Z.t(Z.v("x"), Z.v("y")),
                 Z.t(Z.t(Z.v("a"), Z.v("a"))) 
             ]);
+            
             should(
                 query(
                     Z.t(Z.t(Z.c("yellow"), Z.v("c")))
                 )
             ).eql("((yellow yellow))");
 
-            zquery = Z.run([
+            run = new Z.Run([
                 Z.t(Z.c("yellow"), Z.c("blue")),
                 Z.t(Z.c("blue"), Z.c("yellow")),
                 Z.t(
