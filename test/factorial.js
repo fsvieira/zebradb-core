@@ -1,5 +1,5 @@
 var should = require("should");
-var Z = require("../lib/unify");
+var Z = require("../lib/z");
 
 describe('Factorial Parser Tests.', function() {
     describe('Natural Numbers', function() {

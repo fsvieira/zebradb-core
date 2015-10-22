@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var Z = require("../lib/unify");
+var Z = require("../lib/z");
 var utils = require("../lib/utils");
 
 function print (query, result) {

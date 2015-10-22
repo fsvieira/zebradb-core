@@ -1,5 +1,5 @@
 var should = require("should");
-var Z = require("../lib/unify");
+var Z = require("../lib/z");
 
 describe('ZQuery Tests.', function() {
     describe('Not Tests', function() {
