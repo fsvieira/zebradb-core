@@ -5,12 +5,17 @@ var utils = require("../lib/utils");
 
 function print (query, result) {
   console.log("Query: " + utils.toString(query));
-  for (var i=0; i<result.length; i++) {
-    console.log("\t" + (i+1) + ". " + utils.toString(result[i]));
+  if (result.length) {
+    for (var i=0; i<result.length; i++) {
+      console.log("\t" + (i+1) + ". " + utils.toString(result[i]));
+    }
+  }
+  else {
+    console.log("\t>>> No results <<<");
   }
 }
 
-var maxLen = 2000;
+var maxLen = undefined; // 2000;
 
 if (process.argv.length > 2) {
   var zfile = process.argv[2];

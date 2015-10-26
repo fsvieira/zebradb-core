@@ -68,7 +68,6 @@
     _ _ E B _)
 */
 
-/*
 ? // line 1
  (grid (cell (position (number 1) (number 1)) (letter B))
  (grid (cell (position (number 2) (number 1)) (letter R))
@@ -107,5 +106,5 @@
  (grid)
  
  ')')')')')')')')')')')')')')')')')')')')')')')')')
- */
+ 
  
