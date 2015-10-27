@@ -196,27 +196,17 @@ describe('Prolog examples port Tests.', function() {
             should(
                 query("(john likes 'stuff 'p)")
             ).eql(
-                /*
-                "(john likes wine \'x$0)\n" +
-                "(john likes mary \'x$0)\n" +
-                "(john likes food (mary likes food \'x$2))\n" +
-                "(john likes wine (mary likes wine \'x$2))\n" +
-                "(john likes mary (mary likes wine \'x$1))\n" +
-                "(john likes john (john likes wine \'x$1))\n" +
+                "(john likes wine 'x$0)\n" +
+                "(john likes mary 'x$0)\n" +
+                "(john likes food (mary likes food 'x$2))\n" +
+                "(john likes wine (mary likes wine 'x$2))\n" +
+                "(john likes mary (mary likes wine 'x$1))\n" +
+                "(john likes john (john likes wine 'x$1))\n" +
                 "(john likes john (john likes wine (mary likes wine \'x$0)))\n" +
-                "(john likes peter (list (peter likes peter \'x$1) (list (notEqual peter john) (list))))");
-                */
-                "(john likes wine \'x$0)\n" +
-                "(john likes mary \'x$0)\n" +
-                "(john likes food (mary likes food \'x$2))\n" +
-                "(john likes wine (mary likes wine \'x$2))\n" +
-                "(john likes mary (mary likes wine \'x$1))\n" +
-                "(john likes john (john likes wine \'x$1))\n" +
-                "(john likes john (john likes wine (mary likes wine \'x$0)))\n" +
-                "(john likes peter (list (peter likes peter \'x$1) (list (notEqual peter john) (list))))\n" +
-                "(john likes wine (mary likes wine \'x$2))\n" +
-                "(john likes mary (mary likes wine \'x$1))\n" +
-                "(john likes john (john likes wine (mary likes wine \'x$0)))"
+                "(john likes peter (list (peter likes peter 'x$0) (list (notEqual peter john) (list))))\n" +
+                "(john likes wine (mary likes wine 'x$2))\n" +
+                "(john likes mary (mary likes wine 'x$1))\n" +
+                "(john likes john (john likes wine (mary likes wine 'x$0)))"
             );
         });
 

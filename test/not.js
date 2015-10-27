@@ -87,12 +87,12 @@ describe('ZQuery Tests.', function() {
             should(
                 query("(distinct (color 'a) (color 'b))")
             ).eql(
-                "(distinct (color blue) (color yellow))\n" +
-                "(distinct (color red) (color yellow))\n" +
                 "(distinct (color yellow) (color blue))\n" +
-                "(distinct (color red) (color blue))\n" +
                 "(distinct (color yellow) (color red))\n" +
-                "(distinct (color blue) (color red))"
+                "(distinct (color blue) (color yellow))\n" +
+                "(distinct (color blue) (color red))\n" +
+                "(distinct (color red) (color yellow))\n" +
+                "(distinct (color red) (color blue))"
             );
         });
 
@@ -110,8 +110,8 @@ describe('ZQuery Tests.', function() {
             should(
                 query("(not (number 'p) (number 'q))")
             ).eql(
-                "(not (number 1) (number 0))\n" +
-                "(not (number 0) (number 1))"
+                "(not (number 0) (number 1))\n" +
+                "(not (number 1) (number 0))"
             );
         });
 
@@ -131,8 +131,8 @@ describe('ZQuery Tests.', function() {
             should(
                 query("(set (number 'a) (set (number 'b) (set) ') ')")
             ).eql(
-                "(set (number 1) (set (number 0) (set) \'x$0) (set (number 1) (set) \'x$1))\n" +
-                "(set (number 0) (set (number 1) (set) \'x$0) (set (number 0) (set) \'x$1))"
+                "(set (number 0) (set (number 1) (set) \'x$2) (set (number 0) (set) \'x$1))\n" +
+                "(set (number 1) (set (number 0) (set) \'x$2) (set (number 1) (set) \'x$1))"
             );
 
             should(
@@ -156,10 +156,10 @@ describe('ZQuery Tests.', function() {
             should(
                 query("(set (number 'a) 'tail ')")
             ).eql(
-                "(set (number 0) (set) \'x$2)\n" +
-                "(set (number 1) (set) \'x$2)\n" +
-                "(set (number 0) (set (number 1) (set) \'x$0) (set (number 0) (set) \'x$1))\n" +
-                "(set (number 1) (set (number 0) (set) \'x$0) (set (number 1) (set) \'x$1))"
+                "(set (number 0) (set) 'x$0)\n" +
+                "(set (number 1) (set) 'x$0)\n" +
+                "(set (number 0) (set (number 1) (set) 'x$0) (set (number 0) (set) 'x$1))\n" +
+                "(set (number 1) (set (number 0) (set) 'x$0) (set (number 1) (set) 'x$1))"
             );
         });
     });
