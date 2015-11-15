@@ -23,7 +23,7 @@ describe('Ignore Tests', function() {
             ).eql(
                 "(if (bool true) (bool true) _ (bool true))"
             );
-            
+
             should(
                 query(
                     "(if (bool false) (bool true) (bool false) 'r)"
@@ -32,7 +32,7 @@ describe('Ignore Tests', function() {
                 "(if (bool false) _ (bool false) (bool false))"
             );
         });
-        
+
         it('should declare simple if then else (with recursive definitions).', function () {
             var run = new Z.Run(
                 "(nat 0)" +
@@ -54,11 +54,11 @@ describe('Ignore Tests', function() {
             ).eql(
                 "(if (bool true) (nat 0) _ (nat 0))\n(if (bool true) (nat 0) _ (nat 0))\n(if (bool true) (nat 0) _ (nat 0))"
             );
-            
+
             should(
                 query(
                     "(if (bool true) (nat 'n) (nat 0) 'r)",
-                    1000
+                    17
                 )
             ).eql(
                 "(if (bool true) (nat 0) _ (nat 0))\n" +
@@ -67,6 +67,5 @@ describe('Ignore Tests', function() {
                 "(if (bool true) (nat (nat (nat (nat 0)))) _ (nat (nat (nat (nat 0)))))"
             );
         });
-
     });
 });

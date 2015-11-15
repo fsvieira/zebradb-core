@@ -29,10 +29,11 @@ describe('ZQuery Tests.', function() {
         it('Should identify variables by name.', function () {
             var defs = [Z.t(Z.v("q"), Z.v("q"))];
             var run = new Z.Run(defs);
+
             var query = function (q) {
                 return Z.toString(run.query(q));
             };
-            
+
             should(defs).eql(
                 [
                     {
