@@ -3,6 +3,7 @@ var Z = require("../lib/z");
 
 describe('ZQuery Tests.', function() {
     describe('Not Tests', function() {
+/*
         it('Should test the Not Constants', function () {
             var run = new Z.Run(
                 "(color yellow)" +
@@ -17,14 +18,18 @@ describe('ZQuery Tests.', function() {
             };
             
             // Query the facts,
-            /*should(
+            should(
                 query("(color ')")
             ).eql(
                 "(color yellow)\n" +
                 "(color blue)\n" + 
                 "(color red)\n" +
                 "(color white)"
-            );*/
+            );
+
+            should(
+                query("(notYellow (color yellow))")
+            ).eql("");
 
             should(
                 query("(notYellow ')")
@@ -34,7 +39,7 @@ describe('ZQuery Tests.', function() {
                 '(notYellow (color white))'
             );
         });
-/*
+
         it('Should declare a Not-Equal', function () {
             var run = new Z.Run(
                 "(equal 'p 'p)" +
@@ -62,7 +67,7 @@ describe('ZQuery Tests.', function() {
                 query("(notEqual yellow blue)")
             ).eql("(notEqual yellow blue)");
         });
-
+*/
         it('Should make distinct tuples', function () {
             var run = new Z.Run(
                 "(color yellow)" +
@@ -83,7 +88,7 @@ describe('ZQuery Tests.', function() {
             should(
                 query("(distinct (color blue) (color yellow))")
             ).eql("(distinct (color blue) (color yellow))");
-
+/*
             should(
                 query("(distinct (color 'a) (color 'b))")
             ).eql(
@@ -93,9 +98,9 @@ describe('ZQuery Tests.', function() {
                 "(distinct (color blue) (color red))\n" +
                 "(distinct (color red) (color yellow))\n" +
                 "(distinct (color red) (color blue))"
-            );
+            );*/
         });
-
+/*
         it('Should declare simple not.', function () {
             var run = new Z.Run(
                 "(number 0)" +

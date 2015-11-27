@@ -1,5 +1,7 @@
 # Roadmap
 
+* 1.0.0 version
+    * Add support to finit representation of infinity structures (ex: (nat 'x) -> 'x => (nat 'x))    
 * beta version
     * Optimize (solve all tests under 20 seconds, optimal < 2s),
     * Remove duplicated results,
@@ -13,3 +15,5 @@
 
 
 # TODO:
+    - remove duplicates from multiply
+    - replace clone with a shallow clone or clean
