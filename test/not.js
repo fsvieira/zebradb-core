@@ -3,7 +3,6 @@ var Z = require("../lib/z");
 
 describe('ZQuery Tests.', function() {
     describe('Not Tests', function() {
-/*
         it('Should test the Not Constants', function () {
             var run = new Z.Run(
                 "(color yellow)" +
@@ -67,7 +66,7 @@ describe('ZQuery Tests.', function() {
                 query("(notEqual yellow blue)")
             ).eql("(notEqual yellow blue)");
         });
-*/
+
         it('Should make distinct tuples', function () {
             var run = new Z.Run(
                 "(color yellow)" +
@@ -79,7 +78,7 @@ describe('ZQuery Tests.', function() {
             var query = function (q) {
                 return Z.toString(run.query(q));
             };
-            
+
             // Query the facts,
             should(
                 query("(distinct (color yellow) (color yellow))")
@@ -88,7 +87,7 @@ describe('ZQuery Tests.', function() {
             should(
                 query("(distinct (color blue) (color yellow))")
             ).eql("(distinct (color blue) (color yellow))");
-/*
+
             should(
                 query("(distinct (color 'a) (color 'b))")
             ).eql(
@@ -98,9 +97,9 @@ describe('ZQuery Tests.', function() {
                 "(distinct (color blue) (color red))\n" +
                 "(distinct (color red) (color yellow))\n" +
                 "(distinct (color red) (color blue))"
-            );*/
+            );
         });
-/*
+
         it('Should declare simple not.', function () {
             var run = new Z.Run(
                 "(number 0)" +
@@ -136,8 +135,8 @@ describe('ZQuery Tests.', function() {
             should(
                 query("(set (number 'a) (set (number 'b) (set) ') ')")
             ).eql(
-                "(set (number 0) (set (number 1) (set) \'x$2) (set (number 0) (set) \'x$1))\n" +
-                "(set (number 1) (set (number 0) (set) \'x$2) (set (number 1) (set) \'x$1))"
+                "(set (number 0) (set (number 1) (set) \'x$10) (set (number 0) (set) \'x$12))\n" +
+                "(set (number 1) (set (number 0) (set) \'x$10) (set (number 1) (set) \'x$12))"
             );
 
             should(
@@ -161,12 +160,12 @@ describe('ZQuery Tests.', function() {
             should(
                 query("(set (number 'a) 'tail ')")
             ).eql(
-                "(set (number 0) (set) 'x$0)\n" +
-                "(set (number 1) (set) 'x$0)\n" +
-                "(set (number 0) (set (number 1) (set) 'x$0) (set (number 0) (set) 'x$1))\n" +
-                "(set (number 1) (set (number 0) (set) 'x$0) (set (number 1) (set) 'x$1))"
+                "(set (number 0) (set) 'x$7)\n" +
+                "(set (number 1) (set) 'x$7)\n" + 
+                "(set (number 0) (set (number 1) (set) 'x$10) (set (number 0) (set) 'x$13))\n" + 
+                "(set (number 1) (set (number 0) (set) 'x$10) (set (number 1) (set) \'x$13))"
             );
-        });*/
+        });
     });
 });
 

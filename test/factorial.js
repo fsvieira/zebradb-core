@@ -24,7 +24,7 @@ describe('Factorial Parser Tests.', function() {
             should(
                 query(
                     "(nat 'n)",
-                    500
+                    7
                 )
             ).eql(
                 "(nat 0)\n" + 
@@ -57,7 +57,7 @@ describe('Factorial Parser Tests.', function() {
                     "(+ (nat 0) (nat 0) 'r ')"
                 )
             ).eql(
-                "(+ (nat 0) (nat 0) (nat 0) \'x$2)"
+                "(+ (nat 0) (nat 0) (nat 0) \'x$8)"
             );
             
             // 1 + 0 = 1
@@ -66,7 +66,7 @@ describe('Factorial Parser Tests.', function() {
                     "(+ (nat (nat 0)) (nat 0) 'r ')"
                 )
             ).eql(
-                "(+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$0)"
+                "(+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$9)"
             );
 
             // 0 + 1 = 1
@@ -75,7 +75,7 @@ describe('Factorial Parser Tests.', function() {
                     "(+ (nat 0) (nat (nat 0)) 'r ')"
                 )
             ).eql(
-                "(+ (nat 0) (nat (nat 0)) (nat (nat 0)) (+ (nat 0) (nat 0) (nat 0) \'x$0))"
+                "(+ (nat 0) (nat (nat 0)) (nat (nat 0)) (+ (nat 0) (nat 0) (nat 0) \'x$13))"
             );
 
             // 2 + 3 = 5
@@ -84,7 +84,7 @@ describe('Factorial Parser Tests.', function() {
                     "(+ (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) 'r ')"
                 )
             ).eql(
-                "(+ (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) (nat (nat (nat (nat (nat (nat 0)))))) (+ (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (+ (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat (nat 0)))) (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$0))))"
+                "(+ (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) (nat (nat (nat (nat (nat (nat 0)))))) (+ (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (+ (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat (nat 0)))) (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$25))))"
             );
 
             // 3 + 2 = 5
@@ -92,7 +92,7 @@ describe('Factorial Parser Tests.', function() {
                 query(
                     "(+ (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) 'r ')"
                 )
-            ).eql("(+ (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat (nat 0)))))) (+ (nat (nat (nat (nat 0)))) (nat (nat 0)) (nat (nat (nat (nat (nat 0))))) (+ (nat (nat (nat (nat 0)))) (nat 0) (nat (nat (nat (nat 0)))) \'x$1)))");
+            ).eql("(+ (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat (nat 0)))))) (+ (nat (nat (nat (nat 0)))) (nat (nat 0)) (nat (nat (nat (nat (nat 0))))) (+ (nat (nat (nat (nat 0)))) (nat 0) (nat (nat (nat (nat 0)))) \'x$21)))");
 
             // 2 + 2 = 4
             should(
@@ -100,7 +100,7 @@ describe('Factorial Parser Tests.', function() {
                     "(+ (nat (nat (nat 0))) (nat (nat (nat 0))) 'r ')"
                 )
             ).eql(
-                "(+ (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (+ (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat (nat 0)))) (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$1)))"
+                "(+ (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (+ (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat (nat 0)))) (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$20)))"
             );
         });
 
@@ -188,7 +188,7 @@ describe('Factorial Parser Tests.', function() {
                     "(* (nat 0) (nat 0) 'r ')"
                 )
             ).eql(
-                "(* (nat 0) (nat 0) (nat 0) \'x$2)"
+                "(* (nat 0) (nat 0) (nat 0) \'x$8)"
             );
 
             
@@ -198,7 +198,7 @@ describe('Factorial Parser Tests.', function() {
                     "(* (nat (nat 0)) (nat 0) 'r ')"
                 )
             ).eql(
-                "(* (nat (nat 0)) (nat 0) (nat 0) \'x$2)"
+                "(* (nat (nat 0)) (nat 0) (nat 0) \'x$9)"
             );
             
             // 0 * 1 = 0
@@ -207,7 +207,7 @@ describe('Factorial Parser Tests.', function() {
                     "(* (nat 0) (nat (nat 0)) 'r ')"
                 )
             ).eql(
-                "(* (nat 0) (nat (nat 0)) (nat 0) (list (+ (nat 0) (nat 0) (nat 0) \'x$0) (list (* (nat 0) (nat 0) (nat 0) \'x$3) (list))))"
+                "(* (nat 0) (nat (nat 0)) (nat 0) (list (+ (nat 0) (nat 0) (nat 0) \'x$15) (list (* (nat 0) (nat 0) (nat 0) \'x$20) (list))))"
             );
 
             // 1 * 1 = 1
@@ -216,7 +216,7 @@ describe('Factorial Parser Tests.', function() {
                     "(* (nat (nat 0)) (nat (nat 0)) 'r ')"
                 )
             ).eql(
-                "(* (nat (nat 0)) (nat (nat 0)) (nat (nat 0)) (list (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$0) (list (* (nat (nat 0)) (nat 0) (nat 0) \'x$3) (list))))"
+                "(* (nat (nat 0)) (nat (nat 0)) (nat (nat 0)) (list (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$16) (list (* (nat (nat 0)) (nat 0) (nat 0) \'x$21) (list))))"
             );
             
             // 2 * 1 = 1
@@ -225,7 +225,7 @@ describe('Factorial Parser Tests.', function() {
                     "(* (nat (nat (nat 0))) (nat (nat 0)) 'r ')"
                 )
             ).eql(
-                "(* (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat 0))) (list (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$1) (list (* (nat (nat (nat 0))) (nat 0) (nat 0) \'x$3) (list))))"
+                "(* (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat 0))) (list (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$17) (list (* (nat (nat (nat 0))) (nat 0) (nat 0) \'x$22) (list))))"
             );
 
             // 1 * 2 = 2
@@ -234,7 +234,7 @@ describe('Factorial Parser Tests.', function() {
                     "(* (nat (nat 0)) (nat (nat (nat 0))) 'r ')"
                 )
             ).eql(
-                "(* (nat (nat 0)) (nat (nat (nat 0))) (nat (nat (nat 0))) (list (+ (nat (nat 0)) (nat (nat 0)) (nat (nat (nat 0))) (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$2)) (list (* (nat (nat 0)) (nat (nat 0)) (nat (nat 0)) (list (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$3) (list (* (nat (nat 0)) (nat 0) (nat 0) \'x$5) (list)))) (list))))"
+                "(* (nat (nat 0)) (nat (nat (nat 0))) (nat (nat (nat 0))) (list (+ (nat (nat 0)) (nat (nat 0)) (nat (nat (nat 0))) (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$21)) (list (* (nat (nat 0)) (nat (nat 0)) (nat (nat 0)) (list (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$30) (list (* (nat (nat 0)) (nat 0) (nat 0) \'x$35) (list)))) (list))))"
             );
 
             // 2 * 2 = 4
@@ -243,7 +243,7 @@ describe('Factorial Parser Tests.', function() {
                     "(* (nat (nat (nat 0))) (nat (nat (nat 0))) 'r ')"
                 )
             ).eql(
-                "(* (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (list (+ (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (+ (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat (nat 0)))) (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$0))) (list (* (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat 0))) (list (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$3) (list (* (nat (nat (nat 0))) (nat 0) (nat 0) \'x$4) (list)))) (list))))"
+                "(* (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (list (+ (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (+ (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat (nat 0)))) (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$26))) (list (* (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat 0))) (list (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$35) (list (* (nat (nat (nat 0))) (nat 0) (nat 0) \'x$40) (list)))) (list))))"
             );
 
             // 2 * 3 = 6
@@ -252,7 +252,7 @@ describe('Factorial Parser Tests.', function() {
                     "(* (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) 'r ')"
                 )
             ).eql(
-                "(* (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) (nat (nat (nat (nat (nat (nat (nat 0))))))) (list (+ (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (nat (nat (nat (nat (nat (nat (nat 0))))))) (+ (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) (nat (nat (nat (nat (nat (nat 0)))))) (+ (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (+ (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat (nat 0)))) (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$3))))) (list (* (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (list (+ (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (+ (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat (nat 0)))) (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$4))) (list (* (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat 0))) (list (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$5) (list (* (nat (nat (nat 0))) (nat 0) (nat 0) \'x$6) (list)))) (list)))) (list))))"
+                "(* (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) (nat (nat (nat (nat (nat (nat (nat 0))))))) (list (+ (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (nat (nat (nat (nat (nat (nat (nat 0))))))) (+ (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) (nat (nat (nat (nat (nat (nat 0)))))) (+ (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (+ (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat (nat 0)))) (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$37))))) (list (* (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (list (+ (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (+ (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat (nat 0)))) (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$52))) (list (* (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat 0))) (list (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$61) (list (* (nat (nat (nat 0))) (nat 0) (nat 0) \'x$66) (list)))) (list)))) (list))))"
             );
 
             // 3 * 2 = 6
@@ -261,7 +261,7 @@ describe('Factorial Parser Tests.', function() {
                     "(* (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) 'r ')"
                 )
             ).eql(
-                "(* (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat (nat (nat 0))))))) (list (+ (nat (nat (nat (nat 0)))) (nat (nat (nat (nat 0)))) (nat (nat (nat (nat (nat (nat (nat 0))))))) (+ (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat (nat 0)))))) (+ (nat (nat (nat (nat 0)))) (nat (nat 0)) (nat (nat (nat (nat (nat 0))))) (+ (nat (nat (nat (nat 0)))) (nat 0) (nat (nat (nat (nat 0)))) \'x$0)))) (list (* (nat (nat (nat (nat 0)))) (nat (nat 0)) (nat (nat (nat (nat 0)))) (list (+ (nat (nat (nat (nat 0)))) (nat 0) (nat (nat (nat (nat 0)))) \'x$3) (list (* (nat (nat (nat (nat 0)))) (nat 0) (nat 0) \'x$4) (list)))) (list))))"
+                "(* (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat (nat (nat 0))))))) (list (+ (nat (nat (nat (nat 0)))) (nat (nat (nat (nat 0)))) (nat (nat (nat (nat (nat (nat (nat 0))))))) (+ (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat (nat 0)))))) (+ (nat (nat (nat (nat 0)))) (nat (nat 0)) (nat (nat (nat (nat (nat 0))))) (+ (nat (nat (nat (nat 0)))) (nat 0) (nat (nat (nat (nat 0)))) \'x$31)))) (list (* (nat (nat (nat (nat 0)))) (nat (nat 0)) (nat (nat (nat (nat 0)))) (list (+ (nat (nat (nat (nat 0)))) (nat 0) (nat (nat (nat (nat 0)))) \'x$40) (list (* (nat (nat (nat (nat 0)))) (nat 0) (nat 0) \'x$45) (list)))) (list))))"
             );
         });
 
@@ -305,7 +305,7 @@ describe('Factorial Parser Tests.', function() {
                 query(
                     "(fac (nat 0) 'r ')"
                 )
-            ).eql("(fac (nat 0) (nat (nat 0)) \'x$1)");
+            ).eql("(fac (nat 0) (nat (nat 0)) \'x$8)");
 
             // fac(1) = 1
             should(
@@ -313,7 +313,7 @@ describe('Factorial Parser Tests.', function() {
                     "(fac (nat (nat 0)) 'r ')"
                 )
             ).eql(
-                "(fac (nat (nat 0)) (nat (nat 0)) (list (* (nat (nat 0)) (nat (nat 0)) (nat (nat 0)) (list (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$0) (list (* (nat (nat 0)) (nat 0) (nat 0) \'x$2) (list)))) (list (fac (nat 0) (nat (nat 0)) \'x$3) (list))))"
+                "(fac (nat (nat 0)) (nat (nat 0)) (list (* (nat (nat 0)) (nat (nat 0)) (nat (nat 0)) (list (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$21) (list (* (nat (nat 0)) (nat 0) (nat 0) \'x$26) (list)))) (list (fac (nat 0) (nat (nat 0)) \'x$31) (list))))"
             );
 
             // fac(2) = 2
@@ -322,17 +322,16 @@ describe('Factorial Parser Tests.', function() {
                     "(fac (nat (nat (nat 0))) 'r ')"
                 )
             ).eql(
-                "(fac (nat (nat (nat 0))) (nat (nat (nat 0))) (list (* (nat (nat 0)) (nat (nat (nat 0))) (nat (nat (nat 0))) (list (+ (nat (nat 0)) (nat (nat 0)) (nat (nat (nat 0))) (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$0)) (list (* (nat (nat 0)) (nat (nat 0)) (nat (nat 0)) (list (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$2) (list (* (nat (nat 0)) (nat 0) (nat 0) \'x$3) (list)))) (list)))) (list (fac (nat (nat 0)) (nat (nat 0)) (list (* (nat (nat 0)) (nat (nat 0)) (nat (nat 0)) (list (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$4) (list (* (nat (nat 0)) (nat 0) (nat 0) \'x$5) (list)))) (list (fac (nat 0) (nat (nat 0)) \'x$6) (list)))) (list))))"
+                "(fac (nat (nat (nat 0))) (nat (nat (nat 0))) (list (* (nat (nat 0)) (nat (nat (nat 0))) (nat (nat (nat 0))) (list (+ (nat (nat 0)) (nat (nat 0)) (nat (nat (nat 0))) (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$26)) (list (* (nat (nat 0)) (nat (nat 0)) (nat (nat 0)) (list (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$35) (list (* (nat (nat 0)) (nat 0) (nat 0) \'x$40) (list)))) (list)))) (list (fac (nat (nat 0)) (nat (nat 0)) (list (* (nat (nat 0)) (nat (nat 0)) (nat (nat 0)) (list (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$55) (list (* (nat (nat 0)) (nat 0) (nat 0) \'x$60) (list)))) (list (fac (nat 0) (nat (nat 0)) \'x$65) (list)))) (list))))"
             );
 
             // fac(3) = 6
-            // TODO:
             should(
                 query(
                     "(fac (nat (nat (nat (nat 0)))) 'r ')"
                 )
             ).eql(
-                "(fac (nat (nat (nat (nat 0)))) (nat (nat (nat (nat (nat (nat (nat 0))))))) (list (* (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) (nat (nat (nat (nat (nat (nat (nat 0))))))) (list (+ (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (nat (nat (nat (nat (nat (nat (nat 0))))))) (+ (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) (nat (nat (nat (nat (nat (nat 0)))))) (+ (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (+ (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat (nat 0)))) (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$0))))) (list (* (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (list (+ (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (+ (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat (nat 0)))) (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$2))) (list (* (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat 0))) (list (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$3) (list (* (nat (nat (nat 0))) (nat 0) (nat 0) \'x$4) (list)))) (list)))) (list)))) (list (fac (nat (nat (nat 0))) (nat (nat (nat 0))) (list (* (nat (nat 0)) (nat (nat (nat 0))) (nat (nat (nat 0))) (list (+ (nat (nat 0)) (nat (nat 0)) (nat (nat (nat 0))) (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$5)) (list (* (nat (nat 0)) (nat (nat 0)) (nat (nat 0)) (list (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$9) (list (* (nat (nat 0)) (nat 0) (nat 0) \'x$10) (list)))) (list)))) (list (fac (nat (nat 0)) (nat (nat 0)) (list (* (nat (nat 0)) (nat (nat 0)) (nat (nat 0)) (list (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$11) (list (* (nat (nat 0)) (nat 0) (nat 0) \'x$13) (list)))) (list (fac (nat 0) (nat (nat 0)) \'x$18) (list)))) (list)))) (list))))"
+                "(fac (nat (nat (nat (nat 0)))) (nat (nat (nat (nat (nat (nat (nat 0))))))) (list (* (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) (nat (nat (nat (nat (nat (nat (nat 0))))))) (list (+ (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (nat (nat (nat (nat (nat (nat (nat 0))))))) (+ (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) (nat (nat (nat (nat (nat (nat 0)))))) (+ (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (+ (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat (nat 0)))) (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$42))))) (list (* (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (list (+ (nat (nat (nat 0))) (nat (nat (nat 0))) (nat (nat (nat (nat (nat 0))))) (+ (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat (nat 0)))) (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$57))) (list (* (nat (nat (nat 0))) (nat (nat 0)) (nat (nat (nat 0))) (list (+ (nat (nat (nat 0))) (nat 0) (nat (nat (nat 0))) \'x$66) (list (* (nat (nat (nat 0))) (nat 0) (nat 0) \'x$71) (list)))) (list)))) (list)))) (list (fac (nat (nat (nat 0))) (nat (nat (nat 0))) (list (* (nat (nat 0)) (nat (nat (nat 0))) (nat (nat (nat 0))) (list (+ (nat (nat 0)) (nat (nat 0)) (nat (nat (nat 0))) (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$90)) (list (* (nat (nat 0)) (nat (nat 0)) (nat (nat 0)) (list (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$99) (list (* (nat (nat 0)) (nat 0) (nat 0) \'x$104) (list)))) (list)))) (list (fac (nat (nat 0)) (nat (nat 0)) (list (* (nat (nat 0)) (nat (nat 0)) (nat (nat 0)) (list (+ (nat (nat 0)) (nat 0) (nat (nat 0)) \'x$119) (list (* (nat (nat 0)) (nat 0) (nat 0) \'x$124) (list)))) (list (fac (nat 0) (nat (nat 0)) \'x$129) (list)))) (list)))) (list))))"
             );
         });
     });

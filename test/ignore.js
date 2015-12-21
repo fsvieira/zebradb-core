@@ -58,7 +58,7 @@ describe('Ignore Tests', function() {
             should(
                 query(
                     "(if (bool true) (nat 'n) (nat 0) 'r)",
-                    17
+                    12
                 )
             ).eql(
                 "(if (bool true) (nat 0) _ (nat 0))\n" +
