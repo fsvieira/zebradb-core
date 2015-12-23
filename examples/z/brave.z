@@ -39,8 +39,6 @@
 (group (letter 'a) (group (letter ^'a) 'tail ') (group (letter 'a) 'tail '))
 
 
-?(group 'b (group (letter R) (group (letter A) (group (letter V) (group (letter E) (group) ') ') ') ') ')
-
 (brave 
     'x1y1 'x2y1 'x3y1 'x4y1 'x5y1
     'x1y2 'x2y2 'x3y2 'x4y2 'x5y2
