@@ -135,8 +135,8 @@ describe('ZQuery Tests.', function() {
             should(
                 query("(set (number 'a) (set (number 'b) (set) ') ')")
             ).eql(
-                "(set (number 0) (set (number 1) (set) \'x$10) (set (number 0) (set) \'x$12))\n" +
-                "(set (number 1) (set (number 0) (set) \'x$10) (set (number 1) (set) \'x$12))"
+                "(set (number 0) (set (number 1) (set) \'x$8) (set (number 0) (set) \'x$10))\n" +
+                "(set (number 1) (set (number 0) (set) \'x$8) (set (number 1) (set) \'x$10))"
             );
 
             should(
@@ -160,10 +160,10 @@ describe('ZQuery Tests.', function() {
             should(
                 query("(set (number 'a) 'tail ')")
             ).eql(
-                "(set (number 0) (set) 'x$7)\n" +
-                "(set (number 1) (set) 'x$7)\n" + 
-                "(set (number 0) (set (number 1) (set) 'x$10) (set (number 0) (set) 'x$13))\n" + 
-                "(set (number 1) (set (number 0) (set) 'x$10) (set (number 1) (set) \'x$13))"
+                "(set (number 0) (set) \'x$6)\n" +
+                "(set (number 0) (set (number 1) (set) \'x$8) (set (number 0) (set) \'x$11))\n" +
+                "(set (number 1) (set) \'x$6)\n" +
+                "(set (number 1) (set (number 0) (set) \'x$8) (set (number 1) (set) \'x$11))"
             );
         });
     });
