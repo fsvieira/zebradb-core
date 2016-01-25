@@ -166,7 +166,41 @@ describe('ZQuery Tests.', function() {
                 "(set (number 1) (set (number 0) (set) \'x$8) (set (number 1) (set) \'x$11))"
             );
         });
-        
+
+        it('Should unify "not" equals with diferent values', function () {
+            var run = new Z.Run(
+                "(number 1)"
+            );
+            
+            var query = function (q) {
+                return Z.toString(run.query(q));
+            };
+            
+            should(
+                query("(number ^0)")
+            ).eql(
+                "(number 1)"
+            );
+
+
+            should(
+                query("(number ^1)")
+            ).eql(
+                ""
+            );
+            
+            // --
+            run = new Z.Run(
+                "(number ^1)"
+            );
+
+            should(
+                query("(number ^0)")
+            ).eql(
+                "(number [^0]*[^1])"
+            );
+        });
+
         it('Should declare a number Set, 3 elements', function () {
             var run = new Z.Run(
                 "(number 0)" +
@@ -185,6 +219,26 @@ describe('ZQuery Tests.', function() {
                 query("(set (number 0) (set (number 1) (set (number 2) (set) ') ') ')")
             ).eql(
                 "(set (number 0) (set (number 1) (set (number 2) (set) \'x$10) (set (number 1) (set) \'x$13)) (set (number 0) (set (number 2) (set) \'x$10) (set (number 0) (set) \'x$18)))"
+            );
+            
+            should(
+                query("(set (number 'a) 'tail ')")
+            ).eql(
+                "(set (number 0) (set) 'x$6)\n" +
+                "(set (number 0) (set (number 1) (set) 'x$8) (set (number 0) (set) 'x$11))\n" +
+                "(set (number 0) (set (number 1) (set (number 2) (set) 'x$10) (set (number 1) (set) 'x$13)) (set (number 0) (set (number 2) (set) 'x$10) (set (number 0) (set) 'x$18)))\n" +
+                "(set (number 0) (set (number 2) (set) 'x$8) (set (number 0) (set) 'x$11))\n" +
+                "(set (number 0) (set (number 2) (set (number 1) (set) 'x$10) (set (number 2) (set) 'x$13)) (set (number 0) (set (number 1) (set) 'x$10) (set (number 0) (set) 'x$18)))\n" +
+                "(set (number 1) (set) 'x$6)\n" +
+                "(set (number 1) (set (number 0) (set) 'x$8) (set (number 1) (set) 'x$11))\n" +
+                "(set (number 1) (set (number 0) (set (number 2) (set) 'x$10) (set (number 0) (set) 'x$13)) (set (number 1) (set (number 2) (set) 'x$10) (set (number 1) (set) 'x$18)))\n" +
+                "(set (number 1) (set (number 2) (set) 'x$8) (set (number 1) (set) 'x$11))\n" +
+                "(set (number 1) (set (number 2) (set (number 0) (set) 'x$10) (set (number 2) (set) 'x$13)) (set (number 1) (set (number 0) (set) 'x$10) (set (number 1) (set) 'x$18)))\n" +
+                "(set (number 2) (set) 'x$6)\n" +
+                "(set (number 2) (set (number 0) (set) 'x$8) (set (number 2) (set) 'x$11))\n" +
+                "(set (number 2) (set (number 0) (set (number 1) (set) 'x$10) (set (number 0) (set) 'x$13)) (set (number 2) (set (number 1) (set) 'x$10) (set (number 2) (set) 'x$18)))\n" +
+                "(set (number 2) (set (number 1) (set) 'x$8) (set (number 2) (set) 'x$11))\n" +
+                "(set (number 2) (set (number 1) (set (number 0) (set) 'x$10) (set (number 1) (set) 'x$13)) (set (number 2) (set (number 0) (set) 'x$10) (set (number 2) (set) 'x$18)))"
             );
         });
     });
