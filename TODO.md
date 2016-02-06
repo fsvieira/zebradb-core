@@ -1,11 +1,12 @@
 # Roadmap
 
+* 2.0.0 (WIP)
+    * Add support to finit representation of infinity structures (ex: (nat 'x) -> 'x => (nat 'x))
 * 1.0.0 version
-    * Add support to finit representation of infinity structures (ex: (nat 'x) -> 'x => (nat 'x))    
+    * Add examples, solve brave puzzle (http://www.mathsisfun.com/puzzles/a-brave-puzzle.html)
 * beta version
-    * ~~Optimize (solve all tests under 20 seconds, optimal < 2s),~~
+    * Optimize (solve all [current] tests under 20 seconds, optimal < 2s),
     * ~~Remove duplicated results,~~
-    * Add examples.
 * alfa version (2015-10-22)
     * ~~Clean up and rename files, functions,~~
     * ~~Add "multiply" results support,~~
