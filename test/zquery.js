@@ -3,6 +3,7 @@ var Z = require("../lib/z");
 
 describe('ZQuery Tests.', function() {
     describe('Querys', function() {
+/*
         it('Query with single tuple constant.', function () {
             var run = new Z.Run([
                 Z.t(Z.c("yellow"))
@@ -92,7 +93,7 @@ describe('ZQuery Tests.', function() {
                 )
             ).eql("(blue red yellow)");
         });
-
+*/
         it("Should unify tuples variables.", function () {
             
             var run = new Z.Run([ 
@@ -102,7 +103,7 @@ describe('ZQuery Tests.', function() {
             var query = function (q) {
                 return Z.toString(run.query(q));
             };
-
+/*
             should(
                 query(
                     Z.t(Z.c("yellow"), Z.v("c")) 
@@ -119,7 +120,7 @@ describe('ZQuery Tests.', function() {
                     Z.t(Z.t(Z.c("yellow"), Z.v("c")))
                 )
             ).eql("((yellow yellow))");
-
+*/
             run = new Z.Run([
                 Z.t(Z.c("yellow"), Z.c("blue")),
                 Z.t(Z.c("blue"), Z.c("yellow")),
