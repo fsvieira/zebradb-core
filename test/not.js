@@ -1,7 +1,7 @@
 var should = require("should");
 var Z = require("../lib/z");
 
-describe('ZQuery Tests.', function() {
+describe('Not Tests.', function() {
     describe('Not Tests', function() {
         it('Should test the Not Constants', function () {
             var run = new Z.Run(
@@ -78,7 +78,6 @@ describe('ZQuery Tests.', function() {
             var query = function (q) {
                 return Z.toString(run.query(q));
             };
-
             // Query the facts,
             should(
                 query("(distinct (color yellow) (color yellow))")

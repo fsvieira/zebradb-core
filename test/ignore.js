@@ -46,7 +46,8 @@ describe('Ignore Tests', function() {
             var query = function (q, len) {
                 return Z.toString(run.query(q, len));
             };
-            
+
+            // TODO: check why is this repeated 3 times (probably because ignore succeds everytime.).
             should(
                 query(
                     "(if (bool true) (nat 0) (nat 'n) 'r)"
