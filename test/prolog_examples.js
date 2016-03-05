@@ -53,8 +53,8 @@ describe('Prolog examples port Tests.', function() {
             should(
                 query("(john likes 'stuff 'p)")
             ).eql(
-                "(john likes food (mary likes food \'x$5))\n" +
-                "(john likes wine (mary likes wine \'x$5))"
+                "(john likes food (mary likes food \'x$7))\n" +
+                "(john likes wine (mary likes wine \'x$7))"
             );
         });
 
@@ -106,9 +106,9 @@ describe('Prolog examples port Tests.', function() {
             should(
                 query("(john likes 'stuff 'p)")
             ).eql(
-                "(john likes wine \'x$4)\n" +
-                "(john likes mary (mary likes wine \'x$5))\n" +
-                "(john likes john (john likes wine \'x$4))");
+                "(john likes wine \'x$5)\n" +
+                "(john likes mary (mary likes wine \'x$7))\n" +
+                "(john likes john (john likes wine \'x$6))");
         });
 
         it('Should query what john likes, he likes what mary likes and people that like wine.', function () {
@@ -135,16 +135,16 @@ describe('Prolog examples port Tests.', function() {
             should(
                 query("(john likes 'stuff 'p)")
             ).eql(
-                "(john likes wine \'x$4)\n" +
-                "(john likes mary \'x$4)\n" +
-                "(john likes food (mary likes food \'x$5))\n" +
-                "(john likes wine (mary likes wine \'x$5))\n" +
-                "(john likes mary (mary likes wine \'x$5))\n" +
-                "(john likes john (john likes wine \'x$4))\n" +
-                "(john likes john (john likes wine (mary likes wine \'x$5)))\n" +
-                "(john likes wine (mary likes wine \'x$5))\n" +
-                "(john likes mary (mary likes wine \'x$5))\n" +
-                "(john likes john (john likes wine (mary likes wine \'x$5)))"
+                "(john likes wine \'x$5)\n" +
+                "(john likes mary \'x$5)\n" +
+                "(john likes food (mary likes food \'x$7))\n" +
+                "(john likes wine (mary likes wine \'x$7))\n" +
+                "(john likes mary (mary likes wine \'x$7))\n" +
+                "(john likes john (john likes wine \'x$6))\n" +
+                "(john likes john (john likes wine (mary likes wine \'x$8)))\n" +
+                "(john likes wine (mary likes wine \'x$7))\n" +
+                "(john likes mary (mary likes wine \'x$7))\n" +
+                "(john likes john (john likes wine (mary likes wine \'x$8)))"
             );
             
         });
