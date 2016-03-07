@@ -61,7 +61,7 @@ A great source of examples are the test file https://github.com/fsvieira/zebrajs
 * 2.0.0 (WIP)
   * Add support to finit representation of infinity structures (ex: (nat 'x) -> 'x => (nat 'x))
 * 1.0.0 version
-  * Add examples, solve brave puzzle (http://www.mathsisfun.com/puzzles/a-brave-puzzle.html)
+  * [ ] Add examples, solve brave puzzle (http://www.mathsisfun.com/puzzles/a-brave-puzzle.html)
 * beta version
   * [x] Optimize (solve all [current] tests under 20 seconds, optimal < 2s),
   * [x] Remove duplicated results,
