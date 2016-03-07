@@ -3,7 +3,6 @@ var Z = require("../lib/z");
 
 describe('Not Tests.', function() {
     describe('Not Tests', function() {
-        /*
         it('Should test the Not Constants', function () {
             var run = new Z.Run(
                 "(color yellow)" +
@@ -201,7 +200,7 @@ describe('Not Tests.', function() {
                 "(number [^0]*[^1])"
             );
         });
-*/
+
         it('Should declare a number Set, 3 elements', function () {
             var run = new Z.Run(
                 "(number 0)" +
@@ -215,34 +214,34 @@ describe('Not Tests.', function() {
             var query = function (q) {
                 return Z.toString(run.query(q));
             };
-/*            
+
             should(
                 query("(set (number 0) (set (number 1) (set (number 2) (set) ') ') ')")
             ).eql(
                 "(set (number 0) (set (number 1) (set (number 2) (set) 'x$13) (set (number 1) (set) 'x$16)) (set (number 0) (set (number 2) (set) 'x$13) (set (number 0) (set) 'x$21)))"
             );
-*/            
+
             should(
                 query("(set (number 'a) 'tail ')")
             ).eql(
-                "(set (number 0) (set) 'x$6)\n" +
-                "(set (number 0) (set (number 1) (set) 'x$8) (set (number 0) (set) 'x$11))\n" +
-                "(set (number 0) (set (number 1) (set (number 2) (set) 'x$10) (set (number 1) (set) 'x$13)) (set (number 0) (set (number 2) (set) 'x$10) (set (number 0) (set) 'x$18)))\n" +
-                "(set (number 0) (set (number 2) (set) 'x$8) (set (number 0) (set) 'x$11))\n" +
-                "(set (number 0) (set (number 2) (set (number 1) (set) 'x$10) (set (number 2) (set) 'x$13)) (set (number 0) (set (number 1) (set) 'x$10) (set (number 0) (set) 'x$18)))\n" +
-                "(set (number 1) (set) 'x$6)\n" +
-                "(set (number 1) (set (number 0) (set) 'x$8) (set (number 1) (set) 'x$11))\n" +
-                "(set (number 1) (set (number 0) (set (number 2) (set) 'x$10) (set (number 0) (set) 'x$13)) (set (number 1) (set (number 2) (set) 'x$10) (set (number 1) (set) 'x$18)))\n" +
-                "(set (number 1) (set (number 2) (set) 'x$8) (set (number 1) (set) 'x$11))\n" +
-                "(set (number 1) (set (number 2) (set (number 0) (set) 'x$10) (set (number 2) (set) 'x$13)) (set (number 1) (set (number 0) (set) 'x$10) (set (number 1) (set) 'x$18)))\n" +
-                "(set (number 2) (set) 'x$6)\n" +
-                "(set (number 2) (set (number 0) (set) 'x$8) (set (number 2) (set) 'x$11))\n" +
-                "(set (number 2) (set (number 0) (set (number 1) (set) 'x$10) (set (number 0) (set) 'x$13)) (set (number 2) (set (number 1) (set) 'x$10) (set (number 2) (set) 'x$18)))\n" +
-                "(set (number 2) (set (number 1) (set) 'x$8) (set (number 2) (set) 'x$11))\n" +
-                "(set (number 2) (set (number 1) (set (number 0) (set) 'x$10) (set (number 1) (set) 'x$13)) (set (number 2) (set (number 0) (set) 'x$10) (set (number 2) (set) 'x$18)))"
+                "(set (number 0) (set) 'x$7)\n" +
+                "(set (number 1) (set) 'x$7)\n" +
+                "(set (number 2) (set) 'x$7)\n" +
+                "(set (number 0) (set (number 1) (set) 'x$10) (set (number 0) (set) 'x$13))\n" +
+                "(set (number 0) (set (number 2) (set) 'x$10) (set (number 0) (set) 'x$13))\n" +
+                "(set (number 0) (set (number 1) (set (number 2) (set) 'x$13) (set (number 1) (set) 'x$16)) (set (number 0) (set (number 2) (set) 'x$13) (set (number 0) (set) 'x$21)))\n" +
+                "(set (number 0) (set (number 2) (set (number 1) (set) 'x$13) (set (number 2) (set) 'x$16)) (set (number 0) (set (number 1) (set) 'x$13) (set (number 0) (set) 'x$21)))\n" +
+                "(set (number 1) (set (number 0) (set) 'x$10) (set (number 1) (set) 'x$13))\n" +
+                "(set (number 1) (set (number 2) (set) 'x$10) (set (number 1) (set) 'x$13))\n" +
+                "(set (number 1) (set (number 0) (set (number 2) (set) 'x$13) (set (number 0) (set) 'x$16)) (set (number 1) (set (number 2) (set) 'x$13) (set (number 1) (set) 'x$21)))\n" +
+                "(set (number 1) (set (number 2) (set (number 0) (set) 'x$13) (set (number 2) (set) 'x$16)) (set (number 1) (set (number 0) (set) 'x$13) (set (number 1) (set) 'x$21)))\n" +
+                "(set (number 2) (set (number 0) (set) 'x$10) (set (number 2) (set) 'x$13))\n" +
+                "(set (number 2) (set (number 1) (set) 'x$10) (set (number 2) (set) 'x$13))\n" +
+                "(set (number 2) (set (number 0) (set (number 1) (set) 'x$13) (set (number 0) (set) 'x$16)) (set (number 2) (set (number 1) (set) 'x$13) (set (number 2) (set) 'x$21)))\n" +
+                "(set (number 2) (set (number 1) (set (number 0) (set) 'x$13) (set (number 1) (set) 'x$16)) (set (number 2) (set (number 0) (set) 'x$13) (set (number 2) (set) 'x$21)))"
             );
         });
-/*
+
         it('Should declare a number Set, 4 elements', function () {
             this.timeout(1000*60*5);
 
@@ -294,7 +293,7 @@ describe('Not Tests.', function() {
                 "(set (number 3) (set (number 2) (set (number 0) (set (number 1) (set) 'x$16) (set (number 0) (set) 'x$19)) (set (number 2) (set (number 1) (set) 'x$16) (set (number 2) (set) 'x$24))) (set (number 3) (set (number 0) (set (number 1) (set) 'x$16) (set (number 0) (set) 'x$19)) (set (number 3) (set (number 1) (set) 'x$16) (set (number 3) (set) 'x$31))))\n" + 
                 "(set (number 3) (set (number 2) (set (number 1) (set (number 0) (set) 'x$16) (set (number 1) (set) 'x$19)) (set (number 2) (set (number 0) (set) 'x$16) (set (number 2) (set) 'x$24))) (set (number 3) (set (number 1) (set (number 0) (set) 'x$16) (set (number 1) (set) 'x$19)) (set (number 3) (set (number 0) (set) 'x$16) (set (number 3) (set) 'x$31))))"
             );
-        });*/
+        });
     });
 });
 

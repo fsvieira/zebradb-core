@@ -63,7 +63,7 @@ A great source of examples are the test file https://github.com/fsvieira/zebrajs
 * 1.0.0 version
   * Add examples, solve brave puzzle (http://www.mathsisfun.com/puzzles/a-brave-puzzle.html)
 * beta version
-  * [ ] Optimize (solve all [current] tests under 20 seconds, optimal < 2s),
+  * [x] Optimize (solve all [current] tests under 20 seconds, optimal < 2s),
   * [x] Remove duplicated results,
 * alfa version (2015-10-22)
   * [x] Clean up and rename files, functions,

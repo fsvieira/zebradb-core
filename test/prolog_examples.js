@@ -2,7 +2,7 @@ var should = require("should");
 var Z = require("../lib/z");
 
 /*
-  Online prolog examples converted to run on zebra lib
+  Online prolog examples converted to zebra system.
 */
 
 describe('Prolog examples port Tests.', function() {
@@ -149,6 +149,41 @@ describe('Prolog examples port Tests.', function() {
             
         });
 
+        it('Should query john likes people that like themselves.', function () {
+            var run = new Z.Run(
+                "(john likes wine ')" + // likes(john,wine).
+
+                // 1. John likes anyone who likes wine
+                "(john likes 'person ('person likes wine '))" +
+
+                // 2. John likes anyone who likes themselves
+                "(list)" +
+                "(list 'item (list))" +
+                "(list 'item (list ''))" +
+                // "(john likes 'person ('person likes 'person '))" // this is recursive by itself.
+                "(john likes 'person (list " +
+                    "('person likes 'person ')" +
+                    "(list (notEqual 'person john) (list))" +
+                "))" +
+                "(notEqual 'x ^'x)"
+            );
+            
+            var query = function (q) {
+                return Z.toString(run.query(q));
+            };
+
+            should(
+                query("(notEqual john john)")
+            ).eql("");
+
+            should(
+                query("(john likes 'stuff 'p)")
+            ).eql(
+                "(john likes wine 'x$5)\n" + 
+                "(john likes john (john likes wine 'x$6))" 
+            );
+        });
+
         it('Should query people about what they like (Extended).', function () {
             var run = new Z.Run(
                 "(mary likes food ')" + // likes(mary,food).
@@ -172,21 +207,7 @@ describe('Prolog examples port Tests.', function() {
                     "('person likes 'person ')" +
                     "(list (notEqual 'person john) (list))" +
                 "))" +
-                
-                //"(john likes 'person (list " +
-                //    "(notEqual 'person john)" +
-                //    "(list ('person likes 'person ') (list))" +
-                // "))" +
-                
-                // TODO: TEST THAT THIS WILL RUN FOREVER.
-                // "(john likes 'person ('person likes 'person '))" +
-
                 "(notEqual 'x ^'x)"
-                // ---
-                // (john likes 'stuff ') . (john likes 'person ('person likes 'person '))
-                // (john likes 'stuff='person '=('person likes 'person '))
-                // ('person likes 'person ') . (john likes 'person ('person likes 'person '))
-                // (john likes john '=(john likes john '))
             );
             
             var query = function (q) {
@@ -196,17 +217,16 @@ describe('Prolog examples port Tests.', function() {
             should(
                 query("(john likes 'stuff 'p)")
             ).eql(
-                "(john likes wine \'x$4)\n" +
-                "(john likes mary \'x$4)\n" +
-                "(john likes food (mary likes food \'x$5))\n" +
-                "(john likes wine (mary likes wine \'x$5))\n" +
-                "(john likes mary (mary likes wine \'x$5))\n" +
-                "(john likes john (john likes wine \'x$4))\n" +
-                "(john likes john (john likes wine (mary likes wine \'x$5)))\n" +
-                "(john likes peter (list (peter likes peter \'x$5) (list (notEqual peter john) (list))))\n" +
-                "(john likes wine (mary likes wine \'x$5))\n" +
-                "(john likes mary (mary likes wine \'x$5))\n" +
-                "(john likes john (john likes wine (mary likes wine \'x$5)))"
+                "(john likes wine 'x$5)\n" + 
+                "(john likes mary 'x$5)\n" + 
+                "(john likes food (mary likes food 'x$7))\n" + 
+                "(john likes wine (mary likes wine 'x$7))\n" + 
+                "(john likes mary (mary likes wine 'x$7))\n" + 
+                "(john likes john (john likes wine 'x$6))\n" + 
+                "(john likes john (john likes wine (mary likes wine 'x$8)))\n" + 
+                "(john likes peter (list (peter likes peter 'x$8) (list (notEqual peter john) (list))))\n" + 
+                "(john likes wine (mary likes wine 'x$7))\n(john likes mary (mary likes wine 'x$7))\n" + 
+                "(john likes john (john likes wine (mary likes wine 'x$8)))"
             );
         });
 
