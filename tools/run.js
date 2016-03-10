@@ -3,11 +3,16 @@
 var Z = require("../lib/z");
 var utils = require("../lib/utils");
 
-function print (query, result) {
+function print (query, result, f) {
   console.log("Query: " + utils.toString(query));
   if (result.length) {
     for (var i=0; i<result.length; i++) {
-      console.log("\t" + (i+1) + ". " + utils.toString(result[i]));
+      if (f) {
+        console.log("\t" + (i+1) + ". " + f(result[i]));
+      }
+      else {
+        console.log("\t" + (i+1) + ". " + utils.toString(result[i]));
+      }
     }
   }
   else {
