@@ -8,7 +8,6 @@ var Z = require("../lib/z");
 describe('Prolog examples port Tests.', function() {
     describe('Simple Facts', function() {
         it('Should query people about what they like.', function () {
-
             var run = new Z.Run(
                 "(mary likes food)" + // likes(mary,food).
                 "(mary likes wine)" + // likes(mary,wine).
