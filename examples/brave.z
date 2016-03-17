@@ -12,7 +12,7 @@
 (letter E)
 (set)
 (set (letter 'a) (set) ')
-(set (letter 'a) (set (letter ^'a) 'tail ') (set (letter 'a) 'tail '))
+(set (letter 'a) (set ^(letter 'a) 'tail ') (set (letter 'a) 'tail '))
 
 // ?(set (letter 'b) (set (letter 'r) (set (letter 'a) (set (letter 'v) (set (letter 'e) (set) ') ') ') ') ')
 
