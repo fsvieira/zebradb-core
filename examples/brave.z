@@ -12,7 +12,7 @@
 (letter E)
 (set)
 (set (letter 'a) (set) ')
-(set (letter 'a) (set ^(letter 'a) 'tail ') (set (letter 'a) 'tail '))
+(set (letter 'a) (set (letter ^'a) 'tail ') (set (letter 'a) 'tail '))
 
 // ?(set (letter 'b) (set (letter 'r) (set (letter 'a) (set (letter 'v) (set (letter 'e) (set) ') ') ') ') ')
 
@@ -69,7 +69,7 @@ _ _ E B _
     'x1y2  E    B  R    'x5y2
     'x1y3 'x2y3 V 'x4y3  B
     'x1y4  B    R 'x4y4 'x5y4
-    'x1y5 'x2y5 E  B     'x5y5
+    'x1y5 'x2y5 E  B    'x5y5
     '
 )
 */

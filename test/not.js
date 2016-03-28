@@ -3,6 +3,7 @@ var Z = require("../lib/z");
 
 describe('Not Tests.', function() {
     describe('Not Tests', function() {
+/*
         it('Should test the Not Constants', function () {
             var run = new Z.Run(
                 "(color yellow)" +
@@ -143,7 +144,7 @@ describe('Not Tests.', function() {
                 query("(set (number 'a) (set (number 'b) (set (number 'c) (set) ') ') ')")
             ).eql('');
         });
-
+*/
         it('Should declare a number Set', function () {
             var run = new Z.Run(
                 "(number 0)" +
@@ -166,7 +167,7 @@ describe('Not Tests.', function() {
                 "(set (number 1) (set (number 0) (set) 'x$10) (set (number 1) (set) 'x$13))"
             );
         });
-
+/*
         it('Should unify "not" equals with diferent values', function () {
             var run = new Z.Run(
                 "(number 1)"
@@ -293,7 +294,7 @@ describe('Not Tests.', function() {
                 "(set (number 3) (set (number 2) (set (number 0) (set (number 1) (set) 'x$16) (set (number 0) (set) 'x$19)) (set (number 2) (set (number 1) (set) 'x$16) (set (number 2) (set) 'x$24))) (set (number 3) (set (number 0) (set (number 1) (set) 'x$16) (set (number 0) (set) 'x$19)) (set (number 3) (set (number 1) (set) 'x$16) (set (number 3) (set) 'x$31))))\n" + 
                 "(set (number 3) (set (number 2) (set (number 1) (set (number 0) (set) 'x$16) (set (number 1) (set) 'x$19)) (set (number 2) (set (number 0) (set) 'x$16) (set (number 2) (set) 'x$24))) (set (number 3) (set (number 1) (set (number 0) (set) 'x$16) (set (number 1) (set) 'x$19)) (set (number 3) (set (number 0) (set) 'x$16) (set (number 3) (set) 'x$31))))"
             );
-        });
+        });*/
     });
 });
 

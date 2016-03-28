@@ -53,7 +53,7 @@ describe('Ignore Tests', function() {
                     "(if (bool true) (nat 0) (nat 'n) 'r)"
                 )
             ).eql(
-                "(if (bool true) (nat 0) _ (nat 0))\n(if (bool true) (nat 0) _ (nat 0))\n(if (bool true) (nat 0) _ (nat 0))"
+                "(if (bool true) (nat 0) _ (nat 0))"
             );
 
             should(
