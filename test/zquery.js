@@ -2,7 +2,6 @@ var should = require("should");
 var Z = require("../lib/z");
 
 describe('ZQuery Tests.', function() {
-    describe('Querys', function() {
         it('Query with single tuple constant.', function () {
             var run = new Z.Run([
                 Z.t(Z.c("yellow"))
@@ -138,6 +137,5 @@ describe('ZQuery Tests.', function() {
                 )
             ).eql("((yellow blue) (blue yellow))");
         });
-    });
 });
 
