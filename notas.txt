@@ -1,0 +1,82 @@
+- Problems:
+    * The order witch tuples unify with facts its critical for a succefully program termination.
+    
+    * Ordering tuples is not a trivial task, the problem arises from missing important 
+    growth control tuples when unifying operation are executed.
+    Variables restriction is of most importance in unification since failing to restrict 
+    variables on early phases can originate in a exponential growth of time and size, 
+    leading application to crash or running for an unbarable length of time.
+    
+    * The missing tuples problem arises when facts have potential restriction tuples 
+    but have not yet been unified with the query, so there are missing tuples on unifcation phase.
+    Because of this the unification phase can not unify all available tuples presented on the query, 
+    not having query variable correctly restricted increses the potential of growth exponentially.
+    
+    * Infinit tuple creation problem arises on infinite data, where tuples are defined as recursive/inductive.
+    If the ordering strategy always chooses the facts that originates recursive tuples it will grow 
+    to infinity.
+    We can not avoid tuple creation because of [The missing tuple problem].
+    
+    * Basicly since there is no backtracking mechanism on the machine because all possible branchs are 
+    extended on each step, so if one fail there is no need to go back a try another branch, we just 
+    stop propagating failling branchs to result.
+    This originates to a few problems:
+        * Higth demand for resources (time and space),
+        * Can't efficiantly search for the n-th solutions (we demand all or nothing),
+        * No exponential growth of solutions, since backtraking will check one solution at a time.
+
+- Solution:
+    * In the end what we need is a planner, unfortunately planner problems are not trivial 
+    and there is no optimal general planner algoritm.
+    
+    * The current architecture works with phases:
+        1. Extratc all unchecked tuples from the query, if none return results,
+        2. Unify all unchecked tuples with facts (check),
+        3. Query results from previews step (1).
+
+    * The planner can be introduced on point 2 of the architecture, insted of 
+    unifiyng all unchecked tuples they should carefully selected for unification.
+    
+
+- Planner:
+    * Since our planner is just a matter of chosing the correct tuples for unifcation 
+    phase, it can be expressed as a function, the oracle we call them.
+    
+
+
+-----
+Lazzy Unify System:
+    * Problems:
+        - lazzy hierarchy structures lead to information partition and duplication, 
+        it also leads to problems of child terms are not aware of higther equal 
+        terms on the tree structure, witch lead to bad results and fail delays.
+    
+    * Solutions:
+
+    - Structure
+        1. keep a doubled linked list on terms:
+            - this will allow easy compare of original tuples,
+            - delete and link other unifies
+            - not so good for managing since we will need to code aditional functions:
+                - insert with no duplicates,
+                - transverse the list from arbitary positions,
+                - search
+        2. keep a unify structure:
+            - the structure should map term indexes to an array of unify arrays of indexes,
+            - ex:
+                {terms: {1: 0, 2: 0, ...}, unifies: [[1, 2], ...]}
+            - Using native strutures means less code needed to implement managing functions,
+            - comparing to original tuples will not change, but new comparing functions 
+            will be needed.
+            - defer function must manage delete, insert and merge unify structures and keep them updated,
+            - managing functions should be added:
+                - core functions: let unify decide when to insert, delete and merge unification info, or,
+                - higth level functions: let writer manage everything, give feedback (callback, promisses) to unification functions.
+
+
+
+======================
+Coding questions?
+    - Should validation be performed on code?
+        - ex: types, dont allow not to have empty data
+

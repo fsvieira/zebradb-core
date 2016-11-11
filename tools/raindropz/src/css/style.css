@@ -1,0 +1,86 @@
+html, body {
+  width: 100%;
+  height: 100vh;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  position: relative;
+}
+
+main {
+  width: 100%;
+  height: 90%;
+  position: relative;
+}
+
+.menu-content {
+  background-color: rgb(63,81,181);
+}
+
+.content {
+  display: block;
+  width: 96%;
+  height: 100%;
+  max-width: 56em;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+}
+
+.datainput textarea {
+  width: 100%;
+  height: 90%;
+  margin-top: 1%;
+  box-sizing: border-box;
+  padding: 0.5em;
+  opacity: 0.95;
+}
+
+
+.datainput .buttons {
+  margin: 1%;
+}
+
+.datainput .buttons button {
+  float: right;
+}
+
+.hide {
+    display: none;
+}
+
+.error {
+  padding: 0.5em;
+  color: white;
+  background-color: #D32F2F;
+  border: 1px solid #B71C1C;
+}
+
+.card {
+  border: 1px solid #333;
+  padding: 0.5em;
+  margin: 0.5em;
+  color: #333;
+  background-color: rgba(200, 200, 250, 0.5);
+  box-shadow: 0.25em 0.25em 0.15em #888888;
+}
+
+.card-item {
+  background-color: white;
+  padding: 0.5em;
+  color: #333;
+  font-weight: bold;
+  font-size: 1.2em;
+  margin: 0.4em;
+}
+
+/* Backgrounds, */
+.bg-raindrops-1 {
+    background-image: url(https://static.pexels.com/photos/129106/pexels-photo-129106.jpeg);
+    background-size: cover;
+}
+
+.bg-raindrops-2 {
+  background-image: url(https://apps.fedoraproject.org/nuancier/pictures/f21/churchyard-water-drop-license-free-CC0.jpg);
+  background-size: cover;
+}
