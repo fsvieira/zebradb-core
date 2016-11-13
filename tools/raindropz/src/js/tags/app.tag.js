@@ -6,7 +6,7 @@ riot.tag2('app', '<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header"
         "bg-raindrops-2"
       ];
 
-      this.background = "";
+      this.background = this.backgrounds[Math.round(Math.random()*(this.backgrounds.length-1))];
 
       this.on('mount', function () {
           componentHandler.upgradeDom();

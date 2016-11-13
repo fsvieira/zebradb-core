@@ -76,11 +76,11 @@ main {
 
 /* Backgrounds, */
 .bg-raindrops-1 {
-    background-image: url(https://static.pexels.com/photos/129106/pexels-photo-129106.jpeg);
+    background-image: url(images/pexels.png);
     background-size: cover;
 }
 
 .bg-raindrops-2 {
-  background-image: url(https://apps.fedoraproject.org/nuancier/pictures/f21/churchyard-water-drop-license-free-CC0.jpg);
+  background-image: url(images/water-drop.png);
   background-size: cover;
 }
