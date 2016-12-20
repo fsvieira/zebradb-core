@@ -84,3 +84,49 @@ main {
   background-image: url(images/water-drop.png);
   background-size: cover;
 }
+
+/* info */
+.info {
+  position: absolute;
+  background-color: #333;
+  opacity: 0.7;
+  color: white;
+  bottom: 0; 
+  max-height: 50%;
+  width: 100%;
+  overflow: auto;
+  box-sizing: border-box;
+}
+
+.tab {
+  width: 9em;
+}
+
+/* Code */
+.code {
+  margin: 0.7em;
+}
+
+.code .title {
+  padding: 0.5em;
+  background-color: blue;
+  color: white;
+  border-top-left-radius: 0.5em;
+  border-top-right-radius: 0.5em;
+  border-bottom: 1px white solid;
+}
+
+.code .code-content {
+  background-color: black;
+  padding: 0.7em;
+  border-bottom-left-radius: 0.5em;
+  border-bottom-right-radius: 0.5em;
+}
+
+.code.toggle .title {
+  border-bottom: 1px white dashed;
+}
+
+.code.toggle .code-content {
+  display: none;
+}

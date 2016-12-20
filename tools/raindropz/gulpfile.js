@@ -22,11 +22,16 @@ gulp.task('browserify', ['riot'], function () {
         }
       }
     }))
-    .pipe(gulp.dest(path.join(BUILD_DEST, 'js')))
+    .pipe(gulp.dest(path.join(BUILD_DEST, 'js')));
 });
 
 gulp.task('minify-css', function() {
-  return gulp.src(['src/css/*.css', 'node_modules/material-design-lite/material.min.css'])
+  return gulp.src([
+    'src/css/reset.css',
+    'node_modules/material-design-lite/material.min.css',
+    'src/css/material-icons.css',
+    'src/css/style.css'
+  ])
     .pipe(concat('bundle.css'))
     .pipe(cleanCSS())
     .pipe(gulp.dest(path.join(BUILD_DEST, 'css')));

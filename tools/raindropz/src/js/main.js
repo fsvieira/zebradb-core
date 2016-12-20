@@ -9,6 +9,7 @@ require('material-design-lite');
 require('./tags/app.tag.js');
 require('./tags/datainput.tag.js');
 require('./tags/datashow.tag.js');
+require('./tags/tree.tag.js');
 
 // riot.mount('app', {app: new App()});
 

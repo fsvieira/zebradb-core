@@ -1,3 +1,4 @@
+// Levels, 
 function getChilds(data, parent) {
     var childs = [];
     for (var branch in data.branchs) {
@@ -30,13 +31,84 @@ function setLevels(data, branch, level) {
     }
 }
 
+function injectLinesString (iStr, str) {
+    if (str === '') {
+        return iStr + '\\empty';
+    }
+    else {
+        return str.split('\n').map(function (s) {
+            return iStr + s;
+        }).join('\n');
+    }
+}
 
+function setupMetadata (utils, zvs, data, branch, b) {
+    switch (b.data.action) {
+        case 'init':
+            b.metadata.prettyText = 'init;';
+            break;
+        
+        case 'definitions':
+            var definitions = injectLinesString('\t', utils.toString(zvs.getObject(b.data.args[0], b.data.parent), true));
+            var globals1 = injectLinesString('\t', utils.toString(zvs.getObject(b.data.args[1], b.data.parent).definitions, true));
+            var globals2 = injectLinesString('\t', utils.toString(zvs.getObject(b.metadata.changes[b.data.args[1]], branch).definitions, true));
+            
+            b.metadata.prettyText = 'Definitions: \n'
+                + definitions + '\n\n'
+                + 'Global Definitions: \n' + globals1 + '\n => \n' + globals2 + ';\n'
+            ;
+            
+            break;
+
+        case 'query':
+            var query = injectLinesString('\t', utils.toString(zvs.getObject(b.data.args[0], b.data.parent), true));
+            var globals = injectLinesString('\t', utils.toString(zvs.getObject(b.data.args[1], b.data.parent).definitions, true));
+            
+            b.metadata.prettyText = b.data.action + '(\n' + query + ',\n'+ globals + '\n)';
+            
+            break;
+            
+        case 'unify':
+            var p = injectLinesString('\t', utils.toString(zvs.getObject(b.data.args[0], b.data.parent), true));
+            var q = injectLinesString('\t', utils.toString(zvs.getObject(b.data.args[1], b.data.parent), true));
+            
+            b.metadata.prettyText = b.data.action + '(\n' + p + ',\n'+ q + '\n)';
+            
+            break;
+        
+        default:
+            b.metadata.prettyText = b.data.action;
+            /*var args = "";
+            
+            if (b.data.args) {
+                for (var i=0; i<b.data.args.length; i++) {
+                    var o = zvs.getObject(b.data.args[i], b.data.parent);
+                    
+                    if (args !== "") {
+                        args += ", ";
+                    }
+                    
+                    args += utils.toString(o, true);
+                }
+            }
+            
+            console.log(
+                b.data.action
+                + "("+ args +")"
+            );
+            
+            b.metadata.prettyText = b.data.action + "(" + args + ")";*/
+    }
+}
+
+// Prepare data,
 function prepare(data) {
     data = JSON.parse(data);
 
     setLevels(data);
 
     data.levels = [];
+    data.graph = [];
 
     var ZVS = require("../../../../lib3/zvs");
     var utils = require("../../../../lib3/utils");
@@ -46,7 +118,6 @@ function prepare(data) {
         type: "globals"
     });
 
-    console.log(globalsHash);
     for (var branch in data.branchs) {
         var b = data.branchs[branch];
         var q = zvs.getObject(globalsHash, branch).query;
@@ -55,6 +126,35 @@ function prepare(data) {
             q = utils.toString(q, true);
         }
 
+        setupMetadata(utils, zvs, data, branch, b);
+
+        data.graph.push({
+            data: {id: branch}
+        });
+
+        if (b.data.parent) {
+            if (b.data.parent instanceof Array) {
+                for (var i=0; i<b.data.parent.length; i++) {
+                    data.graph.push({
+                        data: {
+                            id: b.data.parent[i] + "_" + branch, 
+                            source: b.data.parent[i],
+                            target: branch
+                        }
+                    });
+                }
+            }
+            else {
+                data.graph.push({
+                    data: {
+                        id: b.data.parent + "_" + branch,
+                        source: b.data.parent,
+                        target: branch
+                    }
+                });
+            }
+        }
+        
         // TODO: filter fail branchs, recursive. 
         if (b.metadata.result) {
             b.metadata.id = branch;
@@ -63,9 +163,11 @@ function prepare(data) {
                 branch: branch,
                 query: q
             });
+            
+            b.metadata.query = q;
         }
     }
-
+    
     return data;
 }
 
