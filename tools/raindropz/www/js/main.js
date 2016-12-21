@@ -270,7 +270,7 @@ ZVS.prototype.getId = function (branchHash, code) {
     var b = this.getRawBranch(branchHash);
 	
 	if (typeof b.data.parent !== 'string') {
-		return code;
+		return b.metadata.changes[code] || code;
 	}
 	
 	if (b.metadata.changes) {
@@ -32504,6 +32504,21 @@ function injectLinesString (iStr, str) {
     }
 }
 
+function printQuery (utils, zvs, data, branch) {
+    // Get globals
+    var globalsHash = zvs.add({
+        type: "globals"
+    });
+    
+    var q = zvs.getObject(globalsHash, branch).query;
+
+    if (q) {
+        q = utils.toString(q, true);
+    }
+    
+    return q;
+}
+
 function setupMetadata (utils, zvs, data, branch, b) {
     switch (b.data.action) {
         case 'init':
@@ -32523,10 +32538,10 @@ function setupMetadata (utils, zvs, data, branch, b) {
             break;
 
         case 'query':
-            var query = injectLinesString('\t', utils.toString(zvs.getObject(b.data.args[0], b.data.parent), true));
-            var globals = injectLinesString('\t', utils.toString(zvs.getObject(b.data.args[1], b.data.parent).definitions, true));
+            var query = injectLinesString('\t', utils.toString(zvs.getObject(b.data.args[0], b.data.parent), true)) + ' : Query';
+            var globals = injectLinesString('\t', utils.toString(zvs.getObject(b.data.args[1], b.data.parent).definitions, true)) + ' : Definitions';
             
-            b.metadata.prettyText = b.data.action + '(\n' + query + ',\n'+ globals + '\n)';
+            b.metadata.prettyText = b.data.action + '(\n' + query + ',\n'+ globals + '\n)\n => \n' + printQuery(utils, zvs, data, branch);
             
             break;
             
@@ -32534,10 +32549,22 @@ function setupMetadata (utils, zvs, data, branch, b) {
             var p = injectLinesString('\t', utils.toString(zvs.getObject(b.data.args[0], b.data.parent), true));
             var q = injectLinesString('\t', utils.toString(zvs.getObject(b.data.args[1], b.data.parent), true));
             
-            b.metadata.prettyText = b.data.action + '(\n' + p + ',\n'+ q + '\n)';
+            b.metadata.prettyText = b.data.action + '(\n' + p + ',\n'+ q + '\n)\n => \n' + printQuery(utils, zvs, data, branch);
             
             break;
         
+        case '_merge':
+            console.log("_merge");
+            var bQueries = '';
+            for (var i=0; i<b.data.parent.length; i++) {
+                bQueries += printQuery(utils, zvs, data, b.data.parent[i]) + '\n';
+            }
+            
+            bQueries = injectLinesString('\t', bQueries);
+            
+            b.metadata.prettyText = b.data.action +'(\n' + bQueries +  ')\n => \n' + printQuery(utils, zvs, data, branch);
+            break; 
+            
         default:
             b.metadata.prettyText = b.data.action;
             /*var args = "";

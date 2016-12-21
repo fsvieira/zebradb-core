@@ -221,7 +221,7 @@ ZVS.prototype.getId = function (branchHash, code) {
     var b = this.getRawBranch(branchHash);
 	
 	if (typeof b.data.parent !== 'string') {
-		return code;
+		return b.metadata.changes[code] || code;
 	}
 	
 	if (b.metadata.changes) {
