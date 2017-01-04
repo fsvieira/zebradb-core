@@ -1,4 +1,5 @@
 // TODO: make a new parser with pegjs
+
 var zparser = require("../lib/zparser");
 var ZVS = require("./zvs");
 var Unify = require("./unify");
@@ -51,6 +52,7 @@ function check (q, defs, b) {
 
 function query (q, globalsHash) {
     var r = [];
+    var bs, branches;
 
     var globals = this.get(globalsHash);
     var defs = this.get(globals.definitions);
@@ -60,55 +62,80 @@ function query (q, globalsHash) {
     // choose tuples to evaluate,
     var tuples = planner(q, this);
     
-    for (var i=0; i<tuples.length; i++) {
-        // check will lock this branch changes, so
-        // optimistic check,
-        this.update(tuples[i], {check: true});
-    }
-
-    for (var i=0; i<tuples.length; i++) {
-        var branchs = check(tuples[i], defs, this);
-        
-        if (branchs.length === 0) {
-            // fail
-            return [];
+    if (tuples && tuples.length > 0) {
+        for (var i=0; i<tuples.length; i++) {
+            // check will lock this branch changes, so
+            // optimistic check,
+            this.update(tuples[i], {check: true});
         }
-        else {
-            r.push(branchs);
-        }
-    }
     
-    // TODO: intersect branchs, return new branchs.
-    // multiply branchs,
-    while (r.length > 1) {
-        var a = r.pop();
-        var b = r.pop();
+        for (var i=0; i<tuples.length; i++) {
+            branches = check(tuples[i], defs, this);
+            
+            if (branches.length === 0) {
+                // fail
+                return [];
+            }
+            else {
+                r.push(branches);
+            }
+        }
 
-        var nr = [];
+        while (r.length > 1) {
+            var a = r.pop();
+            var b = r.pop();
+    
+            var nr = [];
+            
+            for (var i=0; i<a.length; i++) {
+                var bA = a[i];
+                for (var j=0; j<b.length; j++) {
+                    var bB = b[j];
+                    
+                    // bA * bB
+                    bs = this.zvs.merge([bA, bB], "unify");
+                    
+                    if (bs) {
+                        nr = nr.concat(bs);
+                    }
+                }
+            }
+            
+            if (nr.length === 0) {
+                // fail,
+                return;    
+            }
+            
+            r.push(nr);
+        }
         
-        for (var i=0; i<a.length; i++) {
-            var bA = a[i];
-            for (var j=0; j<b.length; j++) {
-                var bB = b[j];
-                
-                // bA * bB
-                var bs = this.zvs.merge([bA, bB], "unify");
-                
-                if (bs) {
-                    nr = nr.concat(bs);
+        r = r[0];
+    }
+    else {
+        return [this.id];
+    }
+
+    branches = undefined;
+    if (r.length > 0) {
+        branches = [];
+        for (var i=0; i<r.length; i++) {
+            bs = this.change(
+                "query", [
+                    q,
+                    globalsHash
+                ], 
+                r[i]
+            );
+            
+            for (var j=0; j<bs.length; j++) {
+                if (branches.indexOf(bs[j]) === -1) {
+                    branches.push(bs[j]);
                 }
             }
         }
-        
-        if (nr.length === 0) {
-            // fail,
-            return;    
-        }
-        
-        r.push(nr);
     }
 
-    return r;
+    return branches;
 }
 
 function definitions (defsHash, globalsHash) {
@@ -207,42 +234,29 @@ Run.prototype.parse = function (defs) {
 
 // TODO: return a promisse!!
 Run.prototype.add = function (defs) {
+    var result;
+    
     defs = this.parse(defs);
 
     this.definitions = this.definitions.concat(defs.definitions || defs);
-
-    /*
-    var self = this;
-
-    var codes = (defs.definitions || defs).map(function (o) {
-        return self.zvs.add(o);
-    });
-
-    this.definitionsCodes = this.definitionsCodes || [];
-
-    for (var i=0; i<codes.length; i++) {
-        var code = codes[i];
+    
+    if (defs.queries && defs.queries.length > 0) {
+        var branch = this.zvs.change(
+            "definitions", [
+                this.zvs.add(this.definitions), 
+                this.globalsHash
+            ]
+        );
         
-        if (this.definitionsCodes.indexOf(code) === -1) {
-            this.definitionsCodes.push(code);
-        }
-    }*/
-    
-    var branch = this.zvs.change(
-        "definitions", [
-            this.zvs.add(this.definitions), 
-            this.globalsHash
-        ]
-    );
-    
-    var result;
-    
-    if (defs.queries) {
-        result = {};
+        result = {
+            definitions: branch
+        };
+
+        result.queries = {};
 
         for (var i=0; i<defs.queries.length; i++) {
             var q = this.zvs.add(defs.queries[i].tuple);
-            result[q] = this.zvs.change(
+            result.queries[q] = this.zvs.change(
                 "query", 
                 [
                     q,
@@ -256,55 +270,33 @@ Run.prototype.add = function (defs) {
     return result;
 };
 
-/*
-Run.prototype.query = function (q) {
-    this.zvs.change("query", [q, this.definitionsCodes]);
-};*/
-
-// --- TESTS -----
-var run = new Run();
-
-var r = run.add("(yellow (blue green)) (blue green) ?(yellow (blue green))");
-
-// console.log(JSON.stringify(r));
-
-
-console.log("Dump");
-var b, o, globals;
-for (var i=0; i<run.zvs.objects.active.length; i++) {
-    b = run.zvs.objects.active[i];
-    globals = run.zvs.getData(b, run.globalsHash);
-    o = run.zvs.getObject(globals.query, b);
-    console.log(
-        utils.toString(o, true)
-    );
-}
-
-/*
-console.log(run.globalsHash  + " === " + run.zvs.add({type: "globals"}));
-console.log(JSON.stringify(run.zvs.getObject(run.globalsHash)));
-console.log(JSON.stringify(run.zvs.getObject(run.globalsHash, run.zvs.objects.active[0])));
-console.log(JSON.stringify(run.zvs.objects, null, '\t'));
-*/
-
-console.log(JSON.stringify(run.zvs.objects, null, '\t'));
-
-/*
-for (var q in r) {
-    var branchs = r[q];
-
-    if (branchs.length === 0) {
-        console.log(
-            utils.toString(run.zvs.getObject(q), true) + " => FAIL!"
-        );
-    }
-    else {
-        for (var i=0; i<branchs.length; i++) {
-            var branch = branchs[i];
-            console.log(
-                utils.toString(run.zvs.getObject(q), true) + " => " +
-                utils.toString(run.zvs.getObject(q, branch), true)
-            );
+Run.prototype.query = function (defs) {
+    var r = this.add(defs);
+    var b, o, globals;
+    
+    var objs = [];
+    
+    if (r.queries) {
+        for (var query in r.queries) {
+            var branches = r.queries[query];
+            for (var i=0; i< branches.length; i++) {
+                // TODO: remove arrays inside arrays,
+                b = branches[i];
+                globals = this.zvs.getData(b, this.globalsHash);
+                o = this.zvs.getObject(globals.query, b);
+                
+                objs.push(o);
+            }
         }
     }
-}*/
+    
+    return objs;
+};
+
+Run.prototype.print = function (defs) {
+    return this.query(defs).map(function (o) {
+        return utils.toString(o, true);
+    }).join('\n');
+};
+
+module.exports = Run;

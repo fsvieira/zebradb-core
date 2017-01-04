@@ -478,6 +478,9 @@ ZVS.prototype.merge = function (branchsHashs, conflictHandler) {
 		}
 	}
 	
+	// TODO: remove defer's from changes, this must be done recursive and it should replace codes on 
+	// arrays and remove duplicates if they occur.
+	
 	var conflicts = {};
 	
 	for (var code in changes) {
@@ -32498,7 +32501,7 @@ function injectLinesString (iStr, str) {
         return iStr + '\\empty';
     }
     else {
-        return str.split('\n').map(function (s) {
+        return str.trim().split('\n').map(function (s) {
             return iStr + s;
         }).join('\n');
     }
@@ -32519,10 +32522,23 @@ function printQuery (utils, zvs, data, branch) {
     return q;
 }
 
+// TODO: put this in a separeted file,
+// Formated Text Functions
+function formatedTextInit (utils, zvs, data, branch, b) {
+    b.metadata.formatedText = [{
+        type: 'line',
+        content: [
+            {type: 'text', content: 'init;'}
+        ]
+    }];
+}
+
+
 function setupMetadata (utils, zvs, data, branch, b) {
     switch (b.data.action) {
         case 'init':
             b.metadata.prettyText = 'init;';
+            formatedTextInit(utils, zvs, data, branch, b);
             break;
         
         case 'definitions':
@@ -32534,7 +32550,6 @@ function setupMetadata (utils, zvs, data, branch, b) {
                 + definitions + '\n\n'
                 + 'Global Definitions: \n' + globals1 + '\n => \n' + globals2 + ';\n'
             ;
-            
             break;
 
         case 'query':
@@ -32562,7 +32577,7 @@ function setupMetadata (utils, zvs, data, branch, b) {
             
             bQueries = injectLinesString('\t', bQueries);
             
-            b.metadata.prettyText = b.data.action +'(\n' + bQueries +  ')\n => \n' + printQuery(utils, zvs, data, branch);
+            b.metadata.prettyText = b.data.action +'(\n' + bQueries +  '\n)\n => \n' + printQuery(utils, zvs, data, branch);
             break; 
             
         default:
@@ -32803,9 +32818,17 @@ riot.tag2('rd-tree', '<div style="position: absolute; width: 100%; height: 100%;
                   }
             });
 
-            cy.on('tap', 'node', function(evt){
+            var selectedNode;
+            cy.on('tap', 'node', function (evt){
               var branchID = evt.cyTarget.id();
               var branchData = opts.data.branchs[branchID];
+
+              if (selectedNode) {
+                selectedNode.style('background-color', '#333');
+              }
+
+              selectedNode = evt.cyTarget;
+              evt.cyTarget.style('background-color', 'red');
 
               var info = JSON.stringify(branchData, null, '\t');
 

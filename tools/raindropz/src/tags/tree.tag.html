@@ -78,9 +78,17 @@
                   }
             });
             
-            cy.on('tap', 'node', function(evt){
+            var selectedNode;
+            cy.on('tap', 'node', function (evt){
               var branchID = evt.cyTarget.id();
               var branchData = opts.data.branchs[branchID];
+              
+              if (selectedNode) {
+                selectedNode.style('background-color', '#333');
+              }
+              
+              selectedNode = evt.cyTarget;
+              evt.cyTarget.style('background-color', 'red');
               
               var info = JSON.stringify(branchData, null, '\t');
               

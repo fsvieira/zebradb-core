@@ -36,7 +36,7 @@ function injectLinesString (iStr, str) {
         return iStr + '\\empty';
     }
     else {
-        return str.split('\n').map(function (s) {
+        return str.trim().split('\n').map(function (s) {
             return iStr + s;
         }).join('\n');
     }
@@ -72,7 +72,6 @@ function setupMetadata (utils, zvs, data, branch, b) {
                 + definitions + '\n\n'
                 + 'Global Definitions: \n' + globals1 + '\n => \n' + globals2 + ';\n'
             ;
-            
             break;
 
         case 'query':
@@ -100,7 +99,7 @@ function setupMetadata (utils, zvs, data, branch, b) {
             
             bQueries = injectLinesString('\t', bQueries);
             
-            b.metadata.prettyText = b.data.action +'(\n' + bQueries +  ')\n => \n' + printQuery(utils, zvs, data, branch);
+            b.metadata.prettyText = b.data.action +'(\n' + bQueries +  '\n)\n => \n' + printQuery(utils, zvs, data, branch);
             break; 
             
         default:

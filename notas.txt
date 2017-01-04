@@ -79,4 +79,55 @@ Lazzy Unify System:
 Coding questions?
     - Should validation be performed on code?
         - ex: types, dont allow not to have empty data
+        
+        
+======================
+        2017
+======================
+
+- ZVS System, block support:
+    * A block contains a root node and child nodes as result (or no result),
+    * A block doens't have a parent, that should be included on their container branch,
+    * A block is idependent, it must capture the context or don't have a context.
+
+- Block:
+    - Current Data + Action => Block,
+    - Root Branch => block, no parent,
+    - Results leaf branchs,
+    
+- Data -> Change -> Data     
+
+Ex:
+    Query (query, definitions) =>
+        * Add query action object => Block Hash,
+        * Block Hash:
+            - Branch root,
+            - Result (branchs)
+
+
+- OR operator:
+    - can only be applied on root defintions, ex: (yellow)|(blue)
+    - if first defintions fail then second defintions should be used.
+    
+    - it can be implemented with a choice point, ex:
+    
+    change("choice-point", [
+        {type: 'or', p: def, q: def},
+        tuple
+    ]);
+    
+    change will setup a new branch, choice point will point to father branch as 
+    the root of fail branch. When branch fails it should ask for the choice 
+    point {type: 'choice-point'} , this will return the q defintion, the tuple 
+    to unify and the branch to be extended (father branch).
+    
+    The great thing about this aprouch is that choice-point as disapered in 
+    the last step, as the choice point belongs to a fail branch.
+
+        
+        
+        
+
+
+
 

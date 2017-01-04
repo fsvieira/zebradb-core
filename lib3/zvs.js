@@ -19,9 +19,10 @@ function Branch (
 	this.counter = 0;
 }
 
+/*
 Branch.prototype.getId = function () {
 	return this.id + ":" + this.counter++;
-};
+};*/
 
 Branch.prototype.get = function (code) {
 	return this.zvs.getData(this.id, code);
@@ -32,8 +33,8 @@ Branch.prototype.getId = function (code) {
 };
 		
 // Call action to change data,
-Branch.prototype.change = function (action, args) {
-	return this.zvs.change(action, args, this.id);
+Branch.prototype.change = function (action, args, branch) {
+	return this.zvs.change(action, args, branch || this.id);
 };
 
 // Tranform a hash code to other hash code (tran)
@@ -217,6 +218,7 @@ ZVS.prototype.dataHash = function (branchHash, obj) {
 /*
     get
 */
+/*
 ZVS.prototype.getId = function (branchHash, code) {
     var b = this.getRawBranch(branchHash);
 	
@@ -234,6 +236,31 @@ ZVS.prototype.getId = function (branchHash, code) {
 	
 	// else search on parent,
 	return this.getId(b.data.parent, code);
+};*/
+
+ZVS.prototype.getId = function(branchHash, code) {
+	var c, b;
+	var bh = branchHash;
+	
+	do {
+		code = c || code;
+		b = this.getRawBranch(bh);
+		c = b.metadata.changes[code];
+		
+		if (c === undefined) {
+			if (typeof b.data.parent === 'string') {
+				bh = b.data.parent;
+			}
+			else {
+				c = code;
+			}
+		}
+		else {
+			bh = branchHash;
+		}
+	} while (c !== code);
+	
+	return c;
 };
 
 ZVS.prototype.getRawData = function (branchHash, code) {
@@ -410,7 +437,19 @@ ZVS.prototype.getChangesCodes = function (branchsHashs) {
 	return codes;
 };
 
+function getTopCode (code, changes) {
+	while(changes[code]) {
+		code = changes[code];
+	}
+	
+	return code;
+}
+
 ZVS.prototype.merge = function (branchsHashs, conflictHandler) {
+	if (branchsHashs.length <= 1) {
+		return branchsHashs;
+	}
+	
 	var changes = this.getChangesCodes(branchsHashs);
 	var cs;
 	var newCode;
@@ -433,11 +472,32 @@ ZVS.prototype.merge = function (branchsHashs, conflictHandler) {
 	
 	for (var code in changes) {
 		cs = changes[code];
+		/*
 		if (cs.length === 1) {
 			changes[code] = cs[0];
 		}
 		else {
 			conflicts[code] = cs;
+			delete changes[code];
+		}*/
+		
+		
+		changes[code] = cs[0];
+
+		if (cs.length > 1) {
+			conflicts[code] = cs;
+		}
+	}
+	
+	// remove defers,
+	// defers will never occur on conflits,
+	for (var code in changes) {
+		changes[code] = getTopCode(code, changes);
+	}
+	
+	// remove codes that don't change,
+	for (var code in changes) {
+		if (changes[code] === code) {
 			delete changes[code];
 		}
 	}
