@@ -24,6 +24,10 @@ Branch.prototype.getId = function () {
 	return this.id + ":" + this.counter++;
 };*/
 
+Branch.prototype.uniqueId = function () {
+	return this.id + "$" + this.counter++;
+};
+
 Branch.prototype.get = function (code) {
 	return this.zvs.getData(this.id, code);
 };
@@ -51,6 +55,9 @@ Branch.prototype.getObject = function (code) {
 	return this.zvs.getObject(code, this.id);
 };
 
+Branch.prototype.add = function (obj) {
+	return this.zvs.add(obj, this.id);
+};
 
 /*
 	ZVS Class

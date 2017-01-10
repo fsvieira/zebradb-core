@@ -1,6 +1,7 @@
 // TODO: make a new parser with pegjs
 
-var zparser = require("../lib/zparser");
+// var zparser = require("../lib/zparser");
+var zparser = require("./zparser");
 var ZVS = require("./zvs");
 var Unify = require("./unify");
 var utils = require("./utils");
@@ -30,14 +31,74 @@ function planner (q, b, tuples) {
     return tuples;
 }
 
-/*
-    Query, maybe put this in seperated file
-*/
+
+function clone (obj) {
+    if (obj === null || obj === undefined || typeof obj !== 'object') {
+        return obj;
+    }
+ 
+    var temp = obj.constructor(); // give temp the original obj's constructor
+    for (var key in obj) {
+        temp[key] = clone(obj[key]);
+    }
+ 
+    return temp;
+}
+
+
+function prepareQuery (query) {
+    query = clone(query);
+    var q = [query];
+    var counter = 0;
+
+    while (q.length > 0) {
+        var v = q.pop();
+        
+        if (v.type === 'variable' && v.data === undefined) {
+            v.id = ++counter;
+        }
+        else if (v.type === 'tuple') {
+            q = q.concat(v.data);
+        }
+    }
+
+    return query;
+}
+
+
+function copyWithVars (p, genId) {
+    p = clone(p);
+    var q = [p];
+    var vars = {};
+    
+    while (q.length > 0) {
+        var v = q.pop();
+        
+        if (v.type === 'variable') {
+            if(v.data) {
+                v.id = vars[v.data] || genId.uniqueId();
+                vars[v.data] = v.id;
+            }
+            else {
+                v.id = genId.uniqueId();
+            }
+        }
+        else if (v.type === 'tuple') {
+            q = q.concat(v.data);
+        }
+    }
+    
+    return p;
+}
+
+
 function check (q, defs, b) {
     var r = [];
 
     for (var i=0; i<defs.length; i++) {
-        var branch = b.change("unify", [q, defs[i]]);
+        var def = b.add(copyWithVars(b.getObject(defs[i]), b));
+        // var branch = b.change("unify", [q, defs[i]]);
+        var branch = b.change("unify", [q, def]);
 
         if (branch) {
             // convervative check,
@@ -157,6 +218,7 @@ function definitions (defsHash, globalsHash) {
     return true;
 }
 
+
 /*
     Query, END
 */
@@ -222,10 +284,19 @@ Run.prototype.parse = function (defs) {
     if (defs) {
         if (typeof defs === 'string') {
     		defs = zparser.parse(defs);
+    		defs = {
+    		    definitions: defs.filter(function (def) {
+    		        return def.type !== 'query';
+    		    }),
+    		    queries: defs.filter(function (def) {
+    		        return def.type === 'query';
+    		    }).map(function (q) {
+    		        return q.data;
+    		    })
+    		};
     	}
     	else {
-    	    // Clone definitions, 
-    	    defs = Object.assign({}, defs);
+    	    defs = clone(defs);
     	}
     }
 
@@ -255,7 +326,9 @@ Run.prototype.add = function (defs) {
         result.queries = {};
 
         for (var i=0; i<defs.queries.length; i++) {
-            var q = this.zvs.add(defs.queries[i].tuple);
+            var q = this.zvs.add(
+                prepareQuery(defs.queries[i])
+            );
             result.queries[q] = this.zvs.change(
                 "query", 
                 [

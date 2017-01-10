@@ -68,8 +68,13 @@ function Branch (
 	this.counter = 0;
 }
 
+/*
 Branch.prototype.getId = function () {
 	return this.id + ":" + this.counter++;
+};*/
+
+Branch.prototype.uniqueId = function () {
+	return this.id + "$" + this.counter++;
 };
 
 Branch.prototype.get = function (code) {
@@ -81,8 +86,8 @@ Branch.prototype.getId = function (code) {
 };
 		
 // Call action to change data,
-Branch.prototype.change = function (action, args) {
-	return this.zvs.change(action, args, this.id);
+Branch.prototype.change = function (action, args, branch) {
+	return this.zvs.change(action, args, branch || this.id);
 };
 
 // Tranform a hash code to other hash code (tran)
@@ -99,6 +104,9 @@ Branch.prototype.getObject = function (code) {
 	return this.zvs.getObject(code, this.id);
 };
 
+Branch.prototype.add = function (obj) {
+	return this.zvs.add(obj, this.id);
+};
 
 /*
 	ZVS Class
@@ -266,6 +274,7 @@ ZVS.prototype.dataHash = function (branchHash, obj) {
 /*
     get
 */
+/*
 ZVS.prototype.getId = function (branchHash, code) {
     var b = this.getRawBranch(branchHash);
 	
@@ -283,6 +292,31 @@ ZVS.prototype.getId = function (branchHash, code) {
 	
 	// else search on parent,
 	return this.getId(b.data.parent, code);
+};*/
+
+ZVS.prototype.getId = function(branchHash, code) {
+	var c, b;
+	var bh = branchHash;
+	
+	do {
+		code = c || code;
+		b = this.getRawBranch(bh);
+		c = b.metadata.changes[code];
+		
+		if (c === undefined) {
+			if (typeof b.data.parent === 'string') {
+				bh = b.data.parent;
+			}
+			else {
+				c = code;
+			}
+		}
+		else {
+			bh = branchHash;
+		}
+	} while (c !== code);
+	
+	return c;
 };
 
 ZVS.prototype.getRawData = function (branchHash, code) {
@@ -459,7 +493,19 @@ ZVS.prototype.getChangesCodes = function (branchsHashs) {
 	return codes;
 };
 
+function getTopCode (code, changes) {
+	while(changes[code]) {
+		code = changes[code];
+	}
+	
+	return code;
+}
+
 ZVS.prototype.merge = function (branchsHashs, conflictHandler) {
+	if (branchsHashs.length <= 1) {
+		return branchsHashs;
+	}
+	
 	var changes = this.getChangesCodes(branchsHashs);
 	var cs;
 	var newCode;
@@ -478,18 +524,36 @@ ZVS.prototype.merge = function (branchsHashs, conflictHandler) {
 		}
 	}
 	
-	// TODO: remove defer's from changes, this must be done recursive and it should replace codes on 
-	// arrays and remove duplicates if they occur.
-	
 	var conflicts = {};
 	
 	for (var code in changes) {
 		cs = changes[code];
+		/*
 		if (cs.length === 1) {
 			changes[code] = cs[0];
 		}
 		else {
 			conflicts[code] = cs;
+			delete changes[code];
+		}*/
+		
+		
+		changes[code] = cs[0];
+
+		if (cs.length > 1) {
+			conflicts[code] = cs;
+		}
+	}
+	
+	// remove defers,
+	// defers will never occur on conflits,
+	for (var code in changes) {
+		changes[code] = getTopCode(code, changes);
+	}
+	
+	// remove codes that don't change,
+	for (var code in changes) {
+		if (changes[code] === code) {
 			delete changes[code];
 		}
 	}
@@ -32522,23 +32586,10 @@ function printQuery (utils, zvs, data, branch) {
     return q;
 }
 
-// TODO: put this in a separeted file,
-// Formated Text Functions
-function formatedTextInit (utils, zvs, data, branch, b) {
-    b.metadata.formatedText = [{
-        type: 'line',
-        content: [
-            {type: 'text', content: 'init;'}
-        ]
-    }];
-}
-
-
 function setupMetadata (utils, zvs, data, branch, b) {
     switch (b.data.action) {
         case 'init':
             b.metadata.prettyText = 'init;';
-            formatedTextInit(utils, zvs, data, branch, b);
             break;
         
         case 'definitions':
@@ -32701,14 +32752,15 @@ require('./tags/app.tag.js');
 require('./tags/datainput.tag.js');
 require('./tags/datashow.tag.js');
 require('./tags/tree.tag.js');
+require('./tags/codeinput.tag.js');
 
 // riot.mount('app', {app: new App()});
 
 riot.mount('app', new App());
 
-},{"./app.js":125,"./tags/app.tag.js":127,"./tags/datainput.tag.js":128,"./tags/datashow.tag.js":129,"./tags/tree.tag.js":130,"material-design-lite":120,"riot":124}],127:[function(require,module,exports){
+},{"./app.js":125,"./tags/app.tag.js":127,"./tags/codeinput.tag.js":128,"./tags/datainput.tag.js":129,"./tags/datashow.tag.js":130,"./tags/tree.tag.js":131,"material-design-lite":120,"riot":124}],127:[function(require,module,exports){
 (function (riot){
-riot.tag2('app', '<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header"> <header class="mdl-layout__header"> <div class="mdl-layout__header-row"> <span class="mdl-layout-title" onclick="{start}">{opts.title}</span> <div class="mdl-layout-spacer"></div> <button id="main-menu" class="mdl-button mdl-js-button mdl-button--icon"> <i class="material-icons">more_vert</i> </button> <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="main-menu"> <li class="mdl-menu__item"><a href="#datainput">Set Data</a></li> <li class="mdl-menu__item"><a href="#datashow">List Data</a></li> <li class="mdl-menu__item"><a href="#rd-tree">Graph</a></li> </ul> </div> </header> <div class="mdl-layout__drawer"> <span class="mdl-layout-title">{opts.title}</span> <nav class="mdl-navigation"> <a class="mdl-navigation__link" href="#datainput">Set Data</a> <a class="mdl-navigation__link" href="#datashow">List Data</a> <a class="mdl-navigation__link" href="#rd-tree">Graph</a> </nav> </div> <main class="mdl-layout__content {background}" name="content"></main> </div>', '', '', function(opts) {
+riot.tag2('app', '<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header"> <header class="mdl-layout__header"> <div class="mdl-layout__header-row"> <span class="mdl-layout-title" onclick="{start}">{opts.title}</span> <div class="mdl-layout-spacer"></div> <button id="main-menu" class="mdl-button mdl-js-button mdl-button--icon"> <i class="material-icons">more_vert</i> </button> <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="main-menu"> <li class="mdl-menu__item"><a href="#codeinput">Set Code</a></li> <li class="mdl-menu__item"><a href="#datainput">Set Data</a></li> <li class="mdl-menu__item"><a href="#datashow">List Data</a></li> <li class="mdl-menu__item"><a href="#rd-tree">Graph</a></li> </ul> </div> </header> <div class="mdl-layout__drawer"> <span class="mdl-layout-title">{opts.title}</span> <nav class="mdl-navigation"> <a class="mdl-navigation__link" href="#codeinput">Set Code</a> <a class="mdl-navigation__link" href="#datainput">Set Data</a> <a class="mdl-navigation__link" href="#datashow">List Data</a> <a class="mdl-navigation__link" href="#rd-tree">Graph</a> </nav> </div> <main class="mdl-layout__content {background}" name="content"></main> </div>', '', '', function(opts) {
       var tag = this;
 
       this.backgrounds = [
@@ -32735,7 +32787,7 @@ riot.tag2('app', '<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header"
 }).call(this,require("riot"))
 },{"riot":124}],128:[function(require,module,exports){
 (function (riot){
-riot.tag2('datainput', '<div class="content datainput"> <textarea placeholder="Insert state here!!" oninput="{editState}"></textarea> <div class="error {\'hide\': !error, \'show\': error}">{error}</div> <div class="buttons {\'hide\': error, \'show\': !error}"> <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" __disabled="{!text}" onclick="{updateState}"> Update </button> </div> </div>', '', '', function(opts) {
+riot.tag2('codeinput', '<div class="content datainput"> <textarea placeholder="Insert state here!!" oninput="{editState}"></textarea> <div class="error {\'hide\': !error, \'show\': error}">{error}</div> <div class="buttons {\'hide\': error, \'show\': !error}"> <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" __disabled="{!text}" onclick="{updateState}"> Run </button> </div> </div>', '', '', function(opts) {
         this.editState = function (e) {
             this.error = undefined;
 
@@ -32760,11 +32812,36 @@ riot.tag2('datainput', '<div class="content datainput"> <textarea placeholder="I
 }).call(this,require("riot"))
 },{"riot":124}],129:[function(require,module,exports){
 (function (riot){
+riot.tag2('datainput', '<div class="content datainput"> <textarea placeholder="Insert state here!!" oninput="{editState}"></textarea> <div class="error {\'hide\': !error, \'show\': error}">{error}</div> <div class="buttons {\'hide\': error, \'show\': !error}"> <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" __disabled="{!text}" onclick="{updateState}"> Update </button> </div> </div>', '', '', function(opts) {
+        this.editState = function (e) {
+            this.error = undefined;
+
+            if (e.target.value && e.target.value.length > 0) {
+                try {
+                    JSON.parse(e.target.value);
+                    this.text = e.target.value;
+                }
+                catch (e) {
+                    this.text = "";
+                    this.error = e;
+                }
+            }
+        };
+
+        this.updateState = function (e) {
+            this.opts.trigger("update", {data: this.text});
+            riot.route("datashow");
+        };
+});
+
+}).call(this,require("riot"))
+},{"riot":124}],130:[function(require,module,exports){
+(function (riot){
 riot.tag2('datashow', '<div each="{branchs, i in opts.data.levels}" class="card"> <div each="{branchs}" class="card-item"> {query} </div> </div>', '', '', function(opts) {
         this.data = JSON.stringify(opts.data, null, '\t');
 });
 }).call(this,require("riot"))
-},{"riot":124}],130:[function(require,module,exports){
+},{"riot":124}],131:[function(require,module,exports){
 (function (riot){
 riot.tag2('rd-tree', '<div style="position: absolute; width: 100%; height: 100%; background-color: #fff; opacity: 0.7;"> </div> <div id="tree" style="width: 100%; height: 100%;"></div> <div class="info" if="{showInfo}"> <div class="code {showPrettyClass}"> <div class="title" onclick="{showPretty}"> Pretty Print </div> <div class="code-content pretty" id="prettytext"> </div> </div> <div class="code {showJSONClass}"> <div class="title" onclick="{showJSON}"> JSON </div> <div class="code-content"> <pre id="info"></pre> </div> </div> </div>', '', '', function(opts) {
         var tag = this;

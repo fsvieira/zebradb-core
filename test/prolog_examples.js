@@ -109,11 +109,9 @@ describe('Prolog examples port Tests.', function() {
             "@(john likes food @(mary likes food '))\n" +
             "@(john likes wine @(mary likes wine '))\n" +
             "@(john likes mary @(mary likes wine '))\n" +
-            "@(john likes john @(john likes wine '))"
+            "@(john likes john @(john likes wine '))\n" +
+            "@(john likes john @(john likes wine @(mary likes wine ')))"
         );
-
-        // TODO: This one seems to be missing, probably because we need to clone defintions to go on.
-        // "(john likes john (john likes wine (mary likes wine 'x$0)))\n" + 
     });
 
     it('Should query john likes people that like themselves.', function () {

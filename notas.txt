@@ -124,10 +124,270 @@ Ex:
     The great thing about this aprouch is that choice-point as disapered in 
     the last step, as the choice point belongs to a fail branch.
 
+    - Problems:
+        * What would be consider as a fail? All sub-branches needs to fail.
+        * We go back to same problem, except that we have a clear way to recover.
+        
+        * If one branch successeds then we don't do choice-point,
+        * If we end computations with no success branch then we execute choice-point.
+        
+        * There is still the problem of not-equal:
+            (equal 'x 'x true):(equal 'x 'y false)
+            ?(equal 'x 'y false)
+            > (equal yellow yellow false) -> this will fail, just because of the forcing of false.
+            
+            
         
         
+- FAIL operator:
+    - (equal 'x 'x) ?('x 'y !(equal 'x 'y))
+    
+    * Side-efects:
+        * !(equal 'x 'y), if the planner always start with this tuple than 
+        it will always fails, as this will be forced 'x = 'y.
+        * Since we want to keep the processing random we need to eliminate the side-efects.
+    
+        * ?('x$1 'y$2 !(equal 'x$3 'y$4))
+        * [x$1:x$3, y$2:y$4]
+        * ?('x$1:x$3 'y$2:y$4 !(equal 'x$3:x$1 'y$4:y$2))
+        * ?(yellow:yellow 'y$2:yellow !(equal yellow:yellow yellow:y$2))
+        * ?(yellow:yellow blue:yellow !(equal yellow:yellow yellow:blue))
         
+        ---
+        * ?('x$1 'y$2 !(equal 'x$3:x$1 'y$4:y$2)
+        * ('x$1 'y$2) -> !(equal 'x$3:x$1 'y$4:y$2)
+        
+        ---
+        + Only checked tuples are allowed to FAIL:
+        !@(equal 'x='y 'y='x)
+        
+        + Only values (constants, tuples) have bi-directional flow.
+        + All ! variables are marked as fail, query is marked as fail if 
+        one of the values flow from positive variables fail on unify,
+        witch will make it succed.
+        + Query will fail normally, even if its because of values flow from 
+        negative values to positive values.
+        + Query will fail if ! query fails on definitions unify.
+        
+        Problems:
+            -> x$1 unify with constant yellow, !equal will flow value 
+            to y$2 making always !equal to succed and theirfor the query to fail.
+        ---
+        Use of checkpoints:
+            - try and fail:
+                - for every change on !tuple, make a checkpoint, if branch succed 
+                go back on choice-point, as a failure.
+                - if branch fails:
+                    - if it fails on ! unify, than continue as success,
+                    - if it fails not on ! unify than fail,
+                    - 
+
+                
+        
+ - forall operator:
+    * run all branchs,
+    * mark all branchs with max elements of a forall,
+    * keep all marked branchs, mark all others as fail.
+    
+    (equal 'x 'x)
+    (not-equal 'x 'y (equal *(equal 'x 'y) (list)))
+
+    ?(not-equal yellow blue ')
 
 
+- HOLD:
+    Every two objects that are not unifiable will not hold,
+    therfor they will fail with symbol !.
+    
+    yellow*blue => !
+    (yellow)*blue => !
+    (yellow)*(yellow blue) => !
+    
+    !*! => !
+    !*SOMTHING => !
+    
+    (equal 'x 'x)
+    
+    (not-equal 'x 'y (equal (equal 'x 'y) !))
+    
+    Problems, Problems, Problems ...
+    
+================
+
+- forall operator implementation,
+
+    + We need to make result a set,
+    + We can not define a set because we don't have a not, so this must be 
+    made internal.
+    
+    (color yellow)
+    (color blue)
+    (color red)
+    
+    *(color 'x)
+    
+    + We need list definition:
+    (list)
+    (list 'item (list))
+    (list 'item (list 'item2 'tail))
+    
+    Steps:
+        1) Inject special code, keep track of list:
+         a. branch (list),
+         b. branch (list (color 'x) 'tail)
+         
+        2) when something unifies with (color 'x), insert it on internal list [],
+        ex: (color 'x)*(color yellow) -> [(color yellow)],
+        a. if code is duplicated then fail,
+        
+        3) when something unifies with 'tail, execute step 1) but keep track of 
+        list.
+        
+        4) On end select succefully branches that have the maxim number of elements,
+        
+        5) keep list ordered, this will keep the id of lists the same, 
+        we can track maxim of lists by their id.
+        
+    First we need to implement the list, and how it is extended, afther that we 
+    can implement the selecting code.
+    
+    ** Option two, we implement a greedy list, setting the stop condition on that list.
+    
+    (leq (nat 0) (nat 0) ')
+    (leq (nat (nat 'x)) (nat 'y) (leq (nat 'x) 'y)) 
+    
+    ?( *((leq 'x (nat (nat (nat (0)))) ') 'x))
+
+    => (list (leq (nat 0) (nat (nat (nat (0)))) ') (list (leq (nat (nat 0)) ...
+    
+    Problems:
+        - There isn't any real problem, as the all problems that exists are alredy 
+        present.
+        - The planner should see the forall operator as any other tuple, and for this 
+        it must plan the better stratagy to avoid infinite loops or resources consuption.
+        
+        Ex: 
+        ?(*(leq 'x 'y ') 'y ...)
+        
+        + it is clear that before execute *(leq 'x 'y) we should find the 'y value first.
+        
+        + The forall should only execute when there is only unbound variables, 
+        has we need to make it contained:
+            1) If forall is not contained the generated list may have elements that will later fail, 
+            but if forall tuple is independet all elements contained are garanted to not fail in future.
+        
+        *( *('a 'b) 'b) 
+        -> 'b is unbound on first tuple,
+        -> 'b is bound on the second tuple, therfor it should refer to the same variable as second tuple.
+        
+        
+        --- This should work, lets do it :P 
+        --- The planner should decide when to unfold * , the unfold will result a list with no duplicates:
+        ex: 
+            (color yellow)
+            (color red)
+            (color blue)
+            
+            *(color 'x)
+            
+            (list (color yellow) (list (color red) (list (color blue) (list)))
+            
+            There will be no garanted order to this list.
+            
+            ++ Handle fail:
+            
+            + forall return a empty list on fail.
+            
+            (equal 'x 'x)
+            (not-equal 'x 'y (equal *(equal 'x 'y) (list))
+        
+            + forall should not have side efects on fail,
+            every fail should be reverted.
+            
+            
+        Problem:
+            + not a real problem, the not-equal would be delayed, 
+            but this will be the case in any other implementation as we 
+            can't really unify variables before knowing if they are relly equal or not equal.
+        
+            
+            
+        Problem:
+            + solving order, lets say for example for finit sets ...
+            + unifying, how to unify a list with forall? 
+            + how to unify two forall? this should be easy just unify 
+            the first tuples.
+        
+        
+        -- Other options,
+        Make greedy forall, in case a element fails just remove it from list and keep going.
+        
+        
+        +++++++++++++++++++++++
+        
+        + forall,
+        
+        + it should return a list:
+            + empty list if all elements fail,
+            + the list should not have duplicates, and it should be ordered by hash, 
+            but no order is garanted.
+            
+        + it should be a simple independet query:
+            + we can only evaluate forall when all variables are independet, 
+            meaning that bound variables must have a value, this should be captured and a query is made.
+            + All results from query are transformad to a list with no duplicates.
+            
+        + unify:
+            + forall*forall: *p ** *q -> *(p ** q)
+                + if a forall has alredy been extended, we need to redo it, as we need to keep consistency results, therfor we need to keep all information.
+            + tuple*forall, forall*tuple: do it lazzy, keep the tuple on unify list and then unify it when list is extended, if tuple is not a list will certain fail.
+            + constant*forall, forall*constant: fail.
+            + variable*forall, forall*variable: variable = forall.
+            
+            lazzy unify:
+                forall must keep only one lazzy unfiable item, and it must be a tuple:
+                    forall*forall -> forall
+                    forall*tuple*tuple -> forall*(tuple*tuple)
+                        - both tuples can be imidiatly unifiable, if they fail everything fails.
+                    forall*variable -> forall
+                    
+                    anything else will just fails.
+            
+                + since on extended list we need to redo everything we must keep unfold list and unifiable item.
+                
+            + Optimization: 
+                + we can do a easy check if unifiable item is a actually a list, if not than fail.
+                + we can check that both list items have the same length of arguments, if not than fail.
+            
+            
+            
+++++++++++++++++++++++
+FAIL UNIFY:
+    The fail unify, always returns a value, regardless if it fails or not,
+    
+    {type: ...,
+     fail: true|false,
+     reason: [{}, [}],
+     dependecies: [...]
+    }
+
+    As something fails their dependecies are set to fail, with reason, the fail source.
+    
+    The propagation of failure can be stoped by ! witch will invert.
+    The propagation of success can be converted by ! to fail, reason the not variable.
+    
+    We consider a query to fail if their root fails.
+    
+    We recursively ignore all fails in proceding to next processing tuples. This means 
+    that if root fails, then computations end with a fail.
+    
+    This will allows to have a simple not system, but the fails by definition will occur a lot
+    giving it bad results, as 
+    
+    !(equal 'x 'y) -> may fail by (equal 'x 'y)*(something else)
+    and theirfor 'x and 'y may not be diferent, it actually can be anything.
+    
+    
+    
 
 

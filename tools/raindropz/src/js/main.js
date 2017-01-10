@@ -10,6 +10,7 @@ require('./tags/app.tag.js');
 require('./tags/datainput.tag.js');
 require('./tags/datashow.tag.js');
 require('./tags/tree.tag.js');
+require('./tags/codeinput.tag.js');
 
 // riot.mount('app', {app: new App()});
 
