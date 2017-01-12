@@ -68,6 +68,7 @@ function ZVS (objects) {
 		branchs: {},
 		data: {},
 		active: [],
+		cache: {}
 	};
 
 	this.actions = {};
@@ -356,11 +357,17 @@ ZVS.prototype.change = function (action, args, branchHash) {
 		action: action
 	});
 
+	var r = this.objects.cache[bHash];
+
+	if (r !== undefined) {
+		return r || undefined;
+	}
+
 	var branch = this.getRawBranch(bHash);
 
 	var actionCall = this.actions[action];
 
-	var r = actionCall.apply(
+	r = actionCall.apply(
 		new Branch(this, bHash),
 		args.slice(0)
 	);
@@ -370,6 +377,8 @@ ZVS.prototype.change = function (action, args, branchHash) {
 	}
 	
 	branch.metadata.result = r;
+
+	this.objects.cache[bHash] = r || false;
 
 	return r;
 };

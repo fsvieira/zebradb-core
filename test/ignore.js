@@ -2,9 +2,15 @@ var should = require("should");
 var Z = require("../lib/z");
 
 
+/*
+    TODO: 
+        - do we need a ignore??
+        - how should we implement the ignore, since its purpose 
+        is to cut computations.
+*/
+
 describe('Ignore Tests', function() {
     describe('If ... then ... else', function() {
-        /*
         it('should declare simple if then else.', function () {
             var run = new Z.Run(
                 "(bool true)" +
@@ -33,7 +39,7 @@ describe('Ignore Tests', function() {
                 "(if (bool false) _ (bool false) (bool false))"
             );
         });
-*/
+
         it('should declare simple if then else (with recursive definitions).', function () {
             var run = new Z.Run(
                 "(nat 0)" +
@@ -55,7 +61,7 @@ describe('Ignore Tests', function() {
             ).eql(
                 "(if (bool true) (nat 0) _ (nat 0))"
             );
-/*
+
             should(
                 query(
                     "(if (bool true) (nat 'n) (nat 0) 'r)",
@@ -66,7 +72,7 @@ describe('Ignore Tests', function() {
                 "(if (bool true) (nat (nat (nat 0))) _ (nat (nat (nat 0))))\n" + 
                 "(if (bool true) (nat (nat 0)) _ (nat (nat 0)))\n" + 
                 "(if (bool true) (nat 0) _ (nat 0))"
-            );*/
+            );
         });
     });
 });

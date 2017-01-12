@@ -1,202 +1,99 @@
 var should = require("should");
-var Z = require("../lib/z");
+var Z = require("../lib3/z");
 
 describe('Not Tests.', function() {
-    it('Should test the Not Constants', function() {
-        var run = new Z.Run(
-            "(color yellow)" +
-            "(color blue)" +
-            "(color red)" +
-            "(color white)" +
-            "(notYellow (color ^yellow))"
-        );
+    it('Declare a not equal', function() {
+        var run = new Z();
 
-        var query = function(q) {
-            return Z.toString(run.query(q));
-        };
+        run.add("(equal 'x 'x) (not-equal 'x 'y ^(equal 'x 'y))");
+        should(run.print("?(equal yellow yellow)")).eql("@(equal yellow yellow)");
+        should(run.print("?(equal yellow blue)")).eql("");
 
-        // Query the facts,
-        should(
-            query("(color ')")
-        ).eql(
-            "(color blue)\n" +
-            "(color red)\n" +
-            "(color white)\n" +
-            "(color yellow)"
-        );
+        should(run.print("?(not-equal yellow yellow)")).eql("");
+        should(run.print("?(not-equal yellow blue)")).eql("@(not-equal yellow blue)");
 
-        should(
-            query("(notYellow (color yellow))")
-        ).eql("");
-
-        should(
-            query("(notYellow ')")
-        ).eql(
-            '(notYellow (color blue))\n' +
-            '(notYellow (color red))\n' +
-            '(notYellow (color white))'
-        );
-    });
-
-    it('Should declare a Not-Equal', function() {
-        var run = new Z.Run(
-            "(equal 'p 'p)" +
-            "(notEqual 'p ^'p)"
-        );
-
-        var query = function(q) {
-            return Z.toString(run.query(q));
-        };
-
-        // Query the facts,
-        should(
-            query("(equal yellow yellow)")
-        ).eql("(equal yellow yellow)");
-
-        should(
-            query("(equal yellow blue)")
-        ).eql("");
-
-        should(
-            query("(notEqual yellow yellow)")
-        ).eql("");
-
-        should(
-            query("(notEqual yellow blue)")
-        ).eql("(notEqual yellow blue)");
     });
 
     it('Should make distinct tuples', function() {
-        var run = new Z.Run(
+        var run = new Z();
+        
+        run.add(
             "(color yellow)" +
             "(color blue)" +
             "(color red)" +
-            "(distinct 'item ^'item)"
+            "(equal 'x 'x)" +
+            "(distinct 'x 'y ^(equal 'x 'y))"
         );
+        
+        should(run.print("?(distinct (color yellow) (color yellow))")).eql("");
 
-        var query = function(q) {
-            return Z.toString(run.query(q));
-        };
-        // Query the facts,
-
-        should(
-            query("(distinct (color yellow) (color yellow))")
-        ).eql('');
-
-        should(
-            query("(distinct (color blue) (color yellow))")
-        ).eql("(distinct (color blue) (color yellow))");
-
-        should(
-            query("(distinct (color 'a) (color 'b))")
-        ).eql(
-            "(distinct (color blue) (color red))\n" +
-            "(distinct (color blue) (color yellow))\n" +
-            "(distinct (color red) (color blue))\n" +
-            "(distinct (color red) (color yellow))\n" +
-            "(distinct (color yellow) (color blue))\n" +
-            "(distinct (color yellow) (color red))"
+        should(run.print("?(distinct (color yellow) (color blue))")).eql(
+            "@(distinct @(color yellow) @(color blue))"
+        );
+        
+        should(run.print("?(distinct (color 'a) (color 'b))")).eql(
+            "@(distinct @(color blue) @(color yellow))\n" +
+            "@(distinct @(color red) @(color yellow))\n" +
+            "@(distinct @(color yellow) @(color blue))\n" +
+            "@(distinct @(color red) @(color blue))\n" +
+            "@(distinct @(color yellow) @(color red))\n" +
+            "@(distinct @(color blue) @(color red))"
         );
     });
 
     it('Should declare simple not.', function() {
-        var run = new Z.Run(
+        var run = new Z();
+        
+        run.add(
             "(number 0)" +
             "(number 1)" +
-            "(not 'a ^'a)"
+            "(not 'x 'y ^(equal 'x 'y))" +
+            "(equal 'x 'x)"
         );
-
-        var query = function(q) {
-            return Z.toString(run.query(q));
-        };
-
-        should(
-            query("(not (number 'p) (number 'q))")
-        ).eql(
-            "(not (number 0) (number 1))\n" +
-            "(not (number 1) (number 0))"
+        
+        should(run.print("?(not (number 'p) (number 'q))")).eql(
+            "@(not @(number 1) @(number 0))\n" + 
+            "@(not @(number 0) @(number 1))"
         );
     });
 
     it('Should declare a two number Set', function() {
-        var run = new Z.Run(
+        var run = new Z();
+        
+        run.add(
             "(number 0)" +
             "(number 1)" +
             "(set)" +
             "(set 'item (set) ')" +
-            "(set 'item (set ^'item 'tail ') (set 'item 'tail '))"
+            "(set 'itemA (set 'itemB 'tail ') (set 'itemA 'tail ') ^(equal 'itemA 'itemB))" +
+            "(equal 'x 'x)"
         );
-
-        var query = function(q) {
-            return Z.toString(run.query(q));
-        };
-
-        should(
-            query("(set (number 'a) (set (number 'b) (set) ') ')")
-        ).eql(
-            "(set (number 0) (set (number 1) (set) 'x$0) (set (number 0) (set) 'x$1))\n" +
-            "(set (number 1) (set (number 0) (set) 'x$0) (set (number 1) (set) 'x$1))"
+        
+        should(run.print("?(set (number 'a) (set (number 'b) (set) ') ')")).eql(
+            "@(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '))\n" +
+            "@(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) '))"
         );
-
-        should(
-            query("(set (number 'a) (set (number 'b) (set (number 'c) (set) ') ') ')")
-        ).eql('');
+        
+        should(run.print("?(set (number 'a) (set (number 'b) (set (number 'c) (set) ') ') ')")).eql("");
     });
 
     it('Should declare a two number Set, query all', function() {
-        var run = new Z.Run(
+        var run = new Z();
+        
+        run.add(
             "(number 0)" +
             "(number 1)" +
             "(set)" +
-            "(set (number 'a) (set) ')" +
-            "(set (number 'a) (set (number ^'a) 'tail ') (set (number 'a) 'tail '))"
+            "(set 'item (set) ')" +
+            "(set 'itemA (set 'itemB 'tail ') (set 'itemA 'tail ') ^(equal 'itemA 'itemB))" +
+            "(equal 'x 'x)"
         );
-
-        var query = function(q) {
-            return Z.toString(run.query(q));
-        };
-
-        should(
-            query("(set (number 'a) 'tail ')")
-        ).eql(
-            "(set (number 0) (set (number 1) (set) 'x$0) (set (number 0) (set) 'x$1))\n" +
-            "(set (number 0) (set) 'x$0)\n" +
-            "(set (number 1) (set (number 0) (set) 'x$0) (set (number 1) (set) 'x$1))\n" +
-            "(set (number 1) (set) 'x$0)"
-        );
-    });
-
-    it('Should unify "not" equals with diferent values', function() {
-        var run = new Z.Run(
-            "(number 1)"
-        );
-
-        var query = function(q) {
-            return Z.toString(run.query(q));
-        };
-
-        should(
-            query("(number ^0)")
-        ).eql(
-            "(number 1)"
-        );
-
-
-        should(
-            query("(number ^1)")
-        ).eql(
-            ""
-        );
-
-        // --
-        run = new Z.Run(
-            "(number ^1)"
-        );
-
-        should(
-            query("(number ^0)")
-        ).eql(
-            "(number [^0]*[^1])"
+        
+        should(run.print("?(set (number 'a) 'tail ')")).eql(
+            "@(set @(number 0) @(set) ')\n" + 
+            "@(set @(number 1) @(set) ')\n" +
+            "@(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '))\n" +
+            "@(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) '))"
         );
     });
 

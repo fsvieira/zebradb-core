@@ -1,9 +1,3 @@
-/*
-    TODO:
-        - fail logic with biderectional binding as values only (not vars etc ...)
-        - copy defintions ...
-*/
-
 function tupleXtuple (p, q, b) {
     var po = b.get(p);
     var qo = b.get(q);
@@ -70,9 +64,7 @@ function unify (p, q) {
 }
 
 function Unify (zvs) {
-    this.zvs = zvs;
-    
-    return this.zvs.action("unify", unify);
+    return zvs.action("unify", unify);
 }
 
 

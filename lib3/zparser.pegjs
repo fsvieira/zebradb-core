@@ -23,6 +23,8 @@ tuple = "(" _ terms:terms _ ")"
            	}),
             negation: terms.filter(function (v) {
                 return v.type === 'not';
+            }).map(function (v) {
+              return v.data;
             })
 		};
 
