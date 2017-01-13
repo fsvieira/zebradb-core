@@ -17,11 +17,11 @@ function toString (p, debug) {
                 + (debug && p.virtual && p.virtual.vscore !== undefined?" " + p.virtual.vscore.toFixed(2) + "%":"")
             ;
             
-        case "unify": 
-            return  p.data.map(ts).join("*");
+        /*case "unify": 
+            return  p.data.map(ts).join("*");*/
             
-        case "not":
-            return "[^" + toString(p.data, debug) + "]";
+        /*case "not":
+            return "[^" + toString(p.data, debug) + "]";*/
 
         case "constant":
             return p.data;
@@ -29,8 +29,11 @@ function toString (p, debug) {
         case "variable":
             return "'" + (p.data || "");
 
-        case "ignore":
-            return "_";
+        /*case "ignore":
+            return "_";*/
+        
+        case "query":
+            return toString(p.query, debug) + (p.negation && p.negation.length?"[^" + toString(p.negation, debug) + "]":"");
 
         default:
             if (p.map) {

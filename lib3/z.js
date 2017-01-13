@@ -71,7 +71,7 @@ function prepareQuery (query) {
         }
     }
 
-    return {query: query, negation: nots};
+    return {type: 'query', query: query, negation: nots};
 }
 
 

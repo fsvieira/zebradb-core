@@ -88,13 +88,16 @@ describe('Not Tests.', function() {
             "(set 'itemA (set 'itemB 'tail ') (set 'itemA 'tail ') ^(equal 'itemA 'itemB))" +
             "(equal 'x 'x)"
         );
-        
-        should(run.print("?(set (number 'a) 'tail ')")).eql(
-            "@(set @(number 0) @(set) ')\n" + 
-            "@(set @(number 1) @(set) ')\n" +
-            "@(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '))\n" +
-            "@(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) '))"
-        );
+        try {
+            should(run.print("?(set (number 'a) 'tail ')")).eql(
+                "@(set @(number 0) @(set) ')\n" + 
+                "@(set @(number 1) @(set) ')\n" +
+                "@(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '))\n" +
+                "@(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) '))"
+            );
+        } catch (e) {
+          console.log(JSON.stringify(run.zvs.objects, null, '\t'));  
+        }
     });
 
     it('Should declare a number Set, 3 elements', function() {
