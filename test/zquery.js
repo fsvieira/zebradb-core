@@ -7,6 +7,7 @@ describe("ZQuery Tests.", function () {
         
         run.add("(yellow)");
         should(run.print("?(yellow)")).eql("@(yellow)");
+        console.log(JSON.stringify(run.zvs.objects, null, '\t'));
         should(run.print("?('q)")).eql("@(yellow)");
         
         should(new Z().print("(yellow) ?('q)")).eql("@(yellow)");

@@ -120,7 +120,7 @@ function negationEval (q, b, globalsHash, definitionsHash) {
         var variables = [];
     
         while (tuples.length > 0) {
-            code = tuples.pop();
+            code = b.getId(tuples.pop());
             var v = b.get(code);
             var type = b.get(v.type);
             
