@@ -2,11 +2,12 @@
   "name": "zebrajs",
   "version": "0.0.1",
   "description": "variable constrain lib",
-  "main": "index.js",
+  "main": "lib3/z.js",
   "directories": {
     "doc": "docs",
     "example": "examples",
-    "test": "test"
+    "test": "test",
+    "lib3": "lib"
   },
   "dependencies": {
     "q": "^1.4.1"

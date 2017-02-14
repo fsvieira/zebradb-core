@@ -84,42 +84,41 @@ describe('Not Tests.', function() {
             "(number 0)" +
             "(number 1)" +
             "(set)" +
-            "(set 'item (set) ')" +
-            "(set 'itemA (set 'itemB 'tail ') (set 'itemA 'tail ') ^(equal 'itemA 'itemB))" +
+            "(set (number 'a) (set) ')" +
+            "(set (number 'a) (set (number 'b) 'tail ') (set (number 'a) 'tail ') ^(equal (number 'a) (number 'b)))" +
             "(equal 'x 'x)"
         );
 
         should(run.print("?(set (number 'a) 'tail ')")).eql(
-            "@(set @(number 0) @(set) ')\n" + 
+            "@(set @(number 0) @(set) ')\n" +
+            "@(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) '))\n" +
             "@(set @(number 1) @(set) ')\n" +
-            "@(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '))\n" +
-            "@(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) '))"
+            "@(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '))"
         );
     });
 
     it('Should declare a number Set, 3 elements', function() {
-        var run = new Z.Run(
+        var run = new Z();
+        
+        run.add(
             "(number 0)" +
             "(number 1)" +
             "(number 2)" +
             "(set)" +
             "(set (number 'a) (set) ')" +
-            "(set (number 'a) (set (number ^'a) 'tail ') (set (number 'a) 'tail '))"
+            "(set (number 'a) (set (number 'b) 'tail ') (set (number 'a) 'tail ') ^(equal (number 'a) (number 'b)))" +
+            "(equal 'x 'x)"
         );
 
-        var query = function(q) {
-            return Z.toString(run.query(q));
-        };
-
-        should(
-            query("(set (number 0) (set (number 1) (set (number 2) (set) ') ') ')")
-        ).eql(
+        should(run.print(
+            "?(set (number 0) (set (number 1) (set (number 2) (set) ') ') ')"
+        )).eql(
             "(set (number 0) (set (number 1) (set (number 2) (set) 'x$0) (set (number 1) (set) 'x$1)) (set (number 0) (set (number 2) (set) 'x$0) (set (number 0) (set) 'x$2)))"
         );
 
-        should(
-            query("(set (number 'a) 'tail ')")
-        ).eql(
+        should(run.print(
+            "?(set (number 'a) 'tail ')"
+        )).eql(
             "(set (number 0) (set (number 1) (set (number 2) (set) 'x$0) (set (number 1) (set) 'x$1)) (set (number 0) (set (number 2) (set) 'x$0) (set (number 0) (set) 'x$2)))\n" +
             "(set (number 0) (set (number 1) (set) 'x$0) (set (number 0) (set) 'x$1))\n" +
             "(set (number 0) (set (number 2) (set (number 1) (set) 'x$0) (set (number 2) (set) 'x$1)) (set (number 0) (set (number 1) (set) 'x$0) (set (number 0) (set) 'x$2)))\n" +
@@ -141,29 +140,28 @@ describe('Not Tests.', function() {
     it('Should declare a number Set, 4 elements', function() {
         this.timeout(1000 * 60 * 5);
 
-        var run = new Z.Run(
+        var run = new Z();
+        
+        run.add(
             "(number 0)" +
             "(number 1)" +
             "(number 2)" +
-            "(number 3)" +
             "(set)" +
             "(set (number 'a) (set) ')" +
-            "(set (number 'a) (set (number ^'a) 'tail ') (set (number 'a) 'tail '))"
+            "(set (number 'a) (set (number 'b) 'tail ') (set (number 'a) 'tail ') ^(equal (number 'a) (number 'b)))" +
+            "(equal 'x 'x)"
         );
 
-        var query = function(q) {
-            return Z.toString(run.query(q));
-        };
 
-        should(
-            query("(set (number 0) (set (number 1) (set (number 2) (set (number 3) (set) ') ') ') ')")
-        ).eql(
+        should(run.print(
+            "?(set (number 0) (set (number 1) (set (number 2) (set (number 3) (set) ') ') ') ')"
+        )).eql(
             "(set (number 0) (set (number 1) (set (number 2) (set (number 3) (set) 'x$0) (set (number 2) (set) 'x$1)) (set (number 1) (set (number 3) (set) 'x$0) (set (number 1) (set) 'x$2))) (set (number 0) (set (number 2) (set (number 3) (set) 'x$0) (set (number 2) (set) 'x$1)) (set (number 0) (set (number 3) (set) 'x$0) (set (number 0) (set) 'x$3))))"
         );
 
-        should(
-            query("(set (number 'a) (set (number 'b) (set (number 'c) (set (number 'd) (set) ') ') ') ')")
-        ).eql(
+        should(run.print(
+            "?(set (number 'a) (set (number 'b) (set (number 'c) (set (number 'd) (set) ') ') ') ')"
+        )).eql(
             "(set (number 0) (set (number 1) (set (number 2) (set (number 3) (set) 'x$0) (set (number 2) (set) 'x$1)) (set (number 1) (set (number 3) (set) 'x$0) (set (number 1) (set) 'x$2))) (set (number 0) (set (number 2) (set (number 3) (set) 'x$0) (set (number 2) (set) 'x$1)) (set (number 0) (set (number 3) (set) 'x$0) (set (number 0) (set) 'x$3))))\n" +
             "(set (number 0) (set (number 1) (set (number 3) (set (number 2) (set) 'x$0) (set (number 3) (set) 'x$1)) (set (number 1) (set (number 2) (set) 'x$0) (set (number 1) (set) 'x$2))) (set (number 0) (set (number 3) (set (number 2) (set) 'x$0) (set (number 3) (set) 'x$1)) (set (number 0) (set (number 2) (set) 'x$0) (set (number 0) (set) 'x$3))))\n" +
             "(set (number 0) (set (number 2) (set (number 1) (set (number 3) (set) 'x$0) (set (number 1) (set) 'x$1)) (set (number 2) (set (number 3) (set) 'x$0) (set (number 2) (set) 'x$2))) (set (number 0) (set (number 1) (set (number 3) (set) 'x$0) (set (number 1) (set) 'x$1)) (set (number 0) (set (number 3) (set) 'x$0) (set (number 0) (set) 'x$3))))\n" +

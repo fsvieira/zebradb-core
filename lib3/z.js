@@ -80,7 +80,7 @@ function copyWithVars (p, genId) {
     var q = [p];
     var vars = {};
     var nots = [];
-    
+
     while (q.length > 0) {
         var v = q.pop();
         
@@ -103,7 +103,10 @@ function copyWithVars (p, genId) {
         }
     }
 
-    return {type: 'definition', data: p, negation: nots};
+    // return {type: 'definition', data: p, negation: nots};
+    p.negation = nots;
+    
+    return p;
 }
 
 
@@ -138,18 +141,18 @@ function negationEval (q, b, globalsHash, definitionsHash) {
         // get nots variables,
         var executeNegation = [];
 
-        for (var i=0; i<nots.length; i++) {
+        for (var i=nots.length-1; i >= 0; i--) {
             tuples = [nots[i]];
             var execute = true;
             
             while (tuples.length > 0) {
-                code = tuples.pop();
+                code = b.getId(tuples.pop());
                 v = b.get(code);
                 type = b.get(v.type);
                 
                 if (type === 'variable') {
                     
-                    if (variables.indexOf(b.getId(code)) !== -1) {
+                    if (variables.indexOf(code) !== -1) {
                         execute = false;
                         break;
                     }
@@ -171,8 +174,10 @@ function negationEval (q, b, globalsHash, definitionsHash) {
     
         // Execute nots,
         for (var i=0; i<executeNegation.length; i++) {
+            var negation = b.getObject(executeNegation[i]);
+            
             var nQuery = b.zvs.add(
-                prepareQuery(b.getObject(executeNegation[i]))
+                prepareQuery(negation)
             );
             
             var branch = b.zvs.change(
@@ -201,12 +206,9 @@ function check (q, defs, b) {
         var def;
         var defintionBranch;
         
+        def = b.add(c);
         if (c.negation.length > 0) {
-            def = b.add(c);
             defintionBranch = b.change("queryNegation", [def]);
-        }
-        else {
-             def = b.add(c.data);
         }
 
         // var branch = b.change("unify", [q, defs[i]]);
@@ -390,6 +392,24 @@ Run.prototype.parse = function (defs) {
     return defs;  
 };
 
+function prepareDefinitions (definitions) {
+    var defs = [];
+    
+    var counter = 0;
+    var genId = {
+        uniqueId: function () {
+            return "defintion$" + counter++;
+        }
+    };
+    
+    for (var i=0; i<definitions.length; i++) {
+        var definition = definitions[i];
+        defs.push(copyWithVars(definition, genId));
+    }
+
+    return defs;
+}
+
 // TODO: return a promisse!!
 Run.prototype.add = function (defs) {
     var result;
@@ -401,7 +421,7 @@ Run.prototype.add = function (defs) {
     if (defs.queries && defs.queries.length > 0) {
         var branch = this.zvs.change(
             "definitions", [
-                this.zvs.add(this.definitions), 
+                this.zvs.add(prepareDefinitions(this.definitions)), 
                 this.globalsHash
             ]
         );
