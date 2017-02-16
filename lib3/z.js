@@ -85,7 +85,7 @@ function copyWithVars (p, genId) {
         var v = q.pop();
         
         if (v.type === 'variable') {
-            if(v.data) {
+            if(v.data && v.data.trim().length > 0) {
                 v.id = vars[v.data] || genId.uniqueId();
                 vars[v.data] = v.id;
             }
@@ -237,6 +237,7 @@ function query (q, globalsHash) {
     var qQuery = this.get(q).query;
 
     if (negationEval(q, this, globalsHash, globals.definitions) === false) {
+        this.note("failReason", "Fail on query negation!!");
         return;
     }
 
@@ -255,7 +256,9 @@ function query (q, globalsHash) {
             
             if (branches.length === 0) {
                 // fail
-                return [];
+                this.note("fail", true);
+                // return [];
+                return;
             }
             else {
                 r.push(branches);
@@ -284,6 +287,7 @@ function query (q, globalsHash) {
             
             if (nr.length === 0) {
                 // fail,
+                this.note("failReason", "Fail to merge!!;");
                 return;    
             }
             
@@ -316,6 +320,10 @@ function query (q, globalsHash) {
                 }
             }
         }
+    }
+    
+    if (!branches || branches.length === 0) {
+        this.note("failReason", "Fail on sub queries.");
     }
 
     return branches;

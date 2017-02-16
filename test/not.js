@@ -100,6 +100,7 @@ describe('Not Tests.', function() {
     it('Should declare a number Set, 3 elements', function() {
         var run = new Z();
         
+        try {
         run.add(
             "(number 0)" +
             "(number 1)" +
@@ -115,6 +116,10 @@ describe('Not Tests.', function() {
         )).eql(
             "(set (number 0) (set (number 1) (set (number 2) (set) 'x$0) (set (number 1) (set) 'x$1)) (set (number 0) (set (number 2) (set) 'x$0) (set (number 0) (set) 'x$2)))"
         );
+        }
+        catch (e) {
+            console.log(JSON.stringify(run.zvs.objects, null, '\t'));
+        }
 
         should(run.print(
             "?(set (number 'a) 'tail ')"

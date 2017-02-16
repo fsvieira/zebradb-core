@@ -59,6 +59,12 @@ Branch.prototype.add = function (obj) {
 	return this.zvs.add(obj, this.id);
 };
 
+Branch.prototype.note = function (field, value) {
+	var branch = this.zvs.getRawBranch(this.id);
+	branch.metadata.notes = branch.metadata.notes || {};
+	branch.metadata.notes[field] = value;
+};
+
 /*
 	ZVS Class
 */
@@ -226,25 +232,6 @@ ZVS.prototype.dataHash = function (branchHash, obj) {
 /*
     get
 */
-/*
-ZVS.prototype.getId = function (branchHash, code) {
-    var b = this.getRawBranch(branchHash);
-	
-	if (typeof b.data.parent !== 'string') {
-		return b.metadata.changes[code] || code;
-	}
-	
-	if (b.metadata.changes) {
-		var defer = b.metadata.changes[code];
-		
-		if (defer) {
-			return this.getId(branchHash, defer);
-		}
-	}
-	
-	// else search on parent,
-	return this.getId(b.data.parent, code);
-};*/
 
 ZVS.prototype.getId = function(branchHash, code) {
 	var c, b;
@@ -376,9 +363,11 @@ ZVS.prototype.change = function (action, args, branchHash) {
 		r = bHash;
 	}
 	
-	branch.metadata.result = r;
+	// branch.metadata.result = r;
 
 	this.objects.cache[bHash] = r || false;
+
+	branch.metadata.fail = !r;
 
 	return r;
 };
@@ -488,16 +477,7 @@ ZVS.prototype.merge = function (branchsHashs, conflictHandler) {
 	
 	for (var code in changes) {
 		cs = changes[code];
-		/*
-		if (cs.length === 1) {
-			changes[code] = cs[0];
-		}
-		else {
-			conflicts[code] = cs;
-			delete changes[code];
-		}*/
-		
-		
+
 		changes[code] = cs[0];
 
 		if (cs.length > 1) {
@@ -534,7 +514,6 @@ ZVS.prototype.merge = function (branchsHashs, conflictHandler) {
 		var b = this.change(conflictHandler, cs, bHash);
 		
 		if (!b) {
-			// this branch can't be merged.
 			return;
 		}
 		
