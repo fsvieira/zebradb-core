@@ -210,6 +210,9 @@ function check (q, defs, b) {
         if (c.negation.length > 0) {
             defintionBranch = b.change("queryNegation", [def]);
         }
+        else {
+            defintionBranch = undefined;
+        }
 
         // var branch = b.change("unify", [q, defs[i]]);
         var branch = b.change("unify", [q, def], defintionBranch);
@@ -226,6 +229,7 @@ function check (q, defs, b) {
 
 
 function query (q, globalsHash) {
+    console.log(utils.toString(this.getObject(q)));
     var r = [];
     var bs, branches;
 
@@ -236,7 +240,7 @@ function query (q, globalsHash) {
 
     var qQuery = this.get(q).query;
 
-    if (negationEval(q, this, globalsHash, globals.definitions) === false) {
+    if (!negationEval(q, this, globalsHash, globals.definitions)) {
         this.note("failReason", "Fail on query negation!!");
         return;
     }
@@ -245,11 +249,11 @@ function query (q, globalsHash) {
     var tuples = planner(qQuery, this);
     
     if (tuples && tuples.length > 0) {
-        for (var i=0; i<tuples.length; i++) {
+        /*for (var i=0; i<tuples.length; i++) {
             // check will lock this branch changes, so
             // optimistic check,
             this.update(tuples[i], {check: true});
-        }
+        }*/
     
         for (var i=0; i<tuples.length; i++) {
             branches = check(tuples[i], defs, this);
@@ -356,7 +360,7 @@ function queryNegation (def) {
     var d = this.getObject(def);
     
     this.update(globals.query, {negation: query.negation.concat(d.negation)});
-    this.update(def, d.data);
+    this.update(def, {data: d.data, check: d.check, type: d.type});
     
     return true;
 }
@@ -415,7 +419,10 @@ function prepareDefinitions (definitions) {
         defs.push(copyWithVars(definition, genId));
     }
 
-    return defs;
+    return defs.map(function (def) {
+        def.check = true;
+        return def;
+    });
 }
 
 // TODO: return a promisse!!

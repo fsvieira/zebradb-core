@@ -46,21 +46,28 @@ function unify (p, q) {
     p = this.getId(p);
     q = this.getId(q);
 
-    if (p !== q) {
-        var po = this.get(p);
-        var qo = this.get(q);
+    var po = this.get(p);
+    var qo = this.get(q);
 
+    var r = true;
+    if (p !== q) {
         var pt = this.get(po.type);
         var qt = this.get(qo.type);
 
         if (table[pt] && table[pt][qt]) {
-            return table[pt][qt](p, q, this);
+            r = table[pt][qt](p, q, this);
         }
-        
-        return false;
+        else {
+            return false;
+        }
     }
 
-    return true;
+    if (po.check || qo.check) {
+        this.update(p, {check: true});
+        this.update(q, {check: true});
+    }    
+
+    return r;
 }
 
 function Unify (zvs) {
