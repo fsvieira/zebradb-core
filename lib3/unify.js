@@ -42,6 +42,21 @@ var table = {
     }
 };
 
+function uniq_fast(a) {
+    var seen = {};
+    var out = [];
+    var len = a.length;
+    var j = 0;
+    for(var i = 0; i < len; i++) {
+         var item = a[i];
+         if(seen[item] !== 1) {
+               seen[item] = 1;
+               out[j++] = item;
+         }
+    }
+    return out;
+}
+
 function unify (p, q) {
     p = this.getId(p);
     q = this.getId(q);
@@ -62,10 +77,21 @@ function unify (p, q) {
         }
     }
 
-    if (po.check || qo.check) {
-        this.update(p, {check: true});
-        this.update(q, {check: true});
-    }    
+    var check = this.get(po.check) || this.get(qo.check);
+    var negation = uniq_fast((this.get(po.negation) || []).concat(this.get(qo.negation) || []));
+
+    if (negation.length) {
+        this.update(p, {negation: negation, check: check});
+        this.update(q, {negation: negation, check: check});
+    }
+    else if (check) {
+        this.update(p, {check: check});
+        this.update(q, {check: check});
+    }
+
+    if (!r) {
+        this.notes({status: {fail: true, reason: "unify fail!"}});
+    }
 
     return r;
 }

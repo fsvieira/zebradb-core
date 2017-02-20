@@ -59,11 +59,16 @@ Branch.prototype.add = function (obj) {
 	return this.zvs.add(obj, this.id);
 };
 
-Branch.prototype.note = function (field, value) {
+Branch.prototype.notes = function (notes) {
 	var branch = this.zvs.getRawBranch(this.id);
 	branch.metadata.notes = branch.metadata.notes || {};
-	branch.metadata.notes[field] = value;
+	Object.assign(branch.metadata.notes, notes);
 };
+
+Branch.prototype.hash2Branch = function (bHash) {
+	return new Branch(this.zvs, bHash);
+};
+
 
 /*
 	ZVS Class
@@ -366,8 +371,6 @@ ZVS.prototype.change = function (action, args, branchHash) {
 	// branch.metadata.result = r;
 
 	this.objects.cache[bHash] = r || false;
-
-	branch.metadata.fail = !r;
 
 	return r;
 };

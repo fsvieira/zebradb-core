@@ -229,7 +229,6 @@ function check (q, defs, b) {
 
 
 function query (q, globalsHash) {
-    console.log(utils.toString(this.getObject(q)));
     var r = [];
     var bs, branches;
 
@@ -241,7 +240,7 @@ function query (q, globalsHash) {
     var qQuery = this.get(q).query;
 
     if (!negationEval(q, this, globalsHash, globals.definitions)) {
-        this.note("failReason", "Fail on query negation!!");
+        this.notes({status: {fail: true, reason: "negation fail!"}});
         return;
     }
 
@@ -260,8 +259,6 @@ function query (q, globalsHash) {
             
             if (branches.length === 0) {
                 // fail
-                this.note("fail", true);
-                // return [];
                 return;
             }
             else {
@@ -291,7 +288,6 @@ function query (q, globalsHash) {
             
             if (nr.length === 0) {
                 // fail,
-                this.note("failReason", "Fail to merge!!;");
                 return;    
             }
             
@@ -326,8 +322,13 @@ function query (q, globalsHash) {
         }
     }
     
-    if (!branches || branches.length === 0) {
-        this.note("failReason", "Fail on sub queries.");
+    // Check all branches negations,
+    // TODO: check query negation early, so branches fail early.
+    for (var i=branches.length-1; i>=0; i--) {
+        b = this.hash2Branch(branches[i]);
+        if (!negationEval(q, b, globalsHash, globals.definitions)) {
+            branches.splice(i, 1);
+        }
     }
 
     return branches;
