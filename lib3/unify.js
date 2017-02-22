@@ -1,3 +1,7 @@
+var utils = require("./utils");
+var negation = require("./negation");
+var prepare = require("./prepare");
+
 function tupleXtuple (p, q, b) {
     var po = b.get(p);
     var qo = b.get(q);
@@ -42,29 +46,17 @@ var table = {
     }
 };
 
-function uniq_fast(a) {
-    var seen = {};
-    var out = [];
-    var len = a.length;
-    var j = 0;
-    for(var i = 0; i < len; i++) {
-         var item = a[i];
-         if(seen[item] !== 1) {
-               seen[item] = 1;
-               out[j++] = item;
-         }
-    }
-    return out;
-}
 
 function unify (p, q) {
+    var self = this;
+    
     p = this.getId(p);
     q = this.getId(q);
 
     var po = this.get(p);
     var qo = this.get(q);
-
     var r = true;
+    
     if (p !== q) {
         var pt = this.get(po.type);
         var qt = this.get(qo.type);
@@ -73,29 +65,35 @@ function unify (p, q) {
             r = table[pt][qt](p, q, this);
         }
         else {
-            return false;
+            r = false;
         }
     }
 
+    if (!r) {
+        this.notes({status: {fail: true, reason: "unify fail!"}});
+        return r;
+    }
+    
     var check = this.get(po.check) || this.get(qo.check);
-    var negation = uniq_fast((this.get(po.negation) || []).concat(this.get(qo.negation) || []));
+    var negations = prepare.union(this, this.get(po.negation), this.get(qo.negation));
 
-    if (negation.length) {
-        this.update(p, {negation: negation, check: check});
-        this.update(q, {negation: negation, check: check});
+    if (negations.length) {
+        this.update(p, {negation: negations, check: check});
+        this.update(q, {negation: negations, check: check});
+        
+        if (!negation(this)) {
+            return;
+        }
     }
     else if (check) {
         this.update(p, {check: check});
         this.update(q, {check: check});
     }
 
-    if (!r) {
-        this.notes({status: {fail: true, reason: "unify fail!"}});
-    }
-
-    return r;
+    return true;
 }
 
+// TODO: this does't make sense:
 function Unify (zvs) {
     return zvs.action("unify", unify);
 }

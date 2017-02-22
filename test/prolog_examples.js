@@ -6,6 +6,7 @@ var Z = require("../lib3/z");
 */
 
 describe('Prolog examples port Tests.', function() {
+
     it('Should query people about what they like.', function () {
         var run = new Z();
         
@@ -181,16 +182,16 @@ describe('Prolog examples port Tests.', function() {
         // Query is not able to stop on their own.
         should(run.print("?(TODO: john likes 'stuff 'p)")).eql("TODO");
         
-        /*var run = new Z.Run(
-            "(john likes 'person ('person likes 'person '))"
-        );
+        // var run = new Z.Run(
+        //     "(john likes 'person ('person likes 'person '))"
+        // );
             
-        var query = function (q, len) {
-            return Z.toString(run.query(q, len));
-        };
+        // var query = function (q, len) {
+        //     return Z.toString(run.query(q, len));
+        // };
             
-        should(
-            query("(john likes 'stuff 'p)", 100)
-        ).eql("");*/
+        // should(
+        //     query("(john likes 'stuff 'p)", 100)
+        // ).eql("");
     });
 });

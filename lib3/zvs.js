@@ -65,8 +65,8 @@ Branch.prototype.notes = function (notes) {
 	Object.assign(branch.metadata.notes, notes);
 };
 
-Branch.prototype.hash2Branch = function (bHash) {
-	return new Branch(this.zvs, bHash);
+Branch.prototype.global = function (name) {
+	return this.zvs.global(name);
 };
 
 
@@ -79,7 +79,8 @@ function ZVS (objects) {
 		branchs: {},
 		data: {},
 		active: [],
-		cache: {}
+		cache: {},
+		globals: {}
 	};
 
 	this.actions = {};
@@ -185,7 +186,7 @@ ZVS.prototype.getBranch = function (branchHash) {
         2. check with unavailable-sha1 contraints,
         3. compare with object using with that sha1 (use get)
 */
-ZVS.prototype.dataHash = function (branchHash, obj) {
+ZVS.prototype.dataHash = function (obj) {
     Object.freeze(obj);
 	var hash = ZVS.sha1(obj);
 	var o;
@@ -299,7 +300,7 @@ ZVS.prototype.add = function (obj, branchHash) {
 			}
 		);
 		
-		r = this.dataHash(branchHash, r);
+		r = this.dataHash(r);
 	}
 	else if (typeof obj === 'object') {
 		r = {};
@@ -307,13 +308,28 @@ ZVS.prototype.add = function (obj, branchHash) {
 			r[i] = this.add(obj[i], branchHash);
 		}
 			
-		r = this.dataHash(branchHash, r);
+		r = this.dataHash(r);
 	}
 	else {
-		r = this.dataHash(branchHash, r);
+		r = this.dataHash(r);
 	}
 	
 	return r;
+};
+
+ZVS.prototype.global = function (name, global) {
+	var globalHash;
+	
+	if (global) {
+		globalHash = this.add(global);
+		
+		this.objects.globals[name] = globalHash;
+	}
+	else {
+		globalHash = this.objects.globals[name];
+	}
+	
+	return globalHash;
 };
 
 ZVS.prototype.transform = function (branchHash, oldCode, newCode) {
@@ -332,7 +348,7 @@ ZVS.prototype.update = function (branchHash, code, obj) {
 		clone[i] = a; 
 	}
 	
-	this.transform(branchHash, code, this.dataHash(this.objects.root, clone));
+	this.transform(branchHash, code, this.dataHash(clone));
 };
 
 

@@ -5,6 +5,7 @@ var zparser = require("./zparser");
 var ZVS = require("./zvs");
 var Unify = require("./unify");
 var utils = require("./utils");
+var prepare = require("./prepare");
 
 
 function planner (q, b, tuples) {
@@ -31,178 +32,11 @@ function planner (q, b, tuples) {
     return tuples;
 }
 
-
-function clone (obj) {
-    if (obj === null || obj === undefined || typeof obj !== 'object') {
-        return obj;
-    }
- 
-    var temp = obj.constructor(); // give temp the original obj's constructor
-    for (var key in obj) {
-        temp[key] = clone(obj[key]);
-    }
- 
-    return temp;
-}
-
-
-function prepareQuery (query) {
-    query = clone(query);
-    var q = [query];
-    var counter = 0;
-    var nots = [];
-
-    while (q.length > 0) {
-        var v = q.pop();
-        
-        delete v.id;
-        
-        if (v.type === 'variable' && v.data === undefined) {
-            v.id = ++counter;
-        }
-        else if (v.type === 'tuple') {
-            q = q.concat(v.data);
-            
-            if (v.s) {
-                nots = nots.concat(v.negation);
-                q = q.concat(v.negation);
-                delete v.negation;
-            }
-        }
-    }
-
-    return {type: 'query', query: query, negation: nots};
-}
-
-
-function copyWithVars (p, genId) {
-    p = clone(p);
-    var q = [p];
-    var vars = {};
-    var nots = [];
-
-    while (q.length > 0) {
-        var v = q.pop();
-        
-        if (v.type === 'variable') {
-            if(v.data && v.data.trim().length > 0) {
-                v.id = vars[v.data] || genId.uniqueId();
-                vars[v.data] = v.id;
-            }
-            else {
-                v.id = genId.uniqueId();
-            }
-        }
-        else if (v.type === 'tuple') {
-            q = q.concat(v.data);
-            if (v.negation) {
-                nots = nots.concat(v.negation);
-                q = q.concat(v.negation);
-                delete v.negation;
-            }
-        }
-    }
-
-    // return {type: 'definition', data: p, negation: nots};
-    p.negation = nots;
-    
-    return p;
-}
-
-
-function negationEval (q, b, globalsHash, definitionsHash) {
-    
-    q = b.get(q);
-    var nots = b.get(q.negation);
-
-    if (nots && nots.length > 0) {
-        nots = nots.slice();
-        var tuples = [q.query];
-        var code;
-        
-        var variables = [];
-    
-        while (tuples.length > 0) {
-            code = b.getId(tuples.pop());
-            var v = b.get(code);
-            var type = b.get(v.type);
-            
-            if (type === 'variable') {
-                if (variables.indexOf(code) === -1) {
-                    variables.push(code);
-                }
-            }
-            else if (type === 'tuple') {
-                var data = b.get(v.data);
-                tuples = tuples.concat(data);
-            }
-        }
-        
-        // get nots variables,
-        var executeNegation = [];
-
-        for (var i=nots.length-1; i >= 0; i--) {
-            tuples = [nots[i]];
-            var execute = true;
-            
-            while (tuples.length > 0) {
-                code = b.getId(tuples.pop());
-                v = b.get(code);
-                type = b.get(v.type);
-                
-                if (type === 'variable') {
-                    
-                    if (variables.indexOf(code) !== -1) {
-                        execute = false;
-                        break;
-                    }
-                }
-                else if (type === 'tuple') {
-                    data = b.get(v.data);
-                    tuples = tuples.concat(data);
-                }
-            }
-            
-            if (execute) {
-                executeNegation.push(b.getId(nots[i]));
-                nots.splice(i, 1);
-            }
-        }
-
-        // Update globals,
-        b.update(q, {negation: nots});
-    
-        // Execute nots,
-        for (var i=0; i<executeNegation.length; i++) {
-            var negation = b.getObject(executeNegation[i]);
-            
-            var nQuery = b.zvs.add(
-                prepareQuery(negation)
-            );
-            
-            var branch = b.zvs.change(
-                "definitions", [
-                    definitionsHash,
-                    globalsHash
-                ]
-            );
-            
-            var results = b.zvs.change("query", [nQuery, globalsHash], branch);
-
-            if (results && results.length > 0) {
-                return false;                
-            }
-        }
-    }
-
-    return nots;
-}
-
 function check (q, defs, b) {
     var r = [];
 
     for (var i=0; i<defs.length; i++) {
-        var c = copyWithVars(b.getObject(defs[i]), b);
+        var c = prepare.copyWithVars(b.getObject(defs[i]), b);
         var def;
         var defintionBranch;
         
@@ -237,23 +71,15 @@ function query (q, globalsHash) {
     
     this.update(globalsHash, {query: this.getObject(q)});
 
-    var qQuery = this.get(q).query;
-
-    if (!negationEval(q, this, globalsHash, globals.definitions)) {
+    /*if (!negationEval(q, this, globalsHash, globals.definitions)) {
         this.notes({status: {fail: true, reason: "negation fail!"}});
         return;
-    }
+    }*/
 
     // choose tuples to evaluate,
-    var tuples = planner(qQuery, this);
+    var tuples = planner(q, this);
     
     if (tuples && tuples.length > 0) {
-        /*for (var i=0; i<tuples.length; i++) {
-            // check will lock this branch changes, so
-            // optimistic check,
-            this.update(tuples[i], {check: true});
-        }*/
-    
         for (var i=0; i<tuples.length; i++) {
             branches = check(tuples[i], defs, this);
             
@@ -321,15 +147,6 @@ function query (q, globalsHash) {
             }
         }
     }
-    
-    // Check all branches negations,
-    // TODO: check query negation early, so branches fail early.
-    for (var i=branches.length-1; i>=0; i--) {
-        b = this.hash2Branch(branches[i]);
-        if (!negationEval(q, b, globalsHash, globals.definitions)) {
-            branches.splice(i, 1);
-        }
-    }
 
     return branches;
 }
@@ -354,14 +171,26 @@ function definitions (defsHash, globalsHash) {
 }
 
 function queryNegation (def) {
-    var globalsHash = this.add({type: "globals"});
+    var globalsHash = this.global("globals"); // this.add({type: "globals"});
     
     var globals = this.get(globalsHash);
-    var query = this.getObject(globals.query);
     var d = this.getObject(def);
     
-    this.update(globals.query, {negation: query.negation.concat(d.negation)});
-    this.update(def, {data: d.data, check: d.check, type: d.type});
+    var negation = prepare.union(
+        this, 
+        this.get(this.get(globals.query).negation), 
+        this.get(this.get(def).negation)
+    );
+
+    this.update(
+        globals.query,
+        {
+            negation: negation
+        }
+    );
+
+    delete d.negation;
+    this.update(def, d);
     
     return true;
 }
@@ -378,7 +207,8 @@ function Run () {
     this.unify = new Unify(this.zvs);
     
     // Store global data on zvs,
-    this.globalsHash = this.zvs.add({type: "globals"});
+    // this.globalsHash = this.zvs.add({type: "globals"});
+    this.globalsHash = this.zvs.global('globals', {type: "globals"});
 }
 
 
@@ -398,33 +228,12 @@ Run.prototype.parse = function (defs) {
     		};
     	}
     	else {
-    	    defs = clone(defs);
+    	    defs = prepare.clone(defs);
     	}
     }
 
     return defs;  
 };
-
-function prepareDefinitions (definitions) {
-    var defs = [];
-    
-    var counter = 0;
-    var genId = {
-        uniqueId: function () {
-            return "defintion$" + counter++;
-        }
-    };
-    
-    for (var i=0; i<definitions.length; i++) {
-        var definition = definitions[i];
-        defs.push(copyWithVars(definition, genId));
-    }
-
-    return defs.map(function (def) {
-        def.check = true;
-        return def;
-    });
-}
 
 // TODO: return a promisse!!
 Run.prototype.add = function (defs) {
@@ -437,7 +246,7 @@ Run.prototype.add = function (defs) {
     if (defs.queries && defs.queries.length > 0) {
         var branch = this.zvs.change(
             "definitions", [
-                this.zvs.add(prepareDefinitions(this.definitions)), 
+                this.zvs.add(prepare.definitions(this.definitions)), 
                 this.globalsHash
             ]
         );
@@ -450,7 +259,7 @@ Run.prototype.add = function (defs) {
 
         for (var i=0; i<defs.queries.length; i++) {
             var q = this.zvs.add(
-                prepareQuery(defs.queries[i])
+                prepare.query(defs.queries[i])
             );
 
             var r = this.zvs.change(
@@ -483,10 +292,11 @@ Run.prototype.query = function (defs) {
             for (var i=0; i< branches.length; i++) {
                 b = branches[i];
                 globals = this.zvs.getData(b, this.globalsHash);
+
                 o = this.zvs.getObject(
-                        this.zvs.getData(b, globals.query).query,
-                        b
-                    );
+                    globals.query,
+                    b
+                );
                 
                 objs.push(o);
             }
