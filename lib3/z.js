@@ -57,8 +57,6 @@ function query (q, globalsHash) {
     var r = [];
     var bs, branches;
 
-    console.log("QUERY: " + utils.toString(this.getObject(q)));
-
     var globals = this.get(globalsHash);
     var defs = this.get(globals.definitions);
     
@@ -66,6 +64,8 @@ function query (q, globalsHash) {
 
     // choose tuples to evaluate,
     var tuples = planner(q, this);
+    
+    console.log("QUERY: " + utils.toString(this.getObject(q), true));
     
     if (tuples && tuples.length > 0) {
         for (var i=0; i<tuples.length; i++) {

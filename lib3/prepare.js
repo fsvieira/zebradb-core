@@ -58,7 +58,7 @@ function prepare (tuples, prefix, check) {
     var counter = 0;
     var genId = {
         uniqueId: function () {
-            return "defintion$" + counter++;
+            return prefix + counter++;
         }
     };
     

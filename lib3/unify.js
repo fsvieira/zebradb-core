@@ -51,6 +51,8 @@ function unify (p, q) {
     p = this.getId(p);
     q = this.getId(q);
 
+    var s = "UNIFY: " + utils.toString(this.getObject(p), true) + ", " + utils.toString(this.getObject(q), true);
+
     var po = this.get(p);
     var qo = this.get(q);
     var r = true;
@@ -66,6 +68,11 @@ function unify (p, q) {
             r = false;
         }
     }
+
+    console.log(
+        s + " => " +
+        utils.toString(this.getObject(p), true) + ", " + utils.toString(this.getObject(q), true)
+    );
 
     if (!r) {
         this.notes({status: {fail: true, reason: "unify fail!"}});

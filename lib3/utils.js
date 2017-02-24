@@ -25,7 +25,7 @@ function toString (p, debug) {
             return p.data;
 
         case "variable":
-            return "'" + (p.data || "");
+            return "'" + (p.data || "") + (debug?":" + p.id:"");
 
         default:
             if (p.map) {
