@@ -1,4 +1,5 @@
 var prepare = require("./prepare");
+var utils = require("./utils");
 
 function negation (b) {
     var globalsHash = b.global("globals");

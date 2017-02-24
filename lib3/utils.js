@@ -31,9 +31,6 @@ function toString (p, debug) {
             if (p.map) {
                 return p.map(ts).sort().join("\n");
             }
-            else {
-                return "(BAD=>" + p + ")";
-            }
     }
 }
 

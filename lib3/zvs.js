@@ -70,6 +70,10 @@ Branch.prototype.global = function (name) {
 };
 
 
+Branch.prototype.hash2branch = function (hash) {
+	return new Branch(this.zvs, hash);
+};
+
 /*
 	ZVS Class
 */
@@ -538,8 +542,7 @@ ZVS.prototype.merge = function (branchsHashs, conflictHandler) {
 		
 		branchs = branchs.concat(b);
 	}
-	
-	
+
 	if (branchs.length === 0) {
 		return [bHash];
 	}

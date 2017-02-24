@@ -48,8 +48,6 @@ var table = {
 
 
 function unify (p, q) {
-    var self = this;
-    
     p = this.getId(p);
     q = this.getId(q);
 
@@ -73,21 +71,21 @@ function unify (p, q) {
         this.notes({status: {fail: true, reason: "unify fail!"}});
         return r;
     }
-    
+
     var check = this.get(po.check) || this.get(qo.check);
     var negations = prepare.union(this, this.get(po.negation), this.get(qo.negation));
 
     if (negations.length) {
         this.update(p, {negation: negations, check: check});
         this.update(q, {negation: negations, check: check});
-        
-        if (!negation(this)) {
-            return;
-        }
     }
     else if (check) {
         this.update(p, {check: check});
         this.update(q, {check: check});
+    }
+
+    if (!negation(this)) {
+        return false;
     }
 
     return true;

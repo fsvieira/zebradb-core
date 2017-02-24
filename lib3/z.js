@@ -6,6 +6,7 @@ var ZVS = require("./zvs");
 var Unify = require("./unify");
 var utils = require("./utils");
 var prepare = require("./prepare");
+var negation = require("./negation");
 
 
 function planner (q, b, tuples) {
@@ -37,19 +38,9 @@ function check (q, defs, b) {
 
     for (var i=0; i<defs.length; i++) {
         var c = prepare.copyWithVars(b.getObject(defs[i]), b);
-        var def;
-        var defintionBranch;
+        var def = b.add(c);
         
-        def = b.add(c);
-        if (c.negation.length > 0) {
-            defintionBranch = b.change("queryNegation", [def]);
-        }
-        else {
-            defintionBranch = undefined;
-        }
-
-        // var branch = b.change("unify", [q, defs[i]]);
-        var branch = b.change("unify", [q, def], defintionBranch);
+        var branch = b.change("unify", [q, def]);
 
         if (branch) {
             // convervative check,
@@ -66,15 +57,12 @@ function query (q, globalsHash) {
     var r = [];
     var bs, branches;
 
+    console.log("QUERY: " + utils.toString(this.getObject(q)));
+
     var globals = this.get(globalsHash);
     var defs = this.get(globals.definitions);
     
     this.update(globalsHash, {query: this.getObject(q)});
-
-    /*if (!negationEval(q, this, globalsHash, globals.definitions)) {
-        this.notes({status: {fail: true, reason: "negation fail!"}});
-        return;
-    }*/
 
     // choose tuples to evaluate,
     var tuples = planner(q, this);
@@ -106,7 +94,14 @@ function query (q, globalsHash) {
                     // bA * bB
                     bs = this.zvs.merge([bA, bB], "unify");
                     
-                    if (bs) {
+                    
+                    if (bs && bs.length) {
+                        for (var bi=bs.length-1; bi>=0; bi--) {
+                            if (!negation(this.hash2branch(bs[bi]))) {
+                                bs.splice(bi, 1);
+                            }
+                        }
+                    
                         nr = nr.concat(bs);
                     }
                 }
@@ -170,39 +165,13 @@ function definitions (defsHash, globalsHash) {
     return true;
 }
 
-function queryNegation (def) {
-    var globalsHash = this.global("globals"); // this.add({type: "globals"});
-    
-    var globals = this.get(globalsHash);
-    var d = this.getObject(def);
-    
-    var negation = prepare.union(
-        this, 
-        this.get(this.get(globals.query).negation), 
-        this.get(this.get(def).negation)
-    );
-
-    this.update(
-        globals.query,
-        {
-            negation: negation
-        }
-    );
-
-    delete d.negation;
-    this.update(def, d);
-    
-    return true;
-}
-
 function Run () {
     this.definitions = [];
     this.definitionsCodes = [];
     
     this.zvs = new ZVS()
         .action("definitions", definitions)
-        .action("query", query)
-        .action("queryNegation", queryNegation);
+        .action("query", query);
 
     this.unify = new Unify(this.zvs);
     
