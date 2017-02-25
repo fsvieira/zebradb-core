@@ -29,6 +29,7 @@ describe("ZQuery Tests.", function () {
         )).eql(
             "@(@(yellow) @(yellow))"
         );
+
     });
 
     it("Should unify variables with tuple values", function () {

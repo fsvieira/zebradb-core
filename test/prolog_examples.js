@@ -172,26 +172,13 @@ describe('Prolog examples port Tests.', function() {
     });
 
     it('Should give no results to circular definition.', function () {
-        var run = new Z();
+        var run = new Z(5);
         
         run.add(
             "(john likes 'person ('person likes 'person '))"
         );
         
-        
         // Query is not able to stop on their own.
-        should(run.print("?(TODO: john likes 'stuff 'p)")).eql("TODO");
-        
-        // var run = new Z.Run(
-        //     "(john likes 'person ('person likes 'person '))"
-        // );
-            
-        // var query = function (q, len) {
-        //     return Z.toString(run.query(q, len));
-        // };
-            
-        // should(
-        //     query("(john likes 'stuff 'p)", 100)
-        // ).eql("");
+        should(run.print("?(john likes 'stuff 'p)")).eql("");
     });
 });

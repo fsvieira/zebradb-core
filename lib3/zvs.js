@@ -69,9 +69,12 @@ Branch.prototype.global = function (name) {
 	return this.zvs.global(name);
 };
 
-
 Branch.prototype.hash2branch = function (hash) {
 	return new Branch(this.zvs, hash);
+};
+
+Branch.prototype.getLevel = function () {
+	return this.zvs.getLevel(this.id);
 };
 
 /*
@@ -91,7 +94,8 @@ function ZVS (objects) {
 	
 	this.objects.root = this.objects.root || this.branchHash({
 		type: 'branch',
-		action: 'init'
+		action: 'init',
+		level: 0
 	});
 }
 
@@ -355,18 +359,23 @@ ZVS.prototype.update = function (branchHash, code, obj) {
 	this.transform(branchHash, code, this.dataHash(clone));
 };
 
+ZVS.prototype.getLevel = function (branchHash) {
+	return this.getBranch(branchHash).level;
+};
 
 ZVS.prototype.change = function (action, args, branchHash) {
 	branchHash = branchHash || this.objects.root;
 
-	// don't let father branch change,
-	Object.freeze(this.getRawBranch(branchHash).metadata.changes);
+	// don't let parent branch change,
+	var parent = this.getRawBranch(branchHash);
+	Object.freeze(parent.metadata.changes);
 
 	var bHash = this.branchHash({
 		parent: branchHash,
 		type: 'branch',
 		args: args.slice(0),
-		action: action
+		action: action,
+		level: parent.data.level + 1
 	});
 
 	var r = this.objects.cache[bHash];
@@ -374,8 +383,6 @@ ZVS.prototype.change = function (action, args, branchHash) {
 	if (r !== undefined) {
 		return r || undefined;
 	}
-
-	var branch = this.getRawBranch(bHash);
 
 	var actionCall = this.actions[action];
 
@@ -388,8 +395,6 @@ ZVS.prototype.change = function (action, args, branchHash) {
 		r = bHash;
 	}
 	
-	// branch.metadata.result = r;
-
 	this.objects.cache[bHash] = r || false;
 
 	return r;
@@ -520,16 +525,21 @@ ZVS.prototype.merge = function (branchsHashs, conflictHandler) {
 			delete changes[code];
 		}
 	}
+
+	var level = this.getLevel(branchsHashs[0]) + 1;
 	
 	var bHash = this.branchHash({
 		parent: branchsHashs,
 		type: 'branch',
 		args: [branchsHashs.slice(0), conflictHandler],
-		action: "_merge"
+		action: "_merge",
+		level: level
 	});
 	
-	this.getRawBranch(bHash).metadata.changes = changes;
-	
+	var rawBranch = this.getRawBranch(bHash);
+
+	rawBranch.metadata.changes = changes;
+
 	var branch = new Branch(this, bHash);
 	
 	for (var code in conflicts) {

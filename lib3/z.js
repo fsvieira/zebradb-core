@@ -60,12 +60,18 @@ function query (q, globalsHash) {
     var r = [];
     var bs, branches;
 
-    // console.log("Q: " + utils.toString(this.getObject(q), true));
+    // TODO: setup deep on query, delete settings, as they are not needed.
+    var settings = this.getObject(this.zvs.global("settings"));
 
     var globals = this.get(globalsHash);
     var defs = this.get(globals.definitions);
-    
     this.update(globalsHash, {query: this.getObject(q)});
+
+    if (settings.deep && this.getLevel() > settings.deep) {
+        this.notes({status: {fail: true, reason: "max deep limits exceded!"}});
+        return;
+    }
+
 
     // choose tuples to evaluate,
     var tuples = planner(q, this);
@@ -168,7 +174,7 @@ function definitions (defsHash, globalsHash) {
     return true;
 }
 
-function Run () {
+function Run (deep) {
     this.definitions = [];
     this.definitionsCodes = [];
     
@@ -183,6 +189,7 @@ function Run () {
     // Store global data on zvs,
     // this.globalsHash = this.zvs.add({type: "globals"});
     this.globalsHash = this.zvs.global('globals', {type: "globals"});
+    this.zvs.global("settings", {type: 'settings', deep: deep});
 }
 
 
