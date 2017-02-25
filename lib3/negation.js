@@ -79,6 +79,8 @@ function negation (b) {
                     prepare.query(neg)
                 );
                 
+                console.log("NQ: " + utils.toString(b.getObject(nQuery)));
+                
                 var branch = b.zvs.change(
                     "definitions", [
                         definitionsHash,

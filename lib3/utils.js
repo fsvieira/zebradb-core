@@ -1,3 +1,4 @@
+
 function toString (p, debug) {
 
     function ts (v) {
@@ -12,8 +13,7 @@ function toString (p, debug) {
         case "tuple":
             return (debug?(p.check?"@":""):"") + "(" + p.data.map(ts).join(" ") + ")"
                 + (p.negation && p.negation.length?"[^" + toString(p.negation, debug) + "]":"");
-                
-                /*
+            /*
             return (debug?(p.check?"@":""):"") + "(" + p.data.map(ts).join(" ") + ")" 
                 + (debug && p.virtual?"{"+p.virtual.states.join(" ")+"}":"")
                 + (debug && p.virtual?"*{"+p.virtual.recursive.join(" ")+"}":"")

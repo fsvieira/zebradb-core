@@ -60,6 +60,8 @@ function query (q, globalsHash) {
     var r = [];
     var bs, branches;
 
+    // console.log("Q: " + utils.toString(this.getObject(q), true));
+
     var globals = this.get(globalsHash);
     var defs = this.get(globals.definitions);
     

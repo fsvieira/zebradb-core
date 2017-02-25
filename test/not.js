@@ -2,6 +2,7 @@ var should = require("should");
 var Z = require("../lib3/z");
 
 describe('Not Tests.', function() {
+/*
     it('Declare a not equal', function() {
         var run = new Z();
 
@@ -77,7 +78,7 @@ describe('Not Tests.', function() {
 
         should(run.print("?(set (number 'a) (set (number 'b) (set (number 'c) (set) ') ') ')")).eql("");
     });
-/*
+*/
     it('Should declare a two number Set, query all', function() {
         var run = new Z();
         
@@ -97,7 +98,7 @@ describe('Not Tests.', function() {
             "@(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '))"
         );
     });
-
+/*
     it('Should declare a number Set, 3 elements', function() {
         var run = new Z();
         
@@ -188,5 +189,6 @@ describe('Not Tests.', function() {
             "(set (number 3) (set (number 2) (set (number 0) (set (number 1) (set) 'x$0) (set (number 0) (set) 'x$1)) (set (number 2) (set (number 1) (set) 'x$0) (set (number 2) (set) 'x$2))) (set (number 3) (set (number 0) (set (number 1) (set) 'x$0) (set (number 0) (set) 'x$1)) (set (number 3) (set (number 1) (set) 'x$0) (set (number 3) (set) 'x$3))))\n" +
             "(set (number 3) (set (number 2) (set (number 1) (set (number 0) (set) 'x$0) (set (number 1) (set) 'x$1)) (set (number 2) (set (number 0) (set) 'x$0) (set (number 2) (set) 'x$2))) (set (number 3) (set (number 1) (set (number 0) (set) 'x$0) (set (number 1) (set) 'x$1)) (set (number 3) (set (number 0) (set) 'x$0) (set (number 3) (set) 'x$3))))"
         );
-    });*/
+    });
+*/
 });

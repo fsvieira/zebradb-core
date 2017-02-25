@@ -107,6 +107,24 @@ function Unify (zvs) {
 
 module.exports = Unify;
 */
+function setNegation (p, q, po, qo, b) {
+    var negations = (b.get(po.negation) || []).concat(b.get(qo.negation) || []);
+
+    if (negations.length > 0) {
+        var globalsHash = b.global("globals");
+        var globals = b.get(globalsHash);
+        var query = globals.query;
+        
+        var queryNegation = prepare.union(b, b.get(b.get(query).negation) || [], negations);
+
+
+        b.update(p, {negation: undefined});
+        b.update(q, {negation: undefined});
+
+        b.update(query, {negation: queryNegation});
+    }
+}
+
 
 function unify (p, q, b, evalNegation) {
     p = b.getId(p);
@@ -134,6 +152,7 @@ function unify (p, q, b, evalNegation) {
     }
 
     var check = b.get(po.check) || b.get(qo.check);
+    /*
     var negations = prepare.union(b, b.get(po.negation), b.get(qo.negation));
 
     if (negations.length) {
@@ -144,6 +163,13 @@ function unify (p, q, b, evalNegation) {
         b.update(p, {check: check});
         b.update(q, {check: check});
     }
+    */
+    if (check) {
+        b.update(p, {check: check});
+        b.update(q, {check: check});
+    }
+
+    setNegation(p, q, po, qo, b);
 
     if (evalNegation && !negation(b)) {
         return false;
