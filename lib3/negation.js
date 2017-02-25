@@ -10,9 +10,6 @@ function negation (b) {
     var nots = b.get(b.get(q).negation);
 
     if (nots && nots.length > 0) {
-        
-        console.log("NOT QUERY: " + utils.toString(b.getObject(q), true) ); //+ "\n" + JSON.stringify(b.getObject(q), null, '\t'));
-        
         nots = nots.slice();
         var tuples = [q];
         var code;

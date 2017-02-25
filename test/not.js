@@ -2,7 +2,6 @@ var should = require("should");
 var Z = require("../lib3/z");
 
 describe('Not Tests.', function() {
-/*
     it('Declare a not equal', function() {
         var run = new Z();
 
@@ -58,10 +57,10 @@ describe('Not Tests.', function() {
             "@(not @(number 0) @(number 1))"
         );
     });
-*/
+
     it('Should declare a two number Set', function() {
         var run = new Z();
-        
+
         run.add(
             "(number 0)" +
             "(number 1)" +
@@ -70,13 +69,13 @@ describe('Not Tests.', function() {
             "(set (number 'a) (set (number 'b) 'tail ') (set (number 'a) 'tail ') ^(equal (number 'a) (number 'b)))" +
             "(equal 'x 'x)"
         );
-        
+            
         should(run.print("?(set (number 'a) (set (number 'b) (set) ') ')")).eql(
             "@(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '))\n" +
             "@(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) '))"
         );
-        
-        // should(run.print("?(set (number 'a) (set (number 'b) (set (number 'c) (set) ') ') ')")).eql("");
+
+        should(run.print("?(set (number 'a) (set (number 'b) (set (number 'c) (set) ') ') ')")).eql("");
     });
 /*
     it('Should declare a two number Set, query all', function() {

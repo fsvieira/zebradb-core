@@ -3,7 +3,7 @@
 // var zparser = require("../lib/zparser");
 var zparser = require("./zparser");
 var ZVS = require("./zvs");
-var Unify = require("./unify");
+var unify = require("./unify");
 var utils = require("./utils");
 var prepare = require("./prepare");
 var negation = require("./negation");
@@ -52,6 +52,9 @@ function check (q, defs, b) {
     return r;
 }
 
+function mergeConflictResolver (p, q, branch) {
+    return unify(p, q, branch, false);
+}
 
 function query (q, globalsHash) {
     var r = [];
@@ -64,8 +67,6 @@ function query (q, globalsHash) {
 
     // choose tuples to evaluate,
     var tuples = planner(q, this);
-    
-    console.log("QUERY: " + utils.toString(this.getObject(q), true));
     
     if (tuples && tuples.length > 0) {
         for (var i=0; i<tuples.length; i++) {
@@ -92,9 +93,9 @@ function query (q, globalsHash) {
                     var bB = b[j];
                     
                     // bA * bB
-                    bs = this.zvs.merge([bA, bB], "unify");
+                    bs = this.zvs.merge([bA, bB], mergeConflictResolver);
                     
-                    
+                    // TODO: put negation inside merge, since now its a contained function.
                     if (bs && bs.length) {
                         for (var bi=bs.length-1; bi>=0; bi--) {
                             if (!negation(this.hash2branch(bs[bi]))) {
@@ -171,10 +172,12 @@ function Run () {
     
     this.zvs = new ZVS()
         .action("definitions", definitions)
-        .action("query", query);
+        .action("query", query)
+        .action("unify", function (p, q) {
+            return unify(p, q, this, true);
+        });
 
-    this.unify = new Unify(this.zvs);
-    
+
     // Store global data on zvs,
     // this.globalsHash = this.zvs.add({type: "globals"});
     this.globalsHash = this.zvs.global('globals', {type: "globals"});

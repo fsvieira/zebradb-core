@@ -2,7 +2,7 @@ var utils = require("./utils");
 var negation = require("./negation");
 var prepare = require("./prepare");
 
-function tupleXtuple (p, q, b) {
+function tupleXtuple (p, q, b, evalNegation) {
     var po = b.get(p);
     var qo = b.get(q);
 
@@ -12,7 +12,7 @@ function tupleXtuple (p, q, b) {
     if (pData.length === qData.length) {
         for (var i=0; i<pData.length; i++) {
             // var r = b.change("unify", [pData[i], qData[i]]);
-            if (!unify.call(b, pData[i], qData[i])) {
+            if (!unify(pData[i], qData[i], b, evalNegation)) {
                 return;                
             }
         }
@@ -22,13 +22,14 @@ function tupleXtuple (p, q, b) {
     
 }
 
-function variableXall (p, q, b) {
+function variableXall (p, q, b, evalNegation) {
     b.transform(p, q);
     return true;
 }
 
-function allXvariable (p, q, b) {
-    return variableXall(q, p, b);
+function allXvariable (p, q, b, evalNegation) {
+    b.transform(q, p);
+    return true;
 }
 
 var table = {
@@ -46,7 +47,7 @@ var table = {
     }
 };
 
-
+/*
 function unify (p, q) {
     p = this.getId(p);
     q = this.getId(q);
@@ -105,4 +106,51 @@ function Unify (zvs) {
 
 
 module.exports = Unify;
+*/
 
+function unify (p, q, b, evalNegation) {
+    p = b.getId(p);
+    q = b.getId(q);
+
+    var po = b.get(p);
+    var qo = b.get(q);
+    var r = true;
+    
+    if (p !== q) {
+        var pt = b.get(po.type);
+        var qt = b.get(qo.type);
+
+        if (table[pt] && table[pt][qt]) {
+            r = table[pt][qt](p, q, b, evalNegation);
+        }
+        else {
+            r = false;
+        }
+    }
+
+    if (!r) {
+        b.notes({status: {fail: true, reason: "unify fail!"}});
+        return r;
+    }
+
+    var check = b.get(po.check) || b.get(qo.check);
+    var negations = prepare.union(b, b.get(po.negation), b.get(qo.negation));
+
+    if (negations.length) {
+        b.update(p, {negation: negations, check: check});
+        b.update(q, {negation: negations, check: check});
+    }
+    else if (check) {
+        b.update(p, {check: check});
+        b.update(q, {check: check});
+    }
+
+    if (evalNegation && !negation(b)) {
+        return false;
+    }
+
+    return true;
+}
+
+
+module.exports = unify;
