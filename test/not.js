@@ -80,7 +80,7 @@ describe('Not Tests.', function() {
     });
 */
     it('Should declare a two number Set, query all', function() {
-        var run = new Z(15);
+        var run = new Z();
         
         run.add(
             "(number 0)" +

@@ -540,18 +540,6 @@ ZVS.prototype.merge = function (branchsHashs, conflictHandler) {
 
 	rawBranch.metadata.changes = changes;
 
-	var branch = new Branch(this, bHash);
-	
-	for (var code in conflicts) {
-		cs = conflicts[code];
-		var r = conflictHandler(cs[0], cs[1], branch);
-		
-		if (!r) {
-			return false;
-		} 
-	}
-	
-	/*
 	var branchs = [];
 	
 	for (var code in conflicts) {
@@ -570,9 +558,6 @@ ZVS.prototype.merge = function (branchsHashs, conflictHandler) {
 	}
 	
 	return this.merge(branchs, conflictHandler);
-	*/
-	
-	return [bHash];
 };
 
 module.exports = ZVS;

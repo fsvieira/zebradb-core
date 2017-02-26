@@ -52,9 +52,9 @@ function check (q, defs, b) {
     return r;
 }
 
-function mergeConflictResolver (p, q, branch) {
+/*function mergeConflictResolver (p, q, branch) {
     return unify(p, q, branch, false);
-}
+}*/
 
 function query (q, globalsHash) {
     var r = [];
@@ -101,7 +101,7 @@ function query (q, globalsHash) {
                     var bB = b[j];
                     
                     // bA * bB
-                    bs = this.zvs.merge([bA, bB], mergeConflictResolver);
+                    bs = this.zvs.merge([bA, bB], "mergeConflictHandler"); // mergeConflictResolver);
                     
                     // TODO: put negation inside merge, since now its a contained function.
                     if (bs && bs.length) {
@@ -183,6 +183,9 @@ function Run (deep) {
         .action("query", query)
         .action("unify", function (p, q) {
             return unify(p, q, this, true);
+        })
+        .action("mergeConflictHandler", function (p, q) {
+            return unify(p, q, this, false);
         });
 
 
