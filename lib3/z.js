@@ -7,14 +7,14 @@ var unify = require("./unify");
 var utils = require("./utils");
 var prepare = require("./prepare");
 var negation = require("./negation");
+var graph = require("./graph");
 
-
-function planner (q, b, tuples) {
+function _planner (q, b, tuples) {
     // normalize id,
     q = b.getId(q);
     
     tuples = tuples || [];
-    
+
     if (tuples.indexOf(q) === -1) {
         var d = b.get(q);
     
@@ -25,12 +25,27 @@ function planner (q, b, tuples) {
             
             var data = b.get(d.data);
             for (var i=0; i<data.length; i++) {
-                planner(data[i], b, tuples);
+                _planner(data[i], b, tuples);
             }
         }
     }
+
+    return tuples;
+}
+
+function planner (q, b) {
+    var tuples = _planner(q, b);
+    
+    var noLoops = tuples.filter(function (t) {
+        return b.get(b.get(t).loop);
+    });
+    
+    if (noLoops.length > 0) {
+        return noLoops;
+    }
     
     return tuples;
+    
 }
 
 function check (q, defs, b) {
@@ -228,9 +243,13 @@ Run.prototype.add = function (defs) {
     this.definitions = this.definitions.concat(defs.definitions || defs);
     
     if (defs.queries && defs.queries.length > 0) {
+        var preDefs = prepare.definitions(this.definitions);
+        
+        graph(preDefs);
+        
         var branch = this.zvs.change(
             "definitions", [
-                this.zvs.add(prepare.definitions(this.definitions)), 
+                this.zvs.add(preDefs), 
                 this.globalsHash
             ]
         );

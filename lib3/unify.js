@@ -47,81 +47,23 @@ var table = {
     }
 };
 
-/*
-function unify (p, q) {
-    p = this.getId(p);
-    q = this.getId(q);
-
-    var s = "UNIFY: " + utils.toString(this.getObject(p), true) + ", " + utils.toString(this.getObject(q), true);
-
-    var po = this.get(p);
-    var qo = this.get(q);
-    var r = true;
-    
-    if (p !== q) {
-        var pt = this.get(po.type);
-        var qt = this.get(qo.type);
-
-        if (table[pt] && table[pt][qt]) {
-            r = table[pt][qt](p, q, this);
-        }
-        else {
-            r = false;
-        }
-    }
-
-    console.log(
-        s + " => " +
-        utils.toString(this.getObject(p), true) + ", " + utils.toString(this.getObject(q), true)
-    );
-
-    if (!r) {
-        this.notes({status: {fail: true, reason: "unify fail!"}});
-        return r;
-    }
-
-    var check = this.get(po.check) || this.get(qo.check);
-    var negations = prepare.union(this, this.get(po.negation), this.get(qo.negation));
-
-    if (negations.length) {
-        this.update(p, {negation: negations, check: check});
-        this.update(q, {negation: negations, check: check});
-    }
-    else if (check) {
-        this.update(p, {check: check});
-        this.update(q, {check: check});
-    }
-
-    if (!negation(this)) {
-        return false;
-    }
-
-    return true;
-}
-
-// TODO: this does't make sense:
-function Unify (zvs) {
-    return zvs.action("unify", unify);
-}
-
-
-module.exports = Unify;
-*/
 function setNegation (p, q, po, qo, b) {
     var negations = (b.get(po.negation) || []).concat(b.get(qo.negation) || []);
 
     if (negations.length > 0) {
         var globalsHash = b.global("globals");
-        var globals = b.get(globalsHash);
-        var query = globals.query;
-        
-        var queryNegation = prepare.union(b, b.get(b.get(query).negation) || [], negations);
-
-
-        b.update(p, {negation: undefined});
-        b.update(q, {negation: undefined});
-
-        b.update(query, {negation: queryNegation});
+        if (globalsHash) {
+            var globals = b.get(globalsHash);
+            var query = globals.query;
+            
+            var queryNegation = prepare.union(b, b.get(b.get(query).negation) || [], negations);
+    
+    
+            b.update(p, {negation: undefined});
+            b.update(q, {negation: undefined});
+    
+            b.update(query, {negation: queryNegation});
+        }
     }
 }
 
@@ -152,21 +94,15 @@ function unify (p, q, b, evalNegation) {
     }
 
     var check = b.get(po.check) || b.get(qo.check);
-    /*
-    var negations = prepare.union(b, b.get(po.negation), b.get(qo.negation));
+    var loop = b.get(po.loop) || b.get(qo.loop);
 
-    if (negations.length) {
-        b.update(p, {negation: negations, check: check});
-        b.update(q, {negation: negations, check: check});
-    }
-    else if (check) {
-        b.update(p, {check: check});
-        b.update(q, {check: check});
-    }
-    */
     if (check) {
-        b.update(p, {check: check});
-        b.update(q, {check: check});
+        b.update(p, {check: check, loop: false});
+        b.update(q, {check: check, loop: false});
+    }
+    else if (loop) {
+        b.update(p, {loop: loop});
+        b.update(q, {loop: loop});
     }
 
     setNegation(p, q, po, qo, b);

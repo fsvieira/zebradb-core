@@ -4,7 +4,7 @@
     * Ordering tuples is not a trivial task, the problem arises from missing important 
     growth control tuples when unifying operation are executed.
     Variables restriction is of most importance in unification since failing to restrict 
-    variables on early phases can originate in a exponential growth of time and size, 
+    variables on early phases can originate a exponential growth of time and size, 
     leading application to crash or running for an unbarable length of time.
     
     * The missing tuples problem arises when facts have potential restriction tuples 
@@ -18,7 +18,7 @@
     We can not avoid tuple creation because of [The missing tuple problem].
     
     * Basicly since there is no backtracking mechanism on the machine because all possible branchs are 
-    extended on each step, so if one fail there is no need to go back a try another branch, we just 
+    extended on each step, so if one fail there is no need to go back and try another branch, we just 
     stop propagating failling branchs to result.
     This originates to a few problems:
         * Higth demand for resources (time and space),
