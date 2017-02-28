@@ -37,7 +37,7 @@ function planner (q, b) {
     var tuples = _planner(q, b);
     
     var noLoops = tuples.filter(function (t) {
-        return b.get(b.get(t).loop);
+        return !b.get(b.get(t).loop);
     });
     
     if (noLoops.length > 0) {

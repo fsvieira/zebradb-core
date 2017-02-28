@@ -10,7 +10,7 @@ describe("Inifinity tests.", function () {
         should(run.print("?(nat 'x)")).eql("@(nat 0)\n@(nat @(nat 0))\n@(nat @(nat @(nat 0)))\n@(nat @(nat @(nat @(nat 0))))");
     });
 
-    it("Should declare natural numbers and query all natural numbers", function () {
+    it("Should declare recursive tuples", function () {
         var run = new Z(10);
         
         /*
