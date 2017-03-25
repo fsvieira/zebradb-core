@@ -96,6 +96,7 @@ A great source of examples are the test file https://github.com/fsvieira/zebrajs
   * [x] Add ignore "_" term support.
 
 ** pre-alfa version **
+  
   The first version was a implementation of variables as js objects with some features of unification,
   the ideia was to provide flexible tools to let the programmer choose their own search algoritms.
   The problem with this aproach is that the system only have partial information of the 
