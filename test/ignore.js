@@ -2,6 +2,13 @@ var should = require("should");
 var Z = require("../lib/z");
 
 
+/*
+    TODO: 
+        - do we need a ignore??
+        - how should we implement the ignore, since its purpose 
+        is to cut computations.
+*/
+
 describe('Ignore Tests', function() {
     describe('If ... then ... else', function() {
         it('should declare simple if then else.', function () {
@@ -47,13 +54,12 @@ describe('Ignore Tests', function() {
                 return Z.toString(run.query(q, len));
             };
 
-            // TODO: check why is this repeated 3 times (probably because ignore succeds everytime.).
             should(
                 query(
                     "(if (bool true) (nat 0) (nat 'n) 'r)"
                 )
             ).eql(
-                "(if (bool true) (nat 0) _ (nat 0))\n(if (bool true) (nat 0) _ (nat 0))\n(if (bool true) (nat 0) _ (nat 0))"
+                "(if (bool true) (nat 0) _ (nat 0))"
             );
 
             should(
@@ -62,10 +68,10 @@ describe('Ignore Tests', function() {
                     12
                 )
             ).eql(
-                "(if (bool true) (nat 0) _ (nat 0))\n" +
-                "(if (bool true) (nat (nat 0)) _ (nat (nat 0)))\n" +
-                "(if (bool true) (nat (nat (nat 0))) _ (nat (nat (nat 0))))\n" +
-                "(if (bool true) (nat (nat (nat (nat 0)))) _ (nat (nat (nat (nat 0)))))"
+                "(if (bool true) (nat (nat (nat (nat 0)))) _ (nat (nat (nat (nat 0)))))\n" + 
+                "(if (bool true) (nat (nat (nat 0))) _ (nat (nat (nat 0))))\n" + 
+                "(if (bool true) (nat (nat 0)) _ (nat (nat 0)))\n" + 
+                "(if (bool true) (nat 0) _ (nat 0))"
             );
         });
     });

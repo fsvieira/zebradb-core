@@ -1,143 +1,75 @@
 var should = require("should");
-var Z = require("../lib/z");
+var Z = require("../lib3/z");
 
-describe('ZQuery Tests.', function() {
-    describe('Querys', function() {
-        it('Query with single tuple constant.', function () {
-            var run = new Z.Run([
-                Z.t(Z.c("yellow"))
-            ]);
-            
-            var query = function (q) {
-                var r = run.query(q);
-                return Z.toString(r);
-            };
+describe("ZQuery Tests.", function () {
+    it("Query with single tuple constant.", function () {
+        var run = new Z();
+        
+        run.add("(yellow)");
+        should(run.print("?(yellow)")).eql("@(yellow)");
+        should(run.print("?('q)")).eql("@(yellow)");
+        should(new Z().print("(yellow) ?('q)")).eql("@(yellow)");
+    });
 
-            should(
-                query(
-                    Z.t(Z.c("yellow"))
-                )
-            ).eql("(yellow)");
+    it('Should identify variables by name.', function () {
+        var run = new Z();
+        
+        run.add("('p 'p)");
+        should(run.print(
+            "?(yellow 'p)"
+        )).eql(
+            "@(yellow yellow)"
+        );
 
-            should(
-                query(
-                    Z.t(Z.v("q"))
-                )
-            ).eql("(yellow)");
-        });
+        run = new Z();
+        run.add("('q ) (('q) ('q))");
+        
+        should(run.print(
+            "?((yellow) ('p))"
+        )).eql(
+            "@(@(yellow) @(yellow))"
+        );
 
-        it('Should identify variables by name.', function () {
-            var defs = [Z.t(Z.v("q"), Z.v("q"))];
-            var run = new Z.Run(defs);
+    });
 
-            var query = function (q) {
-                return Z.toString(run.query(q));
-            };
+    it("Should unify variables with tuple values", function () {
+        var run = new Z();
+        
+        run.add("(blue red yellow)");
+        should(run.print(
+            "?('a 'b 'c)"
+        )).eql(
+            "@(blue red yellow)"
+        );
+    });
 
-            should(defs).eql(
-                [
-                    {
-                        data: [
-                            { data: 'q', type: 'variable' },
-                            { data: 'q', type: 'variable' }
-                        ],
-                        type: 'tuple'
-                    }
-                ]
-            );
+    it("Should unify tuples variables.", function() {
 
-            should(query(
-                    Z.t(Z.c("yellow"), Z.v("p"))
-                )
-            ).eql("(yellow yellow)");
+        var run = new Z();
+        
+        run.add("('a 'a)");
+        should(run.print(
+            "?(yellow 'c)"
+        )).eql(
+            "@(yellow yellow)"
+        );
 
-            run = new Z.Run([ 
-                Z.t(Z.v("q")), // ('q)
-                Z.t( // (('q) ('q))
-                    Z.t(Z.v("q")), 
-                    Z.t(Z.v("q"))
-                )
-            ]);
-            
-            should(
-                query(
-                    Z.t(
-                        Z.t(Z.c("yellow")),
-                        Z.t(Z.v("p"))
-                    )
-                )
-            ).eql("((yellow) (yellow))");
-        });
+        run = new Z();
+        run.add("('x 'y) (('a 'a))");
 
-        it("Should unify variables with tuple values", function () {
-            var run = new Z.Run([ 
-                Z.t(
-                    Z.c("blue"),
-                    Z.c("red"), 
-                    Z.c("yellow")
-                )
-            ]);
-            
-            var query = function (q) {
-                return Z.toString(run.query(q));
-            };
-            
-            should(
-                query(
-                    Z.t(
-                        Z.v("a"),
-                        Z.v("b"), 
-                        Z.v("c")
-                    )
-                )
-            ).eql("(blue red yellow)");
-        });
-
-        it("Should unify tuples variables.", function () {
-            
-            var run = new Z.Run([ 
-                Z.t(Z.v("a"), Z.v("a"))
-            ]);
-            
-            var query = function (q) {
-                return Z.toString(run.query(q));
-            };
-
-            should(
-                query(
-                    Z.t(Z.c("yellow"), Z.v("c")) 
-                )
-            ).eql("(yellow yellow)");
-
-            run = new Z.Run([
-                Z.t(Z.v("x"), Z.v("y")),
-                Z.t(Z.t(Z.v("a"), Z.v("a"))) 
-            ]);
-            
-            should(
-                query(
-                    Z.t(Z.t(Z.c("yellow"), Z.v("c")))
-                )
-            ).eql("((yellow yellow))");
-
-            run = new Z.Run([
-                Z.t(Z.c("yellow"), Z.c("blue")),
-                Z.t(Z.c("blue"), Z.c("yellow")),
-                Z.t(
-                    Z.t(Z.v("a"), Z.v("b")), 
-                    Z.t(Z.v("b"), Z.v("a"))
-                )
-            ]);
-
-            should(
-                query(
-                    Z.t(
-                        Z.t(Z.c("yellow"), Z.v("c")), 
-                        Z.t(Z.c("blue"), Z.v("d"))
-                    )
-                )
-            ).eql("((yellow blue) (blue yellow))");
-        });
+        should(run.print(
+            "?((yellow 'c))"
+        )).eql(
+            "@(@(yellow yellow))"
+        );
+        
+        run = new Z();
+        run.add("(yellow blue) (blue yellow) (('a 'b) ('b 'a))");
+        
+        should(run.print(
+            "?((yellow 'c) (blue 'd))"
+        )).eql(
+            "@(@(yellow blue) @(blue yellow))"
+        );
     });
 });
-

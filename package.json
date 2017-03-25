@@ -1,0 +1,43 @@
+{
+  "name": "zebrajs",
+  "version": "0.0.14",
+  "description": "variable constrain lib",
+  "main": "lib3/z.js",
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "test": "test",
+    "lib3": "lib"
+  },
+  "dependencies": {
+    "q": "^1.4.1"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-browserify": "^0.5.1",
+    "gulp-cli": "^1.2.2",
+    "mocha": "^2.2.4",
+    "pegjs": "^0.10.0",
+    "should": "^5.2.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fsvieira/zebrajs.git"
+  },
+  "keywords": [
+    "zebra",
+    "js",
+    "contrain",
+    "lib",
+    "variable"
+  ],
+  "author": "Filipe Vieira",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fsvieira/zebrajs/issues"
+  },
+  "homepage": "https://github.com/fsvieira/zebrajs#readme"
+}
