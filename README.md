@@ -1,5 +1,7 @@
 # zebrajs
 
+Atention: This is still a beta version, many things can change, and not everything is working.
+
 Zebrajs is a logical symbolic computation query system, given a set of computational definitions it will
 answer questions about them, therefor Zebrajs is better suited for software validation and constrain satisfaction problems.
 
