@@ -12,6 +12,8 @@ The zebra language is very simple, it only has constants, variables, tuples and 
 
 But because its hard to explain how it works, I will do it with examples:
 
+Try it online: https://fsvieira.github.io/raindropz/ (Raindropz IDE git: https://github.com/fsvieira/raindropz)
+
 ## Examples
 
 * Defintions, are considered facts they are always tuples and always global.
