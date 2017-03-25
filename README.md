@@ -1,6 +1,6 @@
 # zebrajs
 
-Atention: This is still a beta version, many things can change, and not everything is working.
+ATENTITON: This is still a beta version, many things can change, and not everything is working.
 
 Zebrajs is a logical symbolic computation query system, given a set of computational definitions it will
 answer questions about them, therefor Zebrajs is better suited for software validation and constrain satisfaction problems.
@@ -8,7 +8,7 @@ answer questions about them, therefor Zebrajs is better suited for software vali
 Zebrajs system consists of two parts the definitions and the query, both parts share the same language of zebra-system terms, which is defined by
 a certain formal syntax, and a set of transformation rules.
 
-The zebra language is very simple, it only has constants, variables, tuples, negation and ignore.
+The zebra language is very simple, it only has constants, variables, tuples and negation.
 
 But because its hard to explain how it works, I will do it with examples:
 
@@ -16,7 +16,7 @@ But because its hard to explain how it works, I will do it with examples:
 
 * Defintions, are considered facts they are always tuples and always global.
   * Ex: (color yellow)
-  * In this example color and yellow are constants, constants dont need to be declared anywhere 
+  * In this example color and yellow are constants, constants don't need to be declared anywhere 
 because we consider that all constants exists.
 * Queries, are questions to the system definitions (facts),
   * Ex: ?(color yellow)
@@ -25,7 +25,7 @@ because we consider that all constants exists.
     if yes the result will be the tuple itself: (color yellow)
   * If there is no awnser then the system will return nothing.
 * Queries, may also be inner tuples of queries or definitions
-  * The ideia is quite simple, a fact is only valid if all contained tuples are also valid facts.
+  * The ideia is quite simple, a fact is only valid if all contained tuples that are also valid facts.
   * Ex: (man (person 'name) (male 'name) 'name)
     * This fact is invalid because there is no (person 'name) or (male 'name) definitions,
     * Here the 'name is a variable, all variables have the ' as prefix,
@@ -36,16 +36,16 @@ because we consider that all constants exists.
     * The the fact would be valid and the query:
       * ?(man ' ' 'man), returns:
       * (man (person filipe) (male filipe) filipe)
-* Negation, is a anonimous variable that can unify with any value except the ones that are negated:
-  * Ex: (color ^yellow)
-  * This fact is true for any color except yellow,
-  * Negation can be used with consants, variables or tuples:
-    * Ex: (notYellow ^(color yellow))
-* Ignore, will ignore any unification and it will always succed,
-  * Ex. if then else: 
-    * (if true 'x _ 'x) 
-    * (if false _ 'x 'x)
-  * We want to ignore the branch that we dont care about, this is specialy good to avoid infinit, failing and unecessary computation. 
+* Negation, its true if a negated query doens't exist, negtion querys are hidden and are not considered to unification,
+  * Ex: 
+    * (equal 'x 'x) 
+    * (color yellow) 
+    * (color blue)
+    * ?(color 'x ^(equal 'x yellow))
+  * The query should return:
+    * (color blue)
+  * Basiclly what we are saying is we want color 'x but that will not be equal with color yellow,
+  * Because we are negating a query negation can only be applied to a tuple,
 * Thats it.
 
 
@@ -64,6 +64,23 @@ A great source of examples are the test file https://github.com/fsvieira/zebrajs
   * Add support to finit representation of infinity structures (ex: (nat 'x) -> 'x => (nat 'x))
 * 1.0.0 version
   * [ ] Add examples, solve brave puzzle (http://www.mathsisfun.com/puzzles/a-brave-puzzle.html)
+* beta version (new)
+  * [ ] get all examples working,
+  * [ ] get all tests working
+
+
+** beta version (2016-03-07) **
+  This version had a few things that I had to rethink, so the changes to the new version are:
+  
+  * The "not" was a not by value and I decided to replace it with a "not exist", this means that I negate a query
+  insted a value. I think this kind of not is more versatil and much more clear. Also the "not exists" works 
+  like a condition and not as part of the result. 
+  
+  * The ignore was removed but only becase at this phase I need to get a stable version and than reavaluate the 
+  need of the ignore.
+  
+  * Optimize the way data was stored, I implemented version system with immutable data.
+
 * beta version (2016-03-07)
   * [x] Optimize (solve all [current] tests under 20 seconds, optimal < 2s),
   * [x] Remove duplicated results,
@@ -73,7 +90,6 @@ A great source of examples are the test file https://github.com/fsvieira/zebrajs
   * [x] Fix tools,
   * [x] Fix imports and zlib tests,
   * [x] Add ignore "_" term support.
-
 
 ** pre-alfa version **
   The first version was a implementation of variables as js objects with some features of unification,
