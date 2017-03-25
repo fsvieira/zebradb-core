@@ -60,7 +60,7 @@ A great source of examples are the test file https://github.com/fsvieira/zebrajs
   * You also will need to install should (https://github.com/visionmedia/should.js).
 
 
-## History/Road map (WIP)
+# Road map (WIP)
 
 * 2.0.0 (WIP)
   * Add support to finit representation of infinity structures (ex: (nat 'x) -> 'x => (nat 'x))
@@ -70,8 +70,10 @@ A great source of examples are the test file https://github.com/fsvieira/zebrajs
   * [ ] get all examples working,
   * [ ] get all tests working
 
+# History
 
 ** beta version (2016-03-07) **
+  
   This version had a few things that I had to rethink, so the changes to the new version are:
   
   * The "not" was a not by value and I decided to replace it with a "not exist", this means that I negate a query
