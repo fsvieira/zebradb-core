@@ -97,6 +97,7 @@ function query (q, globalsHash) {
             
             if (branches.length === 0) {
                 // fail
+                this.notes({status: {fail: true, reason: "check fail!"}});
                 return;
             }
             else {
@@ -116,9 +117,8 @@ function query (q, globalsHash) {
                     var bB = b[j];
                     
                     // bA * bB
-                    bs = this.zvs.merge([bA, bB], "mergeConflictHandler"); // mergeConflictResolver);
+                    bs = this.zvs.merge([bA, bB], "mergeConflictHandler");
                     
-                    // TODO: put negation inside merge, since now its a contained function.
                     if (bs && bs.length) {
                         for (var bi=bs.length-1; bi>=0; bi--) {
                             if (!negation(this.hash2branch(bs[bi]))) {
@@ -133,6 +133,7 @@ function query (q, globalsHash) {
             
             if (nr.length === 0) {
                 // fail,
+                this.notes({status: {fail: true, reason: "merge fail!"}});
                 return;    
             }
             
@@ -165,6 +166,9 @@ function query (q, globalsHash) {
                 }
             }
         }
+    }
+    else {
+        this.notes({status: {fail: true, reason: "no results!"}});
     }
 
     return branches;
