@@ -1,5 +1,5 @@
 var should = require("should");
-var Z = require("../lib3/z");
+var Z = require("../lib/z");
 
 describe("Inifinity tests.", function () {
     it("Should declare natural numbers and query all natural numbers", function () {

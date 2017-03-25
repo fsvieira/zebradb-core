@@ -1,5 +1,5 @@
 var should = require("should");
-var Z = require("../lib3/z");
+var Z = require("../lib/z");
 
 /*
   Online prolog examples converted to zebra system.
