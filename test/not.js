@@ -58,7 +58,7 @@ describe('Not Tests.', function() {
             "@(not @(number 0) @(number 1))"
         );
     });
-
+*/
     it('Should declare a two number Set', function() {
         var run = new Z();
 
@@ -78,7 +78,7 @@ describe('Not Tests.', function() {
 
         should(run.print("?(set (number 'a) (set (number 'b) (set (number 'c) (set) ') ') ')")).eql("");
     });
-*/
+/*
     it('Should declare a two number Set, query all', function() {
         var run = new Z();
         
@@ -98,7 +98,7 @@ describe('Not Tests.', function() {
             "@(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '))"
         );
     });
-/*
+
     it('Should declare a number Set, 3 elements', function() {
         var run = new Z();
         
