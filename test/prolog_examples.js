@@ -10,17 +10,17 @@ describe('Prolog examples port Tests.', function() {
     it('Should query people about what they like.', function () {
         var run = new Z();
         
-        run.add("\
-            (mary likes food)\
-            (mary likes wine)\
-            (john likes wine)\
-            (john likes mary)\
-            "
+        run.add(
+            "(mary likes food)" +
+            "(mary likes wine)" +
+            "(john likes wine)" +
+            "(john likes mary)" 
         );
 
         should(run.print("?(mary likes food)")).eql("@(mary likes food)");
         should(run.print("?(john likes wine)")).eql("@(john likes wine)");
         should(run.print("?(john likes food)")).eql("");
+
         should(run.print("?(mary likes 'stuff)")).eql(
             "@(mary likes food)\n@(mary likes wine)"
         );

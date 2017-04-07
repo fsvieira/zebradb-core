@@ -2,7 +2,7 @@ var should = require("should");
 var Z = require("../lib/z");
 
 describe('Not Tests.', function() {
-/*
+
     it('Declare a not equal', function() {
         var run = new Z();
 
@@ -10,9 +10,9 @@ describe('Not Tests.', function() {
         should(run.print("?(equal yellow yellow)")).eql("@(equal yellow yellow)");
         should(run.print("?(equal yellow blue)")).eql("");
         should(run.print("?(not-equal yellow yellow)")).eql("");
-        should(run.print("?(not-equal yellow blue)")).eql("@(not-equal yellow blue)");
+        should(run.print("?(not-equal yellow blue)")).eql("@(not-equal yellow blue)[^!(equal yellow blue)]");
         should(run.print("?(not-equal (color yellow) (color yellow))")).eql("");
-        should(run.print("?(not-equal (color blue) (color yellow))")).eql("@(not-equal @(color blue) @(color yellow))");
+        should(run.print("?(not-equal (color blue) (color yellow))")).eql("@(not-equal @(color blue) @(color yellow))[^!(equal @(color blue) @(color yellow))]");
 
     });
 
@@ -30,16 +30,16 @@ describe('Not Tests.', function() {
         should(run.print("?(distinct (color yellow) (color yellow))")).eql("");
 
         should(run.print("?(distinct (color yellow) (color blue))")).eql(
-            "@(distinct @(color yellow) @(color blue))"
+            "@(distinct @(color yellow) @(color blue))[^!(equal @(color yellow) @(color blue))]"
         );
 
         should(run.print("?(distinct (color 'a) (color 'b))")).eql(
-            "@(distinct @(color blue) @(color yellow))\n" +
-            "@(distinct @(color red) @(color yellow))\n" +
-            "@(distinct @(color yellow) @(color blue))\n" +
-            "@(distinct @(color red) @(color blue))\n" +
-            "@(distinct @(color yellow) @(color red))\n" +
-            "@(distinct @(color blue) @(color red))"
+            "@(distinct @(color blue) @(color yellow))[^!(equal @(color blue) @(color yellow))]\n" + 
+            "@(distinct @(color red) @(color yellow))[^!(equal @(color red) @(color yellow))]\n" + 
+            "@(distinct @(color yellow) @(color blue))[^!(equal @(color yellow) @(color blue))]\n" +
+            "@(distinct @(color red) @(color blue))[^!(equal @(color red) @(color blue))]\n" +
+            "@(distinct @(color yellow) @(color red))[^!(equal @(color yellow) @(color red))]\n" +
+            "@(distinct @(color blue) @(color red))[^!(equal @(color blue) @(color red))]"
         );
     });
 
@@ -54,11 +54,11 @@ describe('Not Tests.', function() {
         );
         
         should(run.print("?(not (number 'p) (number 'q))")).eql(
-            "@(not @(number 1) @(number 0))\n" + 
-            "@(not @(number 0) @(number 1))"
+            "@(not @(number 1) @(number 0))[^!(equal @(number 1) @(number 0))]\n" +
+            "@(not @(number 0) @(number 1))[^!(equal @(number 0) @(number 1))]"
         );
     });
-*/
+
     it('Should declare a two number Set', function() {
         var run = new Z();
 
@@ -72,8 +72,8 @@ describe('Not Tests.', function() {
         );
             
         should(run.print("?(set (number 'a) (set (number 'b) (set) ') ')")).eql(
-            "@(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '))\n" +
-            "@(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) '))"
+            "@(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '))[^!(equal @(number 1) (number 0))]\n" +
+            "@(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) '))[^!(equal @(number 0) (number 1))]"
         );
 
         should(run.print("?(set (number 'a) (set (number 'b) (set (number 'c) (set) ') ') ')")).eql("");
