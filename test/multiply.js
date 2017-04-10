@@ -5,16 +5,18 @@ var Z = require("../lib/z");
 describe('Multiply Tests', function() {
     describe('Test Multiply results', function() {
         it('should multiply results.', function () {
-            var z = new Z.Run(
+            var run = new Z();
+            
+            run.add(
                 "(yellow 'a)" +
                 "('b blue)"
             );
             
             should(
-                Z.toString(z.query(
-                    "('c 'd)"
+                run.print(
+                    "?('c 'd)"
                 )
-            )).eql(
+            ).eql(
                 "('x$0 blue)\n" + 
                 "(yellow 'x$0)\n" + 
                 "(yellow blue)"
@@ -22,16 +24,19 @@ describe('Multiply Tests', function() {
         });
         
         it('should multiply results (with variables with same name).', function () {
-            var z = new Z.Run(
+            
+            var run = new Z();
+            
+            run.add(
                 "(yellow 'a)" +
                 "('a blue)"
             );
             
             should(
-                Z.toString(z.query(
-                    "('a 'b)"
+                run.print(
+                    "?('a 'b)"
                 )
-            )).eql(
+            ).eql(
                 "('x$0 blue)\n" +
                 "(yellow 'x$0)\n" + 
                 "(yellow blue)"
