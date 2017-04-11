@@ -17,9 +17,9 @@ describe('Multiply Tests', function() {
                     "?('c 'd)"
                 )
             ).eql(
-                "('x$0 blue)\n" + 
-                "(yellow 'x$0)\n" + 
-                "(yellow blue)"
+                "@(yellow 'a)\n" + 
+                "@('b blue)\n" + 
+                "@(yellow blue)"
             );
         });
         
@@ -37,9 +37,9 @@ describe('Multiply Tests', function() {
                     "?('a 'b)"
                 )
             ).eql(
-                "('x$0 blue)\n" +
-                "(yellow 'x$0)\n" + 
-                "(yellow blue)"
+                "@(yellow 'a)\n" + 
+                "@('a blue)\n" + 
+                "@(yellow blue)"
             );
         });
     });
