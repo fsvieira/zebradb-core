@@ -47,14 +47,25 @@ a certain formal syntax, and a set of transformation rules.
 \paragraph{The \zm\ language ($\mathbb{L}$) of terms are defined as:}
 
 \begin{enumerate}
-\item $\mathbb{L}_{0}$ and $\mathbb{L}_{not}$ are sets of \zm\ terms.
-\item $c \in \mathbb{C}$: $\mathbb{C}$ is the set of terminal symbols called constants, $c$ is a terminal symbol. $c \in \mathbb{L}_{0}$.
-\item $\var{p} \in \mathbb{V}$: $\mathbb{V}$ is the set of variables, $p$ is a variable. $\var{p} \in \mathbb{L}_{0}$.
-\item $(p_{0} \ldots p_{n}) \in \mathbb{T}$: $\mathbb{T}$ is the set of tuples, $(p_{0} \ldots p_{n})$ its a n-tuple of \zm\ terms. $(p_{0} \ldots p_{n}) \in \mathbb{L}_{0}$.
-\item $\overline{p}$ can be any term that is not equal to $p$, $p \in \mathbb{L}_{0}$. $\overline{p} \in \mathbb{L}_{not}$.
-\item Nothing else is a \zm\ term.
-\item $\mathbb{L} = \mathbb{L}_{0} \cup \mathbb{L}_{not}$,
+\item $\mathbb{C}$ is the set of terminal symbols called constants,
+\item $\mathbb{V}$ is the set of variables,
+\item $(p_{0} \ldots p_{n}) \in \mathbb{T}_{0}$: $\mathbb{T}_{0}$ is the set of tuples, $(p_{0} \ldots p_{n})$ its a n-tuple where 
+$p_k \in \mathbb{C} \vee p_k \in \mathbb{V}$,
+\item $\mathbb{T}_{k}$ is a set of tuples, $(p_{0} \ldots p_{n}) \in \mathbb{T}_{k}$ where $k > 0$ and
+$p_{i} \in \mathbb{T}_{k-1} \vee p_{i} \in \mathbb{C} \vee p_{i} \in \mathbb{V} \vee (p_{i} = \overline{q} \wedge q \in \mathbb{T}_{k-1})$ and $\overline{q}$ is the 
+negation of tuple $q$.
+\item $\mathbb{L} = \bigcup\limits_{i=0}^{\infty} \mathbb{T}_{i}$
 \end{enumerate}
+
+% \begin{enumerate}
+% \item $\mathbb{L}_{0}$ and $\mathbb{L}_{not}$ are sets of \zm\ terms.
+% \item $c \in \mathbb{C}$: $\mathbb{C}$ is the set of terminal symbols called constants, $c$ is a terminal symbol. $c \in \mathbb{L}_{0}$.
+% \item $\var{p} \in \mathbb{V}$: $\mathbb{V}$ is the set of variables, $p$ is a variable. $\var{p} \in \mathbb{L}_{0}$.
+% \item $(p_{0} \ldots p_{n}) \in \mathbb{T}$: $\mathbb{T}$ is the set of tuples, $(p_{0} \ldots p_{n})$ its a n-tuple of \zm\ terms. $(p_{0} \ldots p_{n}) \in \mathbb{L}_{0}$.
+% \item $\overline{p}$ can be any term that is not equal to $p$, $p \in \mathbb{L}_{0}$. $\overline{p} \in \mathbb{L}_{not}$.
+% \item Nothing else is a \zm\ term.
+% \item $\mathbb{L} = \mathbb{L}_{0} \cup \mathbb{L}_{not}$,
+% \end{enumerate}
 
 
 \subsection{\zm\ Operations}
