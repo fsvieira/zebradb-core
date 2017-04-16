@@ -1,20 +1,19 @@
-
-// tools/run.js examples/brave
-
-[../zlib/list]
-
-
-
 (letter B)
 (letter R)
 (letter A)
 (letter V)
 (letter E)
-(set)
-(set (letter 'a) (set) ')
-(set (letter 'a) (set (letter ^'a) 'tail ') (set (letter 'a) 'tail '))
 
-// ?(set (letter 'b) (set (letter 'r) (set (letter 'a) (set (letter 'v) (set (letter 'e) (set) ') ') ') ') ')
+(equal 'x 'x)
+
+(distinct 
+    (letter 'b) (letter 'r) (letter 'a) (letter 'v) (letter 'e)
+    ^(equal 'b 'r) ^(equal 'b 'a) ^(equal 'b 'v) ^(equal 'b 'v) ^(equal 'b 'e)
+    ^(equal 'r 'a) ^(equal 'r 'v) ^(equal 'r 'v) ^(equal 'r 'e)
+    ^(equal 'a 'v) ^(equal 'a 'e)
+)
+
+(conditions '1 '2 '3 '4 '5 '6 '7 '8 '9 '10 '11 '12)
 
 (brave
     'x1y1 'x2y1 'x3y1 'x4y1 'x5y1
@@ -22,82 +21,31 @@
     'x1y3 'x2y3 'x3y3 'x4y3 'x5y3
     'x1y4 'x2y4 'x3y4 'x4y4 'x5y4
     'x1y5 'x2y5 'x3y5 'x4y5 'x5y5
-
-    // lines 
-    (list (set (letter 'x1y1) (set (letter 'x2y1) (set (letter 'x3y1) (set (letter 'x4y1) (set (letter 'x5y1) (set) ') ') ') ') ')
-    (list (set (letter 'x1y2) (set (letter 'x2y2) (set (letter 'x3y2) (set (letter 'x4y2) (set (letter 'x5y2) (set) ') ') ') ') ')        
-    (list (set (letter 'x1y3) (set (letter 'x2y3) (set (letter 'x3y3) (set (letter 'x4y3) (set (letter 'x5y3) (set) ') ') ') ') ')        
-    (list (set (letter 'x1y4) (set (letter 'x2y4) (set (letter 'x3y4) (set (letter 'x4y4) (set (letter 'x5y4) (set) ') ') ') ') ')        
-    (list (set (letter 'x1y5) (set (letter 'x2y5) (set (letter 'x3y5) (set (letter 'x4y5) (set (letter 'x5y5) (set) ') ') ') ') ')
-
-    // Columns
-    (list (set (letter 'x1y1) (set (letter 'x1y2) (set (letter 'x1y3) (set (letter 'x1y4) (set (letter 'x1y5) (set) ') ') ') ') ')
-    (list (set (letter 'x2y1) (set (letter 'x2y2) (set (letter 'x2y3) (set (letter 'x2y4) (set (letter 'x2y5) (set) ') ') ') ') ')
-    (list (set (letter 'x3y1) (set (letter 'x3y2) (set (letter 'x3y3) (set (letter 'x3y4) (set (letter 'x3y5) (set) ') ') ') ') ')
-    (list (set (letter 'x4y1) (set (letter 'x4y2) (set (letter 'x4y3) (set (letter 'x4y4) (set (letter 'x4y5) (set) ') ') ') ') ')
-    (list (set (letter 'x5y1) (set (letter 'x5y2) (set (letter 'x5y3) (set (letter 'x5y4) (set (letter 'x5y5) (set) ') ') ') ') ')
-
-    // Diagonal
-    (list (set (letter 'x1y1) (set (letter 'x2y2) (set (letter 'x3y3) (set (letter 'x4y4) (set (letter 'x5y5) (set) ') ') ') ') ')
-    (list (set (letter 'x1y5) (set (letter 'x2y4) (set (letter 'x3y3) (set (letter 'x4y2) (set (letter 'x5y1) (set) ') ') ') ') ')
-    (list)
-    ))))))))))))
-)
-
-
-/*
-
-B R A V E
-_ E B R _
-_ _ V _ B
-_ B R _ _
-_ _ E B _
-
- -- Solution:
-    
-    B R A V E
-    V E B R A
-    R A V E B
-    E B R A V
-    A V E B R
-
-*/    
-
-/*
-?(brave 
-     B     R    A  V     E
-    'x1y2  E    B  R    'x5y2
-    'x1y3 'x2y3 V 'x4y3  B
-    'x1y4  B    R 'x4y4 'x5y4
-    'x1y5 'x2y5 E  B    'x5y5
-    '
-)
-*/
-?(brave 
-    B R A V E
-    ' E B R '
-    ' ' V ' B
-    ' B R ' '
-    ' ' E B '
-    '
-) {
-    var s='';
-    
-    for (var i=1; i<q.data.length-1; i++) {
-        if ((i-1)%5===0) {
-            s+="\n";
-        }
-
-        if (q.data[i].type === 'variable') {
-            s += "v$" +i;
-        }
-        else {
-            s += q.data[i].data;
-        }
+    (
+        conditions
+        (distinct 'x1y1 'x2y1 'x3y1 'x4y1 'x5y1)
+        (distinct 'x1y2 'x2y2 'x3y2 'x4y2 'x5y2)
+        (distinct 'x1y3 'x2y3 'x3y3 'x4y3 'x5y3)
+        (distinct 'x1y4 'x2y4 'x3y4 'x4y4 'x5y4)
+        (distinct 'x1y5 'x2y5 'x3y5 'x4y5 'x5y5)
         
-        s+= " ";
-    }
-    
-    return s;
-}
+        (distinct 'x1y1 'x1y2 'x1y3 'x1y4 'x1y5)
+        (distinct 'x2y1 'x2y2 'x2y3 'x2y4 'x2y5)
+        (distinct 'x3y1 'x3y2 'x3y3 'x3y4 'x3y5)
+        (distinct 'x4y1 'x4y2 'x4y3 'x4y4 'x4y5)
+        (distinct 'x5y1 'x5y2 'x5y3 'x5y4 'x5y5)
+
+        (distinct 'x1y1 'x2y2 'x3y3 'x4y4 'x5y5)
+        (distinct 'x1y5 'x2y4 'x3y3 'x4y2 'x5y1)
+    )
+)
+
+?(brave
+    (letter B) (letter R) (letter A) (letter V) (letter E)
+    '          (letter E) (letter B) (letter R) 'v2
+    '          '          (letter V) '          (letter B)
+    '          (letter B) (letter R) '          '
+    '          '          (letter E) (letter B) '
+    '
+)
 
