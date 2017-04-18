@@ -6,7 +6,6 @@ var Z = require("../lib/z");
 */
 
 describe('Prolog examples port Tests.', function() {
-
     it('Should query people about what they like.', function () {
         var run = new Z();
         
@@ -181,4 +180,5 @@ describe('Prolog examples port Tests.', function() {
         // Query is not able to stop on their own.
         should(run.print("?(john likes 'stuff 'p)")).eql("");
     });
+
 });

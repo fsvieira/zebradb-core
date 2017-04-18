@@ -64,11 +64,25 @@ A great source of examples are the test file https://github.com/fsvieira/zebrajs
 
 * 2.0.0 (WIP)
   * Add support to finit representation of infinity structures (ex: (nat 'x) -> 'x => (nat 'x))
-* 1.0.0 version
-  * [ ] Add examples, solve brave puzzle (http://www.mathsisfun.com/puzzles/a-brave-puzzle.html)
+* 1.0.0 version (WIP)
+  * [ ] Update documentation, 
+  * [ ] Lint code,
+    * [ ] Add code guidelines
+  * (WIP) Optimize,
+  * (WIP) pre-calculate definitions:
+    * extend and replace unfiable definitons with values, eg: (blue) ('c) => (blue).
+  * (WIP) convert lib api to async functions,
+    * Api with promisses,
+    * Events to processing pileline?
 * beta version (new)
+  * [ ] Update documentation, 
   * [ ] get all examples working,
-  * [ ] get all tests working
+  * [ ] get all tests working,
+  * [ ] move roadmap/history to history.md,
+  * [ ] add include file to z language, eg: [zlib/list.z],
+    * [ ] pass files driver as argument, default to node fs.
+  * [ ] pre-calculate definitions,
+    * [ ] multiply definitions (remove multiply results)
 
 # History
 
@@ -98,7 +112,8 @@ A great source of examples are the test file https://github.com/fsvieira/zebrajs
 ** pre-alfa version **
   
   The first version was a implementation of variables as js objects with some features of unification,
-  the ideia was to provide flexible tools to let the programmer choose their own search algoritms.
+  the ideia was
+  to provide flexible tools to let the programmer choose their own search algoritms.
   The problem with this aproach is that the system only have partial information of the 
   problem is trying to solve, so it is very restricted on decisions that it can make.
   This makes it hard to optmize the system so I decided to resutruct next version of the system and give him

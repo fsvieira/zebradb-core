@@ -1,3 +1,26 @@
+/*
+    http://www.mathsisfun.com/puzzles/a-brave-puzzle.html
+
+Rules: 
+    * can't repeat brave letters on lines, columns and two main diagonals.
+    * the goal is to find the missing letters.    
+
+    B R A V E
+    _ E B R _
+    _ _ V _ B
+    _ B R _ _
+    _ _ E B _
+
+-- Solution:
+    
+    B R A V E
+    V E B R A
+    R A V E B
+    E B R A V
+    A V E B R
+
+*/
+
 (letter B)
 (letter R)
 (letter A)

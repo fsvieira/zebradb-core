@@ -11,7 +11,12 @@ function run (filename) {
             console.log(err);
         }
         else {
-           console.log(run.print(data.toString())); 
+            try {
+               console.log(run.print(data.toString())); 
+            }
+            catch (e) {
+                console.log(e);
+            }
         }
     });
 }

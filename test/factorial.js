@@ -2,7 +2,6 @@ var should = require("should");
 var Z = require("../lib/z");
 
 describe('Factorial Parser Tests.', function() {
-
     it('Should declare ~Peanno numbers', function() {
         var run = new Z(10);
         

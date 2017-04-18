@@ -20,8 +20,8 @@ describe("ZQuery Tests.", function () {
         )).eql(
             "@(yellow yellow)"
         );
-        
-        run = new Z();
+
+        var run = new Z();
         run.add("('q ) (('q) ('q))");
         
         should(run.print(
