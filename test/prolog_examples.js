@@ -80,9 +80,9 @@ describe('Prolog examples port Tests.', function() {
         );
         
         should(run.print("?(john likes 'stuff 'p)")).eql(
-            "@(john likes wine ')\n" + 
+            "@(john likes john @(john likes wine '))\n" +
             "@(john likes mary @(mary likes wine '))\n" +
-            "@(john likes john @(john likes wine '))"
+            "@(john likes wine ')"
         );
     });
 
@@ -104,13 +104,13 @@ describe('Prolog examples port Tests.', function() {
         );
         
         should(run.print("?(john likes 'stuff 'p)")).eql(
-            "@(john likes wine ')\n" +
-            "@(john likes mary ')\n" +
             "@(john likes food @(mary likes food '))\n" +
-            "@(john likes wine @(mary likes wine '))\n" +
-            "@(john likes mary @(mary likes wine '))\n" +
             "@(john likes john @(john likes wine '))\n" +
-            "@(john likes john @(john likes wine @(mary likes wine ')))"
+            "@(john likes john @(john likes wine @(mary likes wine ')))\n" +
+            "@(john likes mary ')\n" +
+            "@(john likes mary @(mary likes wine '))\n" +
+            "@(john likes wine ')\n" +
+            "@(john likes wine @(mary likes wine '))"
         );
     });
 
@@ -131,8 +131,8 @@ describe('Prolog examples port Tests.', function() {
         );
         
         should(run.print("?(john likes 'stuff 'p)")).eql(
-            "@(john likes wine ')\n" +
-            "@(john likes john @(john likes wine '))"
+            "@(john likes john @(john likes wine '))\n" +
+            "@(john likes wine ')"
         );
     });
 
@@ -160,13 +160,13 @@ describe('Prolog examples port Tests.', function() {
         );
         
         should(run.print("?(john likes 'stuff 'p)")).eql(
-            "@(john likes wine ')\n" +
-            "@(john likes mary ')\n" +
             "@(john likes food @(mary likes food '))\n" +
-            "@(john likes wine @(mary likes wine '))\n" +
-            "@(john likes mary @(mary likes wine '))\n" +
             "@(john likes john @(john likes wine '))\n" +
-            "@(john likes john @(john likes wine @(mary likes wine ')))"
+            "@(john likes john @(john likes wine @(mary likes wine ')))\n" +
+            "@(john likes mary ')\n" +
+            "@(john likes mary @(mary likes wine '))\n" +
+            "@(john likes wine ')\n" +
+            "@(john likes wine @(mary likes wine '))"
         );
     });
 
@@ -180,5 +180,4 @@ describe('Prolog examples port Tests.', function() {
         // Query is not able to stop on their own.
         should(run.print("?(john likes 'stuff 'p)")).eql("");
     });
-
 });

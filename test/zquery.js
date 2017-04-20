@@ -21,7 +21,7 @@ describe("ZQuery Tests.", function () {
             "@(yellow yellow)"
         );
 
-        var run = new Z();
+        run = new Z();
         run.add("('q ) (('q) ('q))");
         
         should(run.print(
@@ -29,7 +29,6 @@ describe("ZQuery Tests.", function () {
         )).eql(
             "@(@(yellow) @(yellow))"
         );
-
     });
 
     it("Should unify variables with tuple values", function () {
@@ -72,4 +71,13 @@ describe("ZQuery Tests.", function () {
             "@(@(yellow blue) @(blue yellow))"
         );
     });
+    
+    it("should handle duplicated definitions.", function () {
+        var run = new Z();
+        
+        run.add("('a) ('a)");
+        
+        should(run.print("?(yellow)")).equal("@(yellow)");
+    });
+    
 });
