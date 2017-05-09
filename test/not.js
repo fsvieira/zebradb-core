@@ -99,6 +99,8 @@ describe('Not Tests.', function() {
     });
 
     it('Should declare a number Set, 3 elements', function() {
+        this.timeout(1000 * 60 * 5);
+
         var run = new Z();
         
         run.add(

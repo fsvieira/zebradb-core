@@ -22,6 +22,7 @@ describe('Factorial Parser Tests.', function() {
     });
 
     it('Should declare a add func', function() {
+        this.timeout(1000 * 60 * 5);
 
         var run = new Z();
 
