@@ -1,9 +1,9 @@
 # zebrajs
 
-ATENTITON: This is still a beta version, many things can change, and not everything is working.
+ATTENTION: This is still a beta version, many things can change, and not everything is working.
 
 Zebrajs is a logical symbolic computation query system, given a set of computational definitions it will
-answer questions about them, therefor Zebrajs is better suited for software validation and constrain satisfaction problems.
+answer questions about them, therefor Zebrajs is better suited for software validation and constraint satisfaction problems.
 
 Zebrajs system consists of two parts the definitions and the query, both parts share the same language of zebra-system terms, which is defined by
 a certain formal syntax, and a set of transformation rules.
@@ -38,7 +38,7 @@ because we consider that all constants exists.
     * The the fact would be valid and the query:
       * ?(man ' ' 'man), returns:
       * (man (person filipe) (male filipe) filipe)
-* Negation, its true if a negated query doens't exist, negation querys are hidden and are not considered to unification,
+* Negation, its true if a negated query doesn't exist, negation queries are hidden and are not considered for unification,
   * Ex: 
     * (equal 'x 'x)
     * (color yellow)
@@ -66,5 +66,4 @@ A great source of examples are the test file https://github.com/fsvieira/zebrajs
 * If you want to run the tests:
   * Execute mocha (http://visionmedia.github.io/mocha/).
   * You also will need to install should (https://github.com/visionmedia/should.js).
-
 
