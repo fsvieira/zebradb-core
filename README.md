@@ -16,7 +16,7 @@ Try it online: https://fsvieira.github.io/raindropz/ (Raindropz IDE git: https:/
 
 ## Examples
 
-* Defintions, are considered facts they are always tuples and always global.
+* Definitions, are considered facts they are always tuples and always global.
   * Ex: (color yellow)
   * In this example color and yellow are constants, constants don't need to be declared anywhere 
 because we consider that all constants exists.
@@ -27,7 +27,7 @@ because we consider that all constants exists.
     if yes the result will be the tuple itself: (color yellow)
   * If there is no awnser then the system will return nothing.
 * Queries, may also be inner tuples of queries or definitions
-  * The ideia is quite simple, a fact is only valid if all contained tuples that are also valid facts.
+  * The ideia is quite simple, a fact is only valid if all contained tuples are also valid facts.
   * Ex: (man (person 'name) (male 'name) 'name)
     * This fact is invalid because there is no (person 'name) or (male 'name) definitions,
     * Here the 'name is a variable, all variables have the ' as prefix,
@@ -38,16 +38,27 @@ because we consider that all constants exists.
     * The the fact would be valid and the query:
       * ?(man ' ' 'man), returns:
       * (man (person filipe) (male filipe) filipe)
-* Negation, its true if a negated query doens't exist, negtion querys are hidden and are not considered to unification,
+* Negation, its true if a negated query doens't exist, negation querys are hidden and are not considered to unification,
   * Ex: 
     * (equal 'x 'x) 
     * (color yellow) 
     * (color blue)
     * ?(color 'x ^(equal 'x yellow))
   * The query should return:
-    * (color blue)
+    * (color blue)[(equal blue yellow)]
+  * Where the results in [] are the negations,
   * Basiclly what we are saying is we want color 'x but that will not be equal with color yellow,
   * Because we are negating a query negation can only be applied to a tuple,
+  * Extending the example:
+    * (distinct (color 'x) (color 'y) ^(equal 'x 'y))
+    * ?(distinct 'x 'y)
+  * The query should return:
+    * (distinct (color blue) (color yellow))[(equal (color blue) (color yellow)]
+    * (distinct (color yellow) (color blue))[(equal (color yellow) (color blue)]
+  * Negations are only evaluated when the negated tuple has only unbound variables, this is because 
+  we are going to query negations for all its values, and we can't do that if there is unkown bound variables 
+  to the query tuple.
+  
 * Thats it.
 
 

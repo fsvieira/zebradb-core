@@ -1,4 +1,4 @@
-# Road map (WIP)
+# Roadmap
 
 * 2.0.0 (WIP)
   * Add support to finit representation of infinity structures (ex: (nat 'x) -> 'x => (nat 'x))
@@ -11,8 +11,8 @@
   * [ ] Improve space:
     * [ ] Add database,
     * [ ] Remove recursive calls.
-* beta version (new)
-  * [ ] Update documentation,
+* beta version (2017-04-20)
+  * [X] Update readme documentation,
   * [X] get all examples working,
   * [X] get all tests working,
   * [X] move roadmap/history to HISTORY.md,
