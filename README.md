@@ -47,18 +47,15 @@ because we consider that all constants exists.
   * The query should return:
     * (color blue)[(equal blue yellow)]
   * Where the results in [] are the negations,
-  * Basiclly what we are saying is we want color 'x but that will not be equal with color yellow,
+  * We are asking for color 'x not to be equal to yellow.
   * Because we are negating a query negation can only be applied to a tuple,
   * Extending the example:
-    * (distinct (color 'x) (color 'y) ^(equal 'x 'y))
+  * (distinct (color 'x) (color 'y) ^(equal 'x 'y))
     * ?(distinct 'x 'y)
   * The query should return:
     * (distinct (color blue) (color yellow))[(equal (color blue) (color yellow)]
     * (distinct (color yellow) (color blue))[(equal (color yellow) (color blue)]
-  * Negations are only evaluated when the negated tuple has only unbound variables, this is because 
-  we are going to query negations for all its values, and we can't do that if there is unkown bound variables 
-  to the query tuple.
-  
+
 * Thats it.
 
 
