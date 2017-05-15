@@ -40,8 +40,8 @@ because we consider that all constants exists.
       * (man (person filipe) (male filipe) filipe)
 * Negation, its true if a negated query doens't exist, negtion querys are hidden and are not considered to unification,
   * Ex: 
-    * (equal 'x 'x) 
-    * (color yellow) 
+    * (equal 'x 'x)
+    * (color yellow)
     * (color blue)
     * ?(color 'x ^(equal 'x yellow))
   * The query should return:
