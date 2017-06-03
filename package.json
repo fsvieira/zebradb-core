@@ -13,6 +13,7 @@
     "q": "^1.4.1"
   },
   "devDependencies": {
+    "flyd": "^0.2.4",
     "gulp": "^3.9.1",
     "gulp-browserify": "^0.5.1",
     "gulp-cli": "^1.2.2",
