@@ -1,7 +1,34 @@
-var should = require("should");
-var Z = require("../lib/z");
+const Z = require("../lib/z");
+const test = require("../lib/testing/test");
 
 describe('Not Tests.', function() {
+    it('Declare a not equal',
+        test(
+            `(color 'a) (equal 'x 'x) (not-equal 'x 'y ^(equal 'x 'y))
+            ?(equal yellow yellow)
+            ?(equal yellow blue)
+            ?(not-equal yellow yellow)
+            ?(not-equal yellow blue)
+            ?(not-equal (color yellow) (color yellow))
+            ?(not-equal (color blue) (color yellow))`
+            ,
+            `?(equal yellow yellow):
+                @(equal yellow yellow)
+            ?(equal yellow blue):
+                <empty>
+            ?(not-equal yellow yellow):
+                <empty>
+            ?(not-equal yellow blue):
+                @(not-equal yellow blue)[^!(equal yellow blue)]");
+            ?(not-equal (color yellow) (color yellow))")):
+                <empty>
+            ?(not-equal (color blue) (color yellow))
+                @(not-equal @(color blue) @(color yellow))[^!(equal @(color blue) @(color yellow))]`
+        )
+    );
+
+
+    /*
     it('Declare a not equal', function() {
         var run = new Z();
 
@@ -277,5 +304,5 @@ describe('Not Tests.', function() {
             "@(set @(number 3) @(set @(number 2) @(set) ') @(set @(number 3) @(set) '))[^!(equal (number 3) (number 2))]\n" +
             "@(set @(number 3) @(set) ')"
         );
-    });
+    });*/
 });
