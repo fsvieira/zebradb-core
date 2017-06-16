@@ -1,4 +1,3 @@
-const Z = require("../lib/z");
 const test = require("../lib/testing/test");
 
 /*
