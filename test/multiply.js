@@ -1,46 +1,32 @@
-var should = require("should");
-var Z = require("../lib/z");
-
+const test = require("../lib/testing/test");
 
 describe('Multiply Tests', function() {
-    describe('Test Multiply results', function() {
-        it('should multiply results.', function () {
-            var run = new Z();
-            
-            run.add(
-                "(yellow 'a)" +
-                "('b blue)"
-            );
-            
-            should(
-                run.print(
-                    "?('c 'd)"
-                )
-            ).eql(
-                "@('b blue)\n" +
-                "@(yellow 'a)\n" +
-                "@(yellow blue)"
-            );
-        });
+    it('should multiply results.',
+        test(
+            `(yellow 'a)
+            ('b blue)
+            ?('c 'd)`
+            ,
+            `?('c 'd):
+                @(yellow 'a) 
+                @(yellow blue) 
+                @('b blue)`
+        )
+    );
         
-        it('should multiply results (with variables with same name).', function () {
-            
-            var run = new Z();
-            
-            run.add(
-                "(yellow 'a)" +
-                "('a blue)"
-            );
-            
-            should(
-                run.print(
-                    "?('a 'b)"
-                )
-            ).eql(
-                "@('a blue)\n" +
-                "@(yellow 'a)\n" +
-                "@(yellow blue)"
-            );
-        });
-    });
+    it('should multiply results (with variables with same name).',
+        test(
+            `(yellow 'a)
+            ('a blue)
+            ?('a 'b)`
+            ,
+            `?('a 'b): 
+                @(yellow 'a) 
+                @('a blue)`
+             
+            `@('a blue)
+            @(yellow 'a)
+            @(yellow blue)`
+        )
+    );
 });
