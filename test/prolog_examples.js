@@ -82,7 +82,7 @@ describe('Prolog examples port Tests.', function() {
                 @(john likes wine ')`
         )
     );
-/*    
+
     it('Should query what john likes, he likes what mary likes and people that like wine.',
         test(
             "(mary likes food ')" + // likes(mary,food).
@@ -124,7 +124,7 @@ describe('Prolog examples port Tests.', function() {
             "(equal 'x 'x)" +
             "?(john likes 'stuff 'p)"
             ,
-            `?(john likes 'stuff 'p)
+            `?(john likes 'stuff 'p): 
                 @(john likes john @(john likes wine '))
                 @(john likes wine ')`
         )
@@ -147,31 +147,32 @@ describe('Prolog examples port Tests.', function() {
             // 3. John likes anyone who likes themselves
             // "(john likes 'person ('person likes 'person '))" // this is recursive by itself.
             // john can't like himself just because it likes himself.
-            "(john likes 'person ('person likes 'person 'p) ^(equal 'person 'person))" +
+            "(john likes 'person ('person likes 'person ') ^(equal 'person john))" +
             "(equal 'x 'x)" +
-            "?(john likes 'stuff 'p)"
+            "?(john likes 'stuff ')"
             ,
-            `@(john likes food @(mary likes food '))
-            @(john likes john @(john likes wine '))
-            @(john likes john @(john likes wine @(mary likes wine ')))
-            @(john likes mary ')
-            @(john likes mary @(mary likes wine '))
-            @(john likes wine ')
-            @(john likes wine @(mary likes wine '))`
+            `?(john likes 'stuff '):
+                @(john likes food @(mary likes food '))
+                @(john likes john @(john likes wine '))
+                @(john likes john @(john likes wine @(mary likes wine ')))
+                @(john likes mary ')
+                @(john likes mary @(mary likes wine '))
+                @(john likes peter @(peter likes peter '))[^!(equal peter john)]
+                @(john likes wine ')
+                @(john likes wine @(mary likes wine '))`
         )
     );
 
     it('Should give no results to circular definition.',
         test(
-            "(john likes 'person ('person likes 'person '))" +
             // Query is not able to stop on their own.
-            "?(john likes 'stuff 'p)"
+            `(john likes 'person ('person likes 'person '))
+            ?(john likes 'stuff 'p)`
             ,
             `?(john likes 'stuff 'p):
                 <empty>`
-            , {
-                deep: 5       
-            }
+            , 
+            {depth: 7}
         )
-    );*/
+    );
 });

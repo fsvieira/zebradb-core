@@ -1,12 +1,41 @@
-var should = require("should");
-var Z = require("../lib/z");
+const test = require("../lib/testing/test");
 
 describe("Include tests.", function () {
-    it("Should include list", function () {
-        var run = new Z(10);
-        
-        run.add("[list] [list]");
-        
-        should(run.print("?(list)")).eql("@(list)");
-    });
+    it("Should include simple file", 
+        test(
+            `[list]
+            ?(list)`
+            ,
+            `?(list):
+                @(list)`
+            ,
+            {
+                files: {
+                    'list': {
+                        data: '(list)'
+                    }
+                }
+            }
+        )
+    );
+    
+    it("Should include duplicated file", 
+        test(
+            `[list] [list]
+            ?(list)`
+            ,
+            `?(list):
+                @(list)`
+            ,
+            {
+                files: {
+                    'list': {
+                        data: '(list)'
+                    }
+                }
+            }
+        )
+    );
+    
+    // TODO: make more include tests. 
 });

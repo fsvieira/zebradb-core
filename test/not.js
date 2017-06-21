@@ -62,12 +62,12 @@ describe('Not Tests.', function() {
             ?(distinct (color yellow) (color blue)):
                 @(distinct @(color yellow) @(color blue))[^!(equal @(color yellow) @(color blue))]
             ?(distinct (color 'a) (color 'b)):
+                @(distinct @(color blue) @(color red))[^!(equal @(color blue) @(color red))]
                 @(distinct @(color blue) @(color yellow))[^!(equal @(color blue) @(color yellow))]
-                @(distinct @(color red) @(color yellow))[^!(equal @(color red) @(color yellow))]
-                @(distinct @(color yellow) @(color blue))[^!(equal @(color yellow) @(color blue))]
                 @(distinct @(color red) @(color blue))[^!(equal @(color red) @(color blue))]
-                @(distinct @(color yellow) @(color red))[^!(equal @(color yellow) @(color red))]
-                @(distinct @(color blue) @(color red))[^!(equal @(color blue) @(color red))]`
+                @(distinct @(color red) @(color yellow))[^!(equal @(color red) @(color yellow))]
+                @(distinct @(color yellow) @(color blue))[^!(equal @(color yellow) @(color blue))] 
+                @(distinct @(color yellow) @(color red))[^!(equal @(color yellow) @(color red))]`
         )
     );
 
@@ -80,8 +80,44 @@ describe('Not Tests.', function() {
             ?(not (number 'p) (number 'q))`
             ,
             `?(not (number 'p) (number 'q)):
-                @(not @(number 1) @(number 0))[^!(equal @(number 1) @(number 0))]
-                @(not @(number 0) @(number 1))[^!(equal @(number 0) @(number 1))]`
+                @(not @(number 0) @(number 1))[^!(equal @(number 0) @(number 1))]
+                @(not @(number 1) @(number 0))[^!(equal @(number 1) @(number 0))]`
+        )
+    );
+
+    it('Should declare a list',
+        test(
+            `(list)
+            (list 'item (list ' '))
+            (list 'item (list))
+
+            (fruit banana)
+            (fruit strawberry)
+            (fruit apple)
+            (fruit papaya)
+            
+            (equal 'x 'x)
+            ?(list)
+            ?(list (fruit banana) (list (fruit apple) (list)))
+            ?(list (fruit 'a) (list (fruit 'b) (list)) ^(equal 'a 'b))`
+            ,
+            `?(list):
+                @(list) 
+            ?(list (fruit banana) (list (fruit apple) (list))):
+                @(list @(fruit banana) @(list @(fruit apple) @(list)))
+            ?(list (fruit 'a) (list (fruit 'b) (list)))[^(equal 'a 'b)]:
+                @(list @(fruit apple) @(list @(fruit banana) @(list)))[^!(equal apple banana)]
+                @(list @(fruit apple) @(list @(fruit papaya) @(list)))[^!(equal apple papaya)]
+                @(list @(fruit apple) @(list @(fruit strawberry) @(list)))[^!(equal apple strawberry)]
+                @(list @(fruit banana) @(list @(fruit apple) @(list)))[^!(equal banana apple)]
+                @(list @(fruit banana) @(list @(fruit papaya) @(list)))[^!(equal banana papaya)]
+                @(list @(fruit banana) @(list @(fruit strawberry) @(list)))[^!(equal banana strawberry)]
+                @(list @(fruit papaya) @(list @(fruit apple) @(list)))[^!(equal papaya apple)]
+                @(list @(fruit papaya) @(list @(fruit banana) @(list)))[^!(equal papaya banana)]
+                @(list @(fruit papaya) @(list @(fruit strawberry) @(list)))[^!(equal papaya strawberry)]
+                @(list @(fruit strawberry) @(list @(fruit apple) @(list)))[^!(equal strawberry apple)]
+                @(list @(fruit strawberry) @(list @(fruit banana) @(list)))[^!(equal strawberry banana)]
+                @(list @(fruit strawberry) @(list @(fruit papaya) @(list)))[^!(equal strawberry papaya)]`
         )
     );
 
@@ -94,8 +130,13 @@ describe('Not Tests.', function() {
             (set (number 'a) (set (number 'b) 'tail ') (set (number 'a) 'tail ') ^(equal (number 'a) (number 'b)))
             (equal 'x 'x)
             ?(set (number 'a) (set (number 'b) (set) ') ')
-            ?(set (number 'a) (set (number 'b) (set (number 'c) (set) ') ') ')`,
-            ``
+            ?(set (number 'a) (set (number 'b) (set (number 'c) (set) ') ') ')`
+            ,
+            `?(set (number 'a) (set (number 'b) (set) ') '):
+                @(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) '))[^!(equal (number 0) (number 1))]
+                @(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '))[^!(equal (number 1) (number 0))]
+            ?(set (number 'a) (set (number 'b) (set (number 'c) (set) ') ') '):
+                <empty>`
         )
     );
 /*

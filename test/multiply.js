@@ -8,9 +8,9 @@ describe('Multiply Tests', function() {
             ?('c 'd)`
             ,
             `?('c 'd):
-                @(yellow 'a) 
-                @(yellow blue) 
-                @('b blue)`
+                @('b blue)
+                @(yellow 'a)
+                @(yellow blue)`
         )
     );
         
@@ -21,12 +21,9 @@ describe('Multiply Tests', function() {
             ?('a 'b)`
             ,
             `?('a 'b): 
-                @(yellow 'a) 
-                @('a blue)`
-             
-            `@('a blue)
-            @(yellow 'a)
-            @(yellow blue)`
+                @('a blue)
+                @(yellow 'a)
+                @(yellow blue)`
         )
     );
 });

@@ -1,25 +1,28 @@
-var should = require("should");
-var Z = require("../lib/z");
+const test = require("../lib/testing/test");
 
 describe('Factorial Parser Tests.', function() {
-    it('Should declare ~Peanno numbers', function() {
-        var run = new Z(10);
-        
-        run.add(
-            "(nat 0)\n" +
-            "(nat (nat 'n))"
-        );
-        
-        should(run.print("?(nat (nat 1))")).eql("");
-        should(run.print("?(nat (nat 0))")).eql("@(nat @(nat 0))");
-        
-        should(run.print("?(nat 'n)")).eql(
-            "@(nat 0)\n" +
-            "@(nat @(nat 0))\n" +
-            "@(nat @(nat @(nat 0)))\n" +
-            "@(nat @(nat @(nat @(nat 0))))"
-        );
-    });
+    it('Should declare ~Peanno numbers', 
+        test(
+            `(nat 0)
+            (nat (nat 'n))
+            ?(nat (nat 1))
+            ?(nat (nat 0))
+            ?(nat 'n)`
+            ,
+            `?(nat (nat 1)):
+                <empty> 
+            ?(nat (nat 0)):
+                @(nat @(nat 0))
+            ?(nat 'n):
+                @(nat 0)
+                @(nat @(nat 0))
+                @(nat @(nat @(nat 0)))
+                @(nat @(nat @(nat @(nat 0))))
+                @(nat @(nat @(nat @(nat @(nat 0)))))`
+            ,
+            {depth: 7}
+        )
+    );
 
     it('Should declare a add func', function() {
         this.timeout(1000 * 60 * 5);
@@ -79,53 +82,6 @@ describe('Factorial Parser Tests.', function() {
             run.print("?(+ (nat (nat (nat 0))) (nat (nat (nat 0))) 'r ')")
         ).eql(
             "@(+ @(nat @(nat @(nat 0))) @(nat @(nat @(nat 0))) @(nat @(nat @(nat @(nat @(nat 0))))) @(+ @(nat @(nat @(nat 0))) @(nat @(nat 0)) @(nat @(nat @(nat @(nat 0)))) @(+ @(nat @(nat @(nat 0))) @(nat 0) @(nat @(nat @(nat 0))) ')))"
-        );
-    });
-
-    // TODO: put this on not tests,
-    it('Should declare a list', function() {
-        var run = new Z();
-        
-        run.add(
-            "(list)" +
-            "(list 'item (list ' '))" +
-            "(list 'item (list))" +
-
-            "(fruit banana)" +
-            "(fruit strawberry)" +
-            "(fruit apple)" +
-            "(fruit papaya)" +
-            
-            "(equal 'x 'x)"
-        );
-
-        should(run.print("?(list)")).eql("@(list)");
-
-        should(
-            run.print(
-                "?(list (fruit banana) (list (fruit apple) (list)))"
-            )
-        ).eql(
-            "@(list @(fruit banana) @(list @(fruit apple) @(list)))"
-        );
-
-        should(
-            run.print(
-                "?(list (fruit 'a) (list (fruit 'b) (list)) ^(equal 'a 'b))"
-            )
-        ).eql(
-            "@(list @(fruit apple) @(list @(fruit banana) @(list)))[^!(equal apple banana)]\n" +
-            "@(list @(fruit apple) @(list @(fruit papaya) @(list)))[^!(equal apple papaya)]\n" +
-            "@(list @(fruit apple) @(list @(fruit strawberry) @(list)))[^!(equal apple strawberry)]\n" +
-            "@(list @(fruit banana) @(list @(fruit apple) @(list)))[^!(equal banana apple)]\n" +
-            "@(list @(fruit banana) @(list @(fruit papaya) @(list)))[^!(equal banana papaya)]\n" +
-            "@(list @(fruit banana) @(list @(fruit strawberry) @(list)))[^!(equal banana strawberry)]\n" +
-            "@(list @(fruit papaya) @(list @(fruit apple) @(list)))[^!(equal papaya apple)]\n" +
-            "@(list @(fruit papaya) @(list @(fruit banana) @(list)))[^!(equal papaya banana)]\n" +
-            "@(list @(fruit papaya) @(list @(fruit strawberry) @(list)))[^!(equal papaya strawberry)]\n" +
-            "@(list @(fruit strawberry) @(list @(fruit apple) @(list)))[^!(equal strawberry apple)]\n" +
-            "@(list @(fruit strawberry) @(list @(fruit banana) @(list)))[^!(equal strawberry banana)]\n" +
-            "@(list @(fruit strawberry) @(list @(fruit papaya) @(list)))[^!(equal strawberry papaya)]"
         );
     });
 

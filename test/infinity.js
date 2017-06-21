@@ -25,11 +25,11 @@ describe("Inifinity tests.", function () {
             ?(a 'b)`
             ,
             `?(a 'b):
-                @(a stop)
-                @(a @(b stop))
-                @(a @(b @(a stop)))
+                @(a @(b @(a @(b @(a stop)))))
                 @(a @(b @(a @(b stop))))
-                @(a @(b @(a @(b @(a stop)))))`
+                @(a @(b @(a stop)))
+                @(a @(b stop))
+                @(a stop)`
             ,
             {depth: 7}
         )
