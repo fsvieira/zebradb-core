@@ -233,7 +233,7 @@ describe('Not Tests.', function() {
                 @(set @(number 3) @(set @(number 2) @(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) ')) @(set @(number 2) @(set @(number 1) @(set) ') @(set @(number 2) @(set) '))) @(set @(number 3) @(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) ')) @(set @(number 3) @(set @(number 1) @(set) ') @(set @(number 3) @(set) '))))[^!(equal (number 0) (number 1)) !(equal (number 2) (number 0)) !(equal (number 2) (number 1)) !(equal (number 3) (number 0)) !(equal (number 3) (number 1)) !(equal (number 3) (number 2))]
                 @(set @(number 3) @(set @(number 2) @(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) ')) @(set @(number 2) @(set @(number 0) @(set) ') @(set @(number 2) @(set) '))) @(set @(number 3) @(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) ')) @(set @(number 3) @(set @(number 0) @(set) ') @(set @(number 3) @(set) '))))[^!(equal (number 1) (number 0)) !(equal (number 2) (number 0)) !(equal (number 2) (number 1)) !(equal (number 3) (number 0)) !(equal (number 3) (number 1)) !(equal (number 3) (number 2))]`
                 ,
-            {timeout: 65000}
+            {timeout: 60000*2}
         )
     );
 
