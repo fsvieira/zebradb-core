@@ -4,10 +4,18 @@
 \usepackage{amssymb}
 \usepackage{verbatim}
 \usepackage{mathrsfs}
+\usepackage{textcomp}
 
 \newcommand{\zm}{ZM}
 \newcommand{\zsystem}{Zebra-machine (\zm)}
 \newcommand{\var}[1]{`#1}
+\newcommand{\zconst}[1]{\textbf{#1}}
+\newcommand{\zvar}[1]{\textit{\var{#1}}}
+\newcommand{\ztuple}[1]{(#1)}
+\newcommand{\zneg}[1]{\textlnot \ztuple{#1}}
+\newcommand{\zquery}[1]{?\ztuple{#1}}
+\newcommand{\zunify}[3]{#1 \texttimes #2 = #3}
+\newcommand{\zexample}[1]{\begin{center} #1 \end{center}}
 
 \newcommand{\unify}{\otimes}
 
@@ -29,15 +37,152 @@ This is a work in progress.
 
 \tableofcontents
 
-\chapter{Introduction}
+\newpage
+\section{Introduction}
 
 This is the official book of \zsystem. Here you will find anything you need to understand in deep the \zm ,
 the book covers both theoretical and practical definitions.
 
-\zsystem is a logical symbolic computation query system, given a set of computational definitions it will
+\zsystem\ is a logical symbolic computation query system, given a set of computational definitions it will
 answer questions about them, therefor \zm is better suited for software validation and constrain satisfaction problems.
 
-\section{The \zsystem}
+\chapter{The \zsystem}
+
+On this chapter we will present an informal and formal defintions of \zsystem, we will try to explain how it is defined and 
+how it works.
+
+\section{Informal Definition}
+
+Zebrajs is a logical symbolic computation query system, given a set of computational definitions it will answer questions about them, 
+therefor Zebrajs is better suited for software validation and constraint satisfaction problems.
+
+Zebrajs system consists of two parts the definitions and the query, both parts share the same language of zebra-system terms, 
+which is defined by a certain formal syntax, and a set of transformation rules.
+
+The zebra language is very simple, it only has constants, variables, tuples and negation.
+
+In this section we will try to explain how it works using simple examples.
+
+\subsection{Definitions, Tuples and constants}
+    \paragraph{Definitions} are considered facts they are always tuples and always global.
+
+    \zexample{(\zconst{yellow} \zconst{blue})}
+    
+    In this example we define a tuple with only constants, constants don't need to be defined anyhere as we consider that all constants exists.
+    Because this tuple is defined on top level it is considered a definition and its considered to be true, similiar to an axiom in math.
+
+    \zexample{(\zconst{yellow} (\zconst{blue}))}
+    
+    In this example the outer most tuple is considered a definition, iff its inner tuples are unfiable with a definition, because of this 
+    inner tuples are considered to be queries and not facts.
+    
+    Two tuples are unifiable if both contains the same number of elements and all its elements are unfiable.
+    Two constants are unfiable if they are the same (eg. \zunify{yellow}{yellow}{yellow}).
+
+\subsection{Variables}
+    \paragraph{Variables} can only appear inside of tuples and they can unify with anything (tuples, constants and variables).
+    
+    A variable is represented as \zvar{v}, where v is a variable. We can also use anonimous variables like this \zvar{}.
+
+    For example:
+    \zexample{(\zvar{name} \zvar{age})}
+
+    This tuple contains two variables, the \zvar{name} and \zvar{age}.
+
+    The variable scope is associated with the top tuple, for example:
+    \zexample{
+        \begin{enumerate}
+            \item (\zvar{name} (\zvar{name} \zvar{age}))
+            \item (\zvar{name})
+        \end{enumerate}
+    }
+
+    On first tuple variable \zvar{name} is bound to the inner-tuples, but it is not 
+    the same variable \zvar{name} that appears on the second tuple.
+
+    We can also make anonimous variables, by not giving them any name, anonimous variables 
+    are not bound to any other variables.
+    \zexample{(\zvar{} \zvar{})}
+
+\subsection{Queries}
+    \paragraph{Queries} they can only appear at the top level, they are queries to definitions and so they can only be applied to tuples.
+    A query as the form of \zquery{tuple}.
+    
+    For example:
+        \zexample{
+            \begin{enumerate}
+                \item (\zconst{color} \zconst{blue})
+                \item (\zconst{color} \zconst{yellow})
+                \item (\zconst{color} \zconst{green})
+                \item (\zconst{colors} \zconst{blue} \zconst{green})
+                \item \zquery{\zconst{color} \zvar{}}
+            \end{enumerate}
+        }
+    
+    And the results of the query \zquery{\zconst{color} \zvar{}} are:
+    \zexample{
+        \begin{enumerate}
+            \item (\zconst{color} \zconst{blue})
+            \item (\zconst{color} \zconst{yellow})
+            \item (\zconst{color} \zconst{green})
+        \end{enumerate}
+    }
+
+    This means that query unifies with all 1, 2, 3 definitions, and fails to unify 
+    with the 4 definition. 
+
+\subsection{Negation}
+    \paragraph{Negation} (\zneg{tuple}) can only appear inside of tuples and can only negate tuples.
+    A tuple can contain multiple negations and they do not contribute for tuple length, they 
+    are considered conditions for tuple success. Because of this negations are not considered for tuple unification 
+    however they are unified with definitions so they can be evaluated to hold or not hold. 
+
+    A negation works as a $\nexists$, for example:
+    
+    \zexample{
+        \begin{enumerate}
+            \item (\zconst{equal} \zvar{p} \zvar{p})
+            \item (\zconst{not-equal} \zvar{p} \zvar{q} \zneg{\zconst{equal} \zvar{p} \zvar{q}})
+        \end{enumerate}
+    }
+    
+    In this example both tuples have length three, because negation are not considered for unification, they work as conditions.
+    On the second tuple we define a not-equal negating the equal definition, this means that if \zvar{p} and \zvar{q} are equal
+    than equal definition holds, and negation doesn't so not-equal also fails.
+    
+    If \zvar{p} and \zvar{q} are different than equal fails, negation will hold and not-equal will hold.
+    
+    \zvar{p} and \zvar{q} are only different if their values are different so not-equal will always fails if variables have no values, 
+    this is because there is no garantee that \zvar{p} is not equal to \zvar{q}.
+    
+    This doesn't mean that our negations queries can only be performed with values, here is another example:
+    
+    \zexample{
+        \begin{enumerate}
+            \item \ztuple{\zconst{color} \zconst{yellow}}
+            \item \ztuple{\zconst{color} \zconst{blue}}
+            \item \ztuple{\zconst{color} \zconst{green}}
+            \item \ztuple{\zconst{equal} \zvar{p} \zvar{p}}
+            \item \ztuple{\zconst{not-equal} \zvar{p} \zvar{q} \zneg{\zconst{equal} \zvar{p} \zvar{q}}}
+            \item \zquery{\zconst{not-equal} \ztuple{\zconst{color} \zvar{}} \ztuple{\zconst{color} \zvar{}}}
+        \end{enumerate}
+    }
+
+    Ok, I cheated the query replaces variables with tuple values, but its only because we want to define a domain "colors". 
+    So the result to the query should be pairs of distinct colors, like this:
+    
+    \zexample{
+        \begin{enumerate}
+            \item \ztuple{\zconst{not-equal} \ztuple{\zconst{color} \zconst{yellow}} \ztuple{\zconst{color} \zconst{blue}}}
+            \item \ztuple{\zconst{not-equal} \ztuple{\zconst{color} \zconst{yellow}} \ztuple{\zconst{color} \zconst{green}}}
+            \item \ztuple{\zconst{not-equal} \ztuple{\zconst{color} \zconst{blue}} \ztuple{\zconst{color} \zconst{yellow}}}
+            \item \ztuple{\zconst{not-equal} \ztuple{\zconst{color} \zconst{blue}} \ztuple{\zconst{color} \zconst{green}}}
+            \item \ztuple{\zconst{not-equal} \ztuple{\zconst{color} \zconst{green}} \ztuple{\zconst{color} \zconst{yellow}}}
+            \item \ztuple{\zconst{not-equal} \ztuple{\zconst{color} \zconst{green}} \ztuple{\zconst{color} \zconst{blue}}}
+        \end{enumerate}
+    }
+
+\section{Formal Definition}
 
 As mentioned before \zm\ is a logical symbolic computation query system, and it consists of two parts
 the definitions and the query, both parts share the same language of \zm\ terms, which is defined by
@@ -47,14 +192,15 @@ a certain formal syntax, and a set of transformation rules.
 \paragraph{The \zm\ language ($\mathbb{L}$) of terms are defined as:}
 
 \begin{enumerate}
-\item $\mathbb{C}$ is the set of terminal symbols called constants,
-\item $\mathbb{V}$ is the set of variables,
-\item $(p_{0} \ldots p_{n}) \in \mathbb{T}_{0}$: $\mathbb{T}_{0}$ is the set of tuples, $(p_{0} \ldots p_{n})$ its a n-tuple where 
-$p_k \in \mathbb{C} \vee p_k \in \mathbb{V}$,
-\item $\mathbb{T}_{k}$ is a set of tuples, $(p_{0} \ldots p_{n}) \in \mathbb{T}_{k}$ where $k > 0$ and
-$p_{i} \in \mathbb{T}_{k-1} \vee p_{i} \in \mathbb{C} \vee p_{i} \in \mathbb{V} \vee (p_{i} = \overline{q} \wedge q \in \mathbb{T}_{k-1})$ and $\overline{q}$ is the 
-negation of tuple $q$.
-\item $\mathbb{L} = \bigcup\limits_{i=0}^{\infty} \mathbb{T}_{i}$
+\item $\mathbb{C} = \{c: \text{c is a constant} \}$,
+\item $\mathbb{V} = \{v: \text{v is a variable} \}$,
+\item $\mathbb{N}_{0} = \{\neg (p_{0} \ldots p_{n}): p_{k} \in \mathbb{C} \cup \mathbb{V}, k \geq 0 \wedge k \leq n \}$, where $\neg t$ is the negation of tuple $t$.
+\item $\mathbb{L}_{0} = \{(p_{0} \ldots p_{n}) : p_{k} \in \mathbb{C} \cup \mathbb{V} \cup \mathbb{N}_{0}, k \geq 0 \wedge k \leq n \}$
+
+\item $\mathbb{N}_{i} = \{\neg t: t \in \mathbb{L}_{i-1}\}$, $i > 0$
+\item $\mathbb{L}_{i} = \{(p_{0} \ldots p_{n}) : p_{k} \in \mathbb{C} \cup \mathbb{V} \cup \mathbb{L}_{i-1} \cup \mathbb{N}_{i}, k \geq 0 \wedge k \leq n \}$, $i > 0$
+
+\item $\mathbb{L} = \bigcup\limits_{i=0}^{\infty} \mathbb{L}_{i} \cup \{?t : t \in \mathbb{L}_{i} \}$, where $?t$ is a query and $t$ a tuple.
 \end{enumerate}
 
 % \begin{enumerate}
@@ -213,51 +359,6 @@ After unification we get
 \begin{comment}
 \section{Computing Examples}
 
-\subsection{Defining a not equal}
-
-\[
-    (\text{notEqual}\ \var{p}\ \overline{\var{p}})
-\]
-
-Ex:
-\[(\sigma, \delta, q, \alpha ) = (\{\text{yellow}, \text{blue}\}, \{(\text{notEqual}\ \var{p}\ \overline{\var{p}})\}, q, \alpha)\]
-
-\begin{enumerate}
-\item $q = (\text{notEqual}\ \var{x}\ \var{x})$
-\subitem $(\text{notEqual}\ \var{x}\ \var{x}) \unify ([p]\ \text{notEqual}\ \var{p}\ \overline{\var{p}})$
-\subitem $([p]\ \text{notEqual} \unify \text{notEqual}\ \var{x} \unify \var{p}\ \var{x} \unify \overline{\var{p}})$
-\subitem $([p]\ \text{notEqual} \unify \text{notEqual}\ \var{x} \unify \var{p}\ \var{x} \unify \overline{\var{p}})$
-\subitem $([p]\ \text{notEqual}\ \var{x}\ \var{x}), \text{constrains}: \var{x}=\var{p} \wedge \var{x} \neq \var{p}$
-\subitem variable $x$ can't be equal and not equal to $\var{p}$ at same time,
-\subitem query fails to unify with any of the definitions,
-\subitem $\alpha=\emptyset$, no awnsers existe for this query.
-
-\item $q = (\text{notEqual}\  \text{yellow}\ \text{yellow})$
-\subitem $([p]\ \text{notEqual}\ \text{yellow}\ \text{yellow}) \unify (\text{notEqual}\ \var{p}\ \overline{\var{p}})$
-\subitem $([p]\ \text{notEqual} \unify \text{notEqual}\ \text{yellow} \unify \var{p}\ \text{yellow} \unify \overline{\var{p}})$
-\subitem $([p]\ \text{notEqual} \text{yellow} \text{yellow}), \text{constrains}: \text{yellow}=\var{p} \wedge \text{yellow} \neq \var{p}$
-\subitem variable $p$ can't be equal and not equal to $\text{yellow}$ value at same time,
-\subitem query fails to unify with any of the definitions,
-\subitem $\alpha=\emptyset$, no answers exist for this query.
-
-\item $q = (\text{notEqual}\  \text{blue}\ \text{yellow})$
-
-\subitem $([p]\ \text{notEqual}\ \text{blue}\ \text{yellow}) \unify (\text{notEqual}\ \var{p}\ \overline{\var{p}})$
-\subitem $([p]\ \text{notEqual} \unify \text{notEqual}\ \text{blue} \unify \var{p}\ \text{yellow} \unify \overline{\var{p}})$
-\subitem $([p]\ \text{notEqual} \text{blue} \text{yellow}), \text{constrains}: \text{blue}=\var{p} \wedge \text{yellow} \neq \var{p} \wedge \text{blue} \neq \text{yellow}$
-\subitem $\alpha=\{(\text{notEqual}\  \text{blue}\ \text{yellow})\}$.
-
-\item $q = (\text{notEqual}\ \var{p}\ \text{yellow})$
-
-\subitem $([p]\ \text{notEqual}\ \var{p}\ \text{yellow}) \unify (\text{notEqual}\ \var{p}\ \overline{\var{p}})$
-\subitem rename bound variable, $p \rightarrow x$,
-\subitem $([p]\ \text{notEqual}\ \var{p}\ \text{yellow}) \unify (\text{notEqual}\ \var{x}\ \overline{\var{x}})$
-\subitem $([p]\ \text{notEqual} \unify \text{notEqual}\ \var{p} \unify \var{x}\ \text{yellow} \unify \overline{\var{x}})$
-\subitem $([p]\ \text{notEqual} \text{p} \text{yellow}), \text{constrains}: \text{p}=\var{x} \wedge \text{yellow} \neq \var{x}$
-\subitem $\alpha=\{(\text{notEqual}\  \var{p}\ \text{yellow}), \text{constrains}: \var{p} \neq \text{yellow}\}$.
-
-\end{enumerate}
-
 \subsection{Defining a list}
 
 \begin{enumerate}
@@ -335,59 +436,6 @@ We start with the definitions/facts:
 \end{comment}
 
 \section{Computing Examples (implementation)}
-
-\subsection{Defining a not equal}
-
-\[
-    (\text{notEqual}\ \var{p}\ \overline{\var{p}})
-\]
-
-Ex:
-\[(\sigma, \delta, q, \alpha ) = (\{\text{yellow}, \text{blue}\}, \{(\text{notEqual}\ \var{p}\ \overline{\var{p}})\}, q, \alpha)\]
-
-
-\begin{enumerate}
-\item $q = (\text{notEqual}\ \var{x}\ \var{x})$
-\subitem $(\text{notEqual}\ \var{x}\ \var{x}) \unify ([p]\ \text{notEqual}\ \var{p}\ \overline{\var{p}})$
-\subitem $([p]\ \text{notEqual} \unify \text{notEqual}\ \var{x} \unify \var{p}\ \var{x} \unify \overline{\var{p}})$
-\subitem unify constants, $([p]\ \text{notEqual}\ \var{x} \unify \var{p}\ \var{x} \unify \overline{\var{p}})$,
-\subitem replace bound variables $[p]$ by their unifing part, and dispose the variable.
-\subitem in this case $\var{p} \rightarrow \var{x}$, $(\text{notEqual}\ \var{x} \var{x} \unify \overline{\var{x}})$,
-\subitem variable $x$ can't be equal and not equal to $x$ at same time,
-\subitem query fails to unify with any of the definitions,
-\subitem $\alpha=\emptyset$, no awnsers existe for this query.
-
-\item $q = (\text{notEqual}\  \text{yellow}\ \text{yellow})$
-\subitem $(\text{notEqual}\ \text{yellow}\ \text{yellow}) \unify ([p]\ \text{notEqual}\ \var{p}\ \overline{\var{p}})$
-\subitem $([p]\ \text{notEqual} \unify \text{notEqual}\ \text{yellow} \unify \var{p}\ \text{yellow} \unify \overline{\var{p}})$
-\subitem unify constants, $([p]\ \text{notEqual}\ \text{yellow} \unify \var{p}\ \text{yellow} \unify \overline{\var{p}})$,
-\subitem replace bound variables $[p]$ by their unifing part, and dispose the variable.
-\subitem in this case $\var{p} \rightarrow \text{yellow}$, $(\text{notEqual}\ \text{yellow}\ \text{yellow} \unify \overline{\text{yellow}})$,
-\subitem $\text{yellow}$ can't unify with not $\text{yellow}$,
-\subitem query fails to unify with any of the definitions,
-\subitem $\alpha=\emptyset$, no answers exist for this query.
-
-\item $q = (\text{notEqual}\  \text{blue}\ \text{yellow})$
-\subitem $(\text{notEqual}\ \text{blue}\ \text{yellow}) \unify ([p]\ \text{notEqual}\ \var{p}\ \overline{\var{p}})$
-\subitem $([p]\ \text{notEqual} \unify \text{notEqual}\ \text{blue} \unify \var{p}\ \text{yellow} \unify \overline{\var{p}})$
-\subitem unify constants, $([p]\ \text{notEqual}\ \text{blue} \unify \var{p}\ \text{yellow} \unify \overline{\var{p}})$,
-\subitem replace bound variables $[p]$ by their unifing part, and dispose the variable.
-\subitem in this case $\var{p} \rightarrow \text{blue}$, $(\text{notEqual}\ \text{blue} \text{yellow} \unify \overline{\text{blue}})$,
-\subitem $\text{yellow}$, will never be unifiable with $\text{blue}$, so it can be solved to $(\text{notEqual}\ \text{blue}\ \text{yellow})$,
-\subitem $\alpha=\{(\text{notEqual}\ \text{blue}\ \text{yellow})\}$.
-
-\item $q = (\text{notEqual}\ \var{p}\ \text{yellow})$
-
-\subitem $(\text{notEqual}\ \var{p}\ \text{yellow}) \unify ([p]\ \text{notEqual}\ \var{p}\ \overline{\var{p}})$
-\subitem rename bound variable, $p \rightarrow x$,
-\subitem $(\text{notEqual}\ \var{p}\ \text{yellow}) \unify ([x]\ \text{notEqual}\ \var{x}\ \overline{\var{x}})$
-\subitem $([x]\ \text{notEqual} \unify \text{notEqual}\ \var{p} \unify \var{x}\ \text{yellow} \unify \overline{\var{x}})$
-\subitem unify constants, $([x]\ \text{notEqual}\ \var{p} \unify \var{x}\ \text{yellow} \unify \overline{\var{x}})$
-\subitem replace bound variables $[x]$ by their unifing part, and dispose the variable.
-\subitem in this case $\var{x} \rightarrow \var{p}$, $(\text{notEqual}\ \var{p} \text{yellow} \unify \overline{\var{p}})$
-\subitem $\alpha=\{(\text{notEqual}\ \var{p} \text{yellow} \unify \overline{\var{p}})\}$.
-\end{enumerate}
-
 
 \subsection{Defining a list}
 
