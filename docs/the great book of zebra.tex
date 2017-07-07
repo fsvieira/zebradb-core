@@ -194,8 +194,8 @@ a certain formal syntax, and a set of transformation rules.
 \begin{enumerate}
 \item $\mathbb{C} = \{c: \text{c is a constant} \}$,
 \item $\mathbb{V} = \{v: \text{v is a variable} \}$,
-\item $\mathbb{N}_{0} = \{\neg (p_{0} \ldots p_{n}): p_{k} \in \mathbb{C} \cup \mathbb{V}, k \geq 0 \wedge k \leq n \}$, where $\neg t$ is the negation of tuple $t$.
-\item $\mathbb{L}_{0} = \{(p_{0} \ldots p_{n}) : p_{k} \in \mathbb{C} \cup \mathbb{V} \cup \mathbb{N}_{0}, k \geq 0 \wedge k \leq n \}$
+\item $\mathbb{N}_{0} = \{\neg (p_{0} \ldots p_{n}): \forall k \, \, p_{k} \in \mathbb{C} \cup \mathbb{V} \}$, where $\neg t$ is the negation of tuple $t$.
+\item $\mathbb{L}_{0} = \{(p_{0} \ldots p_{n}) : \forall k \, \, p_{k} \in \mathbb{C} \cup \mathbb{V} \cup \mathbb{N}_{0} \}$
 
 \item $\mathbb{N}_{i} = \{\neg t: t \in \mathbb{L}_{i-1}\}$, $i > 0$
 \item $\mathbb{L}_{i} = \{(p_{0} \ldots p_{n}) : p_{k} \in \mathbb{C} \cup \mathbb{V} \cup \mathbb{L}_{i-1} \cup \mathbb{N}_{i}, k \geq 0 \wedge k \leq n \}$, $i > 0$
