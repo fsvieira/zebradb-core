@@ -188,114 +188,65 @@ As mentioned before \zm\ is a logical symbolic computation query system, and it 
 the definitions and the query, both parts share the same language of \zm\ terms, which is defined by
 a certain formal syntax, and a set of transformation rules.
 
-\subsection{\zm\ Language ($\mathbb{L}$)}
-\paragraph{The \zm\ language ($\mathbb{L}$) of terms are defined as:}
+\subsection{\zm\ Definitions Language ($\mathbb{L}$)}
+\paragraph{The \zm\ definitions language ($\mathbb{L}$) of terms are defined as:}
 
 \begin{enumerate}
-\item $\mathbb{C} = \{c: \text{c is a constant} \}$,
+\item $\mathbb{T} = \{c: \text{c is a constant} \}$,
 \item $\mathbb{V} = \{v: \text{v is a variable} \}$,
-\item $\mathbb{N}_{0} = \{\neg (p_{0} \ldots p_{n}): \forall k \, \, p_{k} \in \mathbb{C} \cup \mathbb{V} \}$, where $\neg t$ is the negation of tuple $t$.
-\item $\mathbb{L}_{0} = \{(p_{0} \ldots p_{n}) : \forall k \, \, p_{k} \in \mathbb{C} \cup \mathbb{V} \cup \mathbb{N}_{0} \}$
+\item $\mathbb{I}_{0} = \{\neg (p_{0} \ldots p_{n}): \forall k \, \, p_{k} \in \mathbb{T} \cup \mathbb{V} \}$, where $\neg t$ is the negation of tuple $t$.
+\item $\mathbb{L}_{0} = \{(p_{0} \ldots p_{n}) : \forall k \, \, p_{k} \in \mathbb{T} \cup \mathbb{V} \cup \mathbb{I}_{0} \}$
 
-\item $\mathbb{N}_{i} = \{\neg t: t \in \mathbb{L}_{i-1}\}$, $i > 0$
-\item $\mathbb{L}_{i} = \{(p_{0} \ldots p_{n}) : p_{k} \in \mathbb{C} \cup \mathbb{V} \cup \mathbb{L}_{i-1} \cup \mathbb{N}_{i}, k \geq 0 \wedge k \leq n \}$, $i > 0$
+\item $\mathbb{I}_{i} = \{\neg t: t \in \mathbb{L}_{i-1}\}$, $i > 0$
+\item $\mathbb{L}_{i} = \{(p_{0} \ldots p_{n}) : \forall k \, \, p_{k} \in \mathbb{T} \cup \mathbb{V} \cup \mathbb{L}_{i-1} \cup \mathbb{I}_{i} \}$, $i > 0$
 
-\item $\mathbb{L} = \bigcup\limits_{i=0}^{\infty} \mathbb{L}_{i} \cup \{?t : t \in \mathbb{L}_{i} \}$, where $?t$ is a query and $t$ a tuple.
+\item $\mathbb{L} = \bigcup\limits_{i=0}^{\infty} \mathbb{L}_{i}$.
 \end{enumerate}
 
-% \begin{enumerate}
-% \item $\mathbb{L}_{0}$ and $\mathbb{L}_{not}$ are sets of \zm\ terms.
-% \item $c \in \mathbb{C}$: $\mathbb{C}$ is the set of terminal symbols called constants, $c$ is a terminal symbol. $c \in \mathbb{L}_{0}$.
-% \item $\var{p} \in \mathbb{V}$: $\mathbb{V}$ is the set of variables, $p$ is a variable. $\var{p} \in \mathbb{L}_{0}$.
-% \item $(p_{0} \ldots p_{n}) \in \mathbb{T}$: $\mathbb{T}$ is the set of tuples, $(p_{0} \ldots p_{n})$ its a n-tuple of \zm\ terms. $(p_{0} \ldots p_{n}) \in \mathbb{L}_{0}$.
-% \item $\overline{p}$ can be any term that is not equal to $p$, $p \in \mathbb{L}_{0}$. $\overline{p} \in \mathbb{L}_{not}$.
-% \item Nothing else is a \zm\ term.
-% \item $\mathbb{L} = \mathbb{L}_{0} \cup \mathbb{L}_{not}$,
-% \end{enumerate}
+\subsection{\zm\ Computation}
+\paragraph{A \zm\ computation is expressed as 3-tuple $(\delta, q, \alpha)$ where:}
 
+\begin{enumerate}
+\item $\delta \subseteq \mathbb{L}$ is a set of z-tuples (definitions),
+\item $q \in \mathbb{L}$ is a z-tuple (query),
+\item $\alpha$ is the set of computations on the system (anwsers).
+\end{enumerate}
 
-\subsection{\zm\ Operations}
-
-\paragraph{The powerset of set $\mathbb{S}$ is expressed as $\mathrm{P}(\mathbb{S})$}.
-
-\paragraph{Unification ($\unify$, binary operation)} defined as
-\[
-    \unify: \mathbb{L} \times \mathbb{L} \rightarrow \mathbb{L}
-\]
-
-and by the rules,
+Before we define a computation we need to define unification operation ($\unify$, binary operation) defined as:
 
 \[
-    \unify: \mathbb{L}_{0} \times \mathbb{L}_{0} \rightarrow \mathbb{L}_{0}
+    \mathbb{Q} = \mathbb{L} \cup \mathbb{T} \cup \mathbb{V}\\
 \]
+
+\[
+    \unify: \mathbb{Q} \times \mathbb{Q} \rightarrow \mathbb{Q}
+\]
+
+\begin{align}
+    p \unify q = &  
+    \begin{cases}
+        \hfill p \hfill &\text{, iff } p = q\\
+        \hfill p \hfill &\text{, iff } q \in \mathbb{V}\\
+        \hfill q \hfill &\text{, iff } p \in \mathbb{V}\\
+        \hfill (p_0 \unify q_{0} \ldots p_{n} \unify q_{n}) & we need to handle negations.\\
+    \end{cases}
+\end{align}
+
 
 \begin{enumerate}
 \item $Q \unify Q = Q$
     \subitem $Q$ unifies with itself, resulting on itself.
 
-\item $\var{p} \unify Q = Q \iff \var{p} = Q$
-\item $Q \unify \var{p} = Q \iff \var{p} = Q$
-    \subitem note that if $Q \in \mathbb{V}$ then rule [2] will also apply, since both $p$ and $Q$ are the same the result is also the same.
+\item $\var{p} \unify Q = Q \iff \var{p} = Q$, where $\var{p} \in \mathbb{V}$.
+\item $Q \unify \var{p} = Q \iff \var{p} = Q$, where $\var{p} \in \mathbb{V}$.
 
 \item $(p_{0} \ldots p_{n}) \unify (q_{0} \ldots q_{n}) \iff (p_{0} \unify q_{0} \ldots p_{n} \unify q_{n})$
-    \subitem $(p_{0} \ldots p_{n})$ z-tuple only unifies with other z-tuple if they have same size and all sub \zm\ terms unify.
+    \subitem note that tuples must have the same size to be unifiable.
 
-\end{enumerate}
-
-
-\[
-    \unify: \mathbb{L}_{0} \times \mathbb{L}_{not} \rightarrow \mathbb{L}_{0}
-\]
-
-\begin{enumerate}
-\item $Q \unify \overline{p} = Q \iff p \neq Q$
-\end{enumerate}
-
-
-\[
-    \unify: \mathbb{L}_{not} \times \mathbb{L}_{0} \rightarrow \mathbb{L}_{0}
-\]
-
-\begin{enumerate}
-\item $\overline{p} \unify Q = Q \iff p \neq Q$
-\end{enumerate}
-
-\[
-    \unify: \mathbb{L}_{not} \times \mathbb{L}_{not} \rightarrow \mathbb{L}_{0}
-\]
-
-\begin{enumerate}
-\item $\overline{P} \unify \overline{Q} = \var{p} \iff \var{p} \unify \overline{P} \wedge \var{p} \unify \overline{Q}$
-    \subitem where $\var{p}$ is a new variable.
-    \subitem note that if $P = Q$, then $\var{p} \neq (P \unify Q)$.
 \end{enumerate}
 
 Anything else is not unifiable.
 
-\paragraph{Substitution ($\mathcal{S}$, function)} defined as:
-
-\begin{align}
-    \mathcal{S}&: \mathbb{V} \times \mathbb{L} \times \mathbb{L} \rightarrow \mathbb{L}\\
-    \mathcal{S}&(v, w, t) =
-    \begin{cases}
-        \hfill w \hfill &\text{, if } t = v,\\
-        \hfill (\mathcal{S}(v, w, t_{0}) \ldots \mathcal{S}(v, w, t_{n})) \hfill & \text{, if } t = (t_{0} \ldots t_{n})\\
-        \hfill t \hfill & \text{, otherwise}
-    \end{cases}
-\end{align}
-
-
-\paragraph{The notation $\mathbb{T}_{p}$} is used to define the set containing all of $p$ inner tuples.
-
-\subsection{\zm\ Computation}
-\paragraph{A \zm\ computation is expressed as 4-tuple $(\sigma, \delta, q, \alpha)$ where:}
-
-\begin{enumerate}
-\item $\sigma$ is a set of terminal symbols (constants),
-\item $\delta$ is a set of z-tuples (definitions),
-\item $q$ is a z-tuple (query),
-\item $\alpha$ is the set of possible computational answers to query $q$ based on $delta$ definitions.
-\end{enumerate}
 
 \paragraph{A definition} is a fact in the system. The inner tuples of a definition are considered and called queries, therefor
 for a definition to be true all of its inner tuples/queries must also be true.
