@@ -1,6 +1,6 @@
 {
   "name": "zebrajs",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "variable constrain lib",
   "main": "lib/z.js",
   "directories": {
