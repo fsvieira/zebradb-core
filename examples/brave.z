@@ -63,6 +63,7 @@ Rules:
     )
 )
 
+
 ?(brave
     (letter B) (letter R) (letter A) (letter V) (letter E)
     '          (letter E) (letter B) (letter R) 'v2
@@ -70,5 +71,32 @@ Rules:
     '          (letter B) (letter R) '          '
     '          '          (letter E) (letter B) '
     '
-)
+) {%
+    function toString (r) {
+        var str = "";
+        for (var i=1; i<r.data.length-1; i++) {
+            const v = r.data[i];
+            if (v.type === 'variable' || v.data[1].type === 'variable') {
+                str += "_";
+            }
+            else {
+                str += v.data[1].data;
+            }
+
+            if (i%5 === 0) {
+                str += "\n";
+            }
+            else {
+                str += " ";
+            }
+        }
+        
+        return str;
+    }
+    
+    return {
+        query: toString(query),
+        result: toString(result)
+    };
+%}
 

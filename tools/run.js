@@ -2,6 +2,8 @@
 
 const Session = require("../lib/z");
 const utils = require("../lib/utils");
+const safeEval = require("../lib/utils/safeeval");
+
 const fs = require("fs");
 
 function readFile (filename) {
@@ -33,14 +35,40 @@ function run (filename) {
     session.events.on('query-start', function (queryBranchId) {
         if (queryIds.indexOf(queryBranchId) === -1) {
             queryIds.push(queryBranchId);
-            console.log("Query Started => " + toString(queryBranchId));
+            // console.log("Query Started => " + toString(queryBranchId));
         }
     });
     
     session.events.on('success', function (branchId) {
         const queryBranchId = session.zvs.getObject(branchId, session.zvs.data.global("queryBranchId")).data;
+
         if (queryIds.indexOf(queryBranchId) !== -1) {
-            console.log("Query Success: " + toString(queryBranchId) + " => " + toString(branchId));
+            const functions = session.zvs.getObject(queryBranchId, session.zvs.data.global("queryFunctions")).data;
+            
+            if (functions.length > 0) {
+                functions.forEach(function (f) {
+                    try {
+                        const c = safeEval(["query", "result"], f);
+                        const {query, result} = c(
+                            session.zvs.getObject(queryBranchId, session.zvs.data.global("query")),
+                            session.zvs.getObject(branchId, session.zvs.data.global("query"))
+                        );
+                        
+                        console.log(
+                            " === Query ===\n" +
+                            (query?query:toString(queryBranchId)) 
+                            + "\n\n--- Solution ---\n" + 
+                            (result?result:toString(branchId))
+                        );
+                    }
+                    catch (e) {
+                        console.log("Error function : " + f + ", Exception: " + e);
+                    }
+                });
+            }
+            else {
+                console.log("Query Success: " + toString(queryBranchId) + " => " + toString(branchId));
+            }
         }
     });
     
@@ -49,7 +77,7 @@ function run (filename) {
         if (actives === 0 && index !== -1) {
             // query ended remove it from list,
             queryIds.splice(index, 1);
-            console.log("Query Ended => " + toString(queryBranchId));
+            // console.log("Query Ended => " + toString(queryBranchId));
         }
     });
     
