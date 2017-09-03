@@ -5,8 +5,17 @@ const utils = require("../lib/utils");
 const safeEval = require("../lib/utils/safeeval");
 
 const fs = require("fs");
+const path = require("path");
 
-function readFile (filename) {
+var localPath;
+
+function _readFile (filename) {
+    if (filename.indexOf(".z") === -1) {
+        filename += ".z";
+    }
+
+    console.log(filename);
+
     return new Promise(function (resolve, reject) {
         fs.readFile(filename, function (err, data) {
            if (err) {
@@ -19,8 +28,23 @@ function readFile (filename) {
     });
 }
 
+function readFile (filename) {
+    return _readFile(filename).then(function (r) {
+        return r;
+    }, function () {
+        return _readFile(path.join(localPath, filename)).then(function (r) {
+            return r;
+        }, function () {
+            return Promise.reject("Can't find z file: " + filename);
+        });
+    });
+}
 
 function run (filename) {
+    localPath = path.dirname(filename);
+    
+    console.log("LocalPath = " + localPath);
+    
     const session = new Session({
         readFile
     });
