@@ -62,6 +62,6 @@ because we consider that all constants exists.
 A great source of examples are the test file https://github.com/fsvieira/zebrajs/tree/master/test
 
 * If you want to run the tests:
-  * Execute mocha (http://visionmedia.github.io/mocha/).
+  * Execute mocha (https://mochajs.org/).
   * You also will need to install should (https://github.com/visionmedia/should.js).
 
