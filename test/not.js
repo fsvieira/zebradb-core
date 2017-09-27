@@ -1,7 +1,6 @@
 const test = require("../lib/testing/test");
 
 describe('Not Tests.', function() {
-/*
     it('Simple not',
         test(
             `(equal 'x 'x) (blue)
@@ -178,7 +177,7 @@ describe('Not Tests.', function() {
             {timeout: 60000}
         )
     );
-*/
+
     it('Should declare a number Set, 4 elements',
         test(
             `(number 0)
@@ -224,7 +223,7 @@ describe('Not Tests.', function() {
             {timeout: 60000*2}
         )
     );
-/*
+
     it('Should declare a number Set, 4 elements, all',
         test(
             `(number 0)
@@ -306,5 +305,5 @@ describe('Not Tests.', function() {
             ,
             {timeout: 60000 * 5}
         )
-    );*/
+    );
 });
