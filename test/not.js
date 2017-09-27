@@ -236,7 +236,7 @@ describe('Not Tests.', function() {
             (equal 'x 'x)
             ?(set (number 'a) 'tail ')`
             ,
-            `?(set (number 'a) 'tail '):
+            `?(set (number 'a) 'tail '): 
             	@(set @(number 0) @(set @(number 1) @(set @(number 2) @(set @(number 3) @(set) ') @(set @(number 2) @(set) ')) @(set @(number 1) @(set @(number 3) @(set) ') @(set @(number 1) @(set) '))) @(set @(number 0) @(set @(number 2) @(set @(number 3) @(set) ') @(set @(number 2) @(set) ')) @(set @(number 0) @(set @(number 3) @(set) ') @(set @(number 0) @(set) '))))[^!(equal @(number 0) @(number 1)) !(equal @(number 0) @(number 2)) !(equal @(number 0) @(number 3)) !(equal @(number 1) @(number 2)) !(equal @(number 1) @(number 3)) !(equal @(number 2) @(number 3))]
             	@(set @(number 0) @(set @(number 1) @(set @(number 2) @(set) ') @(set @(number 1) @(set) ')) @(set @(number 0) @(set @(number 2) @(set) ') @(set @(number 0) @(set) ')))[^!(equal @(number 0) @(number 1)) !(equal @(number 0) @(number 2)) !(equal @(number 1) @(number 2))]
             	@(set @(number 0) @(set @(number 1) @(set @(number 3) @(set @(number 2) @(set) ') @(set @(number 3) @(set) ')) @(set @(number 1) @(set @(number 2) @(set) ') @(set @(number 1) @(set) '))) @(set @(number 0) @(set @(number 3) @(set @(number 2) @(set) ') @(set @(number 3) @(set) ')) @(set @(number 0) @(set @(number 2) @(set) ') @(set @(number 0) @(set) '))))[^!(equal @(number 0) @(number 1)) !(equal @(number 0) @(number 2)) !(equal @(number 0) @(number 3)) !(equal @(number 1) @(number 2)) !(equal @(number 1) @(number 3)) !(equal @(number 3) @(number 2))]
