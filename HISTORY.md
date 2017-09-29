@@ -15,7 +15,7 @@
   * [ ] Improve Planner,
   * [X] Improve space:
     * [X] Remove recursive calls.
-  * kanban
+  * [ ] kanban
     * [ ] add support to remove duplicated values from pipeline,
     * [ ] make kanban an independent library
   * [ ] multiply results (remove multiply definitions)
