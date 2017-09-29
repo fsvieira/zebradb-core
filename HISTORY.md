@@ -2,15 +2,29 @@
 
 * 2.0.0 (WIP)
   * Add support to finit representation of infinity structures (ex: (nat 'x) -> 'x => (nat 'x))
-* 1.0.0 version
+* 1.2.0 version
+  * [ ] Update documentation, 
+  * [ ] Improve Planner,
+  * [ ] Add Multithread support (workers, ...),
+  * [ ] Improve space:
+    * [ ] Add database.
+* 1.1.0 version
   * [ ] Update documentation, 
   * [ ] Lint code,
     * [ ] Add code guidelines
   * [ ] Improve Planner,
-  * [ ] Add Multithread support (workers, ...),
-  * [ ] Improve space:
-    * [ ] Add database,
-    * [ ] Remove recursive calls.
+  * [X] Improve space:
+    * [X] Remove recursive calls.
+  * kanban
+    * [ ] add support to remove duplicated values from pipeline,
+    * [ ] make kanban an independent library
+  * [ ] multiply results (remove multiply definitions)
+  * [ ] Specialize zvs for zebrajs.
+
+# History
+
+** beta version (2017-04-20) **
+
 * beta version (2017-04-20)
   * [X] Update readme documentation,
   * [X] get all examples working,
@@ -19,8 +33,6 @@
   * [X] add include file to z language, eg: [list],
     * [X] suport for custom file driver, default to node fs.
   * [X] multiply definitions (remove multiply results)
-
-# History
 
 ** beta version (2016-03-07) **
   
