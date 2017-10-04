@@ -23,7 +23,7 @@ describe('Factorial Parser Tests.', function() {
             {depth: 7}
         )
     );
-
+/*
     it('Should declare a add func',
         test(
             "(nat 0)" +
@@ -209,5 +209,5 @@ describe('Factorial Parser Tests.', function() {
             ,
             {timeout: 60000 * 5}
         )
-    );
+    );*/
 });

@@ -4,6 +4,16 @@ describe("ZQuery Tests.", function () {
     it("Query with single tuple constant.",
         test(
             `(yellow)
+            ?(yellow)`
+            ,
+            `?(yellow):
+                @(yellow)`
+        )
+    );
+
+    it("Query with single tuple constant/variable.",
+        test(
+            `(yellow)
             ?(yellow)
             ?('q)`
             ,
