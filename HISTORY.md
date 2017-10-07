@@ -8,6 +8,10 @@
   * [ ] Add Multithread support (workers, ...),
   * [ ] Improve space:
     * [ ] Add database.
+  * [ ] kanban
+    * [ ] add support to remove duplicated values from pipeline,
+    * [ ] make kanban an independent library
+
 * 1.1.0 version
   * [ ] Update documentation, 
   * [ ] Lint code,
@@ -15,11 +19,6 @@
   * [ ] Improve Planner,
   * [X] Improve space:
     * [X] Remove recursive calls.
-  * [ ] kanban
-    * [ ] add support to remove duplicated values from pipeline,
-    * [ ] make kanban an independent library
-  * [ ] multiply results (remove multiply definitions)
-  * [ ] Specialize zvs for zebrajs.
 
 # History
 
