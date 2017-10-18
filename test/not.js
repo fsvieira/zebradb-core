@@ -26,7 +26,7 @@ describe('Not Tests.', function() {
             `(equal 'x 'x) ('x)
             ?(equal ('x) (yellow) ^(equal ('x) (blue)))`
             ,
-            ``
+            `?(equal ('x) (yellow))[^(equal ('x) (blue))]: @(equal @(yellow) @(yellow))[^!(equal @(yellow) (blue))]`
         )
     );
     
