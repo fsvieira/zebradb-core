@@ -21,6 +21,15 @@ describe('Not Tests.', function() {
         )
     );
 
+    it('Not evaluation order', 
+        test(
+            `(equal 'x 'x) ('x)
+            ?(equal ('x) (yellow) ^(equal ('x) (blue)))`
+            ,
+            ``
+        )
+    );
+    
     it('Declare a not equal',
         test(
             `(color 'a) (equal 'x 'x) (not-equal 'x 'y ^(equal 'x 'y))
