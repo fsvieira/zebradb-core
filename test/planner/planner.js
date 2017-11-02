@@ -1,6 +1,7 @@
 const testPlanner = require("../../lib/testing/test_planner");
 
 describe('Planner Tests - test for best planner choices.', function () {
+/*
     it('should return unique solution.',
         testPlanner(
             `
@@ -23,7 +24,7 @@ describe('Planner Tests - test for best planner choices.', function () {
             `(zero 'x) ** [@(zero 0)]`
         )
     );
-    
+*/    
     it('should ',
         testPlanner(
             `
