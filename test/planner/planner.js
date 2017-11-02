@@ -47,6 +47,14 @@ describe('Planner Tests - test for best planner choices.', function () {
                 (set 'a (set 'b (set) ') ')
             )`
             ,
+            /*
+                Why is this the best tuple:
+                    1. tail unification with (set) will remove the infinit definition of set,
+                    2. variable a and b are related on a negation,
+                    3. top most tuple and (set 'b (set) ') don't add any new information,
+                    4. (bin 'a), (bin 'b) have possible grow of 4 vs grow of 1,
+                        4a. also variables 'a and 'b are related on the choosen tuple with a negation. 
+            */
             `(set 'a (set 'b (set) ') ') ** [@(set 'a (set 'b 'tail ') (set 'a 'tail ') ^(equal 'a 'b))]`
         )
     );
