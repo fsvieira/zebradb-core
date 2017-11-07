@@ -1,7 +1,7 @@
 const testPlanner = require("../../lib/testing/test_planner");
 
 describe('Planner Tests - test for best planner choices.', function () {
-    it('should return unique solution.',
+    /*it('should return unique solution.',
         testPlanner(
             `
             (yellow)
@@ -11,7 +11,6 @@ describe('Planner Tests - test for best planner choices.', function () {
         )
     );
     
-    /*
     it('should unify choose zero unification.',
         testPlanner(
             `
@@ -21,7 +20,8 @@ describe('Planner Tests - test for best planner choices.', function () {
             (test 'a 'b)
             ?(test (zero 'x) (nat 'x))`
             ,
-            `(zero 'x) ** [@(zero 0)]`
+            `{(test @(zero 0) (nat 0))}
+            {@(test (zero 'x) (nat 'x))}`
         )
     );*/
 
@@ -52,6 +52,12 @@ describe('Planner Tests - test for best planner choices.', function () {
              {(test (bin 'a) (bin 'b) @(set 'a (set 'b (set) ') (set 'a (set) ')))[^(equal 'a 'b)]}
              {(test (bin 'a) (bin 'b) (set 'a (set 'b @(set) ') '))}
             `
+            /*
+            {@(test (bin 'a) (bin 'b) (set 'a (set 'b (set) ') '))} 
+            {(test (bin 'a) (bin 'b) @(set 'a (set 'b (set) ') (set 'a (set) ')))[^(equal 'a 'b)]} 
+            {(test (bin 'a) (bin 'a) (set 'a @(set 'a (set) ') '))} 
+            {(test (bin 'a) (bin 'b) (set 'a (set 'b @(set) ') '))}
+            */
         )
     );
 });
