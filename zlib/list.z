@@ -1,8 +1,0 @@
-/*
-    A List definition,
-*/
-
-(list)
-(list 'item (list))
-(list 'item (list ' '))
-
