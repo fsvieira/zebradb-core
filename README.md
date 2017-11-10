@@ -56,6 +56,11 @@ because we consider that all constants exists.
 
 * Thats it.
 
+## Examples
+The is a new repository that contains zebrajs examples and a console program to run them.
+
+https://github.com/fsvieira/zebrajs-examples
+
 
 ## Tests
 
