@@ -2,6 +2,17 @@ const testPlanner = require("../../lib/testing/test_planner");
 const test = require("../../lib/testing/test");
 
 describe('Planner Tests - test for best planner choices.', function () {
+    it('should ',
+        testPlanner(`
+            (bin)
+            (bin 0 (bin))
+            (bin 1 (bin))
+            (bin 0 (bin ' '))
+            (bin 1 (bin ' '))
+            ?(bin 0 (bin 'x (bin)))
+        `, `{(bin 0 (bin 'x @(bin)))}`)
+    );
+    
     it('should return unique solution.',
         testPlanner(
             `
@@ -11,7 +22,7 @@ describe('Planner Tests - test for best planner choices.', function () {
             `{@(yellow)}`
         )
     );
-    
+
     it('should unify choose zero unification.',
         testPlanner(
             `
