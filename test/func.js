@@ -12,11 +12,10 @@ describe("Func tests.", function () {
             %}`
             ,
             `?(yellow):
-                do it
                 yellow
-            ?(yellow):
+             ?(yellow):
                 do it
-                yellow`
+            `
         )
     );
 
