@@ -8,7 +8,60 @@ a certain formal syntax, and a set of transformation rules.
 
 The zebra language is very simple, it only has constants, variables, tuples and negation.
 
-But because its hard to explain how it works, I will do it with examples:
+A math function can be represented as a set of tuples, so on zebra language you can think of tuples has functions, 
+for example, the binary function and:
+  * &: bin -> bin -> bin
+ 
+Where operatar & can be defined as a table:
+ * p q | p & q
+ * 0 0 | 0
+ * 0 1 | 0
+ * 1 0 | 0 
+ * 1 1 | 1
+
+On zebra language we define such function like this:
+ * (0 & 0 = 0)
+ * (0 & 1 = 0)
+ * (1 & 0 = 0)
+ * (1 & 1 = 1)
+
+The 0, 1, & and = are just simbols (constants) and have no meaning to zebra-system, when we perform 
+the query:
+ * ?('p & 'q = 'r)
+
+zebra-system is going to match query with all definitons and will unify variables 'p, 'q and 'r with the 
+values found, on this example we will get the all & table.
+
+So if we do another query like this:
+ * ?('p & 'q = 1) we will get (1 & 1 = 1).
+
+All symbol can be variables, lets define another function:
+ * (0 | 0 = 0)
+ * (0 | 1 = 1)
+ * (1 | 0 = 1)
+ * (1 | 1 = 1)
+
+Now we ask the system what operations would give us the result of 1: ?('p 'o 'q = 1), and 
+the result would be:
+ * (1 & 1 = 1)
+ * (0 | 1 = 1)
+ * (1 | 0 = 1)
+ * (1 | 1 = 1)
+
+Now lets make a query with a negation:
+
+* ?('p | 'q = 1 ^('p & 'q = 1))
+
+On this query the negation is ^('p & 'q = 1), all negations starts with ^, they always negate a tuple, and
+they are hidden witch means they are considered for unification.
+
+So the result of this query would be:
+ * (0 | 1 = 1 ^(1 & 0 = 1)) => (0 | 1 = 1)
+ * (1 | 0 = 1 ^(0 & 1 = 1)) => (1 | 0 = 1)
+
+So we are excluding (1 | 1 = 1) because ^(1 & 1 = 1) exists, witch means negation doesn't fail and so it can't be true.
+
+This are the basics of zebra-system, but because its hard to explain how it works, I will do it with more examples:
 
 Try it online: https://fsvieira.github.io/raindropz/ (Raindropz IDE git: https://github.com/fsvieira/raindropz)
 
