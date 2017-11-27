@@ -8,7 +8,7 @@ describe('Error Tests', function () {
             ?(definition ')
             `
             ,
-            ``
+            `Errors: Invalid definition: (definition (dont match with anything)), before query: (definition ')`
         )
     );
 });
