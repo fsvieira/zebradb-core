@@ -29,7 +29,7 @@ describe('Not Tests.', function() {
             `?(equal ('x) (yellow))[^(equal ('x) (blue))]: @(equal @(yellow) @(yellow))[^!(equal @(yellow) (blue))]`
         )
     );
-    
+
     it('Declare a not equal',
         test(
             `(color 'a) (equal 'x 'x) (not-equal 'x 'y ^(equal 'x 'y))
@@ -141,12 +141,14 @@ describe('Not Tests.', function() {
             ?(set (number 'a) (set (number 'b) (set) ') ')
             ?(set (number 'a) (set (number 'b) (set (number 'c) (set) ') ') ')`
             ,
-            `?(set (number 'a) (set (number 'b) (set) ') '):
-            	@(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) '))[^!(equal @(number 0) @(number 1))]
-            	@(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '))[^!(equal @(number 1) @(number 0))]
-            ?(set (number 'a) (set (number 'b) (set (number 'c) (set) ') ') '):
-            	<empty>
             `
+            ?(set (number 'a) (set (number 'b) (set) ') '):
+                @(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) '))[^!(equal @(number 0) (number 1))]
+                @(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '))[^!(equal @(number 1) (number 0))]
+            ?(set (number 'a) (set (number 'b) (set (number 'c) (set) ') ') '):
+                <empty>
+            `
+            
         )
     );
 
