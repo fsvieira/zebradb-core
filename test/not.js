@@ -1,7 +1,7 @@
 const test = require("../lib/testing/test");
 
 describe('Not Tests.', function() {
-    it('Simple not',
+    /*it('Simple not',
         test(
             `(equal 'x 'x) (blue)
             ?('x ^(equal 'x yellow))`
@@ -19,7 +19,7 @@ describe('Not Tests.', function() {
             `?('x)[^(equal 'x yellow)]:
                 <empty>`
         )
-    );
+    );*/
 
     it('Not evaluation order', 
         test(
@@ -29,7 +29,7 @@ describe('Not Tests.', function() {
             `?(equal ('x) (yellow))[^(equal ('x) (blue))]: @(equal @(yellow) @(yellow))[^!(equal @(yellow) (blue))]`
         )
     );
-
+/*
     it('Declare a not equal',
         test(
             `(color 'a) (equal 'x 'x) (not-equal 'x 'y ^(equal 'x 'y))
@@ -332,5 +332,5 @@ describe('Not Tests.', function() {
             ,
             {timeout: 60000 * 5}
         )
-    );
+    );*/
 });

@@ -1,6 +1,6 @@
 const test = require("../lib/testing/test");
 
-describe('Cyclic Tests', function () {
+xdescribe('Cyclic Tests', function () {
     it('should handle cyclic data on multiply.',
         test(
             `
