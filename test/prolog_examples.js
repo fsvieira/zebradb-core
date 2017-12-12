@@ -151,7 +151,8 @@ describe('Prolog examples port Tests.', function() {
             "(equal 'x 'x)" +
             "?(john likes 'stuff ')"
             ,
-            `?(john likes 'stuff '):
+            `
+            ?(john likes 'stuff '):
                 @(john likes food @(mary likes food '))
                 @(john likes john @(john likes wine '))
                 @(john likes john @(john likes wine @(mary likes wine ')))
@@ -159,7 +160,8 @@ describe('Prolog examples port Tests.', function() {
                 @(john likes mary @(mary likes wine '))
                 @(john likes peter @(peter likes peter '))[^!(equal peter john)]
                 @(john likes wine ')
-                @(john likes wine @(mary likes wine '))`
+                @(john likes wine @(mary likes wine '))
+            `
         )
     );
 
@@ -170,7 +172,8 @@ describe('Prolog examples port Tests.', function() {
             ?(john likes 'stuff 'p)`
             ,
             `?(john likes 'stuff 'p):
-                <empty>`
+                <empty>
+            `
             , 
             {depth: 7}
         )

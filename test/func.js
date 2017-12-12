@@ -47,10 +47,11 @@ describe("Func tests.", function () {
             %}
             `
             ,
-            `?(mother ' ' '):
+            `?(mother ' '$1 '$2):
                 filipe is noémia son.
-                isabel is noémia daughter.
-                joana is noémia daughter.`
+                isabel is noémia daughter. 
+                joana is noémia daughter.
+            `
         )
     );
 

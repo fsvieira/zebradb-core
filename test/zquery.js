@@ -18,10 +18,12 @@ describe("ZQuery Tests.", function () {
             ?(yellow)
             ?('q)`
             ,
-            `?(yellow):
+            `
+            ?(yellow):
                 @(yellow)
             ?('q):
-                @(yellow)`
+                @(yellow)
+            `
         )
     );
 
@@ -30,8 +32,10 @@ describe("ZQuery Tests.", function () {
             `('p 'p)
             ?(yellow 'p)`
             ,
-            `?(yellow 'p):
-                @(yellow yellow)`
+            `
+            ?(yellow 'p):
+                @(yellow yellow)
+            `
         )
     );
 
@@ -51,7 +55,8 @@ describe("ZQuery Tests.", function () {
             ?('a 'b 'c)`
             ,
             `?('a 'b 'c):
-                @(blue red yellow)`
+                @(blue red yellow)
+            `
         )
     );
 
@@ -61,7 +66,8 @@ describe("ZQuery Tests.", function () {
             ?(yellow 'c)`
             ,
             `?(yellow 'c):
-                @(yellow yellow)`
+                @(yellow yellow)
+            `
         )
     );
 
@@ -70,8 +76,10 @@ describe("ZQuery Tests.", function () {
             `('x 'y) (('a 'a))
             ?((yellow 'c))`
             ,
-            `?((yellow 'c)):
-                @(@(yellow yellow))`
+            `
+            ?((yellow 'c)):
+                @(@(yellow yellow))
+            `
         )
     );
 
@@ -80,8 +88,10 @@ describe("ZQuery Tests.", function () {
             `(yellow blue) (blue yellow) (('a 'b) ('b 'a))
             ?((yellow 'c) (blue 'd))`
             ,
-            `?((yellow 'c) (blue 'd)):
-                @(@(yellow blue) @(blue yellow))`
+            `
+            ?((yellow 'c) (blue 'd)):
+                @(@(yellow blue) @(blue yellow))
+            `
         )
     );
 
