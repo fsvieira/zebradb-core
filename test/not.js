@@ -1,6 +1,7 @@
 const test = require("../lib/testing/test");
 
 describe('Not Tests.', function() {
+
     it('Simple not',
         test(
             `(equal 'x 'x) (blue)
