@@ -63,7 +63,7 @@ describe('Brave puzzle Tests.', function() {
                     'x1y3 | letter " " 'x2y3 | letter " " 'x3y3 | letter " " 'x4y3 | letter " " 'x5y3 | letter "\n"
                     'x1y4 | letter " " 'x2y4 | letter " " 'x3y4 | letter " " 'x4y4 | letter " " 'x5y4 | letter "\n"
                     'x1y5 | letter " " 'x2y5 | letter " " 'x3y5 | letter " " 'x4y5 | letter " " 'x5y5 | letter "\n"
-                .
+            .
             
             ?(brave
                 (letter B) (letter R) (letter A) (letter V) (letter E)
