@@ -1,7 +1,7 @@
 const test = require("../lib/testing/test");
 
 describe("Func tests.", function () {
-    /*it("Custom function for print query.",
+    it("Custom function for print query.",
         test(
             `
             print: ('v) -> 'v.
@@ -18,7 +18,7 @@ describe("Func tests.", function () {
                 do it
             `
         )
-    );*/
+    );
 
     it("brother test.",
         test(
