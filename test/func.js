@@ -1,7 +1,7 @@
 const test = require("../lib/testing/test");
 
 describe("Func tests.", function () {
-    it("Custom function for print query.",
+    /*it("Custom function for print query.",
         test(
             `
             print: ('v) -> 'v.
@@ -18,7 +18,7 @@ describe("Func tests.", function () {
                 do it
             `
         )
-    );
+    );*/
 
     it("brother test.",
         test(
@@ -41,8 +41,8 @@ describe("Func tests.", function () {
             (mother (female 'x) ('y 'z) (parent (female 'x) ('y 'z)))
 
             mother:
-                (mother (female 'mother) (female 'daughter) ') -> "" 'daughter " is " 'mother " daughter",
-                (mother (female 'mother) (male 'son) ') -> "" 'son " is " 'mother " son"
+                (mother (female 'mother) (female 'daughter) ') -> "" 'daughter " is " 'mother " daughter.",
+                (mother (female 'mother) (male 'son) ') -> "" 'son " is " 'mother " son."
             .
                 
 
