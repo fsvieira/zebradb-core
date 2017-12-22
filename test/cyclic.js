@@ -1,19 +1,21 @@
+"use strict";
+
 const test = require("../lib/testing/test");
 
-xdescribe('Cyclic Tests', function () {
-    it('should handle cyclic data on multiply.',
+xdescribe("Cyclic Tests", function () {
+    it("should handle cyclic data on multiply.",
         test(
             `
             (! 'q)
             ('p 'q 'p 'q)
             ('p 'q (! 'q) (! 'p))
-            ?(! 'q)`
-            ,
+            ?(! 'q)`,
+            
             `?(! 'q): @(! 'q)`
         )
     );
 
-    it('should handle cyclic data on multiply (simple).',
+    it("should handle cyclic data on multiply (simple).",
         test(
             `
             ('p)
@@ -23,8 +25,8 @@ xdescribe('Cyclic Tests', function () {
             ?('p (A))
             ?(A A)
             ?('p 'p)
-            ?('a 'b)`
-            ,
+            ?('a 'b)`,
+            
             `?(A 'p):
                 @(A @(A))
                 @(A A)
@@ -46,7 +48,7 @@ xdescribe('Cyclic Tests', function () {
         )
     );
     
-    it('should handle cyclic data on query.',
+    it("should handle cyclic data on query.",
         test(
             `
             (! 'q)
@@ -54,8 +56,8 @@ xdescribe('Cyclic Tests', function () {
             ?('p 'q (! 'q) (! 'p))
             ?(' ' (! A) (! A))
 
-            `
-            ,
+            `,
+            
             // TODO: why is this empty ???
             `?('p 'q (! 'q) (! 'p)):
                 <empty>

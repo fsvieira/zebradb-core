@@ -1,7 +1,10 @@
+"use strict";
+
 const test = require("../lib/testing/test");
 
-describe('Send more money puzzle test.', function() {
-    xit('should solve send more money', 
+describe("Send more money puzzle test.", function() {
+
+    xit("should solve send more money", 
         test(
             `
             # declare list,

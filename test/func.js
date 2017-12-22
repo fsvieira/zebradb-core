@@ -1,3 +1,5 @@
+"use strict";
+
 const test = require("../lib/testing/test");
 
 describe("Func tests.", function () {
@@ -10,8 +12,8 @@ describe("Func tests.", function () {
             
             (yellow)
             ?(yellow) | print
-            ?(yellow) | doit`
-            ,
+            ?(yellow) | doit`,
+            
             `?(yellow):
                 yellow
              ?(yellow):
@@ -47,8 +49,8 @@ describe("Func tests.", function () {
                 
 
             ?(mother ' ' ') | mother
-            `
-            ,
+            `,
+            
             `?(mother ' '$1 '$2):
                 filipe is noémia son.
                 isabel is noémia daughter. 

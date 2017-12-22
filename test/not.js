@@ -1,39 +1,41 @@
+"use strict";
+
 const test = require("../lib/testing/test");
 
-describe('Not Tests.', function() {
+describe("Not Tests.", function() {
 
-    it('Simple not',
+    it("Simple not",
         test(
             `(equal 'x 'x) (blue)
-            ?('x ^(equal 'x yellow))`
-            ,
+            ?('x ^(equal 'x yellow))`,
+            
             `?('x)[^(equal 'x yellow)]: 
                 @(blue)[^!(equal blue yellow)]`
         )
     );
 
-    it('Simple not, no constants', 
+    it("Simple not, no constants", 
         test(
             `(equal 'x 'x) ('x)
-            ?('x ^(equal 'x yellow))`
-            ,
+            ?('x ^(equal 'x yellow))`,
+            
             `?('x)[^(equal 'x yellow)]:
                 <empty>`
         )
     );
 
-    it('Not evaluation order', 
+    it("Not evaluation order", 
         test(
             `(equal 'x 'x) ('x)
-            ?(equal ('x) (yellow) ^(equal ('x) (blue)))`
-            ,
+            ?(equal ('x) (yellow) ^(equal ('x) (blue)))`,
+            
             `?(equal ('x) (yellow))[^(equal ('x) (blue))]:
                 @(equal @(yellow) @(yellow))[^!(equal (yellow) (blue))]
             `
         )
     );
 
-    it('Declare a not equal',
+    it("Declare a not equal",
         test(
             `(color 'a) (equal 'x 'x) (not-equal 'x 'y ^(equal 'x 'y))
             ?(equal yellow yellow)
@@ -41,8 +43,8 @@ describe('Not Tests.', function() {
             ?(not-equal yellow yellow)
             ?(not-equal yellow blue)
             ?(not-equal (color yellow) (color yellow))
-            ?(not-equal (color blue) (color yellow))`
-            ,
+            ?(not-equal (color blue) (color yellow))`,
+            
             `
             ?(equal yellow yellow):
                 @(equal yellow yellow)
@@ -60,7 +62,7 @@ describe('Not Tests.', function() {
         )
     );
 
-    it('Should make distinct tuples',
+    it("Should make distinct tuples",
         test(
             `(color yellow)
             (color blue)
@@ -69,8 +71,8 @@ describe('Not Tests.', function() {
             (distinct 'x 'y ^(equal 'x 'y))
             ?(distinct (color yellow) (color yellow))
             ?(distinct (color yellow) (color blue))
-            ?(distinct (color 'a) (color 'b))`
-            ,
+            ?(distinct (color 'a) (color 'b))`,
+            
             `?(distinct (color yellow) (color yellow)):
                 <empty>
             ?(distinct (color yellow) (color blue)):
@@ -86,14 +88,14 @@ describe('Not Tests.', function() {
         )
     );
 
-    it('Should declare simple not.',
+    it("Should declare simple not.",
         test(
             `(number 0)
             (number 1)
             (not 'x 'y ^(equal 'x 'y))
             (equal 'x 'x)
-            ?(not (number 'p) (number 'q))`
-            ,
+            ?(not (number 'p) (number 'q))`,
+            
             `?(not (number 'p) (number 'q)):
                 @(not @(number 0) @(number 1))[^!(equal (number 0) (number 1))]
                 @(not @(number 1) @(number 0))[^!(equal (number 1) (number 0))]
@@ -101,7 +103,7 @@ describe('Not Tests.', function() {
         )
     );
 
-    it('Should declare a list',
+    it("Should declare a list",
         test(
             `(list)
             (list 'item (list ' '))
@@ -115,8 +117,8 @@ describe('Not Tests.', function() {
             (equal 'x 'x)
             ?(list)
             ?(list (fruit banana) (list (fruit apple) (list)))
-            ?(list (fruit 'a) (list (fruit 'b) (list)) ^(equal 'a 'b))`
-            ,
+            ?(list (fruit 'a) (list (fruit 'b) (list)) ^(equal 'a 'b))`,
+            
             `?(list):
                 @(list) 
             ?(list (fruit banana) (list (fruit apple) (list))):
@@ -137,7 +139,7 @@ describe('Not Tests.', function() {
         )
     );
 
-    it('Should declare a two number Set',
+    it("Should declare a two number Set",
         test(
             `(number 0)
             (number 1)
@@ -146,8 +148,8 @@ describe('Not Tests.', function() {
             (set (number 'a) (set (number 'b) 'tail ') (set (number 'a) 'tail ') ^(equal (number 'a) (number 'b)))
             (equal 'x 'x)
             ?(set (number 'a) (set (number 'b) (set) ') ')
-            ?(set (number 'a) (set (number 'b) (set (number 'c) (set) ') ') ')`
-            ,
+            ?(set (number 'a) (set (number 'b) (set (number 'c) (set) ') ') ')`,
+            
             `
             ?(set (number 'a) (set (number 'b) (set) ') '$1):
                 @(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) '$1))[^!(equal (number 0) (number 1))]
@@ -159,7 +161,7 @@ describe('Not Tests.', function() {
         )
     );
 
-    it('Should declare a two number Set, query all',
+    it("Should declare a two number Set, query all",
         test(
             `(number 0)
             (number 1)
@@ -168,8 +170,8 @@ describe('Not Tests.', function() {
             (set (number 'a) (set (number 'b) 'tail ') (set (number 'a) 'tail ') ^(equal (number 'a) (number 'b)))
             (equal 'x 'x)
             ?(set (number 'a) 'tail ')`,
-            `
-            ?(set (number 'a) 'tail '):
+            
+            `?(set (number 'a) 'tail '):
                 @(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) '$1))[^!(equal (number 0) (number 1))]
                 @(set @(number 0) @(set) ')
                 @(set @(number 1) @(set @(number 0) @(set) ')
@@ -179,7 +181,7 @@ describe('Not Tests.', function() {
         )
     );
 
-    it('Should declare a number Set, 3 elements',
+    it("Should declare a number Set, 3 elements",
         test(
             `(number 0)
             (number 1)
@@ -189,8 +191,8 @@ describe('Not Tests.', function() {
             (set (number 'a) (set (number 'b) 'tail ') (set (number 'a) 'tail ') ^(equal (number 'a) (number 'b)))
             (equal 'x 'x)
             ?(set (number 0) (set (number 1) (set (number 2) (set) ') ') ')
-            ?(set (number 'a) 'tail ')`
-            ,
+            ?(set (number 'a) 'tail ')`,
+            
             `?(set (number 0) (set (number 1) (set (number 2) (set) ') '$1) '$2): 
             	@(set @(number 0) @(set @(number 1) @(set @(number 2) @(set) ') @(set @(number 1) @(set) '$1)) @(set @(number 0) @(set @(number 2) @(set) ') @(set @(number 0) @(set) '$2)))[^!(equal (number 0) (number 1)) !(equal (number 0) (number 2)) !(equal (number 1) (number 2))]
             ?(set (number 'a) 'tail '):
@@ -209,13 +211,12 @@ describe('Not Tests.', function() {
             	@(set @(number 2) @(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '$1)) @(set @(number 2) @(set @(number 0) @(set) ') @(set @(number 2) @(set) '$2)))[^!(equal (number 1) (number 0)) !(equal (number 2) (number 0)) !(equal (number 2) (number 1))]
             	@(set @(number 2) @(set @(number 1) @(set) ') @(set @(number 2) @(set) '$1))[^!(equal (number 2) (number 1))]
             	@(set @(number 2) @(set) ')
-            `
-            ,
+            `,
             {timeout: 60000}
         )
     );
 
-    it('Should declare a number Set, 4 elements',
+    it("Should declare a number Set, 4 elements",
         test(
             `(number 0)
             (number 1)
@@ -226,8 +227,8 @@ describe('Not Tests.', function() {
             (set (number 'a) (set (number 'b) 'tail ') (set (number 'a) 'tail ') ^(equal (number 'a) (number 'b)))
             (equal 'x 'x)
             ?(set (number 0) (set (number 1) (set (number 2) (set (number 3) (set) ') ') ') ')
-            ?(set (number 'a) (set (number 'b) (set (number 'c) (set (number 'd) (set) ') ') ') ')`
-            ,
+            ?(set (number 'a) (set (number 'b) (set (number 'c) (set (number 'd) (set) ') ') ') ')`,
+            
             `?(set (number 0) (set (number 1) (set (number 2) (set (number 3) (set) ') '$1) '$2) '$3):
             	@(set @(number 0) @(set @(number 1) @(set @(number 2) @(set @(number 3) @(set) ') @(set @(number 2) @(set) '$1)) @(set @(number 1) @(set @(number 3) @(set) ') @(set @(number 1) @(set) '$2))) @(set @(number 0) @(set @(number 2) @(set @(number 3) @(set) ') @(set @(number 2) @(set) '$1)) @(set @(number 0) @(set @(number 3) @(set) ') @(set @(number 0) @(set) '$3))))[^!(equal (number 0) (number 1)) !(equal (number 0) (number 2)) !(equal (number 0) (number 3)) !(equal (number 1) (number 2)) !(equal (number 1) (number 3)) !(equal (number 2) (number 3))]
             ?(set (number 'a) (set (number 'b) (set (number 'c) (set (number 'd) (set) ') '$1) '$2) '$3):
@@ -255,13 +256,12 @@ describe('Not Tests.', function() {
             	@(set @(number 3) @(set @(number 1) @(set @(number 2) @(set @(number 0) @(set) ') @(set @(number 2) @(set) '$1)) @(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '$2))) @(set @(number 3) @(set @(number 2) @(set @(number 0) @(set) ') @(set @(number 2) @(set) '$1)) @(set @(number 3) @(set @(number 0) @(set) ') @(set @(number 3) @(set) '$3))))[^!(equal (number 1) (number 0)) !(equal (number 1) (number 2)) !(equal (number 2) (number 0)) !(equal (number 3) (number 0)) !(equal (number 3) (number 1)) !(equal (number 3) (number 2))]
             	@(set @(number 3) @(set @(number 2) @(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) '$1)) @(set @(number 2) @(set @(number 1) @(set) ') @(set @(number 2) @(set) '$2))) @(set @(number 3) @(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) '$1)) @(set @(number 3) @(set @(number 1) @(set) ') @(set @(number 3) @(set) '$3))))[^!(equal (number 0) (number 1)) !(equal (number 2) (number 0)) !(equal (number 2) (number 1)) !(equal (number 3) (number 0)) !(equal (number 3) (number 1)) !(equal (number 3) (number 2))]
             	@(set @(number 3) @(set @(number 2) @(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '$1)) @(set @(number 2) @(set @(number 0) @(set) ') @(set @(number 2) @(set) '$2))) @(set @(number 3) @(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '$1)) @(set @(number 3) @(set @(number 0) @(set) ') @(set @(number 3) @(set) '$3))))[^!(equal (number 1) (number 0)) !(equal (number 2) (number 0)) !(equal (number 2) (number 1)) !(equal (number 3) (number 0)) !(equal (number 3) (number 1)) !(equal (number 3) (number 2))]
-            `
-            ,
+            `,
             {timeout: 60000*2}
         )
     );
 
-    it('Should declare a number Set, 4 elements, all',
+    it("Should declare a number Set, 4 elements, all",
         test(
             `(number 0)
             (number 1)
@@ -271,8 +271,8 @@ describe('Not Tests.', function() {
             (set (number 'a) (set) ')
             (set (number 'a) (set (number 'b) 'tail ') (set (number 'a) 'tail ') ^(equal (number 'a) (number 'b)))
             (equal 'x 'x)
-            ?(set (number 'a) 'tail ')`
-            ,
+            ?(set (number 'a) 'tail ')`,
+            
             `?(set (number 'a) 'tail '):
             	@(set @(number 0) @(set @(number 1) @(set @(number 2) @(set @(number 3) @(set) ') @(set @(number 2) @(set) '$1)) @(set @(number 1) @(set @(number 3) @(set) ') @(set @(number 1) @(set) '$2))) @(set @(number 0) @(set @(number 2) @(set @(number 3) @(set) ') @(set @(number 2) @(set) '$1)) @(set @(number 0) @(set @(number 3) @(set) ') @(set @(number 0) @(set) '$3))))[^!(equal (number 0) (number 1)) !(equal (number 0) (number 2)) !(equal (number 0) (number 3)) !(equal (number 1) (number 2)) !(equal (number 1) (number 3)) !(equal (number 2) (number 3))]
             	@(set @(number 0) @(set @(number 1) @(set @(number 2) @(set) ') @(set @(number 1) @(set) '$1)) @(set @(number 0) @(set @(number 2) @(set) ') @(set @(number 0) @(set) '$2)))[^!(equal (number 0) (number 1)) !(equal (number 0) (number 2)) !(equal (number 1) (number 2))]
@@ -338,8 +338,7 @@ describe('Not Tests.', function() {
             	@(set @(number 3) @(set @(number 2) @(set @(number 1) @(set) ') @(set @(number 2) @(set) '$1)) @(set @(number 3) @(set @(number 1) @(set) ') @(set @(number 3) @(set) '$2)))[^!(equal (number 2) (number 1)) !(equal (number 3) (number 1)) !(equal (number 3) (number 2))]
             	@(set @(number 3) @(set @(number 2) @(set) ') @(set @(number 3) @(set) '$1))[^!(equal (number 3) (number 2))]
             	@(set @(number 3) @(set) ')
-            `
-            ,
+            `,
             {timeout: 60000 * 5}
         )
     );

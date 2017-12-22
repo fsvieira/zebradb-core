@@ -1,7 +1,9 @@
+"use strict";
+
 const test = require("../lib/testing/test");
 
-describe('Brave puzzle Tests.', function() {
-    it('should solve brave puzzle',
+describe("Brave puzzle Tests.", function() {
+    it("should solve brave puzzle",
         test(
             `(letter B)
             (letter R)
@@ -73,10 +75,9 @@ describe('Brave puzzle Tests.', function() {
                 '          '          (letter E) (letter B) '
                 '
             ) | brave
-            `
-            ,
-            `
-            ?(brave 
+            `,
+            
+            `?(brave 
                 (letter B) (letter R) (letter A) (letter V) (letter E)
                 '          (letter E) (letter B) (letter R) '$1
                 '$2        '$3        (letter V) '$4        (letter B)
@@ -88,53 +89,7 @@ describe('Brave puzzle Tests.', function() {
                     R A V E B
                     E B R A V
                     A V E B R
-            `
-            /*
-            `?(brave 
-                (letter B) (letter R) (letter A) (letter V) (letter E)
-                '          (letter E) (letter B) (letter R) '$1
-                '$2        '$3        (letter V) '$4        (letter B)
-                '$5        (letter B) (letter R) '$6        '$7
-                '$8        '$9        (letter E) (letter B) '$10 
-                '$11):
-            @(brave
-                @(letter B) @(letter R) @(letter A) @(letter V) @(letter E)
-                @(letter V) @(letter E) @(letter B) @(letter R) @(letter A)
-                @(letter R) @(letter A) @(letter V) @(letter E) @(letter B)
-                @(letter E) @(letter B) @(letter R) @(letter A) @(letter V)
-                @(letter A) @(letter V) @(letter E) @(letter B) @(letter R)
-                @(conditions 
-                    @(distinct @(letter B) @(letter R) @(letter A) @(letter V) @(letter E)) 
-                    @(distinct @(letter V) @(letter E) @(letter B) @(letter R) @(letter A))
-                    @(distinct @(letter R) @(letter A) @(letter V) @(letter E) @(letter B))
-                    @(distinct @(letter E) @(letter B) @(letter R) @(letter A) @(letter V))
-                    @(distinct @(letter A) @(letter V) @(letter E) @(letter B) @(letter R))
-                    @(distinct @(letter B) @(letter V) @(letter R) @(letter E) @(letter A))
-                    @(distinct @(letter R) @(letter E) @(letter A) @(letter B) @(letter V))
-                    @(distinct @(letter A) @(letter B) @(letter V) @(letter R) @(letter E))
-                    @(distinct @(letter V) @(letter R) @(letter E) @(letter A) @(letter B))
-                    @(distinct @(letter E) @(letter A) @(letter B) @(letter V) @(letter R))
-                    @(distinct @(letter B) @(letter E) @(letter V) @(letter A) @(letter R))
-                    @(distinct @(letter A) @(letter B) @(letter V) @(letter R) @(letter E))))[^!(equal A B) !(equal A B) !(equal A B) !(equal A B) 
-                        !(equal A E) !(equal A E) !(equal A E) !(equal A R) 
-                        !(equal A R) !(equal A R) !(equal A R) !(equal A V)
-                        !(equal A V) !(equal A V) !(equal A V) !(equal A V) 
-                        !(equal A V) !(equal B A) !(equal B A) !(equal B A) 
-                        !(equal B A) !(equal B E) !(equal B E) !(equal B R) 
-                        !(equal B R) !(equal B R) !(equal B V) !(equal B V) 
-                        !(equal B V) !(equal E A) !(equal E A) !(equal E A) 
-                        !(equal E A) !(equal E A) !(equal E B) !(equal E B) 
-                        !(equal E B) !(equal E R) !(equal E R) !(equal E R)
-                        !(equal E V) !(equal E V) !(equal E V) !(equal E V)
-                        !(equal R A) !(equal R A) !(equal R A) !(equal R A)
-                        !(equal R A) !(equal R B) !(equal R B) !(equal R E)
-                        !(equal R E) !(equal R E) !(equal R E) !(equal R V) 
-                        !(equal R V) !(equal R V) !(equal R V) !(equal V A)
-                        !(equal V A) !(equal V A) !(equal V B) !(equal V B)
-                        !(equal V B) !(equal V E) !(equal V E) !(equal V E) 
-                        !(equal V E) !(equal V E) !(equal V R) !(equal V R)
-                        !(equal V R) !(equal V R) !(equal V R)]`*/
-            ,
+            `,
             {timeout: 60000 * 5}
         )
     );

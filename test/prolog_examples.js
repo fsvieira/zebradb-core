@@ -1,11 +1,13 @@
+"use strict";
+
 const test = require("../lib/testing/test");
 
 /*
   Online prolog examples converted to zebra system.
 */
+describe("Prolog examples port Tests.", function() {
 
-describe('Prolog examples port Tests.', function() {
-    it('Should query people about what they like.', 
+    it("Should query people about what they like.", 
         test(
             `(mary likes food)
             (mary likes wine)
@@ -14,8 +16,8 @@ describe('Prolog examples port Tests.', function() {
             ?(mary likes food)
             ?(john likes wine)
             ?(john likes food)
-            ?(mary likes 'stuff)`
-            ,
+            ?(mary likes 'stuff)`,
+
             `?(mary likes food):
                 @(mary likes food)
             ?(john likes wine):
@@ -28,37 +30,40 @@ describe('Prolog examples port Tests.', function() {
         )
     );
 
-    it('Should query about what john likes.',
+    it("Should query about what john likes.",
         test(
         // 1. John likes anything that Mary likes 
         `(mary likes food ')
          (mary likes wine ')
          (john likes 'stuff (mary likes 'stuff '))
-         ?(john likes 'stuff 'p)`
-        ,
+         ?(john likes 'stuff 'p)`,
+         
         `?(john likes 'stuff 'p):
             @(john likes food @(mary likes food '))
             @(john likes wine @(mary likes wine '))`
         )
     );
 
-    it('Should fail on insufficient definitions.',
+
+    it("Should fail on insufficient definitions.",
         test(
             `(john likes 'person ('person likes wine '))
-            ?(john likes 'stuff 'p)`
-            ,
-            // (john likes 'stuff 'p).(john likes 'person ('person likes wine '))
-            // (john likes 'stuff='person 'p=('person likes wine '))
-            // ('person likes wine ').(john likes 'person ('person likes wine ')
-            // ('person=john likes 'person2=wine ('person2=wine likes wine '))
-            // ('person2=wine likes wine ').(john likes 'person ('person likes wine '))
-            // wine != john -> fail.
+            ?(john likes 'stuff 'p)`,
+
+        /* (john likes 'stuff 'p).(john likes 'person ('person likes wine '))
+         (john likes 'stuff='person 'p=('person likes wine '))
+         ('person likes wine ').(john likes 'person ('person likes wine ')
+         ('person=john likes 'person2=wine ('person2=wine likes wine '))
+         ('person2=wine likes wine ').
+            (john likes 'person ('person likes wine '))
+         wine != john -> fail.*/
+         
             `?(john likes 'stuff 'p):
                 <empty>`
         )
     );
 
-    it('Should query what john likes, he likes anyone who likes wine.',
+    it("Should query what john likes, he likes anyone who likes wine.",
         test(
             "(mary likes wine ')" + // likes(mary,wine).
             "(john likes wine ')" + // likes(john,wine).
@@ -66,16 +71,19 @@ describe('Prolog examples port Tests.', function() {
             // 2. John likes anyone who likes wine
             "(john likes 'person ('person likes wine '))" +
             
-            // (john likes 'stuff 'p) . (john likes 'person ('person likes wine '))
-            // =>   stuff = person
-            //      p = (person likes wine ')
-            // (person likes wine ') . (mary likes wine ') => person = mary
-            // (person likes wine ') . (john likes wine ') => person = john
-            // (person1 likes wine ') . (john likes 'person2 ('person2 likes wine ')) 
-            // =>   person1 = john, person2 = wine
-            //      (wine likes wine ') FAIL.
-            "?(john likes 'stuff 'p)"
-            ,
+            /* (john likes 'stuff 'p) . (john likes 'person 
+                    ('person likes wine '))
+            =>   stuff = person
+                  p = (person likes wine ')
+            (person likes wine ') . (mary likes wine ') => person = mary
+            (person likes wine ') . (john likes wine ') => person = john
+            (person1 likes wine ') . 
+                (john likes 'person2 ('person2 likes wine ')) 
+             =>   person1 = john, person2 = wine
+                  (wine likes wine ') FAIL.
+            */
+            "?(john likes 'stuff 'p)",
+
             `?(john likes 'stuff 'p):
                 @(john likes john @(john likes wine '))
                 @(john likes mary @(mary likes wine '))
@@ -83,7 +91,8 @@ describe('Prolog examples port Tests.', function() {
         )
     );
 
-    it('Should query what john likes, he likes what mary likes and people that like wine.',
+    it("Should query what john likes," + 
+        "he likes what mary likes and people that like wine.",
         test(
             "(mary likes food ')" + // likes(mary,food).
             "(mary likes wine ')" + // likes(mary,wine).
@@ -97,8 +106,7 @@ describe('Prolog examples port Tests.', function() {
             // 2. John likes anyone who likes wine
             "(john likes 'person ('person likes wine '))" +
         
-            "?(john likes 'stuff 'p)"
-            ,
+            "?(john likes 'stuff 'p)",
             `?(john likes 'stuff 'p):
                 @(john likes food @(mary likes food '))
                 @(john likes john @(john likes wine '))
@@ -110,7 +118,7 @@ describe('Prolog examples port Tests.', function() {
         )
     );
 
-    it('Should query john likes people that like themselves.',
+    it("Should query john likes people that like themselves.",
         test(
             "(john likes wine ')" + // likes(john,wine).
 
@@ -118,19 +126,22 @@ describe('Prolog examples port Tests.', function() {
             "(john likes 'person ('person likes wine '))" +
 
             // 2. John likes anyone who likes themselves
-            // "(john likes 'person ('person likes 'person '))" // this is recursive by itself.
+            // "(john likes 'person ('person likes 'person '))"
+                // this is recursive by itself.
             // john can't like himself just because it likes himself.
-            "(john likes 'person ('person likes 'person 'p) ^(equal 'person 'person))" +
-            "(equal 'x 'x)" +
-            "?(john likes 'stuff 'p)"
-            ,
+            `(john likes 'person ('person likes 'person 'p)
+                ^(equal 'person 'person)
+            )
+            (equal 'x 'x)
+            ?(john likes 'stuff 'p)`,
+
             `?(john likes 'stuff 'p): 
                 @(john likes john @(john likes wine '))
                 @(john likes wine ')`
         )
     );
 
-    it('Should query people about what they like (Extended).',
+    it("Should query people about what they like (Extended).",
         test(
             "(mary likes food ')" + // likes(mary,food).
             "(mary likes wine ')" + // likes(mary,wine).
@@ -145,14 +156,16 @@ describe('Prolog examples port Tests.', function() {
             "(john likes 'person ('person likes wine '))" +
 
             // 3. John likes anyone who likes themselves
-            // "(john likes 'person ('person likes 'person '))" // this is recursive by itself.
+            // "(john likes 'person ('person likes 'person '))" 
+                // this is recursive by itself.
             // john can't like himself just because it likes himself.
-            "(john likes 'person ('person likes 'person ') ^(equal 'person john))" +
-            "(equal 'x 'x)" +
-            "?(john likes 'stuff ')"
-            ,
-            `
-            ?(john likes 'stuff '):
+            `(john likes 'person ('person likes 'person ') 
+                ^(equal 'person john)
+            )
+            (equal 'x 'x)
+            ?(john likes 'stuff ')`,
+
+            `?(john likes 'stuff '):
                 @(john likes food @(mary likes food '))
                 @(john likes john @(john likes wine '))
                 @(john likes john @(john likes wine @(mary likes wine ')))
@@ -165,16 +178,15 @@ describe('Prolog examples port Tests.', function() {
         )
     );
 
-    it('Should give no results to circular definition.',
+    it("Should give no results to circular definition.",
         test(
             // Query is not able to stop on their own.
             `(john likes 'person ('person likes 'person '))
-            ?(john likes 'stuff 'p)`
-            ,
+            ?(john likes 'stuff 'p)`,
+
             `?(john likes 'stuff 'p):
                 <empty>
-            `
-            , 
+            `,
             {depth: 7}
         )
     );

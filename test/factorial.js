@@ -1,14 +1,16 @@
+"use strict";
+
 const test = require("../lib/testing/test");
 
-describe('Factorial Parser Tests.', function() {
-    it('Should declare ~Peanno numbers', 
+describe("Factorial Parser Tests.", function() {
+    it("Should declare ~Peanno numbers", 
         test(
             `(nat 0)
             (nat (nat 'n))
             ?(nat (nat 1))
             ?(nat (nat 0))
-            ?(nat 'n)`
-            ,
+            ?(nat 'n)`,
+            
             `?(nat (nat 1)):
                 <empty> 
             ?(nat (nat 0)):
@@ -18,13 +20,13 @@ describe('Factorial Parser Tests.', function() {
                 @(nat @(nat 0))
                 @(nat @(nat @(nat 0)))
                 @(nat @(nat @(nat @(nat 0))))
-                @(nat @(nat @(nat @(nat @(nat 0)))))`
-            ,
+                @(nat @(nat @(nat @(nat @(nat 0)))))
+            `,
             {depth: 7}
         )
     );
 
-    it('Should declare a add func',
+    it("Should declare a add func",
         test(
             "(nat 0)" +
             "(nat (nat 'n))" +
@@ -53,8 +55,8 @@ describe('Factorial Parser Tests.', function() {
             "?(+ (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) 'r ')" +
 
             // 2 + 2 = 4
-            "?(+ (nat (nat (nat 0))) (nat (nat (nat 0))) 'r ')"
-            ,
+            "?(+ (nat (nat (nat 0))) (nat (nat (nat 0))) 'r ')",
+            
             `?(+ (nat 0) (nat 0) 'r '):
                 @(+ @(nat 0) @(nat 0) @(nat 0) ')
             ?(+ (nat (nat 0)) (nat 0) 'r '):
@@ -70,7 +72,7 @@ describe('Factorial Parser Tests.', function() {
         )
     );
 
-    it('Should declare a mul func',
+    it("Should declare a mul func",
         test(
             // Nat
             "(nat 0)" +
@@ -124,8 +126,7 @@ describe('Factorial Parser Tests.', function() {
             "?(* (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) 'r ')" +
 
             // 3 * 2 = 6
-            "?(* (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) 'r ')"
-            ,
+            "?(* (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) 'r ')",
             `
             ?(* (nat 0) (nat 0) 'r '):
                 @(* @(nat 0) @(nat 0) @(nat 0) ')
@@ -145,13 +146,12 @@ describe('Factorial Parser Tests.', function() {
                 @(* @(nat @(nat @(nat 0))) @(nat @(nat @(nat @(nat 0)))) @(nat @(nat @(nat @(nat @(nat @(nat @(nat 0))))))) @(list @(+ @(nat @(nat @(nat 0))) @(nat @(nat @(nat @(nat @(nat 0))))) @(nat @(nat @(nat @(nat @(nat @(nat @(nat 0))))))) @(+ @(nat @(nat @(nat 0))) @(nat @(nat @(nat @(nat 0)))) @(nat @(nat @(nat @(nat @(nat @(nat 0)))))) @(+ @(nat @(nat @(nat 0))) @(nat @(nat @(nat 0))) @(nat @(nat @(nat @(nat @(nat 0))))) @(+ @(nat @(nat @(nat 0))) @(nat @(nat 0)) @(nat @(nat @(nat @(nat 0)))) @(+ @(nat @(nat @(nat 0))) @(nat 0) @(nat @(nat @(nat 0))) '))))) @(list @(* @(nat @(nat @(nat 0))) @(nat @(nat @(nat 0))) @(nat @(nat @(nat @(nat @(nat 0))))) @(list @(+ @(nat @(nat @(nat 0))) @(nat @(nat @(nat 0))) @(nat @(nat @(nat @(nat @(nat 0))))) @(+ @(nat @(nat @(nat 0))) @(nat @(nat 0)) @(nat @(nat @(nat @(nat 0)))) @(+ @(nat @(nat @(nat 0))) @(nat 0) @(nat @(nat @(nat 0))) '$1))) @(list @(* @(nat @(nat @(nat 0))) @(nat @(nat 0)) @(nat @(nat @(nat 0))) @(list @(+ @(nat @(nat @(nat 0))) @(nat 0) @(nat @(nat @(nat 0))) '$2) @(list @(* @(nat @(nat @(nat 0))) @(nat 0) @(nat 0) '$3) @(list)))) @(list)))) @(list))))
             ?(* (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) 'r '):
                 @(* @(nat @(nat @(nat @(nat 0)))) @(nat @(nat @(nat 0))) @(nat @(nat @(nat @(nat @(nat @(nat @(nat 0))))))) @(list @(+ @(nat @(nat @(nat @(nat 0)))) @(nat @(nat @(nat @(nat 0)))) @(nat @(nat @(nat @(nat @(nat @(nat @(nat 0))))))) @(+ @(nat @(nat @(nat @(nat 0)))) @(nat @(nat @(nat 0))) @(nat @(nat @(nat @(nat @(nat @(nat 0)))))) @(+ @(nat @(nat @(nat @(nat 0)))) @(nat @(nat 0)) @(nat @(nat @(nat @(nat @(nat 0))))) @(+ @(nat @(nat @(nat @(nat 0)))) @(nat 0) @(nat @(nat @(nat @(nat 0)))) ')))) @(list @(* @(nat @(nat @(nat @(nat 0)))) @(nat @(nat 0)) @(nat @(nat @(nat @(nat 0)))) @(list @(+ @(nat @(nat @(nat @(nat 0)))) @(nat 0) @(nat @(nat @(nat @(nat 0)))) '$1) @(list @(* @(nat @(nat @(nat @(nat 0)))) @(nat 0) @(nat 0) '$2) @(list)))) @(list))))                
-            `
-            ,
+            `,
             {timeout: 5000}
         )
     );
 
-    it('Should declare a factorial func',
+    it("Should declare a factorial func",
         test(
             // Nat
             // Nat
@@ -195,11 +195,11 @@ describe('Factorial Parser Tests.', function() {
             "?(fac (nat (nat (nat 0))) 'r ')" +
             
             // fac(3) = 6
-            "?(fac (nat (nat (nat (nat 0)))) 'r ')"
+            "?(fac (nat (nat (nat (nat 0)))) 'r ')",
         
             // fac(4) = 24
             // "?(fac (nat (nat (nat (nat (nat 0))))) 'r ')"
-            ,
+            
             `
             ?(fac (nat 0) 'r '):
                 @(fac @(nat 0) @(nat @(nat 0)) ')
@@ -209,8 +209,7 @@ describe('Factorial Parser Tests.', function() {
                 @(fac @(nat @(nat @(nat 0))) @(nat @(nat @(nat 0))) @(list @(* @(nat @(nat 0)) @(nat @(nat @(nat 0))) @(nat @(nat @(nat 0))) @(list @(+ @(nat @(nat 0)) @(nat @(nat 0)) @(nat @(nat @(nat 0))) @(+ @(nat @(nat 0)) @(nat 0) @(nat @(nat 0)) ')) @(list @(* @(nat @(nat 0)) @(nat @(nat 0)) @(nat @(nat 0)) @(list @(+ @(nat @(nat 0)) @(nat 0) @(nat @(nat 0)) '$1) @(list @(* @(nat @(nat 0)) @(nat 0) @(nat 0) '$2) @(list)))) @(list)))) @(list @(fac @(nat @(nat 0)) @(nat @(nat 0)) @(list @(* @(nat @(nat 0)) @(nat @(nat 0)) @(nat @(nat 0)) @(list @(+ @(nat @(nat 0)) @(nat 0) @(nat @(nat 0)) '$3) @(list @(* @(nat @(nat 0)) @(nat 0) @(nat 0) '$4) @(list)))) @(list @(fac @(nat 0) @(nat @(nat 0)) '$5) @(list)))) @(list))))
             ?(fac (nat (nat (nat (nat 0)))) 'r '):
                 @(fac @(nat @(nat @(nat @(nat 0)))) @(nat @(nat @(nat @(nat @(nat @(nat @(nat 0))))))) @(list @(* @(nat @(nat @(nat 0))) @(nat @(nat @(nat @(nat 0)))) @(nat @(nat @(nat @(nat @(nat @(nat @(nat 0))))))) @(list @(+ @(nat @(nat @(nat 0))) @(nat @(nat @(nat @(nat @(nat 0))))) @(nat @(nat @(nat @(nat @(nat @(nat @(nat 0))))))) @(+ @(nat @(nat @(nat 0))) @(nat @(nat @(nat @(nat 0)))) @(nat @(nat @(nat @(nat @(nat @(nat 0)))))) @(+ @(nat @(nat @(nat 0))) @(nat @(nat @(nat 0))) @(nat @(nat @(nat @(nat @(nat 0))))) @(+ @(nat @(nat @(nat 0))) @(nat @(nat 0)) @(nat @(nat @(nat @(nat 0)))) @(+ @(nat @(nat @(nat 0))) @(nat 0) @(nat @(nat @(nat 0))) '))))) @(list @(* @(nat @(nat @(nat 0))) @(nat @(nat @(nat 0))) @(nat @(nat @(nat @(nat @(nat 0))))) @(list @(+ @(nat @(nat @(nat 0))) @(nat @(nat @(nat 0))) @(nat @(nat @(nat @(nat @(nat 0))))) @(+ @(nat @(nat @(nat 0))) @(nat @(nat 0)) @(nat @(nat @(nat @(nat 0)))) @(+ @(nat @(nat @(nat 0))) @(nat 0) @(nat @(nat @(nat 0))) '$1))) @(list @(* @(nat @(nat @(nat 0))) @(nat @(nat 0)) @(nat @(nat @(nat 0))) @(list @(+ @(nat @(nat @(nat 0))) @(nat 0) @(nat @(nat @(nat 0))) '$2) @(list @(* @(nat @(nat @(nat 0))) @(nat 0) @(nat 0) '$3) @(list)))) @(list)))) @(list)))) @(list @(fac @(nat @(nat @(nat 0))) @(nat @(nat @(nat 0))) @(list @(* @(nat @(nat 0)) @(nat @(nat @(nat 0))) @(nat @(nat @(nat 0))) @(list @(+ @(nat @(nat 0)) @(nat @(nat 0)) @(nat @(nat @(nat 0))) @(+ @(nat @(nat 0)) @(nat 0) @(nat @(nat 0)) '$4)) @(list @(* @(nat @(nat 0)) @(nat @(nat 0)) @(nat @(nat 0)) @(list @(+ @(nat @(nat 0)) @(nat 0) @(nat @(nat 0)) '$5) @(list @(* @(nat @(nat 0)) @(nat 0) @(nat 0) '$6) @(list)))) @(list)))) @(list @(fac @(nat @(nat 0)) @(nat @(nat 0)) @(list @(* @(nat @(nat 0)) @(nat @(nat 0)) @(nat @(nat 0)) @(list @(+ @(nat @(nat 0)) @(nat 0) @(nat @(nat 0)) '$7) @(list @(* @(nat @(nat 0)) @(nat 0) @(nat 0) '$8) @(list)))) @(list @(fac @(nat 0) @(nat @(nat 0)) '$9) @(list)))) @(list)))) @(list))))
-            `
-            ,
+            `,
             {timeout: 60000 * 5}
         )
     );

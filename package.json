@@ -14,6 +14,9 @@
     "gulp-babel": "^7.0.0",
     "gulp-browserify": "^0.5.1",
     "gulp-cli": "^1.2.2",
+    "gulp-jscs": "^4.0.0",
+    "gulp-jshint": "^2.0.4",
+    "jshint": "^2.9.5",
     "mocha": "^2.2.4",
     "pegjs": "^0.10.0",
     "should": "^5.2.0"
@@ -37,5 +40,72 @@
   "bugs": {
     "url": "https://github.com/fsvieira/zebrajs/issues"
   },
-  "homepage": "https://github.com/fsvieira/zebrajs#readme"
+  "homepage": "https://github.com/fsvieira/zebrajs#readme",
+  "jshintConfig": {
+    "predef": [
+      "require",
+      "console",
+      "JSON",
+      "describe",
+      "it",
+      "xit",
+      "xdescribe"
+    ],
+    "bitwise": true,
+    "camelcase": true,
+    "curly": true,
+    "eqeqeq": true,
+    "forin": true,
+    "freeze": true,
+    "immed": true,
+    "latedef": true,
+    "newcap": true,
+    "noempty": true,
+    "nonbsp": true,
+    "nonew": true,
+    "quotmark": true,
+    "singleGroups": true,
+    "nocomma": false,
+    "maxlen": 80000,
+    "maxdepth": 6,
+    "undef": true,
+    "unused": true,
+    "strict": true,
+    "browser": true,
+    "browserify": true,
+    "esversion": 6
+  },
+  "jscsConfig": {
+    "disallowDanglingUnderscores": true,
+    "disallowMixedSpacesAndTabs": true,
+    "disallowMultipleLineBreaks": true,
+    "disallowMultipleLineStrings": true,
+    "disallowMultipleVarDecl": true,
+    "disallowSpaceAfterObjectKeys": true,
+    "disallowSpacesInCallExpression": true,
+    "disallowTrailingComma": true,
+    "disallowTrailingWhitespace": true,
+    "disallowYodaConditions": true,
+    "disallowSpacesInsideParentheses": true,
+    "maximumLineLength": 80,
+    "requireCamelCaseOrUpperCaseIdentifiers": true,
+    "requireKeywordsOnNewLine": [
+      "else"
+    ],
+    "requireLineBreakAfterVariableAssignment": true,
+    "requireLineFeedAtFileEnd": true,
+    "requireSpaceAfterKeywords": true,
+    "requireSpaceBeforeBlockStatements": true,
+    "requireSpaceBeforeObjectValues": true,
+    "requireSpaceBetweenArguments": true,
+    "requireSpacesInForStatement": true,
+    "requireSpacesInFunctionDeclaration": {
+      "beforeOpeningRoundBrace": true,
+      "beforeOpeningCurlyBrace": true
+    },
+    "validateIndentation": "\t",
+    "validateLineBreaks": "LF",
+    "validateParameterSeparator": ", ",
+    "validateQuoteMarks": "\""
+  }
 }

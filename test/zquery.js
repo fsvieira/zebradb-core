@@ -1,3 +1,5 @@
+"use strict";
+
 const test = require("../lib/testing/test");
 
 describe("ZQuery Tests.", function () {
@@ -5,8 +7,8 @@ describe("ZQuery Tests.", function () {
     it("Query with single tuple constant.",
         test(
             `(yellow)
-            ?(yellow)`
-            ,
+            ?(yellow)`,
+
             `?(yellow):
                 @(yellow)`
         )
@@ -16,10 +18,9 @@ describe("ZQuery Tests.", function () {
         test(
             `(yellow)
             ?(yellow)
-            ?('q)`
-            ,
-            `
-            ?(yellow):
+            ?('q)`,
+
+            `?(yellow):
                 @(yellow)
             ?('q):
                 @(yellow)
@@ -27,69 +28,66 @@ describe("ZQuery Tests.", function () {
         )
     );
 
-    it('Should identify variables by name, simple tuple.',
+    it("Should identify variables by name, simple tuple.",
         test(
             `('p 'p)
-            ?(yellow 'p)`
-            ,
-            `
-            ?(yellow 'p):
+            ?(yellow 'p)`,
+
+            `?(yellow 'p):
                 @(yellow yellow)
             `
         )
     );
 
-    it('Should identify variables by name, inner tuples.',
+    it("Should identify variables by name, inner tuples.",
         test(
             `('q ) (('q) ('q))
-            ?((yellow) ('p))`
-            ,
+            ?((yellow) ('p))`,
+
             `?((yellow) ('p)):
                 @(@(yellow) @(yellow))`
         )
     );
 
-    it('Should unify variables with tuple values.',
+    it("Should unify variables with tuple values.",
         test(
             `(blue red yellow)
-            ?('a 'b 'c)`
-            ,
+            ?('a 'b 'c)`,
+
             `?('a 'b 'c):
                 @(blue red yellow)
             `
         )
     );
 
-    it('Should unify simple tuples variables.',
+    it("Should unify simple tuples variables.",
         test(
             `('a 'a)
-            ?(yellow 'c)`
-            ,
+            ?(yellow 'c)`,
+
             `?(yellow 'c):
                 @(yellow yellow)
             `
         )
     );
 
-    it('Should unify simple and inner tuples variables.',
+    it("Should unify simple and inner tuples variables.",
         test(
             `('x 'y) (('a 'a))
-            ?((yellow 'c))`
-            ,
-            `
-            ?((yellow 'c)):
+            ?((yellow 'c))`,
+
+            `?((yellow 'c)):
                 @(@(yellow yellow))
             `
         )
     );
 
-    it('Should unify inner tuples variables at same level.',
+    it("Should unify inner tuples variables at same level.",
         test(
             `(yellow blue) (blue yellow) (('a 'b) ('b 'a))
-            ?((yellow 'c) (blue 'd))`
-            ,
-            `
-            ?((yellow 'c) (blue 'd)):
+            ?((yellow 'c) (blue 'd))`,
+
+            `?((yellow 'c) (blue 'd)):
                 @(@(yellow blue) @(blue yellow))
             `
         )
@@ -97,8 +95,8 @@ describe("ZQuery Tests.", function () {
 
     it("should handle duplicated definitions.", 
         test(
-            `('a) ('a) ?(yellow)`
-            ,
+            `('a) ('a) ?(yellow)`,
+
             `?(yellow):
                 @(yellow)`
         )
