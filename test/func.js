@@ -43,8 +43,11 @@ describe("Func tests.", function () {
             (mother (female 'x) ('y 'z) (parent (female 'x) ('y 'z)))
 
             mother:
-                (mother (female 'mother) (female 'daughter) ') -> "" 'daughter " is " 'mother " daughter.",
-                (mother (female 'mother) (male 'son) ') -> "" 'son " is " 'mother " son."
+                (mother (female 'mother) (female 'daughter) ') -> 
+                    "" 'daughter " is " 'mother " daughter.",
+                
+                (mother (female 'mother) (male 'son) ') -> 
+                    "" 'son " is " 'mother " son."
             .
                 
 

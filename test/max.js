@@ -13,21 +13,38 @@ describe("Get the max solution.", function() {
 
             (set)
             (set (number 'a) (set) ')
-            (set (number 'a) (set (number 'b) 'tail ') (set (number 'a) 'tail ') ^(equal (number 'a) (number 'b)))
+            (set (number 'a) (set (number 'b) 'tail ') (set (number 'a) 'tail ')
+                ^(equal (number 'a) (number 'b))
+            )
             
             (max (set 'i 'tail 'p) ^(set ' (set 'i 'tail 'p) '))
 
-            ?(max ')`,
+            number:
+                (number 'n) -> 'n.
+                
+            set:
+                (set 'i (set) ') -> "" 'i | number,
+                (set 'i 'tail ') -> "" 'i | number ", " 'tail | set,
+                (set) -> "".
+
+            max:
+                (max 'set) -> "[" 'set | set "]\n".
+                
+
+            ?(max ') | max
+
+            # ?(max ')
+            `,
             
             `?(max '):
-                @(max @(set @(number 0) @(set @(number 1) @(set @(number 2) @(set) ') @(set @(number 1) @(set) '$1)) @(set @(number 0) @(set @(number 2) @(set) ') @(set @(number 0) @(set) '$2))))[^!(equal (number 0) (number 1)) !(equal (number 0) (number 2)) !(equal (number 1) (number 2)) !(set '$3 (set (number 0) (set (number 1) (set (number 2) (set) ') (set (number 1) (set) '$1)) (set (number 0) (set (number 2) (set) ') (set (number 0) (set) '$2))) '$4)]
-                @(max @(set @(number 0) @(set @(number 2) @(set @(number 1) @(set) ') @(set @(number 2) @(set) '$1)) @(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) '$2))))[^!(equal (number 0) (number 1)) !(equal (number 0) (number 2)) !(equal (number 2) (number 1)) !(set '$3 (set (number 0) (set (number 2) (set (number 1) (set) ') (set (number 2) (set) '$1)) (set (number 0) (set (number 1) (set) ') (set (number 0) (set) '$2))) '$4)]
-                @(max @(set @(number 1) @(set @(number 0) @(set @(number 2) @(set) ') @(set @(number 0) @(set) '$1)) @(set @(number 1) @(set @(number 2) @(set) ') @(set @(number 1) @(set) '$2))))[^!(equal (number 0) (number 2)) !(equal (number 1) (number 0)) !(equal (number 1) (number 2)) !(set '$3 (set (number 1) (set (number 0) (set (number 2) (set) ') (set (number 0) (set) '$1)) (set (number 1) (set (number 2) (set) ') (set (number 1) (set) '$2))) '$4)]
-                @(max @(set @(number 1) @(set @(number 2) @(set @(number 0) @(set) ') @(set @(number 2) @(set) '$1)) @(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '$2))))[^!(equal (number 1) (number 0)) !(equal (number 1) (number 2)) !(equal (number 2) (number 0)) !(set '$3 (set (number 1) (set (number 2) (set (number 0) (set) ') (set (number 2) (set) '$1)) (set (number 1) (set (number 0) (set) ') (set (number 1) (set) '$2))) '$4)]
-                @(max @(set @(number 2) @(set @(number 0) @(set @(number 1) @(set) ') @(set @(number 0) @(set) '$1)) @(set @(number 2) @(set @(number 1) @(set) ') @(set @(number 2) @(set) '$2))))[^!(equal (number 0) (number 1)) !(equal (number 2) (number 0)) !(equal (number 2) (number 1)) !(set '$3 (set (number 2) (set (number 0) (set (number 1) (set) ') (set (number 0) (set) '$1)) (set (number 2) (set (number 1) (set) ') (set (number 2) (set) '$2))) '$4)]
-                @(max @(set @(number 2) @(set @(number 1) @(set @(number 0) @(set) ') @(set @(number 1) @(set) '$1)) @(set @(number 2) @(set @(number 0) @(set) ') @(set @(number 2) @(set) '$2))))[^!(equal (number 1) (number 0)) !(equal (number 2) (number 0)) !(equal (number 2) (number 1)) !(set '$3 (set (number 2) (set (number 1) (set (number 0) (set) ') (set (number 1) (set) '$1)) (set (number 2) (set (number 0) (set) ') (set (number 2) (set) '$2))) '$4)]
+                [0,1,2]
+                [0,2,1]
+                [1,0,2]
+                [1,2,0]
+                [2,0,1]
+                [2,1,0]
             `,
-            {timeout: 60000 * 5}
+            {timeout: 3000}
         )
     );
 });

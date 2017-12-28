@@ -9,7 +9,12 @@ describe("Error Tests", function () {
             (definition (dont match with anything))
             ?(definition ')`,
             
-            `Errors: Invalid definition: (definition (dont match with anything)), before query: (definition ')`
+            `Errors: 
+                Invalid definition:
+                    (definition (dont match with anything)),
+                before query:
+                    (definition ')
+            `
         )
     );
 });

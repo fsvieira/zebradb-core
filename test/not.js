@@ -57,7 +57,8 @@ describe("Not Tests.", function() {
             ?(not-equal (color yellow) (color yellow)):
                 <empty>
             ?(not-equal (color blue) (color yellow)):
-                @(not-equal @(color blue) @(color yellow))[^!(equal (color blue) (color yellow))]
+                @(not-equal @(color blue) @(color yellow))
+                    [^!(equal (color blue) (color yellow))]
             `
         )
     );

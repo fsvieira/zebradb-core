@@ -20,7 +20,16 @@ gulp.task('browser:dist', function() {
 
 gulp.task('lint', () => {
    return gulp.src([
-		'lib/**/*.js',
+		'lib/**/*.js'
+	])
+		.pipe(jshint(jshintConfig))
+		.pipe(jshint.reporter('checkstyle'))
+		.pipe(jshint.reporter('fail'))
+		.pipe(jscs(packageJSON.jscsConfig));
+});
+
+gulp.task('lint-tests', () => {
+   return gulp.src([
 		'test/**/*.js'
 	])
 		.pipe(jshint(jshintConfig))

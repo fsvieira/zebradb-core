@@ -15,9 +15,9 @@ describe("Brave puzzle Tests.", function() {
             
             (distinct 
                 (letter 'b) (letter 'r) (letter 'a) (letter 'v) (letter 'e)
-                ^(equal 'b 'r) ^(equal 'b 'a) ^(equal 'b 'v) ^(equal 'b 'v) ^(equal 'b 'e)
-                ^(equal 'r 'a) ^(equal 'r 'v) ^(equal 'r 'v) ^(equal 'r 'e)
-                ^(equal 'a 'v) ^(equal 'a 'e)
+                ^(equal 'b 'r) ^(equal 'b 'a) ^(equal 'b 'v) ^(equal 'b 'v) 
+                ^(equal 'b 'e) ^(equal 'r 'a) ^(equal 'r 'v) ^(equal 'r 'v) 
+                ^(equal 'r 'e) ^(equal 'a 'v) ^(equal 'a 'e)
             )
             
             (conditions '1 '2 '3 '4 '5 '6 '7 '8 '9 '10 '11 '12)
@@ -60,11 +60,16 @@ describe("Brave puzzle Tests.", function() {
                 'x1y5 'x2y5 'x3y5 'x4y5 'x5y5
                 '
                 ) -> ""
-                    'x1y1 | letter " " 'x2y1 | letter " " 'x3y1 | letter " " 'x4y1 | letter " " 'x5y1 | letter "\n"
-                    'x1y2 | letter " " 'x2y2 | letter " " 'x3y2 | letter " " 'x4y2 | letter " " 'x5y2 | letter "\n"
-                    'x1y3 | letter " " 'x2y3 | letter " " 'x3y3 | letter " " 'x4y3 | letter " " 'x5y3 | letter "\n"
-                    'x1y4 | letter " " 'x2y4 | letter " " 'x3y4 | letter " " 'x4y4 | letter " " 'x5y4 | letter "\n"
-                    'x1y5 | letter " " 'x2y5 | letter " " 'x3y5 | letter " " 'x4y5 | letter " " 'x5y5 | letter "\n"
+                    'x1y1 | letter " " 'x2y1 | letter " " 'x3y1 | letter 
+                        " " 'x4y1 | letter " " 'x5y1 | letter "\n"
+                    'x1y2 | letter " " 'x2y2 | letter " " 'x3y2 | letter 
+                        " " 'x4y2 | letter " " 'x5y2 | letter "\n"
+                    'x1y3 | letter " " 'x2y3 | letter " " 'x3y3 | letter 
+                        " " 'x4y3 | letter " " 'x5y3 | letter "\n"
+                    'x1y4 | letter " " 'x2y4 | letter " " 'x3y4 | letter 
+                        " " 'x4y4 | letter " " 'x5y4 | letter "\n"
+                    'x1y5 | letter " " 'x2y5 | letter " " 'x3y5 | letter 
+                        " " 'x4y5 | letter " " 'x5y5 | letter "\n"
             .
             
             ?(brave
