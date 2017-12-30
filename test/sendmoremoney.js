@@ -2,11 +2,11 @@
 
 const test = require("../lib/testing/test");
 
-describe("Send more money puzzle test.", function() {
+describe("Send more money puzzle test.", function () {
 
-    xit("should solve send more money", 
-        test(
-            `
+	xit("should solve send more money",
+		test(
+			`
             # declare list,
             (list)
             (list 'item (list))
@@ -14,7 +14,7 @@ describe("Send more money puzzle test.", function() {
 
             # declare decimal numbers and add operation,
             # dec is in reverse order, most significant digit is at right
-            
+
             (dec)
             (dec 0 (dec))
             (dec 1 (dec))
@@ -26,7 +26,7 @@ describe("Send more money puzzle test.", function() {
             (dec 7 (dec))
             (dec 8 (dec))
             (dec 9 (dec))
-            
+
             (dec 0 (dec ' '))
             (dec 1 (dec ' '))
             (dec 2 (dec ' '))
@@ -37,7 +37,7 @@ describe("Send more money puzzle test.", function() {
             (dec 7 (dec ' '))
             (dec 8 (dec ' '))
             (dec 9 (dec ' '))
-            
+
             (0 + 0 + 0 = 0 0)
             (0 + 0 + 1 = 1 0)
             (0 + 1 + 0 = 1 0)
@@ -238,19 +238,19 @@ describe("Send more money puzzle test.", function() {
             (9 + 8 + 1 = 8 1)
             (9 + 9 + 0 = 8 1)
             (9 + 9 + 1 = 9 1)
-            
+
             /*
                 TODO: we need to normalize 0 defintion 00000 ...
                 ((dec) + (dec) + 0 = (dec 0 (dec)) (list))
-            
+
             */
             ((dec) + (dec) + 0 = (dec) (list))
             ((dec) + (dec) + 1 = (dec 1 (dec)) (list))
-            
+
             ((dec) + (dec 'y 'yt) + 0 = (dec 'y 'yt) (list))
             ((dec 'x 'xt) + (dec) + 0 = (dec 'x 'xt) (list))
-            
-            
+
+
             ((dec) + (dec 'y 'yt) + 1 = (dec 'r 'rt)
                 (list (0 + 'y + 1 = 'r 'c)
                     (list ((dec) + 'yt + 'c = 'rt ')
@@ -258,7 +258,7 @@ describe("Send more money puzzle test.", function() {
                     )
                 )
             )
-            
+
             ((dec 'x 'xt) + (dec) + 1 = (dec 'r 'rt)
                 (list ('x + 0 + 1 = 'r 'c)
                     (list ('xt + (dec) + 'c = 'rt ')
@@ -266,7 +266,7 @@ describe("Send more money puzzle test.", function() {
                     )
                 )
             )
-            
+
             ((dec 'x 'xt) + (dec 'y 'yt) + 'carry = (dec 'r 'rt)
                 (list ('x + 'y + 'carry = 'r 'c)
                     (list ('xt + 'yt + 'c = 'rt ')
@@ -277,7 +277,7 @@ describe("Send more money puzzle test.", function() {
 
             # declare set
             (equal 'x 'x)
-            
+
             (set)
             (set 'a (set) ')
             (set 'a (set 'b 'tail ') (set 'a 'tail ') ^(equal 'a 'b))
@@ -285,20 +285,20 @@ describe("Send more money puzzle test.", function() {
             # declare send more money puzzle
             # send + more = money
             # dnes + erom = yenom
-            
+
             (
                 send-more-money
                 (
                     (dec 'd (dec 'n (dec 'e (dec 's (dec 0 (dec))))))
-                    + 
+                    +
                     (dec 'e (dec 'r (dec 'o (dec 'm (dec 0 (dec))))))
                     +
                     0
-                    = 
+                    =
                     (dec 'y (dec 'e (dec 'n (dec 'o (dec 'm (dec))))))
                     '
                 )
-            
+
                 (set 's
                 (set 'e
                 (set 'n
@@ -312,7 +312,7 @@ describe("Send more money puzzle test.", function() {
 
             ?(send-more-money ' ')
             `,
-            ``
-        )
-    );
+			``
+		)
+	);
 });

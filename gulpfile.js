@@ -5,7 +5,6 @@ const babel = require('gulp-babel');
 const packageJSON  = require('./package');
 const jscs = require('gulp-jscs');
 const jshint = require('gulp-jshint');
-const packageJson = require('./package.json');
 
 const jshintConfig = packageJSON.jshintConfig;
 jshintConfig.lookup = false;
@@ -25,17 +24,19 @@ gulp.task('lint', () => {
 		.pipe(jshint(jshintConfig))
 		.pipe(jshint.reporter('checkstyle'))
 		.pipe(jshint.reporter('fail'))
-		.pipe(jscs(packageJSON.jscsConfig));
+		.pipe(jscs(packageJSON.jscsConfig))
+		.pipe(jscs.reporter());
 });
 
 gulp.task('lint-tests', () => {
-   return gulp.src([
+    return gulp.src([
 		'test/**/*.js'
 	])
 		.pipe(jshint(jshintConfig))
 		.pipe(jshint.reporter('checkstyle'))
 		.pipe(jshint.reporter('fail'))
-		.pipe(jscs(packageJSON.jscsConfig));
+		.pipe(jscs(packageJSON.jscsConfig))
+		.pipe(jscs.reporter());
 });
 
 gulp.task('dist', () => {

@@ -2,10 +2,10 @@
 
 const test = require("../lib/testing/test");
 
-describe("Brave puzzle Tests.", function() {
-    it("should solve brave puzzle",
-        test(
-            `(letter B)
+describe("Brave puzzle Tests.", function () {
+	it("should solve brave puzzle",
+		test(
+			`(letter B)
             (letter R)
             (letter A)
             (letter V)
@@ -81,8 +81,8 @@ describe("Brave puzzle Tests.", function() {
                 '
             ) | brave
             `,
-            
-            `?(brave 
+
+			`?(brave 
                 (letter B) (letter R) (letter A) (letter V) (letter E)
                 '          (letter E) (letter B) (letter R) '$1
                 '$2        '$3        (letter V) '$4        (letter B)
@@ -94,9 +94,7 @@ describe("Brave puzzle Tests.", function() {
                     R A V E B
                     E B R A V
                     A V E B R
-            `,
-            {timeout: 60000 * 5}
-        )
-    );
+            `, { timeout: 60000 * 5 }
+		)
+	);
 });
-

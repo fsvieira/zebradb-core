@@ -16,6 +16,7 @@
     "gulp-cli": "^1.2.2",
     "gulp-jscs": "^4.0.0",
     "gulp-jshint": "^2.0.4",
+    "jscs": "^3.0.7",
     "jshint": "^2.9.5",
     "mocha": "^2.2.4",
     "pegjs": "^0.10.0",
