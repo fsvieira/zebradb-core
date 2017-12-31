@@ -9,9 +9,9 @@ const jshint = require('gulp-jshint');
 const jshintConfig = packageJSON.jshintConfig;
 jshintConfig.lookup = false;
 
-// Basic usage 
+// Basic usage
 gulp.task('browser:dist', function() {
-    // Single entry point to browserify 
+    // Single entry point to browserify
     gulp.src('lib3/z.js')
         .pipe(browserify())
         .pipe(gulp.dest('./build/'));
@@ -19,7 +19,8 @@ gulp.task('browser:dist', function() {
 
 gulp.task('lint', () => {
    return gulp.src([
-		'lib/**/*.js'
+		'lib/**/*.js',
+		'!lib/manager/transitions/parsing/zparser.js'
 	])
 		.pipe(jshint(jshintConfig))
 		.pipe(jshint.reporter('checkstyle'))
