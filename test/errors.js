@@ -1,6 +1,6 @@
 "use strict";
 
-const test = require("../lib/testing/test");
+const {test} = require("../");
 
 describe("Error Tests", function () {
 	it("should give an error when definition doens\'t match.",

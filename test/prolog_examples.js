@@ -1,6 +1,6 @@
 "use strict";
 
-const test = require("../lib/testing/test");
+const {test} = require("../");
 
 /*
   Online prolog examples converted to zebra system.

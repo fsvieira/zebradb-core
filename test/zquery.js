@@ -1,6 +1,6 @@
 "use strict";
 
-const test = require("../lib/testing/test");
+const {test} = require("../");
 
 describe("ZQuery Tests.", function () {
 	it("Query with single tuple constant.",

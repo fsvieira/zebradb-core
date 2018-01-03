@@ -1,6 +1,6 @@
 "use strict";
 
-const test = require("../lib/testing/test");
+const {test} = require("../");
 
 describe("Multiply Tests", function () {
 	it("should multiply results.",

@@ -1,6 +1,6 @@
 "use strict";
 
-const test = require("../lib/testing/test");
+const {test} = require("../");
 
 xdescribe("Cyclic Tests", function () {
 	it("should handle cyclic data on multiply.",
