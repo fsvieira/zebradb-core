@@ -1,6 +1,6 @@
 "use strict";
 
-const {test} = require("../");
+const test = require("../lib/testing/test");
 
 describe("Func tests.", function () {
 	it("Custom function for print query.",

@@ -1,6 +1,6 @@
 "use strict";
 
-const {test} = require("../");
+const test = require("../lib/testing/test");
 
 describe("Send more money puzzle test.", function () {
 

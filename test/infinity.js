@@ -1,6 +1,6 @@
 "use strict";
 
-const {test} = require("../");
+const test = require("../lib/testing/test");
 
 describe("Inifinity tests.", function () {
 	it("Should declare natural numbers and query all natural numbers",

@@ -1,6 +1,6 @@
 "use strict";
 
-const {test} = require("../");
+const test = require("../lib/testing/test");
 
 describe("Factorial Parser Tests.", function () {
 	it("Should declare ~Peanno numbers",
