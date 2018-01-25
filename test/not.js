@@ -2,36 +2,36 @@
 
 const test = require("../lib/testing/test");
 
-describe("Not Tests.", function () {
+describe("Not Tests.", () => {
 
 	it("Simple not",
 		test(
-			`(equal 'x 'x) (blue)
-            ?('x ^(equal 'x yellow))`,
-
-			`?('x)[^(equal 'x yellow)]:
-                @(blue)[^!(equal blue yellow)]`
+			`(equal 'x 'x)
+			 (blue)
+			`,
+			{
+            	"?('x ^(equal 'x yellow))" : ["@(blue)[^!(equal blue yellow)]"]
+			}
 		)
 	);
 
 	it("Simple not, no constants",
 		test(
-			`(equal 'x 'x) ('x)
-            ?('x ^(equal 'x yellow))`,
-
-			`?('x)[^(equal 'x yellow)]:
-                <empty>`
+			"(equal 'x 'x) ('x)",
+			{
+            	"?('x ^(equal 'x yellow))" : []
+			}
 		)
 	);
-
+/*
 	it("Not evaluation order",
 		test(
-			`(equal 'x 'x) ('x)
-            ?(equal ('x) (yellow) ^(equal ('x) (blue)))`,
-
-			`?(equal ('x) (yellow))[^(equal ('x) (blue))]:
-                @(equal @(yellow) @(yellow))[^!(equal (yellow) (blue))]
-            `
+			"(equal 'x 'x) ('x)",
+			{
+            	"?(equal ('x) (yellow) ^(equal ('x) (blue)))" : [
+            		"@(equal @(yellow) @(yellow))[^!(equal (yellow) (blue))]"
+            	]
+			}
 		)
 	);
 
@@ -504,5 +504,5 @@ describe("Not Tests.", function () {
                 [3]
             `, { timeout: 60000 * 5 }
 		)
-	);
+	);*/
 });
