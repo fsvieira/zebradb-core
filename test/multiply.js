@@ -7,12 +7,17 @@ describe("Multiply Tests", function () {
 		test(
 			`(yellow 'a)
             ('b blue)
-            ?('c 'd)`,
-
-			`?('c 'd):
-                @('b blue)
-                @(yellow 'a)
-                @(yellow blue)`
+            `,
+            [
+	            {
+					query: "?('c 'd)",
+					results: [
+		                "@('b blue)",
+		                "@(yellow 'a)",
+		                "@(yellow blue)"
+					]
+				}
+			]
 		)
 	);
 
@@ -20,12 +25,17 @@ describe("Multiply Tests", function () {
 		test(
 			`(yellow 'a)
             ('a blue)
-            ?('a 'b)`,
-
-			`?('a 'b):
-                @('a blue)
-                @(yellow 'a)
-                @(yellow blue)`
+            `,
+            [
+	            {
+					query: "?('a 'b)",
+					results: [
+		                "@('a blue)",
+		                "@(yellow 'a)",
+		                "@(yellow blue)"
+					]
+	            }
+            ]
 		)
 	);
 });

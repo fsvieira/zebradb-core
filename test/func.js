@@ -2,7 +2,7 @@
 
 const test = require("../lib/testing/test");
 
-describe("Func tests.", function () {
+describe("Func tests.", () => {
 	it("Custom function for print query.",
 		test(
 			`
@@ -11,14 +11,21 @@ describe("Func tests.", function () {
             doit: ' -> "do it".
 
             (yellow)
-            ?(yellow) | print
-            ?(yellow) | doit`,
-
-			`?(yellow):
-                yellow
-             ?(yellow):
-                do it
-            `
+            `,
+            [
+	            {
+		            query: "?(yellow) | print",
+		            results: [
+		            	"yellow"
+		            ],
+	            },
+	            {
+		            query: "?(yellow) | doit",
+		            results: [
+		            	"do it"
+		            ]
+				}
+			]
 		)
 	);
 
@@ -50,15 +57,18 @@ describe("Func tests.", function () {
                     "" 'son " is " 'mother " son."
             .
 
-
-            ?(mother ' ' ') | mother
             `,
+            [
+	            {
 
-			`?(mother ' '$1 '$2):
-                filipe is noémia son.
-                isabel is noémia daughter.
-                joana is noémia daughter.
-            `
+					query: "?(mother ' ' ') | mother",
+					results: [
+		                "filipe is noémia son.",
+		                "isabel is noémia daughter.",
+		                "joana is noémia daughter."
+					]
+	            }
+            ]
 		)
 	);
 

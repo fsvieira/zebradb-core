@@ -70,31 +70,27 @@ describe("Brave puzzle Tests.", function () {
                         " " 'x4y4 | letter " " 'x5y4 | letter "\n"
                     'x1y5 | letter " " 'x2y5 | letter " " 'x3y5 | letter
                         " " 'x4y5 | letter " " 'x5y5 | letter "\n"
-            .
-
-            ?(brave
-                (letter B) (letter R) (letter A) (letter V) (letter E)
-                '          (letter E) (letter B) (letter R) '
-                '          '          (letter V) '          (letter B)
-                '          (letter B) (letter R) '          '
-                '          '          (letter E) (letter B) '
-                '
-            ) | brave
-            `,
-
-			`?(brave
-                (letter B) (letter R) (letter A) (letter V) (letter E)
-                '          (letter E) (letter B) (letter R) '$1
-                '$2        '$3        (letter V) '$4        (letter B)
-                '$5        (letter B) (letter R) '$6        '$7
-                '$8        '$9        (letter E) (letter B) '$10
-                '$11):
-                    B R A V E
-                    V E B R A
-                    R A V E B
-                    E B R A V
-                    A V E B R
-            `, { timeout: 60000 * 5 }
+            .`,
+            [
+            	{
+            		query: `?(brave
+		                (letter B) (letter R) (letter A) (letter V) (letter E)
+		                '          (letter E) (letter B) (letter R) '
+		                '          '          (letter V) '          (letter B)
+		                '          (letter B) (letter R) '          '
+		                '          '          (letter E) (letter B) '
+		                '
+		            	) | brave`,
+		            results: [
+		            	`B R A V E
+	                    V E B R A
+	                    R A V E B
+	                    E B R A V
+	                    A V E B R`
+					]
+            	}
+			],
+			{ timeout: 60000 * 5 }
 		)
 	);
 });
