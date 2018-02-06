@@ -1,22 +1,28 @@
-# zebrajs
+# zebradb-core
 
-Zebrajs is a symbolic computation query system, given a set of computational definitions it will
-answer questions about them, therefor Zebrajs is better suited for software validation and constraint satisfaction problems.
+The zebradb-core project is a symbolic computation query system, given a set of computational definitions it will
+answer questions about them, therefor it is better suited for software validation and constraint satisfaction problems.
 
-Zebrajs system consists of two parts the definitions and the query, both parts share the same language of zebra-system terms, which is defined by
+The project API is database alike, and it should be the base of other projects that implement other tools and even a complete database solution.
+
+# API
+ * https://github.com/fsvieira/zebrajs/wiki/API
+
+# Zebra Language
+Zebra system consists of two parts the definitions and the query, both parts share the same language of zebra-system terms, which is defined by
 a certain formal syntax, and a set of transformation rules.
 
 The zebra language is very simple, it only has constants, variables, tuples and negation.
 
-A math function can be represented as a set of tuples, so on zebra language you can think of tuples has functions, 
+A math function can be represented as a set of tuples, so on zebra language you can think of tuples has functions,
 for example, the binary function and:
   * &: bin -> bin -> bin
- 
+
 Where operatar & can be defined as a table:
  * p q | p & q
  * 0 0 | 0
  * 0 1 | 0
- * 1 0 | 0 
+ * 1 0 | 0
  * 1 1 | 1
 
 On zebra language we define such function like this:
@@ -25,11 +31,11 @@ On zebra language we define such function like this:
  * (1 & 0 = 0)
  * (1 & 1 = 1)
 
-The 0, 1, & and = are just simbols (constants) and have no meaning to zebra-system, when we perform 
+The 0, 1, & and = are just simbols (constants) and have no meaning to zebra-system, when we perform
 the query:
  * ?('p & 'q = 'r)
 
-zebra-system is going to match query with all definitons and will unify variables 'p, 'q and 'r with the 
+zebra-system is going to match query with all definitons and will unify variables 'p, 'q and 'r with the
 values found, on this example we will get the all & table.
 
 So if we do another query like this:
@@ -41,7 +47,7 @@ All symbol can be variables, lets define another function:
  * (1 | 0 = 1)
  * (1 | 1 = 1)
 
-Now we ask the system what operations would give us the result of 1: ?('p 'o 'q = 1), and 
+Now we ask the system what operations would give us the result of 1: ?('p 'o 'q = 1), and
 the result would be:
  * (1 & 1 = 1)
  * (0 | 1 = 1)
@@ -69,7 +75,7 @@ Try it online: https://fsvieira.github.io/raindropz/ (Raindropz IDE git: https:/
 
 * Definitions, are considered facts they are always tuples and always global.
   * Ex: (color yellow)
-  * In this example color and yellow are constants, constants don't need to be declared anywhere 
+  * In this example color and yellow are constants, constants don't need to be declared anywhere
 because we consider that all constants exists.
 * Queries, are questions to the system definitions (facts),
   * Ex: ?(color yellow)
@@ -90,7 +96,7 @@ because we consider that all constants exists.
       * ?(man ' ' 'man), returns:
       * (man (person filipe) (male filipe) filipe)
 * Negation, its true if a negated query doesn't exist, negation queries are hidden and are not considered for unification,
-  * Ex: 
+  * Ex:
     * (equal 'x 'x)
     * (color yellow)
     * (color blue)
