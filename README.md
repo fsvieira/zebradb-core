@@ -1,9 +1,29 @@
-# zebrajs
+# Zebrajs
 
 Zebrajs is a symbolic computation query system, given a set of computational definitions it will
 answer questions about them, therefor Zebrajs is better suited for software validation and constraint satisfaction problems.
 
-Zebrajs system consists of two parts the definitions and the query, both parts share the same language of zebra-system terms, which is defined by
+# Zebrajs is a library but ...
+Its currently incorporated on other projects ready to be used:
+
+* https://github.com/fsvieira/zebrajs-examples
+   * It contains a console program to run zebrajs language as .z files, and a few examples.
+
+* https://github.com/fsvieira/raindropz
+   * An online IDE to run zebrajs language, currently is only used for debuging.
+
+# Install
+
+```
+  npm install zebrajs
+```
+
+# Docs
+  * Check the wiki (https://github.com/fsvieira/zebrajs/wiki) to get started.
+
+# Language
+
+Zebrajs language consists of two parts the definitions and the query, both parts share the same language of zebra-system terms, which is defined by
 a certain formal syntax, and a set of transformation rules.
 
 The zebra language is very simple, it only has constants, variables, tuples and negation.
