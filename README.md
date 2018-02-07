@@ -9,9 +9,6 @@ The project API is database alike, and it should be the base of other projects t
 # API
  * https://github.com/fsvieira/zebrajs/wiki/API
 
-# Zebra Language
-Zebra system consists of two parts the definitions and the query, both parts share the same language of zebra-system terms, which is defined by
-=======
 # Zebrajs is a library but ...
 Its currently incorporated on other projects ready to be used:
 
