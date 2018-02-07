@@ -1,5 +1,4 @@
 # zebradb-core
-=======
 
 The zebradb-core project is a symbolic computation query system, given a set of computational definitions it will
 answer questions about them, therefor it is better suited for software validation and constraint satisfaction problems.
