@@ -20,7 +20,7 @@ Its currently incorporated on other projects ready to be used:
 # Install
 
 ```
-  npm install zebrajs
+  npm install zebradb-core
 ```
 
 # Docs
