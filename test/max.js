@@ -2,7 +2,7 @@
 
 const test = require("../lib/testing/test");
 
-describe("Get the max solution.", function () {
+describe("Get the max solution.", () => {
 	it("Declare a number set, get the max number set with all elements.",
 		test(
 			`(number 0)
@@ -29,21 +29,17 @@ describe("Get the max solution.", function () {
 
             max:
                 (max 'set) -> "[" 'set | set "]\n".
-            `,
-            [
-            	{
-	            	query: "?(max ') | max",
-	            	results: [
-			            "[0, 1, 2]",
-		                "[0, 2, 1]",
-		                "[1, 0, 2]",
-		                "[1, 2, 0]",
-		                "[2, 0, 1]",
-		                "[2, 1, 0]"
-					]
-            	}
-            ],
-            { timeout: 3000 }
+            `, [{
+				query: "?(max ') | max",
+				results: [
+					"[0, 1, 2]",
+					"[0, 2, 1]",
+					"[1, 0, 2]",
+					"[1, 2, 0]",
+					"[2, 0, 1]",
+					"[2, 1, 0]"
+				]
+			}], { timeout: 3000 }
 		)
 	);
 });

@@ -11,19 +11,17 @@ describe("Func tests.", () => {
             doit: ' -> "do it".
 
             (yellow)
-            `,
-            [
-	            {
-		            query: "?(yellow) | print",
-		            results: [
-		            	"yellow"
-		            ],
-	            },
-	            {
-		            query: "?(yellow) | doit",
-		            results: [
-		            	"do it"
-		            ]
+            `, [{
+					query: "?(yellow) | print",
+					results: [
+						"yellow"
+					]
+				},
+				{
+					query: "?(yellow) | doit",
+					results: [
+						"do it"
+					]
 				}
 			]
 		)
@@ -57,18 +55,15 @@ describe("Func tests.", () => {
                     "" 'son " is " 'mother " son."
             .
 
-            `,
-            [
-	            {
+            `, [{
 
-					query: "?(mother ' ' ') | mother",
-					results: [
-		                "filipe is noémia son.",
-		                "isabel is noémia daughter.",
-		                "joana is noémia daughter."
-					]
-	            }
-            ]
+				query: "?(mother ' ' ') | mother",
+				results: [
+					"filipe is noémia son.",
+					"isabel is noémia daughter.",
+					"joana is noémia daughter."
+				]
+			}]
 		)
 	);
 

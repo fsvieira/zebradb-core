@@ -11,26 +11,24 @@ describe("Prolog examples port Tests.", () => {
 			`(mary likes food)
             (mary likes wine)
             (john likes wine)
-            (john likes mary)`,
-            [
-	            {
-		            query: "?(mary likes food)",
-		            results: ["@(mary likes food)"]
-	            },
-	            {
-		            query: "?(john likes wine)",
-		            results: ["@(john likes wine)"]
-	            },
-	            {
-	            	query: "?(john likes food)",
-	            	results: []
-	            },
-	            {
-		            query: "?(mary likes 'stuff)",
-		            results: [
-			            "@(mary likes food)",
-		                "@(mary likes wine)"
-		            ]
+            (john likes mary)`, [{
+					query: "?(mary likes food)",
+					results: ["@(mary likes food)"]
+				},
+				{
+					query: "?(john likes wine)",
+					results: ["@(john likes wine)"]
+				},
+				{
+					query: "?(john likes food)",
+					results: []
+				},
+				{
+					query: "?(mary likes 'stuff)",
+					results: [
+						"@(mary likes food)",
+						"@(mary likes wine)"
+					]
 				}
 			]
 		)
@@ -43,39 +41,33 @@ describe("Prolog examples port Tests.", () => {
 			(mary likes food ')
             (mary likes wine ')
             (john likes 'stuff (mary likes 'stuff '))
-            `,
-            [
-				{
-	             	query: "?(john likes 'stuff 'p)",
-	             	results: [
-	                    "@(john likes food @(mary likes food '))",
-	                    "@(john likes wine @(mary likes wine '))"
-					]
-	             }
-			]
+            `, [{
+				query: "?(john likes 'stuff 'p)",
+				results: [
+					"@(john likes food @(mary likes food '))",
+					"@(john likes wine @(mary likes wine '))"
+				]
+			}]
 		)
 	);
 
 	it("Should fail on insufficient definitions.",
 		test(
-			"(john likes 'person ('person likes wine '))",
-			[
-				{
-	    			// (john likes 'stuff 'p).
-	        		//    (john likes 'person ('person likes wine '))
-	    			// (john likes 'stuff='person 'p=('person likes wine '))
-	    			// ('person likes wine ').
-	    			//    (john likes 'person ('person likes wine ')
-	    			// ('person=john likes 'person2=wine
-	    			//    ('person2=wine likes wine '))
-	    			// ('person2=wine likes wine ').
-	    			//    (john likes 'person ('person likes wine '))
-	    			// wine != john -> fail.
+			"(john likes 'person ('person likes wine '))", [{
+				// (john likes 'stuff 'p).
+				//    (john likes 'person ('person likes wine '))
+				// (john likes 'stuff='person 'p=('person likes wine '))
+				// ('person likes wine ').
+				//    (john likes 'person ('person likes wine ')
+				// ('person=john likes 'person2=wine
+				//    ('person2=wine likes wine '))
+				// ('person2=wine likes wine ').
+				//    (john likes 'person ('person likes wine '))
+				// wine != john -> fail.
 
-	    			query: "?(john likes 'stuff 'p)",
-	    			results: []
-				}
-			]
+				query: "?(john likes 'stuff 'p)",
+				results: []
+			}]
 		)
 	);
 
@@ -85,30 +77,27 @@ describe("Prolog examples port Tests.", () => {
 			(john likes wine ') # likes(john,wine).
 
 			# 2. John likes anyone who likes wine
-			(john likes 'person ('person likes wine '))`,
-			[
-				{
-	    			// (john likes 'stuff 'p) . (john likes 'person
-	    			//        ('person likes wine '))
-	    			// =>   stuff = person
-	    			//      p = (person likes wine ')
-	    			// (person likes wine ') .
-	    			//		(mary likes wine ') => person = mary
-	    			// (person likes wine ') .
-	    			//		(john likes wine ') => person = john
-	    			// (person1 likes wine ') .
-	    			//    (john likes 'person2 ('person2 likes wine '))
-	    			// =>   person1 = john, person2 = wine
-	    			//      (wine likes wine ') FAIL.
+			(john likes 'person ('person likes wine '))`, [{
+				// (john likes 'stuff 'p) . (john likes 'person
+				//        ('person likes wine '))
+				// =>   stuff = person
+				//      p = (person likes wine ')
+				// (person likes wine ') .
+				//		(mary likes wine ') => person = mary
+				// (person likes wine ') .
+				//		(john likes wine ') => person = john
+				// (person1 likes wine ') .
+				//    (john likes 'person2 ('person2 likes wine '))
+				// =>   person1 = john, person2 = wine
+				//      (wine likes wine ') FAIL.
 
-	    			query: "?(john likes 'stuff 'p)",
-	    			results: [
-	                    "@(john likes john @(john likes wine '))",
-	                    "@(john likes mary @(mary likes wine '))",
-	                    "@(john likes wine ')"
-	                ]
-				}
-			]
+				query: "?(john likes 'stuff 'p)",
+				results: [
+					"@(john likes john @(john likes wine '))",
+					"@(john likes mary @(mary likes wine '))",
+					"@(john likes wine ')"
+				]
+			}]
 		)
 	);
 
@@ -125,25 +114,22 @@ describe("Prolog examples port Tests.", () => {
 			(john likes 'stuff (mary likes 'stuff '))
 
 			# 2. John likes anyone who likes wine
-			(john likes 'person ('person likes wine '))`,
-			[
-	            {
-	    			query: "?(john likes 'stuff 'p)",
-	    			results: [
-	                    "@(john likes food @(mary likes food '))",
-	                    "@(john likes john @(john likes wine '))",
-	                    "@(john likes john " +
-	                    	"@(john likes wine " +
-	                    		"@(mary likes wine ')" +
-	                    	")" +
-	                    ")",
-	                    "@(john likes mary ')",
-	                    "@(john likes mary @(mary likes wine '))",
-	                    "@(john likes wine ')",
-	                    "@(john likes wine @(mary likes wine '))"
-	                ]
-	            }
-			]
+			(john likes 'person ('person likes wine '))`, [{
+				query: "?(john likes 'stuff 'p)",
+				results: [
+					"@(john likes food @(mary likes food '))",
+					"@(john likes john @(john likes wine '))",
+					"@(john likes john " +
+					"@(john likes wine " +
+					"@(mary likes wine ')" +
+					")" +
+					")",
+					"@(john likes mary ')",
+					"@(john likes mary @(mary likes wine '))",
+					"@(john likes wine ')",
+					"@(john likes wine @(mary likes wine '))"
+				]
+			}]
 		)
 	);
 
@@ -161,17 +147,14 @@ describe("Prolog examples port Tests.", () => {
 			(john likes 'person ('person likes 'person 'p)
                 ^(equal 'person 'person)
             )
-            (equal 'x 'x)`,
-            [
-	            {
-	    			query: "?(john likes 'stuff 'p)",
-	    			results: [
-	                    "@(john likes john @(john likes wine '))",
-	                    "@(john likes wine ')"
-	                ]
-	            }
-			]
-    	)
+            (equal 'x 'x)`, [{
+				query: "?(john likes 'stuff 'p)",
+				results: [
+					"@(john likes john @(john likes wine '))",
+					"@(john likes wine ')"
+				]
+			}]
+		)
 	);
 
 	it("Should query people about what they like (Extended).",
@@ -195,42 +178,35 @@ describe("Prolog examples port Tests.", () => {
 			(john likes 'person ('person likes 'person ')
                 ^(equal 'person john)
             )
-            (equal 'x 'x)`,
-            [
-	            {
-	    			query: "?(john likes 'stuff ')",
-	    			results: [
-	                    "@(john likes food @(mary likes food '))",
-	                    "@(john likes john @(john likes wine '))",
-	                    "@(john likes john " +
-	                    	"@(john likes wine " +
-	                    		"@(mary likes wine ')" +
-	                    	")" +
-	                    ")",
-	                    "@(john likes mary ')",
-	                    "@(john likes mary @(mary likes wine '))",
-	                    "@(john likes peter " +
-	                    	"@(peter likes peter ')" +
-	                    ")[^!(equal peter john)]",
-	                    "@(john likes wine ')",
-	                    "@(john likes wine @(mary likes wine '))"
-	                ]
-	            }
-			]
+            (equal 'x 'x)`, [{
+				query: "?(john likes 'stuff ')",
+				results: [
+					"@(john likes food @(mary likes food '))",
+					"@(john likes john @(john likes wine '))",
+					"@(john likes john " +
+					"@(john likes wine " +
+					"@(mary likes wine ')" +
+					")" +
+					")",
+					"@(john likes mary ')",
+					"@(john likes mary @(mary likes wine '))",
+					"@(john likes peter " +
+					"@(peter likes peter ')" +
+					")[^!(equal peter john)]",
+					"@(john likes wine ')",
+					"@(john likes wine @(mary likes wine '))"
+				]
+			}]
 		)
 	);
 
 	it("Should give no results to circular definition.",
 		test(
 			// Query is not able to stop on their own.
-			"(john likes 'person ('person likes 'person '))",
-			[
-	            {
-					query: "?(john likes 'stuff 'p)",
-					results: []
-	            }
-			],
-            { depth: 7 }
+			"(john likes 'person ('person likes 'person '))", [{
+				query: "?(john likes 'stuff 'p)",
+				results: []
+			}], { depth: 7 }
 		)
 	);
 });

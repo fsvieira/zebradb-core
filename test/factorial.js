@@ -11,9 +11,7 @@ describe("Factorial Parser Tests.", () => {
 			decimal:
 				(nat 0) -> 0,
 				(nat 'n) -> 1 + 'n | decimal.
-			`,
-			[
-				{
+			`, [{
 					query: "?(nat (nat 1))",
 					results: []
 				},
@@ -25,14 +23,13 @@ describe("Factorial Parser Tests.", () => {
 					query: "?(nat 'n) | decimal",
 					results: [
 						0,
-		                1,
-		                2,
-		                3,
-		                4
+						1,
+						2,
+						3,
+						4
 					]
 				}
-			],
-			{ depth: 7 }
+			], { depth: 7 }
 		)
 	);
 
@@ -58,50 +55,49 @@ describe("Factorial Parser Tests.", () => {
 
             addResult:
                 (+ ' ' 'r ') -> 'r | decimal.
-			`,
-            [
-            	//  0 + 0 = 0
-            	{
-		            query: "?(+ (nat 0) (nat 0) 'r ') | addResult",
-		            results: [0]
-            	},
-
-		        // 1 + 0 = 1
-		        {
-		            query: "?(+ (nat (nat 0)) (nat 0) 'r ') | addResult",
-		            results: [1]
+			`, [
+				//  0 + 0 = 0
+				{
+					query: "?(+ (nat 0) (nat 0) 'r ') | addResult",
+					results: [0]
 				},
 
-		        // 0 + 1 = 1
-		        {
-		            query: "?(+ (nat 0) (nat (nat 0)) 'r ') | addResult",
-		            results: [1]
+				// 1 + 0 = 1
+				{
+					query: "?(+ (nat (nat 0)) (nat 0) 'r ') | addResult",
+					results: [1]
+				},
+
+				// 0 + 1 = 1
+				{
+					query: "?(+ (nat 0) (nat (nat 0)) 'r ') | addResult",
+					results: [1]
 				},
 
 				// 2 + 3 = 5
 				{
-		            query:
-		            	"?(+ (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) " +
-		            	"'r ') | addResult",
-		            results: [5]
+					query:
+						"?(+ (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) " +
+						"'r ') | addResult",
+					results: [5]
 				},
 
 				// 3 + 2 = 5
 				{
-		            query:
-		            	"?(+ (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) " +
-		            	"'r ') | addResult",
-		            results: [5]
+					query:
+						"?(+ (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) " +
+						"'r ') | addResult",
+					results: [5]
 				},
 
 				// 2 + 2 = 4
 				{
-		            query:
-		            	"?(+ (nat (nat (nat 0))) (nat (nat (nat 0))) 'r ') "+
-		            	"| addResult",
-		            results: [4]
-            	}
-            ]
+					query:
+						"?(+ (nat (nat (nat 0))) (nat (nat (nat 0))) 'r ') " +
+						"| addResult",
+					results: [4]
+				}
+			]
 		)
 	);
 
@@ -146,73 +142,69 @@ describe("Factorial Parser Tests.", () => {
 
             mulResult:
                 (* ' ' 'r ') -> 'r | decimal.
-			`,
-			[
+			`, [
 				// 0 * 0 = 0
 				{
-	            	query: "?(* (nat 0) (nat 0) 'r ') | mulResult",
-	            	results: [0]
-	            },
+					query: "?(* (nat 0) (nat 0) 'r ') | mulResult",
+					results: [0]
+				},
 
-	            // 1 * 0 = 0
-	            {
-	            	query: "?(* (nat (nat 0)) (nat 0) 'r ') | mulResult",
-	            	results: [0]
-	            },
+				// 1 * 0 = 0
+				{
+					query: "?(* (nat (nat 0)) (nat 0) 'r ') | mulResult",
+					results: [0]
+				},
 
-	            // 0 * 1 = 0
-	            {
-	            	query: "?(* (nat 0) (nat (nat 0)) 'r ') | mulResult",
-	            	results: [0]
-	            },
+				// 0 * 1 = 0
+				{
+					query: "?(* (nat 0) (nat (nat 0)) 'r ') | mulResult",
+					results: [0]
+				},
 
-	            // 1 * 1 = 1
-	            {
-	            	query: "?(* (nat (nat 0)) (nat (nat 0)) 'r ') | mulResult",
-	            	results: [1]
-	            },
+				// 1 * 1 = 1
+				{
+					query: "?(* (nat (nat 0)) (nat (nat 0)) 'r ') | mulResult",
+					results: [1]
+				},
 
-	            // 2 * 1 = 2
-	            {
-	            	query:
-	            		"?(* (nat (nat (nat 0))) (nat (nat 0)) 'r ') " +
-	            		"| mulResult",
-	            	results: [2]
-	            },
+				// 2 * 1 = 2
+				{
+					query: "?(* (nat (nat (nat 0))) (nat (nat 0)) 'r ') " +
+						"| mulResult",
+					results: [2]
+				},
 
-	            // 1 * 2 = 2
-	            {
-	            	query:
-	            		"?(* (nat (nat 0)) (nat (nat (nat 0))) 'r ') " +
-	            		"| mulResult",
-	            	results: [2]
-	            },
+				// 1 * 2 = 2
+				{
+					query: "?(* (nat (nat 0)) (nat (nat (nat 0))) 'r ') " +
+						"| mulResult",
+					results: [2]
+				},
 
-	            // 2 * 2 = 4
-	            {
-	            	query:
-	            		"?(* (nat (nat (nat 0))) (nat (nat (nat 0))) 'r ') " +
-	            		"| mulResult",
-	            	results: [4]
-	            },
+				// 2 * 2 = 4
+				{
+					query:
+						"?(* (nat (nat (nat 0))) (nat (nat (nat 0))) 'r ') " +
+						"| mulResult",
+					results: [4]
+				},
 
-	            // 2 * 3 = 6
-	            {
-	            	query:
-	            		"?(* (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) " +
-	            		"'r ') | mulResult",
-	            	results: [6]
-	            },
+				// 2 * 3 = 6
+				{
+					query:
+						"?(* (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) " +
+						"'r ') | mulResult",
+					results: [6]
+				},
 
-	            // 3 * 2 = 6
-	            {
-	            	query:
-	            		"?(* (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) " +
-	            		"'r ') | mulResult",
-	            	results: [6]
-	            }
-            ],
-            { timeout: 5000 }
+				// 3 * 2 = 6
+				{
+					query:
+						"?(* (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) " +
+						"'r ') | mulResult",
+					results: [6]
+				}
+			], { timeout: 5000 }
 		)
 	);
 
@@ -265,41 +257,39 @@ describe("Factorial Parser Tests.", () => {
 
             facResult:
                 (fac ' 'r ') -> 'r | decimal.
-			`,
-            [
-	            // fac(0) = 1
-	            {
-	            	query: "?(fac (nat 0) 'r ') | facResult",
-	            	results: [1]
-	            },
+			`, [
+				// fac(0) = 1
+				{
+					query: "?(fac (nat 0) 'r ') | facResult",
+					results: [1]
+				},
 
-	            // fac(1) = 1
-	            {
-	            	query: "?(fac (nat (nat 0)) 'r ') | facResult",
-	            	results: [1]
-	            },
+				// fac(1) = 1
+				{
+					query: "?(fac (nat (nat 0)) 'r ') | facResult",
+					results: [1]
+				},
 
-	            // fac(2) = 2
-	            {
-	            	query: "?(fac (nat (nat (nat 0))) 'r ') | facResult",
-	            	results: [2]
-	            },
+				// fac(2) = 2
+				{
+					query: "?(fac (nat (nat (nat 0))) 'r ') | facResult",
+					results: [2]
+				},
 
-	            // fac(3) = 6
-	            {
-	            	query: "?(fac (nat (nat (nat (nat 0)))) 'r ') | facResult",
-	            	results: [6]
-	            },
+				// fac(3) = 6
+				{
+					query: "?(fac (nat (nat (nat (nat 0)))) 'r ') | facResult",
+					results: [6]
+				}
 
-	            // fac(4) = 24
-	            /*
-	            {
-	            	query: "?(fac (nat (nat (nat (nat (nat 0))))) 'r ') "+
-	            		"| facResult",
-	            	results: [24]
-	            }*/
-            ],
-            { timeout: 60000 * 5 }
+				// fac(4) = 24
+				/*
+				{
+					query: "?(fac (nat (nat (nat (nat (nat 0))))) 'r ') "+
+						"| facResult",
+					results: [24]
+				}*/
+			], { timeout: 60000 * 5 }
 		)
 	);
 });
