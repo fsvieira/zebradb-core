@@ -92,8 +92,10 @@ describe("Prolog examples port Tests.", () => {
 	    			//        ('person likes wine '))
 	    			// =>   stuff = person
 	    			//      p = (person likes wine ')
-	    			// (person likes wine ') . (mary likes wine ') => person = mary
-	    			// (person likes wine ') . (john likes wine ') => person = john
+	    			// (person likes wine ') .
+	    			//		(mary likes wine ') => person = mary
+	    			// (person likes wine ') .
+	    			//		(john likes wine ') => person = john
 	    			// (person1 likes wine ') .
 	    			//    (john likes 'person2 ('person2 likes wine '))
 	    			// =>   person1 = john, person2 = wine
@@ -130,7 +132,11 @@ describe("Prolog examples port Tests.", () => {
 	    			results: [
 	                    "@(john likes food @(mary likes food '))",
 	                    "@(john likes john @(john likes wine '))",
-	                    "@(john likes john @(john likes wine @(mary likes wine ')))",
+	                    "@(john likes john " +
+	                    	"@(john likes wine " +
+	                    		"@(mary likes wine ')" +
+	                    	")" +
+	                    ")",
 	                    "@(john likes mary ')",
 	                    "@(john likes mary @(mary likes wine '))",
 	                    "@(john likes wine ')",
@@ -196,10 +202,16 @@ describe("Prolog examples port Tests.", () => {
 	    			results: [
 	                    "@(john likes food @(mary likes food '))",
 	                    "@(john likes john @(john likes wine '))",
-	                    "@(john likes john @(john likes wine @(mary likes wine ')))",
+	                    "@(john likes john " +
+	                    	"@(john likes wine " +
+	                    		"@(mary likes wine ')" +
+	                    	")" +
+	                    ")",
 	                    "@(john likes mary ')",
 	                    "@(john likes mary @(mary likes wine '))",
-	                    "@(john likes peter @(peter likes peter '))[^!(equal peter john)]",
+	                    "@(john likes peter " +
+	                    	"@(peter likes peter ')" +
+	                    ")[^!(equal peter john)]",
 	                    "@(john likes wine ')",
 	                    "@(john likes wine @(mary likes wine '))"
 	                ]
