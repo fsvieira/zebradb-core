@@ -2,22 +2,19 @@
 
 const test = require("../lib/testing/test");
 
-describe("Multiply Tests", function () {
+describe("Multiply Tests", () => {
 	it("should multiply results.",
 		test(
 			`(yellow 'a)
             ('b blue)
-            `,
-            [
-	            {
-					query: "?('c 'd)",
-					results: [
-		                "@('b blue)",
-		                "@(yellow 'a)",
-		                "@(yellow blue)"
-					]
-				}
-			]
+            `, [{
+				query: "?('c 'd)",
+				results: [
+					"@('b blue)",
+					"@(yellow 'a)",
+					"@(yellow blue)"
+				]
+			}]
 		)
 	);
 
@@ -25,17 +22,14 @@ describe("Multiply Tests", function () {
 		test(
 			`(yellow 'a)
             ('a blue)
-            `,
-            [
-	            {
-					query: "?('a 'b)",
-					results: [
-		                "@('a blue)",
-		                "@(yellow 'a)",
-		                "@(yellow blue)"
-					]
-	            }
-            ]
+            `, [{
+				query: "?('a 'b)",
+				results: [
+					"@('a blue)",
+					"@(yellow 'a)",
+					"@(yellow blue)"
+				]
+			}]
 		)
 	);
 });
