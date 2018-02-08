@@ -37,7 +37,8 @@ describe("Not Tests.", () => {
 				{
 	            	query: "?(equal ('x) (yellow) ^(equal ('x) (blue)))",
 	            	results: [
-	            		"@(equal @(yellow) @(yellow))[^!(equal (yellow) (blue))]"
+	            		"@(equal @(yellow) @(yellow))" +
+	            			"[^!(equal (yellow) (blue))]"
 	            	]
 				}
 			]
@@ -138,8 +139,10 @@ describe("Not Tests.", () => {
 				{
 					query: "?(not (number 'p) (number 'q))",
 					results: [
-		                "@(not @(number 0) @(number 1))[^!(equal (number 0) (number 1))]",
-		                "@(not @(number 1) @(number 0))[^!(equal (number 1) (number 0))]"
+		                "@(not @(number 0) @(number 1))" +
+		                	"[^!(equal (number 0) (number 1))]",
+		                "@(not @(number 1) @(number 0))" +
+		                	"[^!(equal (number 1) (number 0))]"
 		            ]
 				}
 			]
@@ -172,31 +175,44 @@ describe("Not Tests.", () => {
 		            ]
 				},
 		        {
-					query: "?(list (fruit 'a) (list (fruit 'b) (list)) ^(equal 'a 'b))",
+					query: "?(list (fruit 'a) (list (fruit 'b) (list)) " +
+						" ^(equal 'a 'b))",
 					results: [
-		            	"@(list @(fruit apple) @(list @(fruit banana) @(list)))" +
-		                    "[^!(equal apple banana)]",
-		                "@(list @(fruit apple) @(list @(fruit papaya) @(list)))" +
+		            	"@(list @(fruit apple) " +
+		            		"@(list @(fruit banana) @(list)))" +
+		            		"[^!(equal apple banana)]",
+		                "@(list @(fruit apple) " +
+		                	"@(list @(fruit papaya) @(list)))" +
 		                    "[^!(equal apple papaya)]",
-		                "@(list @(fruit apple) @(list @(fruit strawberry) @(list)))" +
+		                "@(list @(fruit apple) " +
+		                	"@(list @(fruit strawberry) @(list)))" +
 		                    "[^!(equal apple strawberry)]",
-		                "@(list @(fruit banana) @(list @(fruit apple) @(list)))" +
+		                "@(list @(fruit banana) " +
+		                	"@(list @(fruit apple) @(list)))" +
 		                    "[^!(equal banana apple)]",
-		                "@(list @(fruit banana) @(list @(fruit papaya) @(list)))" +
+		                "@(list @(fruit banana) " +
+		                	"@(list @(fruit papaya) @(list)))" +
 		                    "[^!(equal banana papaya)]",
-		                "@(list @(fruit banana) @(list @(fruit strawberry) @(list)))" +
+		                "@(list @(fruit banana) " +
+		                	"@(list @(fruit strawberry) @(list)))" +
 		                    "[^!(equal banana strawberry)]",
-		                "@(list @(fruit papaya) @(list @(fruit apple) @(list)))" +
+		                "@(list @(fruit papaya) " +
+		                	"@(list @(fruit apple) @(list)))" +
 		                    "[^!(equal papaya apple)]",
-		                "@(list @(fruit papaya) @(list @(fruit banana) @(list)))" +
+		                "@(list @(fruit papaya) " +
+		                	"@(list @(fruit banana) @(list)))" +
 		                    "[^!(equal papaya banana)]",
-		                "@(list @(fruit papaya) @(list @(fruit strawberry) @(list)))" +
+		                "@(list @(fruit papaya) " +
+		                	"@(list @(fruit strawberry) @(list)))" +
 		                    "[^!(equal papaya strawberry)]",
-		                "@(list @(fruit strawberry) @(list @(fruit apple) @(list)))" +
+		                "@(list @(fruit strawberry) " +
+		                	"@(list @(fruit apple) @(list)))" +
 		                    "[^!(equal strawberry apple)]",
-		                "@(list @(fruit strawberry) @(list @(fruit banana) @(list)))" +
+		                "@(list @(fruit strawberry) " +
+		                	"@(list @(fruit banana) @(list)))" +
 		                    "[^!(equal strawberry banana)]",
-		                "@(list @(fruit strawberry) @(list @(fruit papaya) @(list)))" +
+		                "@(list @(fruit strawberry) " +
+		                	"@(list @(fruit papaya) @(list)))" +
 		                    "[^!(equal strawberry papaya)]"
 		            ]
 	            }
@@ -377,20 +393,7 @@ describe("Not Tests.", () => {
             setStart:
                 (set 'i (set) ') -> "[" 'i | number "]\n",
                 (set 'i 'tail ') -> "[" 'i | number ", " 'tail | set "]\n".
-			`
-			/*
-            ?(set (number 0)
-                (set (number 1)
-                (set (number 2)
-                (set (number 3) (set) ') ') ')
-            ') | setStart
-
-            ?(set (number 'a)
-                (set (number 'b)
-                (set (number 'c)
-                (set (number 'd) (set) ') ') ')
-            ') | setStart
-            `*/,
+			`,
 			[
 				{
 					query: `?(set (number 0)

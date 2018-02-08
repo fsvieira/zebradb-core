@@ -80,19 +80,25 @@ describe("Factorial Parser Tests.", () => {
 
 				// 2 + 3 = 5
 				{
-		            query: "?(+ (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) 'r ') | addResult",
+		            query:
+		            	"?(+ (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) " +
+		            	"'r ') | addResult",
 		            results: [5]
 				},
 
 				// 3 + 2 = 5
 				{
-		            query: "?(+ (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) 'r ') | addResult",
+		            query:
+		            	"?(+ (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) " +
+		            	"'r ') | addResult",
 		            results: [5]
 				},
 
 				// 2 + 2 = 4
 				{
-		            query: "?(+ (nat (nat (nat 0))) (nat (nat (nat 0))) 'r ') | addResult",
+		            query:
+		            	"?(+ (nat (nat (nat 0))) (nat (nat (nat 0))) 'r ') "+
+		            	"| addResult",
 		            results: [4]
             	}
             ]
@@ -168,31 +174,41 @@ describe("Factorial Parser Tests.", () => {
 
 	            // 2 * 1 = 2
 	            {
-	            	query: "?(* (nat (nat (nat 0))) (nat (nat 0)) 'r ') | mulResult",
+	            	query:
+	            		"?(* (nat (nat (nat 0))) (nat (nat 0)) 'r ') " +
+	            		"| mulResult",
 	            	results: [2]
 	            },
 
 	            // 1 * 2 = 2
 	            {
-	            	query: "?(* (nat (nat 0)) (nat (nat (nat 0))) 'r ') | mulResult",
+	            	query:
+	            		"?(* (nat (nat 0)) (nat (nat (nat 0))) 'r ') " +
+	            		"| mulResult",
 	            	results: [2]
 	            },
 
 	            // 2 * 2 = 4
 	            {
-	            	query: "?(* (nat (nat (nat 0))) (nat (nat (nat 0))) 'r ') | mulResult",
+	            	query:
+	            		"?(* (nat (nat (nat 0))) (nat (nat (nat 0))) 'r ') " +
+	            		"| mulResult",
 	            	results: [4]
 	            },
 
 	            // 2 * 3 = 6
 	            {
-	            	query: "?(* (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) 'r ') | mulResult",
+	            	query:
+	            		"?(* (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) " +
+	            		"'r ') | mulResult",
 	            	results: [6]
 	            },
 
 	            // 3 * 2 = 6
 	            {
-	            	query: "?(* (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) 'r ') | mulResult",
+	            	query:
+	            		"?(* (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) " +
+	            		"'r ') | mulResult",
 	            	results: [6]
 	            }
             ],
@@ -278,7 +294,8 @@ describe("Factorial Parser Tests.", () => {
 	            // fac(4) = 24
 	            /*
 	            {
-	            	query: "?(fac (nat (nat (nat (nat (nat 0))))) 'r ') | facResult",
+	            	query: "?(fac (nat (nat (nat (nat (nat 0))))) 'r ') "+
+	            		"| facResult",
 	            	results: [24]
 	            }*/
             ],
