@@ -49,9 +49,9 @@ body {
 }
 
 .side-menu {
-	width: 20%;
-	min-width: 120px;
-	max-width: 150px;
+	width: 30%;
+	min-width: 150px;
+	max-width: 208px;
 	float: left;
 	margin-right: 1%;
 	box-shadow: 0 4px 8px 0 rgba(0, 0, 255, 0.2), 0 6px 20px 0 rgba(0, 0, 255, 0.19);
@@ -61,7 +61,7 @@ body {
 }
 
 .content {
-	width: 79%;
+	width: 69%;
 	float: left;
 	box-shadow: 0 4px 8px 0 rgba(0, 0, 255, 0.2), 0 6px 20px 0 rgba(0, 0, 255, 0.19);
 	background: #fff;
@@ -72,4 +72,8 @@ body {
 
 .attr {
 	float: right;
+}
+
+.selected {
+	border-bottom: 1px solid red;
 }
