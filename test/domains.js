@@ -13,7 +13,7 @@ describe("Test domain extraction.", () => {
             `, [{
 				query: `?(number 'a)`,
 				results: [
-					"@(number {{0 1 2 3}})"
+					"@(number {{v$37 : 0 1 2 3}})"
 				]
 			}]
 		)
