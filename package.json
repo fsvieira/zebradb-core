@@ -110,5 +110,6 @@
     "validateLineBreaks": "LF",
     "validateParameterSeparator": ", ",
     "validateQuoteMarks": "\""
-  }
+  },
+  "dependencies": {}
 }

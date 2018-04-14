@@ -13,11 +13,11 @@ body {
 }
 
 .header .icon {
-	background-image: url(../images/zebra.png);
+	background-image: url(../images/icon.png);
 	background-repeat: no-repeat;
 	height: 48px;
 	width: 48px;
-	background-size: contain;
+	background-size: cover;
 	float: left;
 }
 
@@ -58,6 +58,12 @@ body {
 	background: #fff;
 	border-top-left-radius: 1em;
 	border-bottom-right-radius: 1em;
+	text-transform: capitalize;
+}
+
+#main-content {
+	float: right;
+	width: 76%;
 }
 
 .content {
@@ -68,6 +74,42 @@ body {
 	padding: 1em;
 	border-top-left-radius: 1em;
 	border-bottom-right-radius: 1em;
+	margin-bottom: 1em;
+}
+
+.content-header {
+	clear: both;
+	color: white;
+}
+
+.content-title {
+	border-bottom: 4px solid #1e90ff;
+	background: black;
+	width: 100%;
+	font-size: 2em;
+	padding: 0.1em;
+	box-sizing: border-box;
+	padding-left: 0.5em;
+	text-transform: capitalize;
+}
+
+.content-subtitle {
+	width: 100%;
+	font-size: 0.9em;
+	color: darkblue;
+}
+
+.content-author {
+	float: left;
+}
+
+.content-date {
+	float: right;
+}
+
+.content-body {
+	margin-top: 2em;
+	clear: both;
 }
 
 .attr {

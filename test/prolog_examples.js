@@ -6,6 +6,7 @@ const test = require("../lib/testing/test");
   Online prolog examples converted to zebra system.
 */
 describe("Prolog examples port Tests.", () => {
+
 	it("Should query people about what they like.",
 		test(
 			`(mary likes food)
@@ -91,14 +92,13 @@ describe("Prolog examples port Tests.", () => {
 
 				query: "?(john likes 'stuff 'p)",
 				results: [
-					"@(john likes john @(john likes wine '))",
-					"@(john likes mary @(mary likes wine '))",
-					"@(john likes wine ')"
+					"@(john likes wine ')",
+					"@(john likes {{v$61 : john mary}} @({{v$61 : john mary}} likes wine '))"
 				]
 			}]
 		)
 	);
-/*
+
 	it("Should query what john likes," +
 		"he likes what mary likes and people that like wine.",
 		test(
@@ -118,9 +118,9 @@ describe("Prolog examples port Tests.", () => {
 					"@(john likes food @(mary likes food '))",
 					"@(john likes john @(john likes wine '))",
 					"@(john likes john " +
-					"@(john likes wine " +
-					"@(mary likes wine ')" +
-					")" +
+						"@(john likes wine " +
+							"@(mary likes wine ')" +
+						")" +
 					")",
 					"@(john likes mary ')",
 					"@(john likes mary @(mary likes wine '))",
@@ -130,7 +130,7 @@ describe("Prolog examples port Tests.", () => {
 			}]
 		)
 	);
-
+/*
 	it("Should query john likes people that like themselves.",
 		test(
 			`(john likes wine ') # likes(john,wine).
@@ -182,9 +182,9 @@ describe("Prolog examples port Tests.", () => {
 					"@(john likes food @(mary likes food '))",
 					"@(john likes john @(john likes wine '))",
 					"@(john likes john " +
-					"@(john likes wine " +
-					"@(mary likes wine ')" +
-					")" +
+						"@(john likes wine " +
+							"@(mary likes wine ')" +
+						")" +
 					")",
 					"@(john likes mary ')",
 					"@(john likes mary @(mary likes wine '))",
@@ -197,7 +197,7 @@ describe("Prolog examples port Tests.", () => {
 			}]
 		)
 	);
-
+*/
 	it("Should give no results to circular definition.",
 		test(
 			// Query is not able to stop on their own.
@@ -207,5 +207,4 @@ describe("Prolog examples port Tests.", () => {
 			}], { depth: 7 }
 		)
 	);
-*/
 });
