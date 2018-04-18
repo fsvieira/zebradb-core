@@ -5,8 +5,8 @@ const test = require("../lib/testing/test");
 /*
   Online prolog examples converted to zebra system.
 */
-describe("Prolog examples port Tests.", () => {
 
+describe("Prolog examples port Tests.", () => {
 	it("Should query people about what they like.",
 		test(
 			`(mary likes food)
@@ -197,7 +197,7 @@ describe("Prolog examples port Tests.", () => {
 			}]
 		)
 	);
-*/
+
 	it("Should give no results to circular definition.",
 		test(
 			// Query is not able to stop on their own.
@@ -207,4 +207,5 @@ describe("Prolog examples port Tests.", () => {
 			}], { depth: 7 }
 		)
 	);
+*/
 });
