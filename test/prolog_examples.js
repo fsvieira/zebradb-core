@@ -7,6 +7,7 @@ const test = require("../lib/testing/test");
 */
 
 describe("Prolog examples port Tests.", () => {
+/*
 	it("Should query people about what they like.",
 		test(
 			`(mary likes food)
@@ -98,7 +99,7 @@ describe("Prolog examples port Tests.", () => {
 			}]
 		)
 	);
-
+*/
 	it("Should query what john likes," +
 		"he likes what mary likes and people that like wine.",
 		test(
