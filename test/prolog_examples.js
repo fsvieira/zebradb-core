@@ -116,6 +116,12 @@ describe("Prolog examples port Tests.", () => {
 			(john likes 'person ('person likes wine '))`, [{
 				query: "?(john likes 'stuff 'p)",
 				results: [
+					/*
+					TODO:
+						"@(john likes 'stuff {{v$83 : ('person likes wine '$1) (mary likes 'stuff ')}})",
+						--> @(john likes 'stuff {{v$83 : ('stuff likes wine '$1) (mary likes 'stuff ')}})
+						# Make sure 'stuff is the same variable.
+					*/
 					"@(john likes food @(mary likes food '))",
 					"@(john likes john @(john likes wine '))",
 					"@(john likes john " +
