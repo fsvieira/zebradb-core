@@ -47,6 +47,7 @@ function renderPage (title, author, date, html) {
 async function openBlog (db) {
     const mainContent = document.getElementById("main-content");
     const posts = db.posts;
+    posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     mainContent.innerHTML = "";
 

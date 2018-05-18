@@ -41,19 +41,20 @@ body {
 }
 
 .main {
-	width: 100%;
-	max-width: 960px;
+	width: 85%;
+	max-width: 100em;
+	min-width: 50em;
 	margin-right: auto;
 	margin-left: auto;
 	margin-top: 1em;
 }
 
 .side-menu {
-	width: 30%;
-	min-width: 150px;
-	max-width: 208px;
+	width: 20%;
+	min-width: 10em;
+	max-width: 15em;
 	float: left;
-	margin-right: 1%;
+	margin-right: 1em;
 	box-shadow: 0 4px 8px 0 rgba(0, 0, 255, 0.2), 0 6px 20px 0 rgba(0, 0, 255, 0.19);
 	background: #fff;
 	border-top-left-radius: 1em;
@@ -62,12 +63,17 @@ body {
 }
 
 #main-content {
-	float: right;
-	width: 76%;
+	float: left;
+	width: 70%;
+	min-width: 30em;
+}
+
+img {
+	max-width: 100%;
 }
 
 .content {
-	width: 69%;
+	width: 100%;
 	float: left;
 	box-shadow: 0 4px 8px 0 rgba(0, 0, 255, 0.2), 0 6px 20px 0 rgba(0, 0, 255, 0.19);
 	background: #fff;
@@ -119,3 +125,13 @@ body {
 .selected {
 	border-bottom: 1px solid red;
 }
+
+/*
+.math {
+	display: table;
+    margin: 0 auto;
+    padding: 0.5em;
+    background: #eee;
+	color: #333;
+	font-size: 1.2em;
+}*/
