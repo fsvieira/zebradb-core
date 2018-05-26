@@ -29,7 +29,9 @@ describe("Test domain extraction.", () => {
 			((number 'x) (number 'y))
 			`, [{
 				query: `?((number 'x) (number 'y))`,
-				results: []
+				results: [
+					"@(@(number {{v$48 : 0 1 2 3}}) @(number {{v$52 : 0 1 2 3}}))"
+				]
 			}]
 		)
 	);

@@ -4,7 +4,7 @@ const test = require("../lib/testing/test");
 
 describe("Send more money puzzle test.", function () {
 
-	xit("should solve send more money",
+	it("should solve send more money",
 		test(
 			`
             # declare list,
@@ -309,10 +309,13 @@ describe("Send more money puzzle test.", function () {
                 (set 'y
                 (set) ') ') ') ') ') ') ') ')
             )
-
-            ?(send-more-money ' ')
             `,
-			``
+			[{
+				query: "?(send-more-money ' ')",
+				results: [
+					""
+				]
+			}]
 		)
 	);
 });
