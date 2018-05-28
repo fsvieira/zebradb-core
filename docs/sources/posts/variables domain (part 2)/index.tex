@@ -1,0 +1,130 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{automata,positioning}
+\begin{document}
+
+On the last post I talked about how to extract and construct a variable domain, and I was very happy with 
+the end result. 
+
+Now Zebradb-core needs to handle the domains on unification operation/phase.
+However the conclusion I got was not completely what I would expect and now I need to make some changes. 
+
+\section{Introduction}
+
+The Zebradb-core solves queries by unifying them with definitions. 
+The unification operation is defined as a binary operation that can be applied to variables, tuples and constants. 
+Now with the introduction of domains I need to extend the unify operation to handle the new type.
+
+\section{Domain Unification: The problem}
+
+As described on last post domains are a set of possible values that a variable can have, however the way 
+domains are constructed they only contain tuples or constants, and they are never empty. 
+
+For simplicity I will use the symbol $\otimes$ to represent unify operation, 
+$p$ as variable, $t$ as tuple, $c$ as constant and $d$ as domain.
+
+\begin{enumerate}
+\item variables unify with anything:
+    \begin{enumerate}
+        \item $d \otimes p = d$, $p=d$,
+        \item $p \otimes d = d$, $p=d$.
+    \end{enumerate}
+
+\item constants, if constant is in domain then constant is the result:
+    \begin{enumerate}
+        \item $c \otimes d = c$ iff $c \in d$,
+        \item $d \otimes c = c$ iff $c \in d$.
+        \item else unify fails.
+    \end{enumerate}
+
+\item tuples: 
+    \begin{enumerate}
+        \item $t \otimes d = \{x: \forall p \in d, p \otimes t \}$,
+        \item $d \otimes t = \{x: \forall p \in d, p \otimes t \}$,
+        \item only successful unification are part of resulting domain,
+        \item if resulting domain is empty then fail.
+    \end{enumerate}
+
+\item domains:
+    \begin{enumerate}
+        \item $d_{0} \otimes d_{1} = \{x: \forall p \in d_{0}, \forall q \in d_{1}, p \otimes q \}$,
+        \item only successful unification are part of resulting domain,
+        \item if resulting domain is empty then fail.
+    \end{enumerate}
+
+\end{enumerate}
+
+The tricky part is on tuple unification with domains, the problem is that Zebradb-core needs to guarantee 
+the consistency of domains across the all tuple, from top to bottom.
+
+Basically a domain can contain tuples with bound and free variables, on the case of unification of a domain 
+with only one tuple free variables are not a problem, however bound variables can became a problem, a bound 
+variable can unify with multiple terms making the tuple and domain inconsistent, this problem would need 
+to be solved with the reconstruction of the domain involving the creation of new branches on unification phase
+and recalculating the domain, which would defeat the purpose of using domains.
+
+Basically a domain can contain tuples with bound and free variables, on the case of free variables we need 
+to guarantee that they are not repeated on other domain tuples, this can be solved by replacing tuple 
+variables with new ones, before unification. The case of bound variables is more complicated, to guarantee 
+tuple consistency we need to recalculate the domain involving the creation of new branches on unification phase
+which would defeat the purpose of using domains.
+
+\section{Domain Unification: The Solution}
+
+The solution is very simple, instead of trying to solve tuple unification with domains that brings a lot 
+of complicated issues and not sure if any benefit, I just ditched tuples from domains.
+
+So now variable domains can only contain constants. 
+Operation over domains like intersection and union is much more simple. 
+Also I believe constants are the most influencing aspect of branches growth.
+
+So unification now becomes something like this:
+
+\begin{enumerate}
+\item variables unify with anything:
+    \begin{enumerate}
+        \item $d \otimes p = d$, $p=d$,
+        \item $p \otimes d = d$, $p=d$.
+    \end{enumerate}
+
+\item constants, if constant is in domain then constant is the result:
+    \begin{enumerate}
+        \item $c \otimes d = c$, iff $c \in d$,
+        \item $d \otimes c = c$, iff $c \in d$.
+        \item else unify fails.
+    \end{enumerate}
+
+\item tuples: 
+    \begin{enumerate}
+        \item Fail to all tuples.
+    \end{enumerate}
+
+\item domains:
+    \begin{enumerate}
+        \item $d_{0} \otimes d_{1} = d_{0} \cup d_{1}$ , iff $d_{0} \cup d_{1} \neq \emptyset$
+        \item else unify fails.
+    \end{enumerate}
+
+\end{enumerate}
+
+So lets see some examples:
+
+\begin{enumerate}
+\item $\{1, 2, 4\} \otimes \{1, 4, 5\} = \{1, 4\}$,
+\item $\{1, 2, 4\} \otimes \{8, 7\}$, fail because intersection is empty,
+\item $\{1, 2, 4\} \otimes v = \{1, 2, 4\}$,
+\item $\{1, 2\} \otimes (v_{0} \ldots v_{n})$, fail, tuples are not unifiable with domains,
+\item $\{1, 2\} \otimes 1 = 1$,
+\item $\{1, 2\} \otimes 4$, fail because $4 \not\in \{1, 2\}$
+
+Now I just need to implement this changes and handle unification, since this is such simple operations I hope 
+that this will improve greatly the performance Zebradb-core.
+
+Thats it.
+
+\end{enumerate}
+
+
+
+\end{document}
