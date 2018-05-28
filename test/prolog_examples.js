@@ -6,7 +6,7 @@ const test = require("../lib/testing/test");
   Online prolog examples converted to zebra system.
 */
 
-xdescribe("Prolog examples port Tests.", () => {
+describe("Prolog examples port Tests.", () => {
 /*
 	it("Should query people about what they like.",
 		test(
@@ -121,18 +121,16 @@ xdescribe("Prolog examples port Tests.", () => {
 			(john likes 'person ('person likes wine '))`, [{
 				query: "?(john likes 'stuff 'p)",
 				results: [
-					"@(john likes food @(mary likes food '))",
 					"@(john likes john @(john likes wine '))",
-					"@(john likes john " +
-						"@(john likes wine " +
-							"@(mary likes wine ')" +
-						")" +
-					")",
+					"@(john likes john @(john likes wine @(mary likes wine ')))",
 					"@(john likes mary ')",
 					"@(john likes mary @(mary likes wine '))",
 					"@(john likes wine ')",
-					"@(john likes wine @(mary likes wine '))"
-				]
+
+					// TODO: this two tuples should be only one ?
+					"@(john likes wine @(mary likes wine '))",
+					"@(john likes {{v$113 : food wine}} @(mary likes {{v$113 : food wine}} '))"
+								]
 			}]
 		)
 	);
