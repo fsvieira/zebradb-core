@@ -2,7 +2,7 @@
 
 const test = require("../lib/testing/test");
 
-describe("Brave puzzle Tests.", () => {
+xdescribe("Brave puzzle Tests.", () => {
 	it("should solve brave puzzle",
 		test(
 			`(letter B)

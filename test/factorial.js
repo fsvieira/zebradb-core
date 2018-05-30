@@ -280,7 +280,7 @@ describe("Factorial Parser Tests.", () => {
 				{
 					query: "?(fac (nat (nat (nat (nat 0)))) 'r ') | facResult",
 					results: [6]
-				}
+				},
 
 				// fac(4) = 24
 				/*
