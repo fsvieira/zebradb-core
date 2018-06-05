@@ -97,18 +97,12 @@ describe("Not Tests.", () => {
 				{
 					query: "?(distinct (color 'a) (color 'b))",
 					results: [
-						"@(distinct @(color blue) @(color red))" +
-						"[^!(equal (color blue) (color red))]",
-						"@(distinct @(color blue) @(color yellow))" +
-						"[^!(equal (color blue) (color yellow))]",
-						"@(distinct @(color red) @(color blue))" +
-						"[^!(equal (color red) (color blue))]",
-						"@(distinct @(color red) @(color yellow))" +
-						"[^!(equal (color red) (color yellow))]",
-						"@(distinct @(color yellow) @(color blue))" +
-						"[^!(equal (color yellow) (color blue))]",
-						"@(distinct @(color yellow) @(color red))" +
-						"[^!(equal (color yellow) (color red))]"
+						"@(distinct @(color {{v$111 : blue red}}) @(color yellow))" +
+							"[^!(equal (color {{v$111 : blue red}}) (color yellow))]",
+						"@(distinct @(color {{v$111 : blue yellow}}) @(color red))" +
+							"[^!(equal (color {{v$111 : blue yellow}}) (color red))]",
+						"@(distinct @(color {{v$111 : red yellow}}) @(color blue))" +
+							"[^!(equal (color {{v$111 : red yellow}}) (color blue))]"
 					]
 				}
 			]
