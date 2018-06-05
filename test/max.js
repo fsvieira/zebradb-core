@@ -2,7 +2,7 @@
 
 const test = require("../lib/testing/test");
 
-xdescribe("Get the max solution.", () => {
+describe("Get the max solution.", () => {
 	it("Declare a number set, get the max number set with all elements.",
 		test(
 			`(number 0)

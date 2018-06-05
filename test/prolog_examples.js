@@ -5,7 +5,6 @@ const test = require("../lib/testing/test");
 /*
   Online prolog examples converted to zebra system.
 */
-
 describe("Prolog examples port Tests.", () => {
 	it("Should query people about what they like.",
 		test(
