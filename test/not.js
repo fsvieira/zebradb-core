@@ -168,7 +168,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Should declare a two number Set",
+	it("Should declare a two number Set",
 		test(
 			`(number 0)
             (number 1)
@@ -199,8 +199,7 @@ describe("Not Tests.", () => {
         				') | setStart
         			`,
 					results: [
-						"[0, 1]",
-						"[1, 0]"
+						"[[v$96: 0 1], [v$100: 0 1]]"
 					]
 				},
 				{
@@ -250,7 +249,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	it("Should declare a number Set, 3 elements",
+	xit("Should declare a number Set, 3 elements",
 		test(
 			`(number 0)
             (number 1)
