@@ -313,7 +313,7 @@ describe("Send more money puzzle test.", function () {
 			[{
 				query: "?(send-more-money ' ')",
 				results: [
-					""
+					"TODO"
 				]
 			}]
 		)

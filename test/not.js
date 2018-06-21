@@ -4,7 +4,7 @@ const test = require("../lib/testing/test");
 
 describe("Not Tests.", () => {
 
-	xit("Simple not",
+	it("Simple not",
 		test(
 			`(equal 'x 'x)
 			 (blue)
@@ -15,7 +15,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Simple not, no constants",
+	it("Simple not, no constants",
 		test(
 			"(equal 'x 'x) ('x)", [{
 				query: "?('x ^(equal 'x yellow))",
@@ -24,7 +24,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Not evaluation order",
+	it("Not evaluation order",
 		test(
 			"(equal 'x 'x) ('x)", [{
 				query: "?(equal ('x) (yellow) ^(equal ('x) (blue)))",
@@ -36,7 +36,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Declare a not equal",
+	it("Declare a not equal",
 		test(
 			`(color 'a)
 			 (equal 'x 'x)
@@ -76,7 +76,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Should make distinct tuples",
+	it("Should make distinct tuples",
 		test(
 			`(color yellow)
             (color blue)
@@ -109,7 +109,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Should declare simple not.",
+	it("Should declare simple not.",
 		test(
 			`(number 0)
             (number 1)
@@ -127,7 +127,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Should declare a list",
+	it("Should declare a list",
 		test(
 			`(list)
             (list 'item (list ' '))
@@ -199,7 +199,8 @@ describe("Not Tests.", () => {
         				') | setStart
         			`,
 					results: [
-						"[[v$96: 0 1], [v$100: 0 1]]"
+						"[0, 1]",
+						"[1, 0]"
 					]
 				},
 				{

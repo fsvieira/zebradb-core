@@ -6,7 +6,7 @@ const test = require("../lib/testing/test");
   Online prolog examples converted to zebra system.
 */
 describe("Prolog examples port Tests.", () => {
-	it("Should query people about what they like.",
+	xit("Should query people about what they like.",
 		test(
 			`(mary likes food)
             (mary likes wine)
@@ -33,7 +33,7 @@ describe("Prolog examples port Tests.", () => {
 		)
 	);
 
-	it("Should query about what john likes.",
+	xit("Should query about what john likes.",
 		test(
 			// 1. John likes anything that Mary likes
 			`
@@ -49,7 +49,7 @@ describe("Prolog examples port Tests.", () => {
 		)
 	);
 
-	it("Should fail on insufficient definitions.",
+	xit("Should fail on insufficient definitions.",
 		test(
 			"(john likes 'person ('person likes wine '))", [{
 				// (john likes 'stuff 'p).
@@ -69,7 +69,7 @@ describe("Prolog examples port Tests.", () => {
 		)
 	);
 
-	it("Should query what john likes, he likes anyone who likes wine.",
+	xit("Should query what john likes, he likes anyone who likes wine.",
 		test(
 			`(mary likes wine ') # likes(mary,wine).
 			(john likes wine ') # likes(john,wine).
@@ -108,7 +108,7 @@ describe("Prolog examples port Tests.", () => {
 	// - ('person likes wine ') -> (john likes wine (wine likes wine ')) !fail,
 	// TODO: unification is failing ??
 	// @(john likes wine ('person likes wine ')) => should be @(john likes wine ('person likes wine '))
-	it("Should query what john likes," +
+	xit("Should query what john likes," +
 		"he likes what mary likes and people that like wine.",
 		test(
 			`(mary likes food ') # likes(mary,food).
@@ -133,7 +133,7 @@ describe("Prolog examples port Tests.", () => {
 					// TODO: this two tuples should be only one ?
 					"@(john likes wine @(mary likes wine '))",
 					"@(john likes {{v$113 : food wine}} @(mary likes {{v$113 : food wine}} '))"
-								]
+				]
 			}]
 		)
 	);
@@ -145,14 +145,17 @@ describe("Prolog examples port Tests.", () => {
 			# 1. John likes anyone who likes wine
 			(john likes 'person ('person likes wine '))
 
+			(mary likes mary ')
+
 			# 2. John likes anyone who likes themselves
 			# "(john likes 'person ('person likes 'person '))"
 			# this is recursive by itself.
 			# john can't like himself just because it likes himself.
 			(john likes 'person ('person likes 'person 'p)
-                ^(equal 'person 'person)
+                ^(equal 'person john)
             )
-            (equal 'x 'x)`, [{
+			(equal 'x 'x)
+			`, [{
 				query: "?(john likes 'stuff 'p)",
 				results: [
 					"@(john likes john @(john likes wine '))",
@@ -162,7 +165,7 @@ describe("Prolog examples port Tests.", () => {
 		)
 	);
 
-	it("Should query people about what they like (Extended).",
+	xit("Should query people about what they like (Extended).",
 		test(
 			`(mary likes food ')  # likes(mary,food).
 			(mary likes wine ')   # likes(mary,wine).
@@ -216,7 +219,7 @@ describe("Prolog examples port Tests.", () => {
 		)
 	);
 
-	it("Should give no results to circular definition.",
+	xit("Should give no results to circular definition.",
 		test(
 			// Query is not able to stop on their own.
 			"(john likes 'person ('person likes 'person '))", [{
