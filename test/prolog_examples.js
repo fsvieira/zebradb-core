@@ -6,7 +6,7 @@ const test = require("../lib/testing/test");
   Online prolog examples converted to zebra system.
 */
 describe("Prolog examples port Tests.", () => {
-	xit("Should query people about what they like.",
+	it("Should query people about what they like.",
 		test(
 			`(mary likes food)
             (mary likes wine)
@@ -33,7 +33,7 @@ describe("Prolog examples port Tests.", () => {
 		)
 	);
 
-	xit("Should query about what john likes.",
+	it("Should query about what john likes.",
 		test(
 			// 1. John likes anything that Mary likes
 			`
@@ -49,7 +49,7 @@ describe("Prolog examples port Tests.", () => {
 		)
 	);
 
-	xit("Should fail on insufficient definitions.",
+	it("Should fail on insufficient definitions.",
 		test(
 			"(john likes 'person ('person likes wine '))", [{
 				// (john likes 'stuff 'p).
@@ -69,7 +69,7 @@ describe("Prolog examples port Tests.", () => {
 		)
 	);
 
-	xit("Should query what john likes, he likes anyone who likes wine.",
+	it("Should query what john likes, he likes anyone who likes wine.",
 		test(
 			`(mary likes wine ') # likes(mary,wine).
 			(john likes wine ') # likes(john,wine).
@@ -108,7 +108,7 @@ describe("Prolog examples port Tests.", () => {
 	// - ('person likes wine ') -> (john likes wine (wine likes wine ')) !fail,
 	// TODO: unification is failing ??
 	// @(john likes wine ('person likes wine ')) => should be @(john likes wine ('person likes wine '))
-	xit("Should query what john likes," +
+	it("Should query what john likes," +
 		"he likes what mary likes and people that like wine.",
 		test(
 			`(mary likes food ') # likes(mary,food).
@@ -159,13 +159,14 @@ describe("Prolog examples port Tests.", () => {
 				query: "?(john likes 'stuff 'p)",
 				results: [
 					"@(john likes john @(john likes wine '))",
-					"@(john likes wine ')"
+      				"@(john likes mary @(mary likes mary '))[^!(equal mary john)]",
+	   				"@(john likes wine ')"
 				]
 			}]
 		)
 	);
 
-	xit("Should query people about what they like (Extended).",
+	it("Should query people about what they like (Extended).",
 		test(
 			`(mary likes food ')  # likes(mary,food).
 			(mary likes wine ')   # likes(mary,wine).
@@ -219,7 +220,7 @@ describe("Prolog examples port Tests.", () => {
 		)
 	);
 
-	xit("Should give no results to circular definition.",
+	it("Should give no results to circular definition.",
 		test(
 			// Query is not able to stop on their own.
 			"(john likes 'person ('person likes 'person '))", [{
