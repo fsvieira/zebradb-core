@@ -4,7 +4,7 @@ const test = require("../lib/testing/test");
 
 describe("Not Tests.", () => {
 
-	xit("Simple not",
+	it("Simple not",
 		test(
 			`(equal 'x 'x)
 			 (blue)
@@ -15,7 +15,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Simple not, no constants",
+	it("Simple not, no constants",
 		test(
 			"(equal 'x 'x) ('x)", [{
 				query: "?('x ^(equal 'x yellow))",
@@ -24,7 +24,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Not evaluation order",
+	it("Not evaluation order",
 		test(
 			"(equal 'x 'x) ('x)", [{
 				query: "?(equal ('x) (yellow) ^(equal ('x) (blue)))",
@@ -36,7 +36,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Declare a not equal",
+	it("Declare a not equal",
 		test(
 			`(color 'a)
 			 (equal 'x 'x)
@@ -76,7 +76,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Should make distinct tuples",
+	it("Should make distinct tuples",
 		test(
 			`(color yellow)
             (color blue)
@@ -109,7 +109,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Should declare simple not.",
+	it("Should declare simple not.",
 		test(
 			`(number 0)
             (number 1)
@@ -127,7 +127,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Should declare a list",
+	it("Should declare a list",
 		test(
 			`(list)
             (list 'item (list ' '))
@@ -168,7 +168,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Should declare a two number Set",
+	it("Should declare a two number Set",
 		test(
 			`(number 0)
             (number 1)
@@ -216,7 +216,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Should declare a two number Set, query all",
+	it("Should declare a two number Set, query all",
 		test(
 			`(number 0)
             (number 1)
@@ -274,16 +274,34 @@ describe("Not Tests.", () => {
             setStart:
                 (set 'i (set) ') -> "[" 'i | number "]\n",
                 (set 'i 'tail ') -> "[" 'i | number ", " 'tail | set "]\n".
-            `, [/*{
+            `, [{
 					query: `?(set (number 0)
 	                    (set (number 1)
 	                    (set (number 2) (set) ') ')
 	                ') | setStart`,
 					results: ["[0, 1, 2]"]
-			},*/
+				},
 				{
 					query: "?(set (number 'a) 'tail ') | setStart",
 					results: [
+						"[0, 1, 2]",
+						"[0, 1]", // this is repeated,
+						"[0, 2, 1]",
+						"[0, 2]", // this is repeated,
+						"[0, [v$203: 1 2]]",
+						"[1, 0, 2]",
+						"[1, 0]",
+						"[1, 2, 0]",
+						"[1, 2]",
+						"[1, [v$203: 0 2]]",
+						"[2, 0, 1]",
+						"[2, 0]",
+						"[2, 1, 0]",
+						"[2, 1]",
+						"[2, [v$203: 0 1]]",
+						"[[v$179: 0 1 2]]"
+
+/*
 						"[0, 1, 2]",
 						"[0, 1]",
 						"[0, 2, 1]",
@@ -298,7 +316,7 @@ describe("Not Tests.", () => {
 						"[2, 0]",
 						"[2, 1, 0]",
 						"[2, 1]",
-						"[2]"
+						"[2]"*/
 					]
 				}
 			], { timeout: 60000 }

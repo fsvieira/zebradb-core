@@ -2,7 +2,7 @@
 
 const test = require("../lib/testing/test");
 
-xdescribe("Send more money puzzle test.", function () {
+describe("Send more money puzzle test.", function () {
 
 	it("should solve send more money",
 		test(
