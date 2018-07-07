@@ -1,0 +1,95 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{automata,positioning}
+\begin{document}
+
+\section{Negations}
+
+
+On my last posts I talked about domains, and how to construct them, but I didn't mention negations, that is a big part of domains.
+
+Negation has always been the part of Zebradb-core that I feel its a little bit clunky, but I didn't found any other elegant solution
+and even if is not perfect I feel that is sound.
+
+There is two problems with negations, first on domain construction and second on negation evaluation.
+
+\section{Domain construction and negations}
+
+The construction of domains is a phase where domains are extracted from multiple branches and "compressed" into a single branch, 
+to keep things consistent the created branches must maintain the original meaning from the source branches, so 
+we also need to take negation into account on this phase.
+
+The solution is simple if a group of branches generates same domains but different negations then the group is splitted and will 
+generate different branches with same domains and different negation set.
+
+\section{Negation evaluation}
+
+Now that we have domains, we need to deal with them on negation evaluation for example:
+
+(color yellow)
+(color red)
+(color blue)
+
+('x = 'x)
+('x != 'y ^('x = 'y))
+
+?((color 'x) != (color 'y))
+
+=> ((color [yellow, red, blue]) != (color [yellow, red, blue]) ^((color [yellow, red, blue]) = (color [yellow, red, blue])))
+=> [yellow, red, blue] = [yellow, red, blue] => [yellow, red, blue]
+
+In this example the negation unify two domains that are equals and therefor the negated tuple will succeed making negation to fail.
+But this is not correct, while tuple should succeed negation shouldn't fail, because we can find many failing values on this domain combinations,
+for example: 
+
+=> [yellow, red, blue] = [yellow, red, blue] => [yellow, red, blue]
+    fail -> yellow = [red, blue]
+    fail -> red = [yellow, blue]
+    ...
+
+This kind of domain construction, where we invert the combination of successful domains to fail I call it flop.
+
+The flop is calculated for each successful branch of a negation evaluation, and all resulting flops are then merged/multiplied 
+with each other, so that a common failing state is found, if a flop is not found than negation will fail.
+
+All negations flops are also merged/multiplied by each, so if a tuple has more then one negation and they all have flop values than 
+their merge/multiplication must also succeed.
+
+The idea of multiplication is very simple, for a negation to succeed the negated tuple can't exist, meaning it can't 
+have any solution, the flop is a set of a combination of failing domains, and flops are multiplied with each other 
+for example:
+
+flopA = [A, ... A_n], flopB = [B ... B_n]
+
+flopA * flopB = [A * B, ... , A * B_n, A_1 * B, ... A_1 * B_n, ... A_n * B_n]
+
+A = \{
+    domainA: [0, 1, 2],
+    domainB: [3, 4],
+    domainC: [6]
+\}
+
+B = \{
+    domainA: [0, 2],
+    domainB: [3, 5]
+\}
+
+A * B = \{
+    domainA: [0, 2],
+    domainB: [3],
+    domainC: [6]
+\}
+
+So equal domains are intersected, if a domain is not set on A or B then the result is the domain itself.
+If the intersection of two domains is empty then this is not a valid domain combination, in the end if flop is empty 
+then negation fails.
+
+
+\section{Conclusion}
+
+With this solutions we are able to correctly handle domains with and on negations, the cool part of negation evaluation 
+is that we can check and negate a bunch of values with less branches, and since we are using only constants the checks should be 
+pretty fast.
+
+\end{document}
