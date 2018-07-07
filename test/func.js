@@ -59,10 +59,8 @@ describe("Func tests.", () => {
 
 				query: "?(mother ' ' ') | mother",
 				results: [
-					"filipe is noémia son.",
-					"isabel is noémia daughter.",
-					"joana is noémia daughter."
-				]
+					"[v$116: joana isabel] is noémia daughter.",
+					"filipe is noémia son."				]
 			}]
 		)
 	);

@@ -97,18 +97,12 @@ describe("Not Tests.", () => {
 				{
 					query: "?(distinct (color 'a) (color 'b))",
 					results: [
-						"@(distinct @(color blue) @(color red))" +
-						"[^!(equal (color blue) (color red))]",
-						"@(distinct @(color blue) @(color yellow))" +
-						"[^!(equal (color blue) (color yellow))]",
-						"@(distinct @(color red) @(color blue))" +
-						"[^!(equal (color red) (color blue))]",
-						"@(distinct @(color red) @(color yellow))" +
-						"[^!(equal (color red) (color yellow))]",
-						"@(distinct @(color yellow) @(color blue))" +
-						"[^!(equal (color yellow) (color blue))]",
-						"@(distinct @(color yellow) @(color red))" +
-						"[^!(equal (color yellow) (color red))]"
+						"@(distinct @(color {{v$109 : blue red}}) @(color yellow))" +
+							"[^!(equal (color {{v$109 : blue red}}) (color yellow))]",
+						"@(distinct @(color {{v$109 : blue yellow}}) @(color red))" +
+							"[^!(equal (color {{v$109 : blue yellow}}) (color red))]",
+						"@(distinct @(color {{v$109 : red yellow}}) @(color blue))" +
+							"[^!(equal (color {{v$109 : red yellow}}) (color blue))]"
 					]
 				}
 			]
@@ -160,42 +154,14 @@ describe("Not Tests.", () => {
 					query: "?(list (fruit 'a) (list (fruit 'b) (list)) " +
 						" ^(equal 'a 'b))",
 					results: [
-						"@(list @(fruit apple) " +
-						"@(list @(fruit banana) @(list)))" +
-						"[^!(equal apple banana)]",
-						"@(list @(fruit apple) " +
-						"@(list @(fruit papaya) @(list)))" +
-						"[^!(equal apple papaya)]",
-						"@(list @(fruit apple) " +
-						"@(list @(fruit strawberry) @(list)))" +
-						"[^!(equal apple strawberry)]",
-						"@(list @(fruit banana) " +
-						"@(list @(fruit apple) @(list)))" +
-						"[^!(equal banana apple)]",
-						"@(list @(fruit banana) " +
-						"@(list @(fruit papaya) @(list)))" +
-						"[^!(equal banana papaya)]",
-						"@(list @(fruit banana) " +
-						"@(list @(fruit strawberry) @(list)))" +
-						"[^!(equal banana strawberry)]",
-						"@(list @(fruit papaya) " +
-						"@(list @(fruit apple) @(list)))" +
-						"[^!(equal papaya apple)]",
-						"@(list @(fruit papaya) " +
-						"@(list @(fruit banana) @(list)))" +
-						"[^!(equal papaya banana)]",
-						"@(list @(fruit papaya) " +
-						"@(list @(fruit strawberry) @(list)))" +
-						"[^!(equal papaya strawberry)]",
-						"@(list @(fruit strawberry) " +
-						"@(list @(fruit apple) @(list)))" +
-						"[^!(equal strawberry apple)]",
-						"@(list @(fruit strawberry) " +
-						"@(list @(fruit banana) @(list)))" +
-						"[^!(equal strawberry banana)]",
-						"@(list @(fruit strawberry) " +
-						"@(list @(fruit papaya) @(list)))" +
-						"[^!(equal strawberry papaya)]"
+						"@(list @(fruit apple) @(list @(fruit {{v$104 : banana papaya strawberry}}) @(list)))" +
+							"[^!(equal apple {{v$104 : banana papaya strawberry}})]",
+						"@(list @(fruit banana) @(list @(fruit {{v$104 : apple papaya strawberry}}) @(list)))" +
+							"[^!(equal banana {{v$104 : apple papaya strawberry}})]",
+						"@(list @(fruit papaya) @(list @(fruit {{v$104 : apple banana strawberry}}) @(list)))" +
+							"[^!(equal papaya {{v$104 : apple banana strawberry}})]",
+						"@(list @(fruit strawberry) @(list @(fruit {{v$104 : apple banana papaya}}) @(list)))" +
+							"[^!(equal strawberry {{v$104 : apple banana papaya}})]"
 					]
 				}
 			]
@@ -277,9 +243,8 @@ describe("Not Tests.", () => {
 				query: "?(set (number 'a) 'tail ') | setStart",
 				results: [
 					"[0, 1]",
-					"[0]",
 					"[1, 0]",
-					"[1]"
+					"[[v$74: 0 1]]" // [0], [1]
 				]
 			}]
 		)
@@ -323,17 +288,18 @@ describe("Not Tests.", () => {
 						"[0, 1]",
 						"[0, 2, 1]",
 						"[0, 2]",
-						"[0]",
+						"[0, [v$203: 1 2]]",
 						"[1, 0, 2]",
 						"[1, 0]",
 						"[1, 2, 0]",
 						"[1, 2]",
-						"[1]",
+						"[1, [v$203: 0 2]]",
 						"[2, 0, 1]",
 						"[2, 0]",
 						"[2, 1, 0]",
 						"[2, 1]",
-						"[2]"
+						"[2, [v$203: 0 1]]",
+						"[[v$179: 0 1 2]]"
 					]
 				}
 			], { timeout: 60000 }
@@ -408,7 +374,7 @@ describe("Not Tests.", () => {
 						"[3, 2, 1, 0]"
 					]
 				}
-			], { timeout: 60000 * 2 }
+			], { timeout: 60000 * 10 }
 		)
 	);
 
@@ -446,66 +412,79 @@ describe("Not Tests.", () => {
 					"[0, 1, 2]",
 					"[0, 1, 3, 2]",
 					"[0, 1, 3]",
-					"[0, 1]",
+					"[0, 1, [v$181: 2 3]]",
 					"[0, 2, 1, 3]",
 					"[0, 2, 1]",
 					"[0, 2, 3, 1]",
 					"[0, 2, 3]",
-					"[0, 2]",
+					"[0, 2, [v$181: 1 3]]",
 					"[0, 3, 1, 2]",
 					"[0, 3, 1]",
 					"[0, 3, 2, 1]",
 					"[0, 3, 2]",
-					"[0, 3]",
-					"[0]",
+					"[0, 3, [v$181: 1 2]]",
+					"[0, [v$169: 1 2 3]]",
+					"[0, [v$177: 1 2], 3]",
+					"[0, [v$177: 1 3], 2]",
+					"[0, [v$177: 2 3], 1]",
 					"[1, 0, 2, 3]",
 					"[1, 0, 2]",
 					"[1, 0, 3, 2]",
 					"[1, 0, 3]",
-					"[1, 0]",
+					"[1, 0, [v$181: 2 3]]",
 					"[1, 2, 0, 3]",
 					"[1, 2, 0]",
 					"[1, 2, 3, 0]",
 					"[1, 2, 3]",
-					"[1, 2]",
+					"[1, 2, [v$181: 0 3]]",
 					"[1, 3, 0, 2]",
 					"[1, 3, 0]",
 					"[1, 3, 2, 0]",
 					"[1, 3, 2]",
-					"[1, 3]",
-					"[1]",
+					"[1, 3, [v$181: 0 2]]",
+					"[1, [v$169: 0 2 3]]",
+					"[1, [v$177: 0 2], 3]",
+					"[1, [v$177: 0 3], 2]",
+					"[1, [v$177: 2 3], 0]",
 					"[2, 0, 1, 3]",
 					"[2, 0, 1]",
 					"[2, 0, 3, 1]",
 					"[2, 0, 3]",
-					"[2, 0]",
+					"[2, 0, [v$181: 1 3]]",
 					"[2, 1, 0, 3]",
 					"[2, 1, 0]",
 					"[2, 1, 3, 0]",
 					"[2, 1, 3]",
-					"[2, 1]",
+					"[2, 1, [v$181: 0 3]]",
 					"[2, 3, 0, 1]",
 					"[2, 3, 0]",
 					"[2, 3, 1, 0]",
 					"[2, 3, 1]",
-					"[2, 3]",
-					"[2]",
+					"[2, 3, [v$181: 0 1]]",
+					"[2, [v$169: 0 1 3]]",
+					"[2, [v$177: 0 1], 3]",
+					"[2, [v$177: 0 3], 1]",
+					"[2, [v$177: 1 3], 0]",
 					"[3, 0, 1, 2]",
 					"[3, 0, 1]",
 					"[3, 0, 2, 1]",
 					"[3, 0, 2]",
-					"[3, 0]",
+					"[3, 0, [v$181: 1 2]]",
 					"[3, 1, 0, 2]",
 					"[3, 1, 0]",
 					"[3, 1, 2, 0]",
 					"[3, 1, 2]",
-					"[3, 1]",
+					"[3, 1, [v$181: 0 2]]",
 					"[3, 2, 0, 1]",
 					"[3, 2, 0]",
 					"[3, 2, 1, 0]",
 					"[3, 2, 1]",
-					"[3, 2]",
-					"[3]"
+					"[3, 2, [v$181: 0 1]]",
+					"[3, [v$169: 0 1 2]]",
+					"[3, [v$177: 0 1], 2]",
+					"[3, [v$177: 0 2], 1]",
+					"[3, [v$177: 1 2], 0]",
+					"[[v$82: 0 1 2 3]]"
 				]
 			}], { timeout: 60000 * 5 }
 		)

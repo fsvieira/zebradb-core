@@ -309,10 +309,13 @@ describe("Send more money puzzle test.", function () {
                 (set 'y
                 (set) ') ') ') ') ') ') ') ')
             )
-
-            ?(send-more-money ' ')
             `,
-			``
+			[{
+				query: "?(send-more-money ' ')",
+				results: [
+					"TODO"
+				]
+			}]
 		)
 	);
 });
