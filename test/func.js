@@ -1,24 +1,28 @@
 "use strict";
 
-const test = require("../lib/testing/test");
+const test = require("../test-utils/test");
+const ZTL = require("ztl");
 
 describe("Func tests.", () => {
 	it("Custom function for print query.",
 		test(
 			`
-            print: ('v) -> 'v.
-
-            doit: ' -> "do it".
-
             (yellow)
             `, [{
-					query: "?(yellow) | print",
+					query: "?(yellow)",
+					postProcessing: r => {
+						const ztl = new ZTL();
+						ztl.compile("print: ('v) -> 'v.");
+
+						return ztl.fn.print(r);
+					},
 					results: [
 						"yellow"
 					]
 				},
 				{
 					query: "?(yellow) | doit",
+					postProcessing: r => "do it",
 					results: [
 						"do it"
 					]
@@ -26,6 +30,17 @@ describe("Func tests.", () => {
 			]
 		)
 	);
+
+	const ztl = new ZTL();
+	ztl.compile(`
+		mother:
+			(mother (female 'mother) (female 'daughter) ') ->
+				"" 'daughter " is " 'mother " daughter.",
+
+			(mother (female 'mother) (male 'son) ') ->
+				"" 'son " is " 'mother " son."
+		.
+	`);
 
 	it("brother test.",
 		test(
@@ -46,18 +61,9 @@ describe("Func tests.", () => {
 
             (father (male 'x) ('y 'z) (parent (male 'x) ('y 'z)))
             (mother (female 'x) ('y 'z) (parent (female 'x) ('y 'z)))
-
-            mother:
-                (mother (female 'mother) (female 'daughter) ') ->
-                    "" 'daughter " is " 'mother " daughter.",
-
-                (mother (female 'mother) (male 'son) ') ->
-                    "" 'son " is " 'mother " son."
-            .
-
             `, [{
-
-				query: "?(mother ' ' ') | mother",
+				query: "?(mother ' ' ')",
+				postProcessing: r => ztl.fn.mother(r),
 				results: [
 					"[v$116: joana isabel] is noémia daughter.",
 					"filipe is noémia son."				]

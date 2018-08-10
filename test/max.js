@@ -1,6 +1,6 @@
 "use strict";
 
-const test = require("../lib/testing/test");
+const test = require("../test-utils/test");
 
 describe("Get the max solution.", () => {
 	it("Declare a number set, get the max number set with all elements.",

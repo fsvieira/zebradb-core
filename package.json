@@ -19,7 +19,6 @@
     "gulp-mocha": "^5.0.0",
     "jscs": "^3.0.7",
     "jshint": "^2.9.5",
-    "kanban-pipeline": "^1.0.2",
     "mocha": "^5.2.0",
     "pegjs": "^0.10.0",
     "should": "^5.2.0"
@@ -111,5 +110,8 @@
     "validateParameterSeparator": ", ",
     "validateQuoteMarks": "\""
   },
-  "dependencies": {}
+  "dependencies": {
+    "ztl": "^1.0.0",
+    "kanban-pipeline": "^1.0.2"
+  }
 }

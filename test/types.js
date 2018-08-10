@@ -1,6 +1,6 @@
 "use strict";
 
-const test = require("../lib/testing/test");
+const test = require("../test-utils/test");
 
 describe("Types Tests.", () => {
 	it("should types",
@@ -32,18 +32,6 @@ describe("Types Tests.", () => {
             (/ : real -> real -> real ')
 
             ('x : 'y ')
-
-            nextTypes:
-                ('x : 'y 'r) -> " -> " 'y "" 'r | nextTypes,
-                ' -> "". 
-
-            firstType:
-                ('x : 'y 'r) -> "" 'y "" 'r | nextTypes,
-                ' -> "".
-
-            fn:
-                ('fn : 'fnt 'args) -> "" 'fn ": " 'args | firstType " -> " 'fnt,
-                ' -> "".
             `,
             [
                 {
@@ -69,8 +57,24 @@ describe("Types Tests.", () => {
                     query: `
                         ?(fn : 'r (x : 'tx (y : 'ty
                             (* : 'tx -> 'ty -> 'a (/ : 'a -> int -> 'r '))
-                        ))) | fn
+                        )))
                     `,
+                    ztl: {
+                        code: `
+                        nextTypes:
+                            ('x : 'y 'r) -> " -> " 'y "" 'r | nextTypes,
+                            ' -> "". 
+            
+                        firstType:
+                            ('x : 'y 'r) -> "" 'y "" 'r | nextTypes,
+                            ' -> "".
+            
+                        fn:
+                            ('fn : 'fnt 'args) -> "" 'fn ": " 'args | firstType " -> " 'fnt,
+                            ' -> "".        
+                        `,
+                        main: "fn"
+                    },
                     results: [
                         "fn: int ->  int -> real",
                         "fn: int ->  real -> real",

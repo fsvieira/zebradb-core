@@ -2,6 +2,7 @@
 
 const should = require("should");
 const {Z, toString} = require("../");
+const ZTL = require("ztl");
 
 function normalize (s) {
 	if (typeof s === "string") {
@@ -14,10 +15,30 @@ function normalize (s) {
 	return s;
 }
 
+/*
 function queryCallback (db, q, results) {
 	return (r, f) => {
 		const qresults = results[q] = results[q] || [];
+
 		const rs = f ? db.execute(f, r) : toString(r, true);
+
+		if (qresults.indexOf(rs) === -1) {
+			qresults.push(rs);
+		}
+	};
+}*/
+
+function queryCallback (db, q, results, f, ztlDesc) {
+	if (!f && ztlDesc) {
+		const ztl = new ZTL();
+		ztl.compile(ztlDesc.code);
+		f = (r) => ztl.fn[ztlDesc.main](r);
+	} 
+
+	return r => {
+		const qresults = results[q] = results[q] || [];
+
+		const rs = f ? f(r) : toString(r, true);
 
 		if (qresults.indexOf(rs) === -1) {
 			qresults.push(rs);
@@ -88,7 +109,13 @@ function test (definitions, queries, options) {
 							qs.push(
 								db.query(
 									queryObject.query,
-									queryCallback(db, q, results)
+									queryCallback(
+										db, 
+										q, 
+										results, 
+										queryObject.postProcessing,
+										queryObject.ztl 
+									)
 								).then(
 									r => r,
 									queryErrorHandler(q, results)
