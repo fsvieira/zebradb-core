@@ -21,7 +21,7 @@ describe("Func tests.", () => {
 					]
 				},
 				{
-					query: "?(yellow) | doit",
+					query: "?(yellow)",
 					postProcessing: r => "do it",
 					results: [
 						"do it"

@@ -38,7 +38,7 @@ describe("Factorial Parser Tests.", () => {
 					results: ["@(nat @(nat 0))"]
 				},
 				{
-					query: "?(nat 'n) | decimal",
+					query: "?(nat 'n)",
 					postProcessing: decimal,
 					results: [
 						0,
@@ -266,28 +266,28 @@ describe("Factorial Parser Tests.", () => {
 			`, [
 				// fac(0) = 1
 				{
-					query: "?(fac (nat 0) 'r ') | facResult",
+					query: "?(fac (nat 0) 'r ')",
 					postProcessing: fac,
 					results: [1]
 				},
 
 				// fac(1) = 1
 				{
-					query: "?(fac (nat (nat 0)) 'r ') | facResult",
+					query: "?(fac (nat (nat 0)) 'r ')",
 					postProcessing: fac,
 					results: [1]
 				},
 
 				// fac(2) = 2
 				{
-					query: "?(fac (nat (nat (nat 0))) 'r ') | facResult",
+					query: "?(fac (nat (nat (nat 0))) 'r ')",
 					postProcessing: fac,
 					results: [2]
 				},
 
 				// fac(3) = 6
 				{
-					query: "?(fac (nat (nat (nat (nat 0)))) 'r ') | facResult",
+					query: "?(fac (nat (nat (nat (nat 0)))) 'r ')",
 					postProcessing: fac,
 					results: [6]
 				},

@@ -215,7 +215,7 @@ describe("Not Tests.", () => {
     					?(set (number 'a)
     						(set (number 'b)
     						(set (number 'c) (set) ') ')
-    					') | setStart
+    					')
 					`,
 					postProcessing: setStart,
 					results: []
@@ -236,7 +236,7 @@ describe("Not Tests.", () => {
 
             (equal 'x 'x)
 			`, [{
-				query: "?(set (number 'a) 'tail ') | setStart",
+				query: "?(set (number 'a) 'tail ')",
 				postProcessing: setStart,
 				results: [
 					"[0, 1]",
@@ -365,7 +365,7 @@ describe("Not Tests.", () => {
 
             (equal 'x 'x)
             `, [{
-				query: "?(set (number 'a) 'tail ') | setStart",
+				query: "?(set (number 'a) 'tail ')",
 				postProcessing: setStart,
 				results: [
 					"[0, 1, 2, 3]",
