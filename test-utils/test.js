@@ -111,7 +111,7 @@ function test (definitions, queries, options) {
 									queryObject.query,
 									queryCallback(
 										db, 
-										q, 
+										q,
 										results, 
 										queryObject.postProcessing,
 										queryObject.ztl 
