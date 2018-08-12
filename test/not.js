@@ -1,8 +1,26 @@
 "use strict";
 
 const test = require("../test-utils/test");
+const ZTL = require("ztl");
 
 describe("Not Tests.", () => {
+
+	const ztl = new ZTL();
+	ztl.compile(`
+		number:
+			(number 'n) -> 'n.
+
+		set:
+			(set 'i (set) ') -> "" 'i | number,
+			(set 'i 'tail ') -> "" 'i | number ", " 'tail | set,
+			(set) -> "".
+
+		setStart:
+			(set 'i (set) ') -> "[" 'i | number "]\n",
+			(set 'i 'tail ') -> "[" 'i | number ", " 'tail | set "]\n".
+	`);
+
+	const setStart = (r) => ztl.fn.setStart(r);
 
 	it("Simple not",
 		test(
@@ -179,25 +197,14 @@ describe("Not Tests.", () => {
             )
 
             (equal 'x 'x)
-
-            number:
-                (number 'n) -> 'n.
-
-            set:
-                (set 'i (set) ') -> "" 'i | number,
-                (set 'i 'tail ') -> "" 'i | number ", " 'tail | set,
-                (set) -> "".
-
-            setStart:
-                (set 'i (set) ') -> "[" 'i | number "]\n",
-                (set 'i 'tail ') -> "[" 'i | number ", " 'tail | set "]\n".
 			`, [{
 					query: `
     			        ?(set
         				    (number 'a)
         				    (set (number 'b) (set) ')
-        				') | setStart
-        			`,
+        				')
+					`,
+					postProcessing: setStart,
 					results: [
 						"[0, 1]",
 						"[1, 0]"
@@ -209,7 +216,8 @@ describe("Not Tests.", () => {
     						(set (number 'b)
     						(set (number 'c) (set) ') ')
     					') | setStart
-    				`,
+					`,
+					postProcessing: setStart,
 					results: []
 				}
 			]
@@ -227,20 +235,9 @@ describe("Not Tests.", () => {
             )
 
             (equal 'x 'x)
-
-            number:
-                (number 'n) -> 'n.
-
-            set:
-                (set 'i (set) ') -> "" 'i | number,
-                (set 'i 'tail ') -> "" 'i | number ", " 'tail | set,
-                (set) -> "".
-
-            setStart:
-                (set 'i (set) ') -> "[" 'i | number "]\n",
-                (set 'i 'tail ') -> "[" 'i | number ", " 'tail | set "]\n".
 			`, [{
 				query: "?(set (number 'a) 'tail ') | setStart",
+				postProcessing: setStart,
 				results: [
 					"[0, 1]",
 					"[1, 0]",
@@ -262,27 +259,17 @@ describe("Not Tests.", () => {
             )
 
             (equal 'x 'x)
-
-            number:
-                (number 'n) -> 'n.
-
-            set:
-                (set 'i (set) ') -> "" 'i | number,
-                (set 'i 'tail ') -> "" 'i | number ", " 'tail | set,
-                (set) -> "".
-
-            setStart:
-                (set 'i (set) ') -> "[" 'i | number "]\n",
-                (set 'i 'tail ') -> "[" 'i | number ", " 'tail | set "]\n".
             `, [{
 					query: `?(set (number 0)
 	                    (set (number 1)
 	                    (set (number 2) (set) ') ')
-	                ') | setStart`,
+					')`,
+					postProcessing: setStart,
 					results: ["[0, 1, 2]"]
 				},
 				{
-					query: "?(set (number 'a) 'tail ') | setStart",
+					query: "?(set (number 'a) 'tail ')",
+					postProcessing: setStart,
 					results: [
 						"[0, 1, 2]",
 						"[0, 2, 1]",
@@ -315,24 +302,13 @@ describe("Not Tests.", () => {
             )
 
             (equal 'x 'x)
-
-            number:
-                (number 'n) -> 'n.
-
-            set:
-                (set 'i (set) ') -> "" 'i | number,
-                (set 'i 'tail ') -> "" 'i | number ", " 'tail | set,
-                (set) -> "".
-
-            setStart:
-                (set 'i (set) ') -> "[" 'i | number "]\n",
-                (set 'i 'tail ') -> "[" 'i | number ", " 'tail | set "]\n".
 			`, [{
 					query: `?(set (number 0)
 		                (set (number 1)
 		                (set (number 2)
 		                (set (number 3) (set) ') ') ')
-		            ') | setStart`,
+					')`,
+					postProcessing: setStart,
 					results: ["[0, 1, 2, 3]"]
 				},
 				{
@@ -340,7 +316,8 @@ describe("Not Tests.", () => {
 		                (set (number 'b)
 		                (set (number 'c)
 		                (set (number 'd) (set) ') ') ')
-		            ') | setStart`,
+					')`,
+					postProcessing: setStart,
 					results: [
 						"[0, 1, 2, 3]",
 						"[0, 1, 3, 2]",
@@ -387,20 +364,9 @@ describe("Not Tests.", () => {
             )
 
             (equal 'x 'x)
-
-            number:
-                (number 'n) -> 'n.
-
-            set:
-                (set 'i (set) ') -> "" 'i | number,
-                (set 'i 'tail ') -> "" 'i | number ", " 'tail | set,
-                (set) -> "".
-
-            setStart:
-                (set 'i (set) ') -> "[" 'i | number "]\n",
-                (set 'i 'tail ') -> "[" 'i | number ", " 'tail | set "]\n".
             `, [{
 				query: "?(set (number 'a) 'tail ') | setStart",
+				postProcessing: setStart,
 				results: [
 					"[0, 1, 2, 3]",
 					"[0, 1, 3, 2]",

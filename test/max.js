@@ -18,19 +18,23 @@ describe("Get the max solution.", () => {
             )
 
             (max (set 'i 'tail 'p) ^(set ' (set 'i 'tail 'p) '))
-
-            number:
-                (number 'n) -> 'n.
-
-            set:
-                (set 'i (set) ') -> "" 'i | number,
-                (set 'i 'tail ') -> "" 'i | number ", " 'tail | set,
-                (set) -> "".
-
-            max:
-                (max 'set) -> "[" 'set | set "]\n".
             `, [{
-				query: "?(max ') | max",
+                query: "?(max ')",
+                ztl: {
+                    code: `
+                    number:
+                        (number 'n) -> 'n.
+    
+                    set:
+                        (set 'i (set) ') -> "" 'i | number,
+                        (set 'i 'tail ') -> "" 'i | number ", " 'tail | set,
+                        (set) -> "".
+        
+                    max:
+                        (max 'set) -> "[" 'set | set "]\n".
+                    `,
+                    main: "max"
+                },
 				results: [
 					"[0, 1, 2]",
 					"[0, 2, 1]",
