@@ -58,101 +58,86 @@ function queryErrorHandler (q, results) {
 	};
 }
 
+function getPostProcessingFunction (query) {
+
+	let f = query.postProcessing;
+
+	if (!f && query.ztl) {
+		const ztl = new ZTL();
+		ztl.compile(query.ztl.code);
+		return r => ztl.fn[ztlDesc.main](r);
+	}
+
+	return f || (r => toString(r, true));
+}
+
 function test (definitions, queries, options) {
+	const dbname = "zebra.testing.database";
+
+	should(definitions).be.type("string");
+	should(queries).be.instanceof(Array);
 	options = options || {};
 
-	return function () {
+	return async function () {
 		if (options.timeout) {
 			this.timeout(options.timeout);
 		}
 
-		should(definitions).be.type("string");
-		should(queries).be.instanceof(Array);
-
-		const dbname = "zebra.testing.database";
-		const results = {};
-
-		return Z.create(
+		await Z.create(
 			dbname,
 			{
 				settings: {
 					depth: options.depth
 				}
 			}
-		)
-			.then(dbname => Z.connect(dbname))
-			.then(
-				db => db.create({
-					id: "tests",
-					description: "Do some tests",
-					definitions
-				})
-			)
-			.then(
-				db => {
-					const qs = [];
+		);
 
-					for (let q in queries) {
-						if (queries.hasOwnProperty(q)) {
-							// TODO: check queries objects,
-							const queryObject = queries[q];
+		const db = await Z.connect(dbname);
+		await db.execute(definitions);
 
-							should(queryObject.results).be.instanceof(Array);
-							queryObject.results = queryObject
-								.results
-								.map(normalize);
+		for (let q in queries) {
+			if (queries.hasOwnProperty(q)) {
+				const queryObject = queries[q];
 
-							queryObject.results.sort();
+				should(queryObject.results).be.instanceof(Array);
+				queryObject.results = queryObject
+					.results
+					.map(normalize);
 
-							queryObject.query = normalize(queryObject.query);
+				queryObject.results.sort();
 
-							qs.push(
-								db.query(
-									queryObject.query,
-									queryCallback(
-										db, 
-										q,
-										results, 
-										queryObject.postProcessing,
-										queryObject.ztl 
-									)
-								).then(
-									r => r,
-									queryErrorHandler(q, results)
+				queryObject.query = normalize(queryObject.query);
+				queryObject.id = await db.execute(queryObject.query);
+			}
+		}
+
+		for (let q in queries) {
+			if (queries.hasOwnProperty(q)) {
+				const qo = queries[q];
+				const f = getPostProcessingFunction(qo);				
+				const {query, results: qs, id} = qo;
+				const rs = (await db.postOffice.pull(id))
+					.map(b => normalize(
+							f(
+								db.zvs.getObject(
+									b, 
+									db.zvs.data.global("query")
 								)
-							);
-						}
-					}
+							)
+						)
+					)
+					.sort();
+	
+				should(
+					query + ": " + rs.join(";\n")
+				).eql(
+					query + ": " + qs.join(";\n")
+				);
+			}
+		}
 
-					return Promise.all(qs);
-				}
-			)
-			.then(
-				() => {
-					for (let q in queries) {
-						if (queries.hasOwnProperty(q)) {
-							const {query, results: qs} = queries[q];
-							const rs = (results[q] || []).map(normalize);
-
-							rs.sort();
-
-							should(
-								query + ": " + rs.join(";\n")
-							).eql(
-								query + ": " + qs.join(";\n")
-							);
-						}
-					}
-				}
-			)
-			.then(
-				() => Z.remove(dbname),
-				(error) => {
-					Z.remove(dbname);
-					return Promise.reject(error);
-				}
-			);
-	};
+		await Z.remove(dbname);
+	}
 }
 
 module.exports = test;
