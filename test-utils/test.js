@@ -133,7 +133,7 @@ function test (definitions, queries, options) {
 						rs = results.map(r => r.data.message);
 					}
 					else {
-						rs = results.map(b => normalize(
+						const r = results.map(b => normalize(
 								f(
 									db.zvs.getObject(
 										b, 
@@ -143,6 +143,16 @@ function test (definitions, queries, options) {
 							)
 						)
 						.sort();
+					
+						// remove duplicates,
+						rs = [];
+						for (let i=0; i<r.length; i++) {
+							const s = r[i];
+
+							if (!rs.includes(s)) {
+								rs.push(s);
+							}
+						}
 					}
 
 					should(
