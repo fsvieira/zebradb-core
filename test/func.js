@@ -66,7 +66,8 @@ describe("Func tests.", () => {
 				postProcessing: r => ztl.fn.mother(r),
 				results: [
 					"[v$116: joana isabel] is noémia daughter.",
-					"filipe is noémia son."				]
+					"filipe is noémia son."
+				]
 			}]
 		)
 	);

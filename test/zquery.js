@@ -12,7 +12,7 @@ describe("ZQuery Tests.", () => {
 		)
 	);
 
-	xit("Query with single tuple constant/variable.",
+	it("Query with single tuple constant/variable.",
 		test(
 			"(yellow)", [{
 					query: "?(yellow)",
@@ -26,7 +26,7 @@ describe("ZQuery Tests.", () => {
 		)
 	);
 
-	xit("Should identify variables by name, simple tuple.",
+	it("Should identify variables by name, simple tuple.",
 		test(
 			"('p 'p)", [{
 				query: "?(yellow 'p)",
@@ -35,7 +35,7 @@ describe("ZQuery Tests.", () => {
 		)
 	);
 
-	xit("Should identify variables by name, inner tuples.",
+	it("Should identify variables by name, inner tuples.",
 		test(
 			"('q ) (('q) ('q))", [{
 				query: "?((yellow) ('p))",
@@ -44,7 +44,7 @@ describe("ZQuery Tests.", () => {
 		)
 	);
 
-	xit("Should unify variables with tuple values.",
+	it("Should unify variables with tuple values.",
 		test(
 			"(blue red yellow)", [{
 				query: "?('a 'b 'c)",
@@ -53,7 +53,7 @@ describe("ZQuery Tests.", () => {
 		)
 	);
 
-	xit("Should unify simple tuples variables.",
+	it("Should unify simple tuples variables.",
 		test(
 			"('a 'a)", [{
 				query: "?(yellow 'c)",
@@ -62,7 +62,7 @@ describe("ZQuery Tests.", () => {
 		)
 	);
 
-	xit("Should unify simple and inner tuples variables.",
+	it("Should unify simple and inner tuples variables.",
 		test(
 			"('x 'y) (('a 'a))", [{
 				query: "?((yellow 'c))",
@@ -71,7 +71,7 @@ describe("ZQuery Tests.", () => {
 		)
 	);
 
-	xit("Should unify inner tuples variables at same level.",
+	it("Should unify inner tuples variables at same level.",
 		test(
 			`(yellow blue)
 			 (blue yellow)

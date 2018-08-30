@@ -65,7 +65,7 @@ function getPostProcessingFunction (query) {
 	if (!f && query.ztl) {
 		const ztl = new ZTL();
 		ztl.compile(query.ztl.code);
-		return r => ztl.fn[ztlDesc.main](r);
+		return r => ztl.fn[query.ztl.main](r);
 	}
 
 	return f || (r => toString(r, true));
@@ -79,64 +79,86 @@ function test (definitions, queries, options) {
 	options = options || {};
 
 	return async function () {
-		if (options.timeout) {
-			this.timeout(options.timeout);
-		}
+		try {
+			if (options.timeout) {
+				this.timeout(options.timeout);
+			}
 
-		await Z.create(
-			dbname,
-			{
-				settings: {
-					depth: options.depth
+			await Z.create(
+				dbname,
+				{
+					settings: {
+						depth: options.depth
+					}
+				}
+			);
+
+			const db = await Z.connect(dbname);
+			await db.execute(definitions);
+
+			for (let q in queries) {
+				if (queries.hasOwnProperty(q)) {
+					const queryObject = queries[q];
+
+					should(queryObject.results).be.instanceof(Array);
+					queryObject.results = queryObject
+						.results
+						.map(normalize);
+
+					queryObject.results.sort();
+
+					queryObject.query = normalize(queryObject.query);
+					queryObject.id = await db.execute(queryObject.query);
 				}
 			}
-		);
 
-		const db = await Z.connect(dbname);
-		await db.execute(definitions);
+			for (let q in queries) {
+				if (queries.hasOwnProperty(q)) {
+					const qo = queries[q];
+					const f = getPostProcessingFunction(qo);				
+					const {query, results: qs, id} = qo;
+					const results = await db.postOffice.pull(id);
 
-		for (let q in queries) {
-			if (queries.hasOwnProperty(q)) {
-				const queryObject = queries[q];
+					await db.postOffice.remove(id);
 
-				should(queryObject.results).be.instanceof(Array);
-				queryObject.results = queryObject
-					.results
-					.map(normalize);
+					let rs;
 
-				queryObject.results.sort();
+					/**
+					 * TODO: 
+					 * 	we need to normalize postOffice handling error, using a status object,
+					 *  that should always come when pulling messages and maybe on listenners ? 
+					 */
 
-				queryObject.query = normalize(queryObject.query);
-				queryObject.id = await db.execute(queryObject.query);
-			}
-		}
-
-		for (let q in queries) {
-			if (queries.hasOwnProperty(q)) {
-				const qo = queries[q];
-				const f = getPostProcessingFunction(qo);				
-				const {query, results: qs, id} = qo;
-				const rs = (await db.postOffice.pull(id))
-					.map(b => normalize(
-							f(
-								db.zvs.getObject(
-									b, 
-									db.zvs.data.global("query")
+					if (results.length && results[0].status === 'error') {
+						rs = results.map(r => r.data.message);
+					}
+					else {
+						rs = results.map(b => normalize(
+								f(
+									db.zvs.getObject(
+										b, 
+										db.zvs.data.global("query")
+									)
 								)
 							)
 						)
-					)
-					.sort();
-	
-				should(
-					query + ": " + rs.join(";\n")
-				).eql(
-					query + ": " + qs.join(";\n")
-				);
-			}
-		}
+						.sort();
+					}
 
-		await Z.remove(dbname);
+					should(
+						query + ": " + rs.join(";\n")
+					).eql(
+						query + ": " + qs.join(";\n")
+					);
+				}
+			}
+
+			await Z.remove(dbname);
+		}
+		catch (e) {
+			await Z.remove(dbname);
+			throw e;
+		}
 	}
 }
 

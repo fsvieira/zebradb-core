@@ -115,12 +115,12 @@ describe("Not Tests.", () => {
 				{
 					query: "?(distinct (color 'a) (color 'b))",
 					results: [
-						"@(distinct @(color {{v$109 : blue red}}) @(color yellow))" +
-							"[^!(equal (color {{v$109 : blue red}}) (color yellow))]",
-						"@(distinct @(color {{v$109 : blue yellow}}) @(color red))" +
-							"[^!(equal (color {{v$109 : blue yellow}}) (color red))]",
-						"@(distinct @(color {{v$109 : red yellow}}) @(color blue))" +
-							"[^!(equal (color {{v$109 : red yellow}}) (color blue))]"
+						"@(distinct @(color {{v$66 : blue red}}) @(color yellow))" +
+							"[^!(equal (color {{v$66 : blue red}}) (color yellow))]",
+						"@(distinct @(color {{v$66 : blue yellow}}) @(color red))" +
+							"[^!(equal (color {{v$66 : blue yellow}}) (color red))]",
+						"@(distinct @(color {{v$66 : red yellow}}) @(color blue))" +
+							"[^!(equal (color {{v$66 : red yellow}}) (color blue))]"
 					]
 				}
 			]
@@ -172,14 +172,14 @@ describe("Not Tests.", () => {
 					query: "?(list (fruit 'a) (list (fruit 'b) (list)) " +
 						" ^(equal 'a 'b))",
 					results: [
-						"@(list @(fruit apple) @(list @(fruit {{v$104 : banana papaya strawberry}}) @(list)))" +
-							"[^!(equal apple {{v$104 : banana papaya strawberry}})]",
-						"@(list @(fruit banana) @(list @(fruit {{v$104 : apple papaya strawberry}}) @(list)))" +
-							"[^!(equal banana {{v$104 : apple papaya strawberry}})]",
-						"@(list @(fruit papaya) @(list @(fruit {{v$104 : apple banana strawberry}}) @(list)))" +
-							"[^!(equal papaya {{v$104 : apple banana strawberry}})]",
-						"@(list @(fruit strawberry) @(list @(fruit {{v$104 : apple banana papaya}}) @(list)))" +
-							"[^!(equal strawberry {{v$104 : apple banana papaya}})]"
+						"@(list @(fruit apple) @(list @(fruit {{v$84 : banana papaya strawberry}}) @(list)))" +
+							"[^!(equal apple {{v$84 : banana papaya strawberry}})]",
+						"@(list @(fruit banana) @(list @(fruit {{v$84 : apple papaya strawberry}}) @(list)))" +
+							"[^!(equal banana {{v$84 : apple papaya strawberry}})]",
+						"@(list @(fruit papaya) @(list @(fruit {{v$84 : apple banana strawberry}}) @(list)))" +
+							"[^!(equal papaya {{v$84 : apple banana strawberry}})]",
+						"@(list @(fruit strawberry) @(list @(fruit {{v$84 : apple banana papaya}}) @(list)))" +
+							"[^!(equal strawberry {{v$84 : apple banana papaya}})]"
 					]
 				}
 			]
@@ -277,10 +277,10 @@ describe("Not Tests.", () => {
 						"[1, 2, 0]",
 						"[2, 0, 1]",
 						"[2, 1, 0]",
-						"[[v$179: 0 1 2]]",
-						"[[v$179: 0 1], 2]",
-						"[[v$179: 0 2], 1]",
-						"[[v$179: 1 2], 0]"
+						"[[v$99: 0 1 2]]",
+						"[[v$99: 0 1], 2]",
+						"[[v$99: 0 2], 1]",
+						"[[v$99: 1 2], 0]"
 					]
 				}
 			], { timeout: 60000 }

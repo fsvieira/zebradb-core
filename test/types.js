@@ -49,7 +49,7 @@ describe("Types Tests.", () => {
                     results: [
                         "@(x : int @(y : int @(* : int -> int -> int ')))",
                         "@(x : int @(y : real @(* : int -> real -> real ')))",
-                        "@(x : real @(y : {{v$149 : int real}} @(* : real -> {{v$149 : int real}} -> real ')))"
+                        "@(x : real @(y : {{v$144 : int real}} @(* : real -> {{v$144 : int real}} -> real ')))"
                     ]
                 },
                 {
@@ -61,24 +61,24 @@ describe("Types Tests.", () => {
                     `,
                     ztl: {
                         code: `
-                        nextTypes:
-                            ('x : 'y 'r) -> " -> " 'y "" 'r | nextTypes,
-                            ' -> "". 
-            
-                        firstType:
-                            ('x : 'y 'r) -> "" 'y "" 'r | nextTypes,
-                            ' -> "".
-            
-                        fn:
-                            ('fn : 'fnt 'args) -> "" 'fn ": " 'args | firstType " -> " 'fnt,
-                            ' -> "".        
+                            nextTypes:
+                                ('x : 'y 'r) -> " -> " 'y "" 'r | nextTypes,
+                                ' -> "". 
+                
+                            firstType:
+                                ('x : 'y 'r) -> "" 'y "" 'r | nextTypes,
+                                ' -> "".
+                
+                            fn:
+                                ('fn : 'fnt 'args) -> "" 'fn ": " 'args | firstType " -> " 'fnt,
+                                ' -> "".        
                         `,
                         main: "fn"
                     },
                     results: [
                         "fn: int ->  int -> real",
                         "fn: int ->  real -> real",
-                        "fn: real -> [v$209: int real] -> real"
+                        "fn: real -> [v$165: int real] -> real"
                     ]
                 }
             ]

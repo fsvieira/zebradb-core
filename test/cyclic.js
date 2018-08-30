@@ -10,8 +10,12 @@ xdescribe("Cyclic Tests", function () {
             ('p 'q 'p 'q)
             ('p 'q (! 'q) (! 'p))
             ?(! 'q)`,
-
-			`?(! 'q): @(! 'q)`
+            [{
+                query: "?(! 'q)",
+                results: [
+                    "@(! 'q)"
+                ]
+            }]
 		)
 	);
 
@@ -26,25 +30,41 @@ xdescribe("Cyclic Tests", function () {
             ?(A A)
             ?('p 'p)
             ?('a 'b)`,
-
-			`?(A 'p):
-                @(A @(A))
-                @(A A)
-
-            ?('p (A)):
-                @(@(A) @(A))
-                @(A @(A))
-
-            ?(A A):
-                @(A A)
-
-            ?('p 'p):
-                @('p 'p)
-
-            ?('a 'b):
-                @('p 'p)
-                @('p @('p))
-            `
+            [
+                {
+                    query: "?(A 'p)",
+                    results: [
+                        "@(A @(A))",
+                        "@(A A)"
+                    ]
+                },
+                {
+                    query: "?('p (A))",
+                    results: [
+                        "@(@(A) @(A))",
+                        "@(A @(A))"
+                    ]
+                },
+                {
+                    query: "?(A A)",
+                    results: [
+                        "@(A A)"
+                    ]
+                },
+                {
+                    query: "?('p 'p)",
+                    results: [
+                        "@('p 'p)"
+                    ]
+                },
+                {
+                    query: "?('a 'b)",
+                    results: [
+                        "@('p 'p)",
+                        "@('p @('p))"
+                    ]
+                }
+            ]
 		)
 	);
 
@@ -55,15 +75,22 @@ xdescribe("Cyclic Tests", function () {
             ('p 'q 'p 'q)
             ?('p 'q (! 'q) (! 'p))
             ?(' ' (! A) (! A))
-
             `,
-
-			// TODO: why is this empty ???
-			`?('p 'q (! 'q) (! 'p)):
-                <empty>
-            ?(' ' (! A) (! A)):
-                @(@(! A) @(! A) @(! A) @(! A))
-            `
+            [
+                {
+        			// TODO: why is this empty ???
+		    	    query: "?('p 'q (! 'q) (! 'p))",
+                    results: [
+                        "<empty>"
+                    ]
+                },
+                {
+                    query: "?(' ' (! A) (! A))",
+                    results: [
+                        "@(@(! A) @(! A) @(! A) @(! A))"
+                    ]
+                }
+            ]
 		)
 	);
 });
