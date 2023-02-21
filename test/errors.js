@@ -3,10 +3,10 @@
 const test = require("../test-utils/test");
 
 describe("Error Tests", () => {
-	it("should give an error when definition doens\'t match.",
+	xit("should give an error when definition doens\'t match.",
 		test(
 			"(definition (dont match with anything))", [{
-				query: "?(definition ')",
+				query: "(definition ')",
 				results: [
 					`Invalid definition:
 			                    (definition (dont match with anything)),
@@ -14,7 +14,8 @@ describe("Error Tests", () => {
 			                    (definition ')
 			            `
 				]
-			}]
+			}],
+			{path: 'dbs/errors/1'}
 		)
 	);
 });

@@ -1,116 +1,21 @@
 {
-  "name": "zebradb-core",
-  "version": "1.1.0",
-  "description": "variable constrain lib",
-  "main": "lib/z.js",
-  "directories": {
-    "lib": "lib"
-  },
-  "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-plugin-conditional-compilation": "0.0.1",
-    "babel-preset-env": "^1.7.0",
-    "gulp": "^4.0.0",
-    "gulp-babel": "^7.0.0",
-    "gulp-browserify": "^0.5.1",
-    "gulp-cli": "^2.0.1",
-    "gulp-jscs": "^4.0.0",
-    "gulp-jshint": "^2.0.4",
-    "gulp-mocha": "^5.0.0",
-    "jscs": "^3.0.7",
-    "jshint": "^2.9.5",
-    "mocha": "^5.2.0",
-    "pegjs": "^0.10.0",
-    "should": "^5.2.0"
-  },
+  "name": "zebra-redesign",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/fsvieira/zebrajs.git"
-  },
-  "keywords": [
-    "zebra",
-    "js",
-    "contrain",
-    "lib",
-    "variable"
-  ],
-  "author": "Filipe Vieira",
+  "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/fsvieira/zebrajs/issues"
-  },
-  "homepage": "https://github.com/fsvieira/zebrajs#readme",
-  "jshintConfig": {
-    "predef": [
-      "require",
-      "console",
-      "JSON",
-      "describe",
-      "it",
-      "xit",
-      "xdescribe"
-    ],
-    "bitwise": true,
-    "camelcase": true,
-    "curly": true,
-    "eqeqeq": true,
-    "forin": true,
-    "freeze": true,
-    "immed": true,
-    "latedef": false,
-    "newcap": true,
-    "noempty": true,
-    "nonbsp": true,
-    "nonew": true,
-    "quotmark": true,
-    "singleGroups": true,
-    "nocomma": false,
-    "maxlen": 80,
-    "maxdepth": 6,
-    "undef": true,
-    "unused": true,
-    "strict": true,
-    "browser": true,
-    "browserify": true,
-    "esversion": 6
-  },
-  "jscsConfig": {
-    "disallowDanglingUnderscores": true,
-    "disallowMixedSpacesAndTabs": true,
-    "disallowMultipleLineBreaks": true,
-    "disallowMultipleLineStrings": true,
-    "disallowMultipleVarDecl": true,
-    "disallowSpaceAfterObjectKeys": true,
-    "disallowSpacesInCallExpression": true,
-    "disallowTrailingComma": true,
-    "disallowTrailingWhitespace": true,
-    "disallowYodaConditions": true,
-    "disallowSpacesInsideParentheses": true,
-    "maximumLineLength": 80,
-    "requireCamelCaseOrUpperCaseIdentifiers": true,
-    "requireKeywordsOnNewLine": [
-      "else"
-    ],
-    "requireLineBreakAfterVariableAssignment": true,
-    "requireLineFeedAtFileEnd": true,
-    "requireSpaceAfterKeywords": true,
-    "requireSpaceBeforeBlockStatements": true,
-    "requireSpaceBeforeObjectValues": true,
-    "requireSpaceBetweenArguments": true,
-    "requireSpacesInForStatement": true,
-    "requireSpacesInFunctionDeclaration": {
-      "beforeOpeningRoundBrace": true,
-      "beforeOpeningCurlyBrace": true
-    },
-    "validateIndentation": "\t",
-    "validateLineBreaks": "LF",
-    "validateParameterSeparator": ", ",
-    "validateQuoteMarks": "\""
-  },
   "dependencies": {
-    "ztl": "^1.0.0"
+    "beastdb": "^1.0.0",
+    "fsalib": "^2.2.1",
+    "immutable": "^4.0.0",
+    "mocha": "^10.0.0",
+    "pegjs": "^0.10.0",
+    "sha2": "^1.0.2",
+    "should": "^13.2.3",
+    "uuid": "^8.3.2"
   }
 }

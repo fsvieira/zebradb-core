@@ -4,6 +4,122 @@ const test = require("../test-utils/test");
 
 describe("Send more money puzzle test.", function () {
 
+    xit("should solve send more money",
+		test(`
+            (adder 0 	0 	0 	0 	0)
+            (adder 0 	0 	1 	1 	0)
+            (adder 0 	1 	0 	1 	0)
+            (adder 0 	1 	1 	0 	1)
+            (adder 1 	0 	0 	1 	0)
+            (adder 1 	0 	1 	0 	1)
+            (adder 1 	1 	0 	0 	1)
+            (adder 1 	1 	1 	1 	1)
+
+            (float16 
+                'x1 'x2 'x3 'x4 'x5 'x6 'x7 'x8 . 
+                'y1 'y2 'y3 'y4 'y5 'y6 'y7 'y8 
+            )
+
+            (add-processing 
+                ' ' ' ' ' ' ' ' ' '
+                ' ' ' ' ' '  
+            )
+
+            (0 / 2 = 0 0)
+            (1 / 2 = 0 1)
+            (2 / 2 = 1 0)
+            (3 / 2 = 1 1)
+            (4 / 2 = 2 0)
+            (5 / 2 = 2 1)
+            (6 / 2 = 3 0)
+            (7 / 2 = 3 1)
+            (8 / 2 = 4 0)
+            (9 / 2 = 4 1)
+
+            (
+                ('x / 2 = 'y 'z)
+                (if-not-zero 'y ('y / 2 = 'a 'b))
+            )
+
+            (shift 
+                (float16 
+                    'x1 'x2 'x3 'x4 'x5 'x6 'x7 'x8 . 
+                    'x9 'x10 'x11 'x12 'x13 'x14 'x15 'x16 
+                )
+                (float16 
+                    'x2 'x3 'x4 'x5 'x6 'x7 'x8 'x9 . 
+                    'x10 'x11 'x12 'x13 'x14 'x15 'x16 0 
+                )
+            )
+
+        /*
+            s e n d
+            m o r e
+          ---------
+          m o n e y
+        */
+
+            (add 
+                (float16 
+                    'x1 'x2 'x3 'x4 'x5 'x6 'x7 'x8 . 
+                    'x9 'x10 'x11 'x12 'x13 'x14 'x15 'x16 
+                )
+                (float16 
+                    'y1 'y2 'y3 'y4 'y5 'y6 'y7 'y8 . 
+                    'y9 'y10 'y11 'y12 'y13 'y14 'y15 'y16 
+                )
+                (float16 
+                    'z1 'z2 'z3 'z4 'z5 'z6 'z7 'z8 . 
+                    'z9 'z10 'z11 'z12 'z13 'z14 'z15 'z16 
+                )
+                (
+                    add-processing
+                    (adder 0 'x16 'y16 'z16 'c1)
+                    (adder 'c1 'x15 'y15 'z15 'c2)
+                    (adder 'c2 'x14 'y14 'z14 'c3)
+                    (adder 'c3 'x13 'y13 'z13 'c4)
+                    (adder 'c4 'x12 'y12 'z12 'c5)
+                    (adder 'c5 'x11 'y11 'z11 'c6)
+                    (adder 'c6 'x10 'y10 'z10 'c7)
+                    (adder 'c7 'x9 'y9 'z9 'c8)
+                    (adder 'c8 'x8 'y8 'z8 'c9)
+                    (adder 'c9 'x7 'y7 'z7 'c10)
+                    (adder 'c10 'x6 'y6 'z6 'c11)
+                    (adder 'c11 'x5 'y5 'z5 'c12)
+                    (adder 'c12 'x4 'y4 'z4 'c13)
+                    (adder 'c13 'x3 'y3 'z3 'c14)
+                    (adder 'c14 'x2 'y2 'z2 'c15)
+                    (adder 'c15 'x1 'y1 'z1 'z0)
+                )
+            )
+        `, 
+        [
+            {
+                query: `(adder 1 1 1 'x 'y)`,
+                results: ["@(adder 1 1 1 1 1)"]
+            },
+            {
+                query: `(add 
+                    (float16 
+                        0 0 0 0 0 0 0 1 . 
+                        0 0 0 0 0 0 0 0 
+                    )
+                    (float16 
+                        0 0 0 0 0 0 0 1 . 
+                        0 0 0 0 0 0 0 0 
+                    )
+                    'z
+                    '
+                )`,
+                results: ["@(add @(float16 0 0 0 0 0 0 0 1 . 0 0 0 0 0 0 0 0) @(float16 0 0 0 0 0 0 0 1 . 0 0 0 0 0 0 0 0) @(float16 0 0 0 0 0 0 1 0 . 0 0 0 0 0 0 0 0) @(add-processing @(adder 0 0 0 0 0) @(adder 0 0 0 0 0) @(adder 0 0 0 0 0) @(adder 0 0 0 0 0) @(adder 0 0 0 0 0) @(adder 0 0 0 0 0) @(adder 0 0 0 0 0) @(adder 0 0 0 0 0) @(adder 0 1 1 0 1) @(adder 1 0 0 1 0) @(adder 0 0 0 0 0) @(adder 0 0 0 0 0) @(adder 0 0 0 0 0) @(adder 0 0 0 0 0) @(adder 0 0 0 0 0) @(adder 0 0 0 0 0)))"]
+            }
+        ], 
+        {
+            timeout: 60000 * 35,
+            path: 'dbs/sendmoremoney/1'
+        })
+    );
+
 	xit("should solve send more money",
 		test(
 			`
@@ -315,7 +431,8 @@ describe("Send more money puzzle test.", function () {
 				results: [
 					"TODO"
 				]
-			}]
+            }],
+            { timeout: 24 * 60 * 60 * 1000 }
 		)
 	);
 });

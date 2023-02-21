@@ -1,7 +1,6 @@
 "use strict";
 
 const test = require("../test-utils/test");
-const ZTL = require("ztl");
 
 describe("Func tests.", () => {
 	it("Custom function for print query.",
@@ -9,20 +8,15 @@ describe("Func tests.", () => {
 			`
             (yellow)
             `, [{
-					query: "?(yellow)",
-					postProcessing: r => {
-						const ztl = new ZTL();
-						ztl.compile("print: ('v) -> 'v.");
-
-						return ztl.fn.print(r);
-					},
+					query: "(yellow)",
+					process: ({t: [v]}) => v.c,
 					results: [
 						"yellow"
 					]
 				},
 				{
-					query: "?(yellow)",
-					postProcessing: r => "do it",
+					query: "(yellow)",
+					process: r => "do it",
 					results: [
 						"do it"
 					]
@@ -31,6 +25,7 @@ describe("Func tests.", () => {
 		)
 	);
 
+	/*
 	const ztl = new ZTL();
 	ztl.compile(`
 		mother:
@@ -40,9 +35,27 @@ describe("Func tests.", () => {
 			(mother (female 'mother) (male 'son) ') ->
 				"" 'son " is " 'mother " son."
 		.
-	`);
+	`);*/
 
-	it("brother test.",
+	const sentence = ({
+		t: [
+			{c: parentGender}, 
+			{
+				t: [
+					_a, 
+					{c: parent}
+				]
+			},
+			{
+				t: [
+					{c: childGender},
+					{c: child}
+				]
+			}
+		]
+	}) => `${child} is ${parent} ${childGender==='male'?"son":"daughter"}.`;
+
+	it("family test.",
 		test(
 			`(male rolando)
             (female noémia)
@@ -61,14 +74,29 @@ describe("Func tests.", () => {
 
             (father (male 'x) ('y 'z) (parent (male 'x) ('y 'z)))
             (mother (female 'x) ('y 'z) (parent (female 'x) ('y 'z)))
-            `, [{
-				query: "?(mother ' ' ')",
-				postProcessing: r => ztl.fn.mother(r),
-				results: [
-					"[v$116: joana isabel] is noémia daughter.",
-					"filipe is noémia son."
-				]
-			}]
+			`, [
+				{
+					query: "(mother ' ' ')",
+					process: sentence,
+					results: [
+						"filipe is noémia son.",
+						"isabel is noémia daughter.",
+						"joana is noémia daughter."
+					]
+				},
+				{
+					query: "(father ' ' ')",
+					process: sentence,
+					results: [
+						"filipe is rolando son.",
+						"isabel is rolando daughter.",
+						"joana is rolando daughter."
+					]
+				}
+			],
+            {
+                timeout: 1000 * 60
+			}
 		)
 	);
 

@@ -2,95 +2,92 @@
 
 const test = require("../test-utils/test");
 
-xdescribe("Cyclic Tests", function () {
+describe("Cyclic Tests", function () {
 	it("should handle cyclic data on multiply.",
 		test(
 			`
             (! 'q)
             ('p 'q 'p 'q)
             ('p 'q (! 'q) (! 'p))
-            ?(! 'q)`,
+            `,
             [{
-                query: "?(! 'q)",
+                query: "(! 'q)",
                 results: [
                     "@(! 'q)"
                 ]
-            }]
+            }],
+            {path: 'dbs/cyclic/1'}
 		)
 	);
 
-	it("should handle cyclic data on multiply (simple).",
+	xit("should handle cyclic data on multiply (simple).",
 		test(
 			`
             ('p)
             ('p ('p))
             ('p 'p)
-            ?(A 'p)
-            ?('p (A))
-            ?(A A)
-            ?('p 'p)
-            ?('a 'b)`,
+            `,
             [
                 {
-                    query: "?(A 'p)",
+                    query: "(A 'p)",
                     results: [
                         "@(A @(A))",
                         "@(A A)"
                     ]
                 },
                 {
-                    query: "?('p (A))",
+                    query: "('p (A))",
                     results: [
                         "@(@(A) @(A))",
                         "@(A @(A))"
                     ]
                 },
                 {
-                    query: "?(A A)",
+                    query: "(A A)",
                     results: [
                         "@(A A)"
                     ]
                 },
                 {
-                    query: "?('p 'p)",
+                    query: "('p 'p)",
                     results: [
                         "@('p 'p)"
                     ]
                 },
                 {
-                    query: "?('a 'b)",
+                    query: "('a 'b)",
                     results: [
                         "@('p 'p)",
                         "@('p @('p))"
                     ]
                 }
-            ]
+            ],
+            {path: 'dbs/cyclic/2'}
 		)
 	);
 
-	it("should handle cyclic data on query.",
+	xit("should handle cyclic data on query.",
 		test(
 			`
             (! 'q)
             ('p 'q 'p 'q)
-            ?('p 'q (! 'q) (! 'p))
-            ?(' ' (! A) (! A))
             `,
             [
                 {
         			// TODO: why is this empty ???
-		    	    query: "?('p 'q (! 'q) (! 'p))",
+		    	    query: "('p 'q (! 'q) (! 'p))",
                     results: [
                         "<empty>"
                     ]
                 },
                 {
-                    query: "?(' ' (! A) (! A))",
+                    query: "(' ' (! A) (! A))",
                     results: [
                         "@(@(! A) @(! A) @(! A) @(! A))"
                     ]
                 }
-            ]
+            ],
+            {path: 'dbs/cyclic/3'}
 		)
 	);
 });

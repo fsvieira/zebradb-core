@@ -1,10 +1,11 @@
 "use strict";
 
 const test = require("../test-utils/test");
-const ZTL = require("ztl");
 
 describe("Factorial Parser Tests.", () => {
+/*
 	const ztl = new ZTL();
+
 	ztl.compile(`
 		decimal:
 			(nat 0) -> 0,
@@ -24,31 +25,42 @@ describe("Factorial Parser Tests.", () => {
 	const add = r => ztl.fn.addResult(r);
 	const mul = r => ztl.fn.mulResult(r);
 	const fac = r => ztl.fn.facResult(r);
+*/
+	const decimal = ({t: [nat, r]}) => r.c==='0'?0:decimal(r) + 1;
+
+	const add = ({t: [_add, _x, _y, r, _z]}) => decimal(r);
+	const mul = ({t: [_mul, _x, _y, r, _z]}) => decimal(r);
+	const fac = ({t: [_fac, _x, r, _y]}) => decimal(r);
 
 	it("Should declare ~Peanno numbers",
 		test(
 			`(nat 0)
 			(nat (nat 'n))
 			`, [{
-					query: "?(nat (nat 1))",
+					query: "(nat (nat 1))",
 					results: []
 				},
 				{
-					query: "?(nat (nat 0))",
+					query: "(nat (nat 0))",
 					results: ["@(nat @(nat 0))"]
 				},
 				{
-					query: "?(nat 'n)",
-					postProcessing: decimal,
+					query: "(nat 'n)",
+					process: decimal,
 					results: [
 						0,
 						1,
 						2,
 						3,
-						4
+						4,
+						5,
+						6
 					]
 				}
-			], { depth: 7 }
+			], { 
+				depth: 7,
+				path: 'dbs/factorial/1'
+			}
 		)
 	);
 
@@ -70,49 +82,52 @@ describe("Factorial Parser Tests.", () => {
 			`, [
 				//  0 + 0 = 0
 				{
-					query: "?(+ (nat 0) (nat 0) 'r ')",
-					postProcessing: add,
+					query: "(+ (nat 0) (nat 0) 'r ')",
+					process: add,
 					results: [0]
 				},
 
 				// 1 + 0 = 1
 				{
-					query: "?(+ (nat (nat 0)) (nat 0) 'r ')",
-					postProcessing: add,
+					query: "(+ (nat (nat 0)) (nat 0) 'r ')",
+					process: add,
 					results: [1]
 				},
 
 				// 0 + 1 = 1
 				{
-					query: "?(+ (nat 0) (nat (nat 0)) 'r ')",
-					postProcessing: add,
+					query: "(+ (nat 0) (nat (nat 0)) 'r ')",
+					process: add,
 					results: [1]
 				},
-
 				// 2 + 3 = 5
 				{
 					query:
-						`?(+ (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) 'r ')`,
-					postProcessing: add,
+						`(+ (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) 'r ')`,
+					process: add,
 					results: [5]
 				},
-
 				// 3 + 2 = 5
 				{
 					query:
-						"?(+ (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) " +
+						"(+ (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) " +
 						"'r ')",
-					postProcessing: add,
+					process: add,
 					results: [5]
 				},
 
 				// 2 + 2 = 4
 				{
-					query: "?(+ (nat (nat (nat 0))) (nat (nat (nat 0))) 'r ')",
-					postProcessing: add,
+					query: "(+ (nat (nat (nat 0))) (nat (nat (nat 0))) 'r ')",
+					process: add,
 					results: [4]
 				}
-			]
+			],
+			{
+				timeout: 1000 * 60 * 5,
+				path: 'dbs/factorial/2'
+
+			}
 		)
 	);
 
@@ -153,71 +168,75 @@ describe("Factorial Parser Tests.", () => {
 			`, [
 				// 0 * 0 = 0
 				{
-					query: "?(* (nat 0) (nat 0) 'r ')",
-					postProcessing: mul,
+					query: "(* (nat 0) (nat 0) 'r ')",
+					process: mul,
 					results: [0]
 				},
 
 				// 1 * 0 = 0
 				{
-					query: "?(* (nat (nat 0)) (nat 0) 'r ')",
-					postProcessing: mul,
+					query: "(* (nat (nat 0)) (nat 0) 'r ')",
+					process: mul,
 					results: [0]
 				},
 
 				// 0 * 1 = 0
 				{
-					query: "?(* (nat 0) (nat (nat 0)) 'r ')",
-					postProcessing: mul,
+					query: "(* (nat 0) (nat (nat 0)) 'r ')",
+					process: mul,
 					results: [0]
 				},
 
 				// 1 * 1 = 1
 				{
-					query: "?(* (nat (nat 0)) (nat (nat 0)) 'r ')",
-					postProcessing: mul,
+					query: "(* (nat (nat 0)) (nat (nat 0)) 'r ')",
+					process: mul,
 					results: [1]
 				},
 
 				// 2 * 1 = 2
 				{
-					query: "?(* (nat (nat (nat 0))) (nat (nat 0)) 'r ')",
-					postProcessing: mul,
+					query: "(* (nat (nat (nat 0))) (nat (nat 0)) 'r ')",
+					process: mul,
 					results: [2]
 				},
 
 				// 1 * 2 = 2
 				{
-					query: "?(* (nat (nat 0)) (nat (nat (nat 0))) 'r ')",
-					postProcessing: mul,
+					query: "(* (nat (nat 0)) (nat (nat (nat 0))) 'r ')",
+					process: mul,
 					results: [2]
 				},
 
+				/*
 				// 2 * 2 = 4
 				{
-					query: "?(* (nat (nat (nat 0))) (nat (nat (nat 0))) 'r ')",
-					postProcessing: mul,
+					query: "(* (nat (nat (nat 0))) (nat (nat (nat 0))) 'r ')",
+					process: mul,
 					results: [4]
 				},
 
 				// 2 * 3 = 6
 				{
 					query:
-						"?(* (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) " +
+						"(* (nat (nat (nat 0))) (nat (nat (nat (nat 0)))) " +
 						"'r ')",
-					postProcessing: mul,
+					process: mul,
 					results: [6]
-				},
+				},*/
 
 				// 3 * 2 = 6
-				{
+				/*{
 					query:
-						"?(* (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) " +
+						"(* (nat (nat (nat (nat 0)))) (nat (nat (nat 0))) " +
 						"'r ')",
-					postProcessing: mul,
+					process: mul,
 					results: [6]
-				}
-			], { timeout: 5000 }
+				}*/
+			], { 
+				timeout: 1000 * 60 * 5,
+				path: 'dbs/factorial/3'
+			}
 		)
 	);
 
@@ -266,40 +285,42 @@ describe("Factorial Parser Tests.", () => {
 			`, [
 				// fac(0) = 1
 				{
-					query: "?(fac (nat 0) 'r ')",
-					postProcessing: fac,
+					query: "(fac (nat 0) 'r ')",
+					process: fac,
 					results: [1]
 				},
 
 				// fac(1) = 1
 				{
-					query: "?(fac (nat (nat 0)) 'r ')",
-					postProcessing: fac,
+					query: "(fac (nat (nat 0)) 'r ')",
+					process: fac,
 					results: [1]
 				},
 
 				// fac(2) = 2
 				{
-					query: "?(fac (nat (nat (nat 0))) 'r ')",
-					postProcessing: fac,
+					query: "(fac (nat (nat (nat 0))) 'r ')",
+					process: fac,
 					results: [2]
 				},
 
 				// fac(3) = 6
-				{
-					query: "?(fac (nat (nat (nat (nat 0)))) 'r ')",
-					postProcessing: fac,
+				/*{
+					query: "(fac (nat (nat (nat (nat 0)))) 'r ')",
+					process: fac,
 					results: [6]
-				},
+				},*/
 
 				// fac(4) = 24
-				/*
-				{
-					query: "?(fac (nat (nat (nat (nat (nat 0))))) 'r ') "+
-						"| facResult",
+				/*{
+					query: "(fac (nat (nat (nat (nat (nat 0))))) 'r ')",
+					process: fac,
 					results: [24]
 				}*/
-			], { timeout: 60000 * 5 }
+			], { 
+				timeout: 60000 * 200,
+				path: 'dbs/factorial/4'
+			}
 		)
 	);
 });

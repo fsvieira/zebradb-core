@@ -6,13 +6,19 @@ describe("Inifinity tests.", () => {
 	it("Should declare natural numbers and query all natural numbers",
 		test(
 			"(nat 0) (nat (nat 'x))", [{
-				query: "?(nat 'x)",
+				query: "(nat 'x)",
 				results: [
 					"@(nat 0)",
 					"@(nat @(nat 0))",
-					"@(nat @(nat @(nat 0)))"
+					"@(nat @(nat @(nat 0)))",
+					"@(nat @(nat @(nat @(nat 0))))",
+      				"@(nat @(nat @(nat @(nat @(nat 0)))))"
 				]
-			}], { depth: 5 }
+			}], { 
+				depth: 5, 
+				timeout: 1000 * 60 * 5, 
+				path: 'dbs/infinity/1'
+			}
 		)
 	);
 
@@ -23,7 +29,7 @@ describe("Inifinity tests.", () => {
 		*/
 		test(
 			"(a (b 'a)) (b (a 'b)) ('x stop)", [{
-				query: "?(a 'b)",
+				query: "(a 'b)",
 				results: [
 					"@(a @(b @(a @(b @(a stop)))))",
 					"@(a @(b @(a @(b stop))))",
@@ -31,7 +37,12 @@ describe("Inifinity tests.", () => {
 					"@(a @(b stop))",
 					"@(a stop)"
 				]
-			}], { depth: 7 }
+			}], { 
+				depth: 5, 
+				timeout: 
+				1000 * 60 * 5,
+				path: 'dbs/infinity/2'			
+			}
 		)
 	);
 

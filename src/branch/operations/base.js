@@ -1,0 +1,191 @@
+const prepareVariables = (p, vars={}) => {
+    if (p.t) {
+        for (let i=0; i<p.t.length; i++) {
+            prepareVariables(p.t[i], vars);
+        }
+    }
+    else if (p.v) {
+        let x = vars[p.v];
+        let e;
+
+        if (x) {
+            if (p.e && x.e) {
+                const dups = x.e.reduce((acc, v) => {
+                    if (v.v) {
+                        acc[v.v] = true;
+                    }
+
+                    return acc;
+                }, {});
+
+                e = p.e.filter(v => !dups[v.v]).map(e => e.v?{...e, e:undefined}:e);
+
+                x.e = x.e.concat(e);
+            }
+            else if (p.e) {
+                x.e = p.e.map(e => e.v?{...e, e:undefined}:e);
+            }
+        }
+        else {
+            x = {...p, e: p.e?p.e.map(e => e.v?{...e, e:undefined}:e):undefined};
+        }
+
+        vars[x.v] = x;
+
+        e = e || p.e || [];
+        for (let i=0; i<e.length; i++) {
+            const a = e[i];
+            prepareVariables(a.v?{...a, e: [{...p, e: undefined}]}:a, vars);
+        }
+    }
+
+    return vars;
+}
+
+const copyTerms = async (ctx, t, preserveVarname=0, varIds={}) => {
+    const ts = [];
+    for (let i=0; i<t.length; i++) {
+        const v = await get(ctx, t[i]);
+
+        ts.push(await copyTerm(ctx, v, preserveVarname, varIds));
+    }
+
+    return ts;
+}
+
+const copyTerm = async (ctx, p, preserveVarname=0, varIds={}) => {
+    let id = typeof p === 'string' ? p : p.id;
+
+    if (!id) {
+        if (p.c) {
+            // register constant
+            id = ctx.newVar(p.c);
+            ctx.variables = await ctx.variables.set(id, {...p, id});
+        }
+        else if (p.v) {
+            id = varIds[p.v];
+
+            if (!id) {
+                // create new variable and map it to definition variable.
+                id = ctx.newVar();
+                varIds[p.v] = id;
+                const e = p.e ? await copyTerms(ctx, p.e, preserveVarname, varIds):undefined;
+                const d = p.d ? await copyTerms(ctx, p.d, preserveVarname, varIds):undefined;
+                const v = {v: p.v, id, e, d, pv: preserveVarname};
+                ctx.variables = await ctx.variables.set(id, v);
+                // ctx.definitionVariables[p.v] = v;
+                // delete varIds[p.v];
+
+                if (e && d) {
+                    ctx.unsolvedVariables = await ctx.unsolvedVariables.add(id);
+                }
+            }
+        }
+        else if (p.t) {
+            let t = [];
+            for (let i=0; i<p.t.length; i++) {
+                const q = await get(ctx, p.t[i]);
+                t.push(await copyTerm(ctx, q, preserveVarname, varIds));
+            }
+
+            id = ctx.newVar();
+            ctx.variables = await ctx.variables.set(id, {t, id});    
+            ctx.unchecked = await ctx.unchecked.add(id);
+        }
+    }
+
+    return id;
+}
+
+function varGenerator (counter) {
+    return {
+        varCounter: () => counter,
+        newVar: v => {
+            const varname = 'v$' + (v?`c#${v}`:++counter);
+            return varname;
+        }
+    }
+}
+
+async function getVariable (branch, id, ctx) {
+    let v;
+    const variables = ctx ? ctx.variables : await branch.data.variables;
+
+    do {
+        v = await variables.get(id);
+        if (id && id === v.defer) {
+            console.log("BUG: id can't defer to itself!", id, v);
+            process.exit();
+        }
+        id = v.defer;
+    }
+    while(id);
+
+    return v;
+}
+
+const type = v => v.t ? "t" : v.c?"c": v.v ? "v" : "";
+
+const get = async (ctx, v) => {
+    if (typeof v === 'string' || v.id) {
+        v = await getVariable(null, v.id || v, ctx);
+    }
+    else if (v.v !== undefined) {
+        v = ctx.definitionVariables[v.v] || v;
+
+        if (v.id) {
+            v = ctx.definitionVariables[v.v] = await getVariable(null, v.id, ctx);
+        }
+    }
+
+    return v;
+}
+
+async function toString (branch, id, ctx, stop={}) {
+    branch = branch || ctx?.branch;
+    id = id || await branch.data.root;    
+
+    const d = !!ctx; 
+    const v = await (ctx ? get(ctx, id) : getVariable(branch, id, ctx));
+
+    if (stop[v.id]) {
+        return "";
+    }
+
+    stop[v.id] = true;
+    
+    if (v.t) {
+        const ts = [];
+        for (let i=0; i<v.t.length; i++) {
+            const a = v.t[i];
+            ts.push(await toString(branch, a, ctx));
+        }
+
+        const checked = await (ctx?.checked || (await branch.data.checked)).has(v.id);
+        return (checked?'@' :"")
+            + `${d ? v.id || "" : ""}(${ts.join(" ")})`;
+    }
+    else if (v.v) {
+        const domain = v.d ? (await Promise.all(v.d.map(id => toString(branch, id, ctx, stop)))).filter(v => v !== ''):undefined;
+        const ds = domain && domain.length?`:[${domain.join(" ")}]`:"";
+
+        const es = v.e ? (await Promise.all(v.e.map(id => toString(branch, id, ctx, stop)))).filter(v => v !== ''):undefined;
+        const e = es && es.length?`/[${es.join(", ")}]`:"";
+        
+        return "'" + (!v.pv && v.id?v.id + "::": "") + v.v + ds + e;
+    }
+    else if (v.c) {
+        return v.c;
+    }
+}
+
+module.exports = {
+    varGenerator, 
+    type,
+    getVariable,
+    get,
+    copyTerm,
+    copyTerms,
+    toString,
+    prepareVariables
+};
