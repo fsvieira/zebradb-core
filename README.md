@@ -3,30 +3,28 @@
 IMPORTANT: This project is a personal research endeavor, and as such, is subject to ongoing experimentation and evolution. Therefore, certain aspects of the project are likely to change as new insights and discoveries are made.   
 
 The zebradb-core project is a symbolic computation query system, given a set of computational definitions it will
-answer questions about them, therefor it is better suited for software validation and constraint satisfaction problems.
+answer questions about them, therefor I think it has the potential to be well-suited for software validation and constraint satisfaction problems, as it helps users find answers to questions based on a set of definitions they provide.
 
 The project API is database alike, and it should be the base of other projects that implement other tools and even a complete database solution.
 
-# API
- * https://github.com/fsvieira/zebrajs/wiki/API
-
-# Zebrajs is a library but ...
-Its currently incorporated on other projects ready to be used:
-
-* https://github.com/fsvieira/zebrajs-examples
-   * It contains a console program to run zebrajs language as .z files, and a few examples.
-
-* https://github.com/fsvieira/raindropz
-   * An online IDE to run zebrajs language, currently is only used for debuging.
-
 # Install
 
+## Currently there is no install, to try it just clone this repo and:
+
+```
+  npm install
+```
+```
+  mocha
+```
+
+## Old Version
+
+This is old version it does work as a lib,  
 ```
   npm install zebradb-core
 ```
 
-# Docs
-  * Check the wiki (https://github.com/fsvieira/zebrajs/wiki) to get started.
 
 # Language
 
@@ -149,4 +147,13 @@ A great source of examples are the test file https://github.com/fsvieira/zebrajs
 * If you want to run the tests:
   * Execute mocha (https://mochajs.org/).
   * You also will need to install should (https://github.com/visionmedia/should.js).
+
+# Projects on Hold/Outdated
+Its currently incorporated on other projects ready to be used:
+
+* https://github.com/fsvieira/zebrajs-examples
+   * It contains a console program to run zebrajs language as .z files, and a few examples.
+
+* https://github.com/fsvieira/raindropz
+   * An online IDE to run zebrajs language, currently is only used for debuging.
 
