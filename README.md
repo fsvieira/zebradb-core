@@ -1,5 +1,7 @@
 # zebradb-core
 
+IMPORTANT: This project is a personal research endeavor, and as such, is subject to ongoing experimentation and evolution. Therefore, certain aspects of the project are likely to change as new insights and discoveries are made.   
+
 The zebradb-core project is a symbolic computation query system, given a set of computational definitions it will
 answer questions about them, therefor it is better suited for software validation and constraint satisfaction problems.
 
