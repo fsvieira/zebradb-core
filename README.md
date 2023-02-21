@@ -149,7 +149,6 @@ A great source of examples are the test file https://github.com/fsvieira/zebrajs
   * You also will need to install should (https://github.com/visionmedia/should.js).
 
 # Projects on Hold/Outdated
-Its currently incorporated on other projects ready to be used:
 
 * https://github.com/fsvieira/zebrajs-examples
    * It contains a console program to run zebrajs language as .z files, and a few examples.
