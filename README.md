@@ -31,7 +31,9 @@ This is old version it does work as a lib,
 Zebrajs language consists of two parts the definitions and the query, both parts share the same language of zebra-system terms, which is defined by
 a certain formal syntax, and a set of transformation rules.
 
-The zebra language is very simple, it only has constants, variables, tuples and negation.
+The zebra language is very simple, it only has constants, variables, tuples, domains and negation (has not-unify).
+
+## tuples, constants and variables
 
 A math function can be represented as a set of tuples, so on zebra language you can think of tuples has functions,
 for example, the binary function and:
@@ -52,13 +54,13 @@ On zebra language we define such function like this:
 
 The 0, 1, & and = are just simbols (constants) and have no meaning to zebra-system, when we perform
 the query:
- * ?('p & 'q = 'r)
+ * ('p & 'q = 'r)
 
 zebra-system is going to match query with all definitons and will unify variables 'p, 'q and 'r with the
 values found, on this example we will get the all & table.
 
 So if we do another query like this:
- * ?('p & 'q = 1) we will get (1 & 1 = 1).
+ * ('p & 'q = 1) we will get (1 & 1 = 1).
 
 All symbol can be variables, lets define another function:
  * (0 | 0 = 0)
@@ -73,31 +75,78 @@ the result would be:
  * (1 | 0 = 1)
  * (1 | 1 = 1)
 
-Now lets make a query with a negation:
+## domains
 
-* ?('p | 'q = 1 ^('p & 'q = 1))
+ * Domains can only contain constants, they work as variables but they only can be unfied 
+ with constants that are in the domain.
+ 
+ Example, lets define & operator using domains:
+   * ('[0 1] & 0 = 0)
+   * ( 0 & '[0 1] = 0)  
+   * ( 1 & 1 = 0) 
 
-On this query the negation is ^('p & 'q = 1), all negations starts with ^, they always negate a tuple, and
-they are hidden witch means they are considered for unification.
+ Domains are defined like this '\[ ...constants ...\], they 
+ use the same ' variables prefix because they are a special case of variables  .  
+
+## negations (~, not-unify)
+
+Now lets make a query with a negation (~):
+
+* ('p | ~'p = 1)
+
+On this query the negation is ~'p, all negations starts with ~.
+Negation can be applied to anything tuples, constants and variables, domains. 
+They work as a not-unify, when negation is declared it creates a new anonimous variable, 
+this variable is not-unifiable with the negated part. 
+Example: ~p <=> '_v$1 != 'p
 
 So the result of this query would be:
- * (0 | 1 = 1 ^(1 & 0 = 1)) => (0 | 1 = 1)
- * (1 | 0 = 1 ^(0 & 1 = 1)) => (1 | 0 = 1)
+ * (0 | 1 = 1) => (0 | 1 = 1)
+ * (1 | 0 = 1) => (1 | 0 = 1)
 
-So we are excluding (1 | 1 = 1) because ^(1 & 1 = 1) exists, witch means negation doesn't fail and so it can't be true.
+So we are excluding (1 | 1 = 1) because 'p = ~'p <=> 1 = 1 is a contradiction.
 
 This are the basics of zebra-system, but because its hard to explain how it works, I will do it with more examples:
 
-Try it online: https://fsvieira.github.io/raindropz/ (Raindropz IDE git: https://github.com/fsvieira/raindropz)
+## Puting all togheter on a fancy example
 
-## Examples
+Lets define the and operator with negations:
+
+ * ('p & ~'p = 0)
+ * ('p & 'p = 'p)  
+
+And now we can query with domains:
+  * ('[0 1] & '[0 1] = '[0 1])
+
+  It will give the & results:
+  * (0 & 0 = 0)
+  * (0 & 1 = 0)
+  * (1 & 0 = 0)
+  * (1 & 1 = 1)
+  
+In this case domains are set on query but we can change definitions to have the bit type like this:
+
+  * (bit '[0 1])
+  * ((bit 'p) & (bit ~'p) = (bit 0))
+  * ((bit 'p) & (bit 'p) = (bit 'p))
+
+  And the query can be like this:
+    * ('p & 'q = 'z)
+  
+  And the results:
+  * ((bit 0) & (bit 0) = (bit 0))
+  * ((bit 0) & (bit 1) = (bit 0))
+  * ((bit 1) & (bit 0) = (bit 0))
+  * ((bit 1) & (bit 1) = (bit 1))
+
+### Examples
 
 * Definitions, are considered facts they are always tuples and always global.
   * Ex: (color yellow)
   * In this example color and yellow are constants, constants don't need to be declared anywhere
-because we consider that all constants exists.
+    because we consider that all constants exists.
 * Queries, are questions to the system definitions (facts),
-  * Ex: ?(color yellow)
+  * Ex: (color yellow)
   * Because definitions/facts are tuples, all querys are also tuples,
   * In this example the system will check if any of the definitions unify with the query,
     if yes the result will be the tuple itself: (color yellow)
@@ -114,23 +163,18 @@ because we consider that all constants exists.
     * The the fact would be valid and the query:
       * ?(man ' ' 'man), returns:
       * (man (person filipe) (male filipe) filipe)
-* Negation, its true if a negated query doesn't exist, negation queries are hidden and are not considered for unification,
+* Negation, has not-unify,
   * Ex:
-    * (equal 'x 'x)
+    * ('x = 'x)
+    * ('x != ~'x)
     * (color yellow)
     * (color blue)
-    * ?(color 'x ^(equal 'x yellow))
+    * Query: ((color 'x) != (color 'y))
   * The query should return:
-    * (color blue)[(equal blue yellow)]
-  * Where the results in [] are the negations,
-  * We are asking for color 'x not to be equal to yellow.
-  * Because we are negating a query negation can only be applied to a tuple,
-  * Extending the example:
-  * (distinct (color 'x) (color 'y) ^(equal 'x 'y))
-    * ?(distinct 'x 'y)
-  * The query should return:
-    * (distinct (color blue) (color yellow))[(equal (color blue) (color yellow)]
-    * (distinct (color yellow) (color blue))[(equal (color yellow) (color blue)]
+    * ((color blue) != (color yellow))
+    * ((color yellow) != (color blue))
+  * We are asking for colors that are not equal.
+  * Queries and definitions can also have domains, domains can only contains constants and they work as a variable that is restricted to unify only the domains values.
 
 * Thats it.
 
