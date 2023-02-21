@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "beastdb": "^1.0.0",
+    "beastdb": "^1.1.0",
     "fsalib": "^2.2.1",
     "immutable": "^4.0.0",
     "mocha": "^10.0.0",
