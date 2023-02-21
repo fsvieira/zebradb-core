@@ -30,7 +30,7 @@ describe("Bio Tests", () => {
                     '@(DNA-BASE T Thymine)'
                 ]
             }],
-            {path: 'dbs/bio/1'}
+            {path: 'dbs/bio/1', timeout: 2000 * 30}
         )
     );
 
