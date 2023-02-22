@@ -25,9 +25,7 @@ function test (definitions, tests, options={
             const qe = await (new QueryEngine(db, options)).init(query);
             
             await qe.run();
-            console.log("rUN END!!");
             const solutions = await qe.getSolutions();
-            console.log("SOL!!", solutions.length);
 
             const transforms = solutions.map(
                 process?async b => process(await qe.toJS(b)):async b => await qe.toString(b)

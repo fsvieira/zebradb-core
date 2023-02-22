@@ -80,7 +80,7 @@ const setVariable = async (ctx, v, p) => {
             let d;
 
             if (a.e && b.e) {
-                console.log("TODO: Exception Should use a ISet");
+                // console.log("TODO: Exception Should use a ISet");
                 e = [...new Set((a.e || []).concat(b.e || []))].sort();
             }
             else {
@@ -224,10 +224,11 @@ const doUnify = async (ctx, p, q) => {
     p = await get(ctx, p);
     q = await get(ctx, q);
 
-    let s = `${await toString(undefined, p, ctx)} ** ${await toString(undefined, q, ctx)}`;
+    // let s = `${await toString(undefined, p, ctx)} ** ${await toString(undefined, q, ctx)}`;
 
     const ok =  await unifyFn[type(p)][type(q)](ctx, p, q);
 
+    /*
     const ps = await toString(undefined, p, ctx);
     const qs = await toString(undefined, q, ctx);
 
@@ -240,7 +241,8 @@ const doUnify = async (ctx, p, q) => {
     }
 
     // console.log("  ===> ", await toString(undefined, undefined, ctx), '\n');
-
+    */ 
+   
     return ok;
 }
 

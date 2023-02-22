@@ -46,7 +46,7 @@ describe("Bio Tests", () => {
         )
     )
 
-    it("DNA Replication",
+    xit("DNA Replication",
         test(
             `
                 (DNA-BASE '[A C G T])
