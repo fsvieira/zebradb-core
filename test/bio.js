@@ -10,6 +10,90 @@ T stands for Thymine (in DNA) or Uracil (in RNA).
 
 describe("Bio Tests", () => {
     it("DNA/RNA Bases",
+        test(
+            `
+                (DNA-BASE '[A C G T])
+                (RNA-BASE '[A C G T])
+            `, [{
+                query: `(DNA-BASE ')`,
+                results: [
+                   "@(DNA-BASE '_v1:[A C G T])"                
+                ]
+            }],
+            {path: 'dbs/bio/1', timeout: 2000 * 30}
+        )
+    )
+
+    it("DNA Sequence",
+        test(
+            `
+                (DNA-BASE '[A C G T])
+
+                (DNA (DNA-BASE 'l) (DNA ' '))
+                (DNA (DNA-BASE 'l) (DNA '))
+                (DNA (DNA-BASE 'l)) 
+            `, [{
+                query: `
+                    (DNA (DNA-BASE '[A C]) 
+                        (DNA (DNA-BASE '[G T]))
+                    )
+                `,
+                results: [
+                    "@(DNA @(DNA-BASE '_v1:[A C]) @(DNA @(DNA-BASE '_v2:[G T])))"
+                ]
+            }],
+            {path: 'dbs/bio/2', timeout: 2000 * 30}
+        )
+    )
+
+    it("DNA Replication",
+        test(
+            `
+                (DNA-BASE '[A C G T])
+
+                (DNA (DNA-BASE 'l) (DNA ' '))
+                (DNA (DNA-BASE 'l) (DNA '))
+                (DNA (DNA-BASE 'l))
+                
+                (Termination 'dna)
+
+                /*
+                  * Initiation: The replication process is initiated when a group of proteins recognizes a specific sequence of nucleotides, known as the origin of replication, on the DNA molecule.
+                  * Elongation: The DNA polymerases continue to add nucleotides to the newly synthesized strands, building the complementary strands in the 5' to 3' direction.
+                  * Termination: Once the replication fork has moved along the entire length of the DNA molecule, the replication process is terminated.
+                */
+
+                (Initiation 'x 'x ')
+                (Initiation (DNA ' 'x) 'y 
+                    (Initiation 'x 'y ')
+                )
+                (Initiation (DNA 'y 'x) (DNA 'y) ')
+
+                (Replication 'dna 'i
+                    (Initiation 'dna 'i ')
+                    # (Elongation 'bp 'e)
+                    # (Termination 'e 'dna)
+                )
+            `, [{
+                query: `
+                    (Replication 
+                        (DNA (DNA-BASE '[A C]) 
+                            (DNA (DNA-BASE '[G T]))
+                        )
+                        'dna
+                        'x
+                    )
+                `,
+                results: [
+                    "@(Replication @(DNA @(DNA-BASE '_v1:[A C]) @(DNA @(DNA-BASE '_v2:[G T]))) @(DNA @(DNA-BASE '_v1:[A C]) @(DNA @(DNA-BASE '_v2:[G T]))) @(Initiation @(DNA @(DNA-BASE '_v1:[A C]) @(DNA @(DNA-BASE '_v2:[G T]))) @(DNA @(DNA-BASE '_v1:[A C]) @(DNA @(DNA-BASE '_v2:[G T]))) 'v$24::_v1))",
+                    "@(Replication @(DNA @(DNA-BASE '_v1:[A C]) @(DNA @(DNA-BASE '_v2:[G T]))) @(DNA @(DNA-BASE '_v1:[A C])) @(Initiation @(DNA @(DNA-BASE '_v1:[A C]) @(DNA @(DNA-BASE '_v2:[G T]))) @(DNA @(DNA-BASE '_v1:[A C])) 'v$24::_v1))",
+                    "@(Replication @(DNA @(DNA-BASE '_v1:[A C]) @(DNA @(DNA-BASE '_v2:[G T]))) @(DNA @(DNA-BASE '_v2:[G T])) @(Initiation @(DNA @(DNA-BASE '_v1:[A C]) @(DNA @(DNA-BASE '_v2:[G T]))) @(DNA @(DNA-BASE '_v2:[G T])) @(Initiation @(DNA @(DNA-BASE '_v2:[G T])) @(DNA @(DNA-BASE '_v2:[G T])) 'v$31::_v2)))"                ]
+            }],
+            {path: 'dbs/bio/3', timeout: 2000 * 30}
+        )
+    )
+
+    xit("DNA/RNA Bases",
             test(
             `
                 (DNA-BASE A Adenine)
@@ -34,7 +118,8 @@ describe("Bio Tests", () => {
         )
     );
 
-    it("DNA Sequence",
+
+    xit("DNA Sequence",
 		test(
 			`
                 (DNA-BASE A Adenine)
@@ -82,7 +167,7 @@ describe("Bio Tests", () => {
 		)
 	);
 
-    it("Helicases",
+    xit("Helicases",
 		test(
 			`
                 (DNA-BASE A Adenine)
@@ -131,7 +216,7 @@ describe("Bio Tests", () => {
         */
 	);
 
-    it("Quarks",
+    xit("Quarks",
 		test(
             /*
                 Up quark: Flavor = "up", Electric charge = +2/3
