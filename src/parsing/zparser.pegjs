@@ -62,23 +62,18 @@ term = except:"~"? term:(tuple / variable / constant)
 	}
 
 variable = "'" 
-	variable:(
-       "[" _  constants:constants _ "]" 
-      {
-      	return {type: 'domain', data: constants};
-      }
-      / varname:[_a-zA-Z0-9{}]*
+      varname:[_a-zA-Z0-9{}]*
+      domain:(":"? "[" _  constants:constants _ "]"       {
+      		return constants;
+      	}
+	  )? 
       {
         if (varname.length > 0) {
-            return {type: 'variable', data: varname.join("")};
+            return {type: 'variable', data: varname.join(""), domain};
         }
 
-        return {type: 'variable'};
+        return {type: 'variable', domain};
       }
-    ) 
-    {
-    	return variable
-    }
 
 constants = constant:constant wsp constants:constants 
     {

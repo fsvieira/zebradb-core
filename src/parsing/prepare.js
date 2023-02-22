@@ -8,7 +8,10 @@ const terms = (e, vs, genVariable, variables) => {
 
             if (!vs.includes(v)) {
                 vs.push(v);
-                variables[v] = {v};
+                variables[v] = {
+                    v,
+                    d: e.domain?.map(c => terms(c, vs, genVariable, variables))
+                };
             }
 
             return variables[v];
@@ -33,6 +36,7 @@ const terms = (e, vs, genVariable, variables) => {
             return variables[v];
         }
 
+        /*
         case 'domain': {
             const v = genVariable();
 
@@ -40,7 +44,7 @@ const terms = (e, vs, genVariable, variables) => {
                 v,
                 d: e.data.map(c => terms(c, vs, genVariable, variables))
             }
-        }
+        }*/
     }
 }
 

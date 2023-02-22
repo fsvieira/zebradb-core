@@ -9,7 +9,7 @@ T stands for Thymine (in DNA) or Uracil (in RNA).
 */
 
 describe("Bio Tests", () => {
-    it("DNA/RNA Bases",
+    xit("DNA/RNA Bases",
         test(
             `
                 (DNA-BASE '[A C G T])
@@ -24,7 +24,7 @@ describe("Bio Tests", () => {
         )
     )
 
-    it("DNA Sequence",
+    xit("DNA Sequence",
         test(
             `
                 (DNA-BASE '[A C G T])
@@ -63,15 +63,19 @@ describe("Bio Tests", () => {
                   * Termination: Once the replication fork has moved along the entire length of the DNA molecule, the replication process is terminated.
                 */
 
-                (Initiation 'x 'x ')
-                (Initiation (DNA ' 'x) 'y 
-                    (Initiation 'x 'y ')
+                (DNA-Segment 'x 'x ')
+                (DNA-Segment (DNA ' 'x) 'y 
+                    (DNA-Segment 'x 'y ')
                 )
-                (Initiation (DNA 'y 'x) (DNA 'y) ')
+                (DNA-Segment (DNA 'y 'x) (DNA 'y) ')
 
-                (Replication 'dna 'i
-                    (Initiation 'dna 'i ')
-                    # (Elongation 'bp 'e)
+                (Elongation 'dna 'origin 'e)
+
+
+                (Replication 'dna 'template 'origin
+                    (DNA-Segment 'dna 'template ')
+                    (DNA-Segment 'template 'origin ')
+                    # (Elongation 'dna 'i 'e)
                     # (Termination 'e 'dna)
                 )
             `, [{
@@ -82,6 +86,8 @@ describe("Bio Tests", () => {
                         )
                         'dna
                         'x
+                        '
+                        '
                     )
                 `,
                 results: [

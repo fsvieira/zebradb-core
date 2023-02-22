@@ -3,7 +3,7 @@
 const test = require("../test-utils/test");
 
 describe("Test domain extraction.", () => {
-	xit("should be a easy domain",
+	it("should be a easy domain",
 		test(
             `
             (number '[0 1 2 3])
@@ -20,7 +20,7 @@ describe("Test domain extraction.", () => {
 		)
 	);
 
-	xit("should unify constant * domain",
+	it("should unify constant * domain",
 		test(
 			`
 			(const '[0 1])
@@ -43,7 +43,7 @@ describe("Test domain extraction.", () => {
 		)
 	);
 
-	xit("should make domain of two variables",
+	it("should make domain of two variables",
 		test(
 			`
 			('x = 'x)
@@ -83,7 +83,7 @@ describe("Test domain extraction.", () => {
 		)
 	);
 
-	xit("should declare AND booelan operator using domains. (simple)",
+	it("should declare AND booelan operator using domains. (simple)",
 		test(
 			`
 				('[0 1] & 0 = 0)
@@ -120,7 +120,33 @@ describe("Test domain extraction.", () => {
 		)
 	);
 
-	xit("should declare AND booelan operator using domains. (fancy)",
+	it("should declare AND booelan operator using domains. (simple domains names)",
+		test(
+			`
+				('x != ~'x)
+				('x:[0 1] & 'x = 'x ')
+				('x:[0 1] & 'y:[0 1] = 0 ('x != 'y))
+			`, [
+				{
+					query: "('a & 'b = 'c ')",
+					results: [
+						"@('a:[0 1] & 'a:[0 1] = 'a:[0 1] '_v1)",
+						"@(0 & 1 = 0 @(0 != 1))",
+						"@(1 & 0 = 0 @(1 != 0))"
+					]
+				  
+				}
+			],
+			{
+				timeout: 1000 * 60 * 5,
+				path: 'dbs/domains/5'
+			}
+		)
+	);
+
+
+
+	it("should declare AND booelan operator using domains. (fancy)",
 		test(
 			`
 			('x & 'y = 'z ('y & 'x = 'z stop))
@@ -155,12 +181,12 @@ describe("Test domain extraction.", () => {
 			],
 			{
 				timeout: 1000 * 60 * 5,
-				path: 'dbs/domains/5'
+				path: 'dbs/domains/6'
 			}
 		)
 	);
 
-	xit("should declare AND booelan operator using domains. (fancy 2)",
+	it("should declare AND booelan operator using domains. (fancy 2)",
 		test(
 			`
 				('x & ~'x = 0)
@@ -184,12 +210,12 @@ describe("Test domain extraction.", () => {
 			],
 			{
 				timeout: 1000 * 60 * 5,
-				path: 'dbs/domains/6'
+				path: 'dbs/domains/7'
 			}
 		)
 	);
 
-	xit("should create domains cartasian product result",
+	it("should create domains cartasian product result",
 		test(
 			`
 			(bit '[0 1])
@@ -204,12 +230,12 @@ describe("Test domain extraction.", () => {
 			}],
 			{
 				timeout: 1000 * 60 * 5,
-				path: 'dbs/domains/7'
+				path: 'dbs/domains/8'
 			}
 		)
 	);
 
-	xit("should create domains cartesian product result (unfold)",
+	it("should create domains cartesian product result (unfold)",
 		test(
 			`
 			(bit '[0 1])
@@ -232,7 +258,7 @@ describe("Test domain extraction.", () => {
 			}],
 			{
 				timeout: 1000 * 60 * 5,
-				path: 'dbs/domains/8'
+				path: 'dbs/domains/9'
 			}
 		)
 	);
@@ -244,7 +270,7 @@ describe("Test domain extraction.", () => {
 			(2bits 'a 'b)
 			(bit '[0 1])
 			`, [
-				/*{
+				{
 					query: "('[0 1] != '[0 1])",
 					results: [
 						"@(0 != 1)",
@@ -257,7 +283,7 @@ describe("Test domain extraction.", () => {
 						"@(2bits @(bit 0) @(bit 1))",
 						"@(2bits @(bit 1) @(bit 0))"					
 					]
-				},*/
+				},
 				{
 					query: "((bit 'x) != (bit 'y))",
 					results: [
@@ -268,7 +294,7 @@ describe("Test domain extraction.", () => {
 			],
 			{
 				timeout: 1000 * 60 * 5,
-				path: 'dbs/domains/9'
+				path: 'dbs/domains/10'
 			}
 		)
 	);
