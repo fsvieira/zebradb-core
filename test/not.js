@@ -63,7 +63,7 @@ describe("Not Tests.", () => {
 				},
 				{
 					query: "(~blue 'o blue)",
-					results: ["@('_v1/[blue] != blue)"]
+					results: ["@('_v1~{blue} != blue)"]
 				},
 				{
 					query: "('x != 'x)", 
@@ -93,7 +93,7 @@ describe("Not Tests.", () => {
 				},
 				{
 					query: "(~blue 'o blue)",
-					results: ["@('_v1/[blue] != blue)"]
+					results: ["@('_v1~{blue} != blue)"]
 				},
 				{
 					query: "('x != 'x)", 
@@ -101,6 +101,58 @@ describe("Not Tests.", () => {
 				}
 			],
 			{path: 'dbs/not/2', timeout: 2000}
+		)
+	);
+
+	it("Simple not varnames",
+		test(
+			`('x:{0 1} 'y~'x 'y:{0 1})
+			`, [
+				{
+					query: "('x 'y 'z)",
+					results: [ 
+						"@(0 1 1)",
+						"@(1 0 0)"
+			  		]
+				}
+			],
+			{path: 'dbs/not/3', timeout: 1000 * 60 * 60}
+		)
+	);
+
+	xit("Simple cascanding not varnames, TODO: solve circular",
+		test(
+			`('x:{0 1 3}~'y~'z~x 'y:{0 1 3} 'z:{0 1 3})
+			`, [
+				{
+					query: "('x 'y 'z)",
+					results: [ 
+						"@(0 1 1)",
+						"@(1 0 0)"
+			  		]
+				}
+			],
+			{path: 'dbs/not/4', timeout: 1000 * 60 * 60}
+		)
+	);
+
+	it("Simple not multiple varnames",
+		test(
+			`('x:{0 1 3}~{'y~'z 'z} 'y:{0 1 3} 'z:{0 1 3})
+			`, [
+				{
+					query: "('x 'y 'z)",
+					results: [ 
+						"@(0 1 3)", 
+						"@(0 3 1)", 
+						"@(1 0 3)", 
+						"@(1 3 0)", 
+						"@(3 0 1)", 
+						"@(3 1 0)"
+			  		]
+				}
+			],
+			{path: 'dbs/not/5', timeout: 1000 * 60 * 60}
 		)
 	);
 
@@ -112,7 +164,7 @@ describe("Not Tests.", () => {
 					"@(not-blue-tuple @(pink))"
 				]
 			}],
-			{path: 'dbs/not/3', timeout: 2000}
+			{path: 'dbs/not/6', timeout: 2000}
 		)
 	);
 
@@ -124,7 +176,7 @@ describe("Not Tests.", () => {
 					"@(@(yellow) = @(yellow))"
 				]
 			}],
-			{path: 'dbs/not/4', timeout: 1000 * 60 * 60}
+			{path: 'dbs/not/7', timeout: 1000 * 60 * 60}
 		)
 	);
 
@@ -164,7 +216,7 @@ describe("Not Tests.", () => {
 				]
 			}
 			],
-			{path: 'dbs/not/5', timeout: 1000 * 60 * 60}
+			{path: 'dbs/not/8', timeout: 1000 * 60 * 60}
 		)
 	);
 
@@ -198,7 +250,7 @@ describe("Not Tests.", () => {
 					]
 				}
 			],
-			{path: 'dbs/not/6', timeout: 1000 * 60 * 60}
+			{path: 'dbs/not/9', timeout: 1000 * 60 * 60}
 		)
 	);
 
@@ -214,7 +266,7 @@ describe("Not Tests.", () => {
       				"@(not @(number 1) @(number 0))"
 				]
 			}],
-			{path: 'dbs/not/7', timeout: 1000 * 60 * 60}
+			{path: 'dbs/not/10', timeout: 1000 * 60 * 60}
 		)
 	);
 
@@ -259,7 +311,7 @@ describe("Not Tests.", () => {
 					]
 				}
 			],
-			{path: 'dbs/not/8', timeout: 1000 * 60 * 60}
+			{path: 'dbs/not/11', timeout: 1000 * 60 * 60}
 		)
 	);
 
@@ -294,7 +346,7 @@ describe("Not Tests.", () => {
 				results: []
 			}
 			],
-			{path: 'dbs/not/9', timeout: 1000 * 60 * 60}
+			{path: 'dbs/not/12', timeout: 1000 * 60 * 60}
 		)
 	);
 
@@ -315,7 +367,7 @@ describe("Not Tests.", () => {
 					"[1]"
 			  ]
 			}],
-			{path: 'dbs/not/10', timeout: 1000 * 60 * 60}
+			{path: 'dbs/not/13', timeout: 1000 * 60 * 60}
 		)
 	);
 
@@ -359,7 +411,7 @@ describe("Not Tests.", () => {
 				]
 			}
 			],
-			{path: 'dbs/not/11', timeout: 1000 * 60 * 60}
+			{path: 'dbs/not/14', timeout: 1000 * 60 * 60}
 		)
 	);
 
@@ -416,7 +468,7 @@ describe("Not Tests.", () => {
 				]
 			}
 			], 
-			{path: 'dbs/not/12', timeout: 1000 * 60 * 60}
+			{path: 'dbs/not/15', timeout: 1000 * 60 * 60}
 		)
 	);
 
@@ -499,7 +551,7 @@ describe("Not Tests.", () => {
 					"[3]"
 				]
 			}], 
-			{path: 'dbs/not/13', timeout: 1000 * 60 * 60}
+			{path: 'dbs/not/16', timeout: 1000 * 60 * 60}
 		)
 	);
 });

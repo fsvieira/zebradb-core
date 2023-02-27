@@ -186,10 +186,10 @@ async function toString (branch, id, ctx, stop={}) {
     }
     else if (v.v) {
         const domain = v.d ? (await Promise.all(v.d.map(id => toString(branch, id, ctx, stop)))).filter(v => v !== ''):undefined;
-        const ds = domain && domain.length?`:[${domain.join(" ")}]`:"";
+        const ds = domain && domain.length?`:{${domain.join(" ")}}`:"";
 
         const es = v.e ? (await Promise.all(v.e.map(id => toString(branch, id, ctx, stop)))).filter(v => v !== ''):undefined;
-        const e = es && es.length?`/[${es.join(", ")}]`:"";
+        const e = es && es.length?`~{${es.join(", ")}}`:"";
         
         return "'" + (!v.pv && v.id?v.id + "::": "") + v.v + ds + e;
     }

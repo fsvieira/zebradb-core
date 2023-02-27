@@ -34,7 +34,7 @@ describe("Minizinc Tests.", () => {
                     "t=", show(t),  "\n"];
 */
 			`
-            (1..nc '[1 2 3])
+            (1..nc '{1 2 3})
             (var (1..nc 'x) : 'x)
             ('x != ~'x)
 
@@ -102,12 +102,12 @@ describe("Minizinc Tests.", () => {
             `, [{
 				query: "(zinc ' ' ')",
 				results: [
-                    "@(zinc @(var-declaration @(var @(1..nc 1) : 1) @(var @(1..nc 2) : 2) @(var @(1..nc 3) : 3) @(var @(1..nc 1) : 1) @(var @(1..nc 2) : 2) @(var @(1..nc 1) : 1) @(var @(1..nc 'v$23::t:[1 2 3]) : \'v$23::t:[1 2 3])) @(var-constrains @(1 != 2) @(1 != 3) @(2 != 3) @(2 != 1) @(3 != 1) @(3 != 2) @(3 != 1) @(1 != 2) @(2 != 1)) @(output wa= 1 nt= 2 sa= 3 q= 1 nsw= 2 v= 1 t= 'v$23::t:[1 2 3]))",
-                    "@(zinc @(var-declaration @(var @(1..nc 1) : 1) @(var @(1..nc 3) : 3) @(var @(1..nc 2) : 2) @(var @(1..nc 1) : 1) @(var @(1..nc 3) : 3) @(var @(1..nc 1) : 1) @(var @(1..nc 'v$23::t:[1 2 3]) : \'v$23::t:[1 2 3])) @(var-constrains @(1 != 3) @(1 != 2) @(3 != 2) @(3 != 1) @(2 != 1) @(2 != 3) @(2 != 1) @(1 != 3) @(3 != 1)) @(output wa= 1 nt= 3 sa= 2 q= 1 nsw= 3 v= 1 t= 'v$23::t:[1 2 3]))",
-                    "@(zinc @(var-declaration @(var @(1..nc 2) : 2) @(var @(1..nc 1) : 1) @(var @(1..nc 3) : 3) @(var @(1..nc 2) : 2) @(var @(1..nc 1) : 1) @(var @(1..nc 2) : 2) @(var @(1..nc 'v$23::t:[1 2 3]) : \'v$23::t:[1 2 3])) @(var-constrains @(2 != 1) @(2 != 3) @(1 != 3) @(1 != 2) @(3 != 2) @(3 != 1) @(3 != 2) @(2 != 1) @(1 != 2)) @(output wa= 2 nt= 1 sa= 3 q= 2 nsw= 1 v= 2 t= 'v$23::t:[1 2 3]))",
-                    "@(zinc @(var-declaration @(var @(1..nc 2) : 2) @(var @(1..nc 3) : 3) @(var @(1..nc 1) : 1) @(var @(1..nc 2) : 2) @(var @(1..nc 3) : 3) @(var @(1..nc 2) : 2) @(var @(1..nc 'v$23::t:[1 2 3]) : \'v$23::t:[1 2 3])) @(var-constrains @(2 != 3) @(2 != 1) @(3 != 1) @(3 != 2) @(1 != 2) @(1 != 3) @(1 != 2) @(2 != 3) @(3 != 2)) @(output wa= 2 nt= 3 sa= 1 q= 2 nsw= 3 v= 2 t= 'v$23::t:[1 2 3]))",
-                    "@(zinc @(var-declaration @(var @(1..nc 3) : 3) @(var @(1..nc 1) : 1) @(var @(1..nc 2) : 2) @(var @(1..nc 3) : 3) @(var @(1..nc 1) : 1) @(var @(1..nc 3) : 3) @(var @(1..nc 'v$23::t:[1 2 3]) : \'v$23::t:[1 2 3])) @(var-constrains @(3 != 1) @(3 != 2) @(1 != 2) @(1 != 3) @(2 != 3) @(2 != 1) @(2 != 3) @(3 != 1) @(1 != 3)) @(output wa= 3 nt= 1 sa= 2 q= 3 nsw= 1 v= 3 t= 'v$23::t:[1 2 3]))",
-                    "@(zinc @(var-declaration @(var @(1..nc 3) : 3) @(var @(1..nc 2) : 2) @(var @(1..nc 1) : 1) @(var @(1..nc 3) : 3) @(var @(1..nc 2) : 2) @(var @(1..nc 3) : 3) @(var @(1..nc 'v$23::t:[1 2 3]) : \'v$23::t:[1 2 3])) @(var-constrains @(3 != 2) @(3 != 1) @(2 != 1) @(2 != 3) @(1 != 3) @(1 != 2) @(1 != 3) @(3 != 2) @(2 != 3)) @(output wa= 3 nt= 2 sa= 1 q= 3 nsw= 2 v= 3 t= 'v$23::t:[1 2 3]))"
+                    "@(zinc @(var-declaration @(var @(1..nc 1) : 1) @(var @(1..nc 2) : 2) @(var @(1..nc 3) : 3) @(var @(1..nc 1) : 1) @(var @(1..nc 2) : 2) @(var @(1..nc 1) : 1) @(var @(1..nc \'v$23::t:{1 2 3}) : \'v$23::t:{1 2 3})) @(var-constrains @(1 != 2) @(1 != 3) @(2 != 3) @(2 != 1) @(3 != 1) @(3 != 2) @(3 != 1) @(1 != 2) @(2 != 1)) @(output wa= 1 nt= 2 sa= 3 q= 1 nsw= 2 v= 1 t= 'v$23::t:{1 2 3}))",
+                    "@(zinc @(var-declaration @(var @(1..nc 1) : 1) @(var @(1..nc 3) : 3) @(var @(1..nc 2) : 2) @(var @(1..nc 1) : 1) @(var @(1..nc 3) : 3) @(var @(1..nc 1) : 1) @(var @(1..nc \'v$23::t:{1 2 3}) : \'v$23::t:{1 2 3})) @(var-constrains @(1 != 3) @(1 != 2) @(3 != 2) @(3 != 1) @(2 != 1) @(2 != 3) @(2 != 1) @(1 != 3) @(3 != 1)) @(output wa= 1 nt= 3 sa= 2 q= 1 nsw= 3 v= 1 t= 'v$23::t:{1 2 3}))",
+                    "@(zinc @(var-declaration @(var @(1..nc 2) : 2) @(var @(1..nc 1) : 1) @(var @(1..nc 3) : 3) @(var @(1..nc 2) : 2) @(var @(1..nc 1) : 1) @(var @(1..nc 2) : 2) @(var @(1..nc \'v$23::t:{1 2 3}) : \'v$23::t:{1 2 3})) @(var-constrains @(2 != 1) @(2 != 3) @(1 != 3) @(1 != 2) @(3 != 2) @(3 != 1) @(3 != 2) @(2 != 1) @(1 != 2)) @(output wa= 2 nt= 1 sa= 3 q= 2 nsw= 1 v= 2 t= 'v$23::t:{1 2 3}))",
+                    "@(zinc @(var-declaration @(var @(1..nc 2) : 2) @(var @(1..nc 3) : 3) @(var @(1..nc 1) : 1) @(var @(1..nc 2) : 2) @(var @(1..nc 3) : 3) @(var @(1..nc 2) : 2) @(var @(1..nc \'v$23::t:{1 2 3}) : \'v$23::t:{1 2 3})) @(var-constrains @(2 != 3) @(2 != 1) @(3 != 1) @(3 != 2) @(1 != 2) @(1 != 3) @(1 != 2) @(2 != 3) @(3 != 2)) @(output wa= 2 nt= 3 sa= 1 q= 2 nsw= 3 v= 2 t= 'v$23::t:{1 2 3}))",
+                    "@(zinc @(var-declaration @(var @(1..nc 3) : 3) @(var @(1..nc 1) : 1) @(var @(1..nc 2) : 2) @(var @(1..nc 3) : 3) @(var @(1..nc 1) : 1) @(var @(1..nc 3) : 3) @(var @(1..nc \'v$23::t:{1 2 3}) : \'v$23::t:{1 2 3})) @(var-constrains @(3 != 1) @(3 != 2) @(1 != 2) @(1 != 3) @(2 != 3) @(2 != 1) @(2 != 3) @(3 != 1) @(1 != 3)) @(output wa= 3 nt= 1 sa= 2 q= 3 nsw= 1 v= 3 t= 'v$23::t:{1 2 3}))",
+                    "@(zinc @(var-declaration @(var @(1..nc 3) : 3) @(var @(1..nc 2) : 2) @(var @(1..nc 1) : 1) @(var @(1..nc 3) : 3) @(var @(1..nc 2) : 2) @(var @(1..nc 3) : 3) @(var @(1..nc \'v$23::t:{1 2 3}) : \'v$23::t:{1 2 3})) @(var-constrains @(3 != 2) @(3 != 1) @(2 != 1) @(2 != 3) @(1 != 3) @(1 != 2) @(1 != 3) @(3 != 2) @(2 != 3)) @(output wa= 3 nt= 2 sa= 1 q= 3 nsw= 2 v= 3 t= 'v$23::t:{1 2 3}))"
                 ]
 			}],
 			{path: 'dbs/minizinc/1', timeout: 1000 * 60 * 60 * 24}

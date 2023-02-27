@@ -1,11 +1,3 @@
-{
-  function flatten(arr) {
-    return arr.reduce(function (flat, toFlatten) {
-      return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
-    }, []);
-  }
-}
-
 z = definition:definition z:z
     {
     	return [definition].concat(z);
@@ -14,9 +6,6 @@ z = definition:definition z:z
     {
     	return [definition];
     }
-/*
-    / _ query:query _ {return [query]}
-*/
 
 definition = _ tuple:tuple _ body:body? _ {return {...tuple, body: body || []}}
 
@@ -24,13 +13,6 @@ body = "{" tuples:( _ tuple:tuple {return tuple} )* _ "}"
 	{
     	return tuples;
     }
-
-/*
-query = "?" tuple:tuple _
-	{
-    	return {type: 'query', data: tuple}
-  }
-*/
 
 tuple = "(" _ terms:terms _ ")"
 	{
@@ -51,29 +33,41 @@ terms = term:term wsp terms:terms
     	return [term]
     }
 
-term = except:"~"? term:(tuple / variable / constant) 
+term = term:(tuple / variable / constant) 
 	{
-		if (except) {
-          return {type: 'except', data: term};
-        }
-        else {
-        	return term
-        }
+       	return term
 	}
 
-variable = "'" 
-      varname:[_a-zA-Z0-9{}]*
-      domain:(":"? "[" _  constants:constants _ "]"       {
-      		return constants;
-      	}
-	  )? 
-      {
-        if (varname.length > 0) {
-            return {type: 'variable', data: varname.join(""), domain};
+except = "~" except:(
+      	 term:term {return [term];}
+        / "{" _ terms:terms _ "}" {return terms}
+      ) {return except}
+      
+variable = variable:(
+		"'" 
+        varname:[_a-zA-Z0-9]*
+        domain:(":"? "{" _  constants:constants _ "}" {
+              return constants;
+          }
+        )? 
+        except:except?
+        {
+          return {
+              type: 'variable',
+              data: varname.length > 0 ? varname.join("") : undefined,
+              domain,
+              except
+          }
         }
-
-        return {type: 'variable', domain};
-      }
+      ) 
+      / except:except
+      {
+        return {
+        	type: 'variable',
+            except
+        };
+      } 
+      
 
 constants = constant:constant wsp constants:constants 
     {
@@ -81,7 +75,7 @@ constants = constant:constant wsp constants:constants
     }
 	/ constant 
 
-constant = !"/*" constant:[^\] \n\t\(\)'\^]+
+constant = !"/*" constant:[^\{\} \n\t\(\)'\^]+
 	{
     	return {type: 'constant', data: constant.join("")};
   	}

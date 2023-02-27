@@ -2,15 +2,15 @@
 
 const test = require("../test-utils/test");
 
-describe("Test domain extraction.", () => {
+describe("Test domains.", () => {
 	it("should be a easy domain",
 		test(
             `
-            (number '[0 1 2 3])
+            (number '{0 1 2 3})
             `, [{
 				query: `(number 'a)`,
 				results: [
-					"@(number 'a:[0 1 2 3])"
+					"@(number 'a:{0 1 2 3})"
 				]
 			}],
 			{
@@ -23,7 +23,7 @@ describe("Test domain extraction.", () => {
 	it("should unify constant * domain",
 		test(
 			`
-			(const '[0 1])
+			(const '{0 1})
 			`, [
 				{
 					query: `(const 0)`,
@@ -47,14 +47,14 @@ describe("Test domain extraction.", () => {
 		test(
 			`
 			('x = 'x)
-            (number '[0 1 2 3])
+            (number '{0 1 2 3})
 			((number 'x) (number 'y))
 			`, 
 			[
 				{
 					query: "((number 'x) (number 'y))",
 					results: [
-						"@(@(number 'x:[0 1 2 3]) @(number 'y:[0 1 2 3]))",
+						"@(@(number 'x:{0 1 2 3}) @(number 'y:{0 1 2 3}))",
 					]
 				},
 				{
@@ -86,15 +86,15 @@ describe("Test domain extraction.", () => {
 	it("should declare AND booelan operator using domains. (simple)",
 		test(
 			`
-				('[0 1] & 0 = 0)
-				( 0 & '[0 1] = 0)
+				('{0 1} & 0 = 0)
+				( 0 & '{0 1} = 0)
 				( 1 & 1 = 1)
 			`, [
 				{
 					query: "('a & 'b = 'c)",
 					results: [
-						"@('a:[0 1] & 0 = 0)",
-				      	"@(0 & 'b:[0 1] = 0)",
+						"@('a:{0 1} & 0 = 0)",
+				      	"@(0 & 'b:{0 1} = 0)",
       					"@(1 & 1 = 1)"
 					]
 				},
@@ -124,13 +124,13 @@ describe("Test domain extraction.", () => {
 		test(
 			`
 				('x != ~'x)
-				('x:[0 1] & 'x = 'x ')
-				('x:[0 1] & 'y:[0 1] = 0 ('x != 'y))
+				('x:{0 1} & 'x = 'x ')
+				('x:{0 1} & 'y:{0 1} = 0 ('x != 'y))
 			`, [
 				{
 					query: "('a & 'b = 'c ')",
 					results: [
-						"@('a:[0 1] & 'a:[0 1] = 'a:[0 1] '_v1)",
+						"@('a:{0 1} & 'a:{0 1} = 'a:{0 1} '_v1)",
 						"@(0 & 1 = 0 @(0 != 1))",
 						"@(1 & 0 = 0 @(1 != 0))"
 					]
@@ -150,14 +150,14 @@ describe("Test domain extraction.", () => {
 		test(
 			`
 			('x & 'y = 'z ('y & 'x = 'z stop))
-			('[0 1] & 0 = 0 ')
+			('{0 1} & 0 = 0 ')
 			(1 & 1 = 1 ')
 			`, [
 				{
 					query: "('a & 'b = 'c ')",
 					results: [
-						"@('a:[0 1] & 0 = 0 '_v1)",
-						"@(0 & 'b:[0 1] = 0 @('b:[0 1] & 0 = 0 stop))",
+						"@('a:{0 1} & 0 = 0 '_v1)",
+						"@(0 & 'b:{0 1} = 0 @('b:{0 1} & 0 = 0 stop))",
 						"@(1 & 1 = 1 '_v1)",
 						"@(1 & 1 = 1 @(1 & 1 = 1 stop))"
 					]
@@ -193,15 +193,15 @@ describe("Test domain extraction.", () => {
 				('x & 'x = 'x)
 			`, [
 				{
-					query: "('[0 1] & '[0 1] = 'c)",
+					query: "('{0 1} & '{0 1} = 'c)",
 					results: [
-						"@('_v1:[0 1] & '_v1:[0 1] = '_v1:[0 1])",
+						"@('_v1:{0 1} & '_v1:{0 1} = '_v1:{0 1})",
       					"@(0 & 1 = 0)",
       					"@(1 & 0 = 0)"
 					]
 				},
 				{
-					query: "(1 & '[0 1] = 'c)",
+					query: "(1 & '{0 1} = 'c)",
 					results: [
 						"@(1 & 0 = 0)",
 						"@(1 & 1 = 1)"
@@ -218,14 +218,14 @@ describe("Test domain extraction.", () => {
 	it("should create domains cartasian product result",
 		test(
 			`
-			(bit '[0 1])
+			(bit '{0 1})
 			(list)
             (list (bit 'x) (list ' '))
 			(list (bit 'x) (list))
 			`, [{
 				query: "(list 'x (list 'y (list)))",
 				results: [
-				  	"@(list @(bit 'v$11::x:[0 1]) @(list @(bit 'v$7::x:[0 1]) @(list)))"
+				  	"@(list @(bit 'v$11::x:{0 1}) @(list @(bit 'v$7::x:{0 1}) @(list)))"
 				]
 			}],
 			{
@@ -238,7 +238,7 @@ describe("Test domain extraction.", () => {
 	it("should create domains cartesian product result (unfold)",
 		test(
 			`
-			(bit '[0 1])
+			(bit '{0 1})
 			(unfold 0 (bit 'a) ')
 			(unfold 1 (bit 'b) (unfold 0 ' '))
 			(unfold 2 (bit 'c) (unfold 1 ' '))
@@ -253,7 +253,7 @@ describe("Test domain extraction.", () => {
 					// 1 0 1
 					// 1 1 0
 					// 1 1 1
-					"@(unfold 2 @(bit 'v$4::c:[0 1]) @(unfold 1 @(bit 'v$12::b:[0 1]) @(unfold 0 @(bit 'v$20::a:[0 1]) 'v$15::_v2)))"
+					"@(unfold 2 @(bit 'v$4::c:{0 1}) @(unfold 1 @(bit 'v$12::b:{0 1}) @(unfold 0 @(bit 'v$20::a:{0 1}) 'v$15::_v2)))"
 				]
 			}],
 			{
@@ -268,10 +268,10 @@ describe("Test domain extraction.", () => {
 			`
 			('x != ~'x)
 			(2bits 'a 'b)
-			(bit '[0 1])
+			(bit '{0 1})
 			`, [
 				{
-					query: "('[0 1] != '[0 1])",
+					query: "('{0 1} != '{0 1})",
 					results: [
 						"@(0 != 1)",
 						"@(1 != 0)"

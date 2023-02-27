@@ -6,14 +6,27 @@ const terms = (e, genVariable, variables) => {
         case 'variable': { 
             const v = e.data || genVariable();
 
-            if (!variables[v]) {
-                variables[v] = {
-                    v,
-                    d: e.domain?.map(c => terms(c, genVariable, variables))
-                };
+            let vdata = variables[v];
+            if (!vdata) {
+                vdata = variables[v] = {v};
             }
 
-            return variables[v];
+            if (e.domain) {
+                vdata.d = vdata.d?
+                    vdata.filter(c => e.domain.includes(c.c)):
+                    e.domain.map(c => terms(c, genVariable, variables))
+                ;
+
+                if (vdata.d.length === 0) {
+                    throw new Error("Definition has domains that cancel each other.");
+                }
+            }
+
+            if (e.except) {
+                vdata.e = (vdata.e || []).concat(e.except?.map(e => terms(e, genVariable, variables)));
+            }
+
+            return vdata;
         }
 
         case 'tuple': {
@@ -23,19 +36,6 @@ const terms = (e, genVariable, variables) => {
             }
 
             return {t: ts(e.data, genVariable, variables), body}
-        }
-
-        case 'except': {
-            const v = genVariable();
-            
-            if (!variables[v]) {
-                variables[v] = {
-                    v,
-                    e: [terms(e.data, genVariable, variables)]
-                };
-            }
-
-            return variables[v];
         }
     }
 }

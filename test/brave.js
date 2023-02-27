@@ -6,7 +6,7 @@ describe("Brave puzzle Tests.", () => {
     it("should solve brave puzzle",
 		test(
 			`
-            (letter '[B R A V E])
+            (letter '{B R A V E})
 
             ('x != ~'x)
 
