@@ -1,5 +1,11 @@
 const prepareVariables = (p, vars={}) => {
     if (p.t) {
+        if (p.body) {
+            for (let i=0; i<p.body.length; i++) {
+                prepareVariables(p.body[i], vars);
+            }    
+        }
+
         for (let i=0; i<p.t.length; i++) {
             prepareVariables(p.t[i], vars);
         }
@@ -82,6 +88,19 @@ const copyTerm = async (ctx, p, preserveVarname=0, varIds={}) => {
             }
         }
         else if (p.t) {
+
+            if (p.body) {
+                const bodySet = await ctx.variables.get("_body") || ctx.rDB.iSet();
+                
+                for (let i=0; i<p.body.length; i++) {
+                    const id = await copyTerm(ctx, p.body[i], preserveVarname, varIds);
+                    ctx.unchecked = await ctx.unchecked.add(id);
+                    bodySet.add(id);
+                }
+                
+                ctx.variables.set("_body", id);
+            }
+            
             let t = [];
             for (let i=0; i<p.t.length; i++) {
                 const q = await get(ctx, p.t[i]);

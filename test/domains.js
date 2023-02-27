@@ -215,6 +215,26 @@ describe("Test domain extraction.", () => {
 		)
 	);
 
+	it("should declare AND booelan operator using domains. (body)",
+		test(
+			`
+				('x != ~'x)
+				('x:[0 1] & 'x = 'x)
+				('x & 'y = 0) {('x:[0 1] != 'y:[0 1])}                
+			`, [
+				{
+					query: "('p & 'q = 'z)",
+					results: [
+					]
+				}
+			],
+			{
+				timeout: 1000 * 60 * 5,
+				path: 'dbs/domains/7'
+			}
+		)
+	);
+
 	it("should create domains cartasian product result",
 		test(
 			`
