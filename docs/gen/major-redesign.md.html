@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>major-redesign</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+  </style>
+</head>
+<body>
+<p>Zebradb got a major redesign, I think its on the rigth track but is still on a heavy experimental phase. Here is a list of the major changes:</p>
+<ul>
+<li>Its now using beastdb (https://github.com/fsvieira/beastdb) for processing:
+<ul>
+<li>persists processing data on disk, so in case of stop or crash it can be resumed,</li>
+<li>better memory handling because not all branches need to be on memory.</li>
+</ul></li>
+<li>Added domains,</li>
+<li>Added hidden/body to definitions and queries,</li>
+<li>Added not-unify operator,</li>
+<li>Put negation-by-failure on hold:
+<ul>
+<li>Negation-by-failure is much more complicated than not-unify,</li>
+<li>Not-unify can solve some of the problems that negation-by-failure solves, but not all,</li>
+<li>It needs more research.</li>
+</ul></li>
+</ul>
+</body>
+</html>
