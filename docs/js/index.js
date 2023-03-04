@@ -79,7 +79,7 @@ function makeMenu (db) {
 
     const menuBlog = document.createElement("li");
     appState.menuBlog = menuBlog;
-    menuBlog.innerHTML = "blog";
+    menuBlog.innerHTML = "News";
     menuBlog.onclick = () => openBlog(db);
     menu.appendChild(menuBlog);
 

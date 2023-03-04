@@ -40,6 +40,9 @@ function renderPage(title, author, date, html) {
 async function openBlog(db) {
     var mainContent = document.getElementById("main-content");
     var posts = db.posts;
+    posts.sort(function (a, b) {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
 
     mainContent.innerHTML = "";
 
@@ -66,7 +69,7 @@ function makeMenu(db) {
 
     var menuBlog = document.createElement("li");
     appState.menuBlog = menuBlog;
-    menuBlog.innerHTML = "blog";
+    menuBlog.innerHTML = "news";
     menuBlog.onclick = function () {
         return openBlog(db);
     };
