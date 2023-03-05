@@ -124,5 +124,20 @@
     # john likes what mary likes.
     (john likes &#39;stuff) {(mary likes &#39;stuff)}
 </code></pre>
+<h3 id="a-word-about-recursion">A word about recursion</h3>
+<p>It may not be obvious but its possible to make recursive defintions, here is an example of inductive type nat:</p>
+<pre><code>    (nat 0)
+    (nat (nat &#39;x))</code></pre>
+<p>And a simple query:</p>
+<pre><code>    (nat (nat (nat 0)))</code></pre>
+<p>An infinity query:</p>
+<pre><code>    (nat &#39;x)</code></pre>
+<p>This query will return all numbers:</p>
+<pre><code>    (nat 0) # 0
+    (nat (nat 0)) # 1
+    (nat (nat (nat 0))) # 2
+    ...
+    (nat ...) # Infinity</code></pre>
+<p>Unless there is a stop condition recursive queries can run forever.</p>
 </body>
 </html>

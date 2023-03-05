@@ -197,3 +197,34 @@ A hidden list of tuples is preceded by the definition/query tuple like this:
     (john likes 'stuff) {(mary likes 'stuff)}
 
 ```
+
+### A word about recursion
+
+It may not be obvious but its possible to make recursive defintions, here is an example of inductive type nat:
+
+```
+    (nat 0)
+    (nat (nat 'x))
+```
+
+And a simple query:
+```
+    (nat (nat (nat 0)))
+```
+
+An infinity query:
+```
+    (nat 'x)
+```
+
+This query will return all numbers:
+
+```
+    (nat 0) # 0
+    (nat (nat 0)) # 1
+    (nat (nat (nat 0))) # 2
+    ...
+    (nat ...) # Infinity
+```
+
+Unless there is a stop condition recursive queries can run forever. 
