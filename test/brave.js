@@ -93,7 +93,8 @@ describe("Brave puzzle Tests.", () => {
 				    ]
 			}], { 
                 timeout: 60000 * 35,
-                path: 'dbs/brave/1'
+                path: 'dbs/brave/1',
+                // log: true
             }
 		)
 	);

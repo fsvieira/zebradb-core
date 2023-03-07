@@ -166,13 +166,15 @@ const setVariable = async (ctx, v, p) => {
 
 async function deepUnify(
     branch,
+    options,
     tuple, 
     definition,
     level,
     variables=branch.table.db.iMap(),
     unsolvedVariables=branch.table.db.iSet(),
     unchecked=branch.table.db.iSet(),
-    checked=branch.table.db.iSet()
+    checked=branch.table.db.iSet(),
+    log=branch.table.db.iArray()
 ) {
     const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
     const ctx = {
@@ -184,7 +186,9 @@ async function deepUnify(
         newVar,
         level,
         rDB: branch.table.db,
-        branch        
+        branch,
+        log,
+        options  
     };
 
     const definitionID = await copyTerm(ctx, definition);
@@ -216,7 +220,8 @@ async function deepUnify(
         unchecked: ctx.unchecked, 
         checked: ctx.checked, 
         fail: !ok, 
-        variableCounter: varCounter()
+        variableCounter: varCounter(),
+        log: ctx.log
     };
 }
     
@@ -224,46 +229,51 @@ const doUnify = async (ctx, p, q) => {
     p = await get(ctx, p);
     q = await get(ctx, q);
 
-    // let s = `${await toString(undefined, p, ctx)} ** ${await toString(undefined, q, ctx)}`;
+    let s;
+    
+    if (ctx.options.log) {
+        s = `${await toString(undefined, p, ctx)} ** ${await toString(undefined, q, ctx)}`;
+    }
 
     const ok =  await unifyFn[type(p)][type(q)](ctx, p, q);
 
-    /*
-    const ps = await toString(undefined, p, ctx);
-    const qs = await toString(undefined, q, ctx);
+    if (ctx.options.log) {
+        const ps = await toString(undefined, p, ctx);
+        const qs = await toString(undefined, q, ctx);
 
-    s += `; p=${ps}, q=${qs}`;
-    if (!ok) {
-        console.log("FAIL : ", s, JSON.stringify(p), " *** " , JSON.stringify(q));
+        s += `; p=${ps}, q=${qs}`;
+        if (!ok) {
+            ctx.log = await ctx.log.push(`FAIL: ${s}`/*, JSON.stringify(p), " *** " , JSON.stringify(q)*/);
+        }
+        else {
+            ctx.log = await ctx.log.push(`SUCC: ${s}`);
+        }
     }
-    else {
-    //    console.log("SUCC : ", s);
-    }
-
     // console.log("  ===> ", await toString(undefined, undefined, ctx), '\n');
-    */ 
-   
+
     return ok;
 }
 
 
-async function unify (branch, tuple, definition) {
+async function unify (branch, options, tuple, definition) {
 
     const level = await branch.data.level + 1;
     const rDB = branch.table.db;
 
     const {
         variables, unsolvedVariables, unchecked, 
-        checked, fail, variableCounter
+        checked, fail, variableCounter, log
     } = await deepUnify(
         branch,
+        options,
         tuple, 
         definition,
         level,
         await branch.data.variables,
         await branch.data.unsolvedVariables,
         await branch.data.unchecked,
-        await branch.data.checked    
+        await branch.data.checked, 
+        await branch.data.log    
     );
 
     let state = 'maybe';
@@ -292,7 +302,8 @@ async function unify (branch, tuple, definition) {
         variables,
         unsolvedVariables,
         children: [],
-        state
+        state,
+        log
     }, null);
 
     const children = (await branch.data.children).concat([newBranch]);

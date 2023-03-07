@@ -4,6 +4,7 @@ const query = async (rDB, tuple, branchID) => {
     let unchecked = rDB.iSet();
     let variables = rDB.iMap();
     let unsolvedVariables = rDB.iSet();
+    let log = rDB.iArray();
 
     const {varCounter, newVar} = branchOps.varGenerator(0); 
     const level = 0;
@@ -15,7 +16,8 @@ const query = async (rDB, tuple, branchID) => {
         unsolvedVariables,
         level,
         rDB,
-        definitionVariables: branchOps.prepareVariables(tuple)
+        definitionVariables: branchOps.prepareVariables(tuple),
+        log
     };
 
     const root = await branchOps.copyTerm(ctx, tuple, 1);
@@ -30,7 +32,8 @@ const query = async (rDB, tuple, branchID) => {
         ctx.variables,
         ctx.unsolvedVariables,
         undefined,
-        branchID
+        branchID,
+        ctx.log
     );
 }
 

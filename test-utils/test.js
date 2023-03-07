@@ -25,10 +25,13 @@ function test (definitions, tests, options={
             const qe = await (new QueryEngine(db, options)).init(query);
             
             await qe.run();
-            const solutions = await qe.getSolutions();
 
+            const solutions = await qe.getSolutions();
             const transforms = solutions.map(
-                process?async b => process(await qe.toJS(b)):async b => await qe.toString(b)
+                process?
+                    async b => process(await qe.toJS(b))
+                    :
+                    async b => await qe.toString(b)
             );
 
             const re = await Promise.all(transforms);

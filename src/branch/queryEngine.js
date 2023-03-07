@@ -114,7 +114,7 @@ class QueryEngine {
             const level = await branch.data.level;
 
             if (!depth || (depth > level)) {
-                await branchOps.expand(branch, selector, definitions);
+                await branchOps.expand(branch, this.options, selector, definitions);
             }
             else {
                 await branch.update({state: 'stop'});
@@ -127,7 +127,22 @@ class QueryEngine {
     }
 
     async toString (branch) {
-        return branchOps.toString(branch);
+        let logString = '';
+
+        if (this.options.log) {
+            const log = await branch.data.log;
+            if (log.length > 0) {
+                let s = [];
+
+                for await (let e of log) {
+                    s.push(e);
+                }
+
+                logString = JSON.stringify(s);
+            }
+        }
+
+        return logString + (await branchOps.toString(branch));
     }
 
     async getSolutions () {

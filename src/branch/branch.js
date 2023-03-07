@@ -25,7 +25,7 @@ async function toJS (branch, id) {
 }
 
 
-async function expand (branch, selector, definitions) {
+async function expand (branch, options, selector, definitions) {
     const state = await branch.data.state;
 
     if (state === 'unsolved_variables') {
@@ -39,7 +39,7 @@ async function expand (branch, selector, definitions) {
             }
         }
         
-        const r = await Promise.all(minVar.d.map(cID => unify(branch, minVar.id, cID)));
+        const r = await Promise.all(minVar.d.map(cID => unify(branch, options, minVar.id, cID)));
 
         await branch.update({state: 'split'});
 
@@ -50,7 +50,7 @@ async function expand (branch, selector, definitions) {
 
         const ds = definitions(await toJS(branch, id));
 
-        const r = await Promise.all(ds.map(definition => unify(branch, id, definition)));
+        const r = await Promise.all(ds.map(definition => unify(branch, options, id, definition)));
 
         await branch.update({state: 'split'});
         return r;
@@ -67,7 +67,8 @@ async function create (
     variables=rDB.iMap(), 
     unsolvedVariables=rDB.iSet(), 
     checked=rDB.iSet(),
-    branchID
+    branchID,
+    log=rDB.iArray()
 ) {
 
     return await rDB.tables.branches.insert({
@@ -81,7 +82,8 @@ async function create (
         unsolvedVariables,
         children: [],
         state: 'maybe',
-        variableCounter
+        variableCounter,
+        log
     }, null);
 }
 

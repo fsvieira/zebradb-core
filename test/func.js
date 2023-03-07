@@ -21,7 +21,10 @@ describe("Func tests.", () => {
 						"do it"
 					]
 				}
-			]
+			],
+			{ 
+				path: 'dbs/func/1'
+			}
 		)
 	);
 
@@ -95,7 +98,8 @@ describe("Func tests.", () => {
 				}
 			],
             {
-                timeout: 1000 * 60
+                timeout: 1000 * 60,
+				path: 'dbs/func/2'
 			}
 		)
 	);
