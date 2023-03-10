@@ -2,8 +2,9 @@ const QueryEngine = require('./src/branch/queryEngine');
 const {DB} = require('./src/db');
 
 module.exports = {
-    definitions: async (definitions) => {
-        const db = new DB();
+    definitions: async (options, packageName, definitions) => {
+        const db = new DB(options, packageName);
+        await db.init();
         db.add(definitions);
 
         return db;

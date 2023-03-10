@@ -28,7 +28,17 @@ main();
 const {definitions, query} = require(".");
 
 async function main() {
-    const db = await definitions(`('x 'y) (('a 'a))`);
+    const db = await definitions(
+        {
+            path: 'dbs'
+        }, 
+        {
+            author: 'fsvieira',
+            name: 'test',
+            version: '1.0.0'
+        }, 
+        `('x 'y) (('a 'a))`
+    );
 
     const run = await query(db, `((yellow 'c))`, {
         path: 'dbs/lib/1', 

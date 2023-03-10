@@ -1,10 +1,146 @@
 const {parse} = require('../parsing');
-const { v4 } = require('uuid');
-const FSA = require("fsalib");
+// const { v4 } = require('uuid');
+// const FSA = require("fsalib");
 
+const path = require("path");
 const {SHA256} = require("sha2");
 
+const {DB: beastDB} = require("beastdb");
+
 class DB {
+    constructor (options, packageInfo) {
+        this.options = options;
+        this.packageInfo = packageInfo;
+    }
+
+    async init () {
+        this.rDB = await beastDB.open({
+            storage: {
+                path: path.join(
+                    this.options.path, 
+                    'definitions', 
+                    this.packageInfo.author, 
+                    this.packageInfo.name, 
+                    this.packageInfo.version, 
+                    'data.db'
+                )
+            }
+        });
+        
+        await this.rDB.tables.definitions
+            .key('definitionID')
+            .save()
+        ;
+
+        await this.rDB.tables.definitionIndexes
+            .key('definitionIndexID', ['definition', 'type', 'position', 'tupleLength'])
+            .index('type', 'position', 'tupleLength')
+            .index('position', 'tupleLength')
+            .save()
+        ;
+
+    }
+
+    getType (v) {
+        if (v.t) {
+            return 'T' + v.t.length;
+        }
+        else if (v.v) {
+            return 'V'
+        }
+        else if (v.c) {
+            return 'C:' + v.c  
+        }
+        else {
+            throw `Unkown type, ${JSON.stringify(v)}.`;
+        }
+    }
+
+    async add(definitions) {
+        const tuples = parse(definitions).map(t => {
+            t.checked = true;
+            return t;
+        });
+
+        for (let i=0; i<tuples.length; i++) {
+            const tuple = tuples[i];
+
+            console.log("TODO: rewrite variable name for the id, so that duplicated definitions are not duplicated on db!!");
+
+            const id = SHA256(JSON.stringify(tuple)).toString('base64');
+
+            const definition = await this.rDB.tables.definitions.insert({
+                definitionID: id,
+                tuple
+            }, null);
+
+            // make indexes
+            for (let i=0; i<tuple.t.length; i++) {
+                const v = tuple.t[i];
+
+                await this.rDB.tables.definitionIndexes.insert({
+                    definition,
+                    tupleLength: tuple.t.length,
+                    type: this.getType(v),
+                    position: i
+                }, null);
+            }
+        }
+    }
+
+    async search (tuple) {
+        const definitionIndexes = this.rDB.tables.definitionIndexes;
+        let results = [];
+
+        for (let i=0; i<tuple.t.length; i++) {
+            const v = tuple.t[i];
+
+            const type = this.getType(v);
+
+            const index = {
+                position: i,
+                tupleLength: tuple.t.length
+            };
+
+            const check = {};
+            if (type === 'V') {
+                for await (let d of definitionIndexes.findByIndex(index)) {
+                    const definition = await d.data.definition;
+                    check[definition.id] = definition;
+                }
+            }
+            else {
+                index.type = type;
+                for await (let d of definitionIndexes.findByIndex(index)) {
+                    const definition = await d.data.definition;
+                    check[definition.id] = definition;
+                }
+
+                index.type = 'V';
+                for await (let d of definitionIndexes.findByIndex(index)) {
+                    const definition = await d.data.definition;
+                    check[definition.id] = definition;
+                }
+            }
+
+            if (i === 0) {
+                results = Object.keys(check).map(k => check[k]);
+            }
+            else {
+                console.log(results.map(d => d.id), Object.keys(check));
+                results = results.filter(d => check[d.id]);
+            }
+
+            if (results.length === 0) {
+                return [];
+            }
+        }
+
+        return Promise.all(results.map(async d => d.data.tuple));
+    }
+}
+
+class _DB {
 
     constructor () {
         this.indexes = new Map();
