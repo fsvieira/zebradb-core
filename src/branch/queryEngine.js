@@ -155,6 +155,17 @@ class QueryEngine {
 
         return r;
     }
+
+    async getFails () {
+        const r = [];
+        const branches = this.rDB.tables.branches;
+
+        for await (let branch of branches.findByIndex({state: 'no'})) {
+            r.push(branch);
+        }
+
+        return r;
+    }
 }
 
 module.exports = QueryEngine;

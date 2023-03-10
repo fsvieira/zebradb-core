@@ -199,7 +199,7 @@ describe("Math Tests", () => {
         )
     ) 
 
-    xit("should define Add floats Fixed-Point (2)", 
+    it("should define Add floats Fixed-Point (2)", 
         test(`
             (float32 
                 '{0 1} '{0 1} '{0 1} '{0 1} '{0 1} '{0 1} '{0 1} '{0 1} /* 8 bits */
@@ -209,31 +209,24 @@ describe("Math Tests", () => {
                 '{0 1} '{0 1} '{0 1} '{0 1} '{0 1} '{0 1} '{0 1} '{0 1} /* 8 bits */
             )
 
-            (adder 'o  'o  'o  'o 'o)
+            (adder 'o:{0 1} 'o  'o  'o 'o)
             # (adder 0 	0 	0 	0 	0)
             # (adder 1 	1 	1 	1 	1)
-
-
-            (adder 'o  'o '/'o '/'o 'o)
+            
+            
+            (adder 'o:{0 1} 'o 'z:{0 1}~'o 'z 'o)
             # (adder 0 	0 	1 	1 	0)
             # (adder 1 	1 	0 	0 	1)
-
-            (adder 'o '/'o  'o '/'o 'o)
+            
+            (adder 'o:{0 1} 'z:{0 1}~'o  'o 'z 'o)
             # (adder 1 	0 	1 	0 	1)
             # (adder 0 	1 	0 	1 	0)
-
-            (adder 'o '/'o '/'o  'o '/'o)
+            
+            (adder 'o:{0 1} 'z:{0 1}~'o 'z  'o 'z)
             # (adder 0 	1 	1 	0 	1)
             # (adder 1 	0 	0 	1 	0)
-        
-            (add-body
-                ' ' ' ' ' ' ' ' 
-                ' ' ' ' ' ' ' ' 
-                ' ' ' ' ' ' ' ' 
-                ' ' ' ' ' ' ' ' 
-            )
-
-            (add 
+                
+            (
                 (float32
                     'x1 'x2 'x3 'x4 'x5 'x6 'x7 'x8  
                     'x9 'x10 'x11 'x12 'x13 'x14 'x15 'x16 
@@ -241,6 +234,7 @@ describe("Math Tests", () => {
                     'x17 'x18 'x19 'x20 'x21 'x22 'x23 'x24  
                     'x25 'x26 'x27 'x28 'x29 'x30 'x31 'x32 
                 )
+                +
                 (float32
                     'y1 'y2 'y3 'y4 'y5 'y6 'y7 'y8  
                     'y9 'y10 'y11 'y12 'y13 'y14 'y15 'y16 
@@ -248,6 +242,7 @@ describe("Math Tests", () => {
                     'y17 'y18 'y19 'y20 'y21 'y22 'y23 'y24  
                     'y25 'y26 'y27 'y28 'y29 'y30 'y31 'y32 
                 )
+                =
                 (float32
                     'z1 'z2 'z3 'z4 'z5 'z6 'z7 'z8  
                     'z9 'z10 'z11 'z12 'z13 'z14 'z15 'z16 
@@ -255,45 +250,44 @@ describe("Math Tests", () => {
                     'z17 'z18 'z19 'z20 'z21 'z22 'z23 'z24  
                     'z25 'z26 'z27 'z28 'z29 'z30 'z31 'z32 
                 )
-                (add-body
-                    (adder 0    'x32 'y32 'z32 'c1)
-                    (adder 'c1  'x31 'y31 'z31 'c2)
-                    (adder 'c2  'x30 'y30 'z30 'c3)
-                    (adder 'c3  'x29 'y29 'z29 'c4)
-                    (adder 'c4  'x28 'y28 'z28 'c5)
-                    (adder 'c5  'x27 'y27 'z27 'c6)
-                    (adder 'c6  'x26 'y26 'z26 'c7)
-                    (adder 'c7  'x25 'y25 'z25 'c8)
-                    (adder 'c8  'x24 'y24 'z24 'c9)
-                    (adder 'c9  'x23 'y23 'z23 'c10)
-                    (adder 'c10 'x22 'y22 'z22 'c11)
-                    (adder 'c11 'x21 'y21 'z21 'c12)
-                    (adder 'c12 'x20 'y20 'z20 'c13)
-                    (adder 'c13 'x19 'y19 'z19 'c14)
-                    (adder 'c14 'x18 'y18 'z18 'c15)
-                    (adder 'c15 'x17 'y17 'z17 'c16)
-                    (adder 'c16 'x16 'y16 'z16 'c17)
-                    (adder 'c17 'x15 'y15 'z15 'c18)
-                    (adder 'c18 'x14 'y14 'z14 'c19)
-                    (adder 'c19 'x13 'y13 'z13 'c20)
-                    (adder 'c20 'x12 'y12 'z12 'c21)
-                    (adder 'c21 'x11 'y11 'z11 'c22)
-                    (adder 'c22 'x10 'y10 'z10 'c23)
-                    (adder 'c23 'x9  'y9  'z9 'c24)
-                    (adder 'c24 'x8  'y8  'z8 'c25)
-                    (adder 'c25 'x7  'y7  'z7 'c26)
-                    (adder 'c26 'x6  'y6  'z6 'c27)
-                    (adder 'c27 'x5  'y5  'z5 'c28)
-                    (adder 'c28 'x4  'y4  'z4 'c29)
-                    (adder 'c29 'x3  'y3  'z3 'c30)
-                    (adder 'c30 'x2  'y2  'z2 'c31)
-                    (adder 'c31 'x1  'y1  'z1 'z0)
-                )
-            )
-
+            ) {
+                (adder 0    'x32 'y32 'z32 'c1)
+                (adder 'c1  'x31 'y31 'z31 'c2)
+                (adder 'c2  'x30 'y30 'z30 'c3)
+                (adder 'c3  'x29 'y29 'z29 'c4)
+                (adder 'c4  'x28 'y28 'z28 'c5)
+                (adder 'c5  'x27 'y27 'z27 'c6)
+                (adder 'c6  'x26 'y26 'z26 'c7)
+                (adder 'c7  'x25 'y25 'z25 'c8)
+                (adder 'c8  'x24 'y24 'z24 'c9)
+                (adder 'c9  'x23 'y23 'z23 'c10)
+                (adder 'c10 'x22 'y22 'z22 'c11)
+                (adder 'c11 'x21 'y21 'z21 'c12)
+                (adder 'c12 'x20 'y20 'z20 'c13)
+                (adder 'c13 'x19 'y19 'z19 'c14)
+                (adder 'c14 'x18 'y18 'z18 'c15)
+                (adder 'c15 'x17 'y17 'z17 'c16)
+                (adder 'c16 'x16 'y16 'z16 'c17)
+                (adder 'c17 'x15 'y15 'z15 'c18)
+                (adder 'c18 'x14 'y14 'z14 'c19)
+                (adder 'c19 'x13 'y13 'z13 'c20)
+                (adder 'c20 'x12 'y12 'z12 'c21)
+                (adder 'c21 'x11 'y11 'z11 'c22)
+                (adder 'c22 'x10 'y10 'z10 'c23)
+                (adder 'c23 'x9  'y9  'z9 'c24)
+                (adder 'c24 'x8  'y8  'z8 'c25)
+                (adder 'c25 'x7  'y7  'z7 'c26)
+                (adder 'c26 'x6  'y6  'z6 'c27)
+                (adder 'c27 'x5  'y5  'z5 'c28)
+                (adder 'c28 'x4  'y4  'z4 'c29)
+                (adder 'c29 'x3  'y3  'z3 'c30)
+                (adder 'c30 'x2  'y2  'z2 'c31)
+                (adder 'c31 'x1  'y1  'z1 'z0)
+            }
+            
         `, [{
             query: `
-                (add 
+                ( 
                     (float32
                         0 0 0 0 0 0 0 0
                         0 0 0 0 0 0 0 1
@@ -301,6 +295,7 @@ describe("Math Tests", () => {
                         0 0 0 0 0 0 0 0
                         0 0 0 0 0 0 0 0
                     )
+                    +
                     (float32
                         0 0 0 0 0 0 0 0
                         0 0 0 0 0 0 1 1
@@ -308,12 +303,12 @@ describe("Math Tests", () => {
                         0 0 0 0 0 0 0 0
                         0 0 0 0 0 0 0 0
                     )
+                    =
                     'z
-                    '
                 )
             `,
             results: [
-                "@(float32 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 . 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)"
+                "@(@(float32 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 . 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0) + @(float32 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 . 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0) = @(float32 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 . 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0))"
             ]
         }], 
         { 
