@@ -103,9 +103,9 @@ describe("ZQuery Tests.", () => {
 		)
 	);
 
-	xit("should handle duplicated definitions.",
+	it("should handle duplicated definitions.",
 		test(
-			"('a) ('a)", [{
+			"('a) ('a) ('b)", [{
 				query: "(yellow)",
 				results: ["@(yellow)"]
 			}],
