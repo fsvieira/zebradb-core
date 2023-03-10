@@ -1,5 +1,8 @@
+/*
 const QueryEngine = require('../src/branch/queryEngine');
-const {DB} = require('../src/db');
+const {DB} = require('../src/db');*/
+const z = require("../index");
+const path = require("path");
 const should = require("should");
 
 function test (definitions, tests, options={
@@ -12,8 +15,22 @@ function test (definitions, tests, options={
             this.timeout(timeout);
         }
 
+        /*
         const db = new DB();
         db.add(definitions);
+        */
+
+        const db = await z.definitions(
+            {
+                path: path.join(options.path, 'definitions')
+            }, 
+            {
+                author: 'fsvieira',
+                name: 'test',
+                version: '1.0.0'
+            }, 
+            definitions
+        );
     
         for (let i=0; i<tests.length; i++) {
             const {
@@ -22,9 +39,14 @@ function test (definitions, tests, options={
                 process
             } = tests[i];
     
-            const qe = await (new QueryEngine(db, options)).init(query);
+            /*const qe = await (new QueryEngine(db, options)).init(query);
             
-            await qe.run();
+            await qe.run();*/
+
+            const qe = await z.query(db, query, {
+                ...options,
+                path: path.join(options.path, 'run')
+            });
 
             const solutions = await qe.getSolutions();
             const transforms = solutions.map(
@@ -35,15 +57,9 @@ function test (definitions, tests, options={
             );
 
             const re = await Promise.all(transforms);
-            /*
-            const re = await Promise.all((await qe.run()).map(
-                process?b => process(await b.toJS()):async b => await b.toString()
-            ));*/
-
+            
             should(re.sort()).be.eql(results.sort());
         }
-
-        // done();
     }
 }
 

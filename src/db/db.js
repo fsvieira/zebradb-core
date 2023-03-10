@@ -74,6 +74,7 @@ class DB {
                 tuple
             }, null);
 
+            // console.log(id, definition.id, definition);
             // make indexes
             for (let i=0; i<tuple.t.length; i++) {
                 const v = tuple.t[i];
@@ -127,7 +128,6 @@ class DB {
                 results = Object.keys(check).map(k => check[k]);
             }
             else {
-                console.log(results.map(d => d.id), Object.keys(check));
                 results = results.filter(d => check[d.id]);
             }
 

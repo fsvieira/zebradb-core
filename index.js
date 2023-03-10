@@ -5,7 +5,7 @@ module.exports = {
     definitions: async (options, packageName, definitions) => {
         const db = new DB(options, packageName);
         await db.init();
-        db.add(definitions);
+        await db.add(definitions);
 
         return db;
     },
