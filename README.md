@@ -26,163 +26,220 @@ This is old version it does work as a lib,
 ```
 
 
-# Language
+# The Zebradb Language
+Zebradb features a unified language for defining data structures and querying them, known as zlang. In the sections that follow, we will provide a detailed description of this language, covering its syntax and semantics.
 
-Zebrajs language consists of two parts the definitions and the query, both parts share the same language of zebra-system terms, which is defined by
-a certain formal syntax, and a set of transformation rules.
+## Comments
+Zebradb supports both C-style multiline comments and shell-style single-line comments.
 
-The zebra language is very simple, it only has constants, variables, tuples, domains and negation (has not-unify).
+### C-style comments
+C-style comments begin with /* and end with */. They can span multiple lines and are often used to provide detailed descriptions of code.
 
-## tuples, constants and variables
+Example:
 
-A math function can be represented as a set of tuples, so on zebra language you can think of tuples has functions,
-for example, the binary function and:
-  * &: bin -> bin -> bin
+```
+/*
+This is a multiline comment that can span several lines.
+It can be used to provide documentation for 
+definitions and queries.
+*/
+```
+### Shell-style comments
+Shell-style comments begin with # and end with a new line. They are used for comments that span a single line.
 
-Where operatar & can be defined as a table:
- * p q | p & q
- * 0 0 | 0
- * 0 1 | 0
- * 1 0 | 0
- * 1 1 | 1
+Example:
 
-On zebra language we define such function like this:
- * (0 & 0 = 0)
- * (0 & 1 = 0)
- * (1 & 0 = 0)
- * (1 & 1 = 1)
+```
+# This is a single-line comment.
+```
 
-The 0, 1, & and = are just simbols (constants) and have no meaning to zebra-system, when we perform
-the query:
- * ('p & 'q = 'r)
+Comments can be used to make code more readable and maintainable, and to provide additional information for others who may be working with the code.
 
-zebra-system is going to match query with all definitons and will unify variables 'p, 'q and 'r with the
-values found, on this example we will get the all & table.
 
-So if we do another query like this:
- * ('p & 'q = 1) we will get (1 & 1 = 1).
+## Constants
+A constant is a string of characters that does not include comments, quotes ('), parentheses (()) , curly braces ({}), square brackets ([]), or whitespace. It can include letters, numbers, and certain special characters, such as ., ,, =, +, -, *, /, ?, and !.
 
-All symbol can be variables, lets define another function:
- * (0 | 0 = 0)
- * (0 | 1 = 1)
- * (1 | 0 = 1)
- * (1 | 1 = 1)
+Examples of constants in zlang include:
 
-Now we ask the system what operations would give us the result of 1: ?('p 'o 'q = 1), and
-the result would be:
- * (1 & 1 = 1)
- * (0 | 1 = 1)
- * (1 | 0 = 1)
- * (1 | 1 = 1)
+```
+yellow red 0 1 , [] . = ...
+```
+Note that constants are case sensitive and cannot contain spaces or other whitespace characters.
 
-## domains
+## Variables
+In Zebradb, variables always start with the apostrophe symbol (') and can be followed by a variable name. An anonymous variable can also be used by using only the apostrophe symbol.
 
- * Domains can only contain constants, they work as variables but they only can be unfied 
- with constants that are in the domain.
- 
- Example, lets define & operator using domains:
-   * ('[0 1] & 0 = 0)
-   * ( 0 & '[0 1] = 0)  
-   * ( 1 & 1 = 0) 
+Examples:
+```
+'a   # this is a variable with the name "a"
+'    # this is an anonymous variable
+```
 
- Domains are defined like this '\[ ...constants ...\], they 
- use the same ' variables prefix because they are a special case of variables  .  
+### Domains
+Domains are sets of constants (e.g., {1 2 3 4}) that are associated with a variable.
 
-## negations (~, not-unify)
+Examples:
+```
+'{0 1 2 3}   
+# Anonymous variable that can only be assigned to values 0, 1, 2 or 3.
 
-Now lets make a query with a negation (~):
+'color{blue pink black}  
+# Variable "color" that can only be assigned to values blue, pink, and black.
 
-* ('p | ~'p = 1)
+'color:{blue pink black}  
+# Same as above but with ":" for aesthetic purposes.
+```
 
-On this query the negation is ~'p, all negations starts with ~.
-Negation can be applied to anything tuples, constants and variables, domains. 
-They work as a not-unify, when negation is declared it creates a new anonimous variable, 
-this variable is not-unifiable with the negated part. 
-Example: ~p <=> '_v$1 != 'p
+### Not-Unify Operator: ~
+The not-unify operator is used to indicate that a variable or zlang term cannot be unified with another term.
 
-So the result of this query would be:
- * (0 | 1 = 1) => (0 | 1 = 1)
- * (1 | 0 = 1) => (1 | 0 = 1)
+Examples:
+```
+'y~'x  
+# This says that variable 'y cannot be unified with 'x, meaning that 'y must be different from 'x.
+```
 
-So we are excluding (1 | 1 = 1) because 'p = ~'p <=> 1 = 1 is a contradiction.
+```
+'y~yellow  
+# This says that variable 'y cannot be unified with the constant 'yellow', meaning that 'y must be different from 'yellow'.
+```
 
-This are the basics of zebra-system, but because its hard to explain how it works, I will do it with more examples:
+```
+'~yellow  
+# This says that the anonymous variable cannot be unified with the constant 'yellow', meaning that it cannot have the same value as 'yellow'.
+```
 
-## Puting all togheter on a fancy example
+For aesthetic purposes, the above example can be rewritten as:
 
-Lets define the and operator with negations:
+```
+~yellow  
+# This says that the anonymous variable cannot be unified with the constant 'yellow', meaning that it cannot have the same value as 'yellow'.
+```
 
- * ('p & ~'p = 0)
- * ('p & 'p = 'p)  
+```
+'x:{0 1}~'y:{0 1}  
+# This says that 'x and 'y cannot be the same, and both can only have the values 0 or 1. So, if 'x is 0, then 'y must be 1, and vice versa.
+```
 
-And now we can query with domains:
-  * ('[0 1] & '[0 1] = '[0 1])
+The not-unify operator also supports a list of zlang terms using ~{...}:
 
-  It will give the & results:
-  * (0 & 0 = 0)
-  * (0 & 1 = 0)
-  * (1 & 0 = 0)
-  * (1 & 1 = 1)
-  
-In this case domains are set on query but we can change definitions to have the bit type like this:
+```
+'x~{'y 'z yellow} 
+# This says that 'x cannot have the same value as 'y, 'z, or the constant 'yellow'.
+```
 
-  * (bit '[0 1])
-  * ((bit 'p) & (bit ~'p) = (bit 0))
-  * ((bit 'p) & (bit 'p) = (bit 'p))
+```
+'x~{'y~'z} 
+# This says that 'x cannot have the same value as 'y, and 'y cannot have the same value as 'z.
+```
 
-  And the query can be like this:
-    * ('p & 'q = 'z)
-  
-  And the results:
-  * ((bit 0) & (bit 0) = (bit 0))
-  * ((bit 0) & (bit 1) = (bit 0))
-  * ((bit 1) & (bit 0) = (bit 0))
-  * ((bit 1) & (bit 1) = (bit 1))
+```
+'x~'y~'z 
+# This says that 'x cannot have the same value as 'y, and 'y cannot have the same value as 'z.
+```
 
-### Examples
+## Tuples
+Tuples are collections of zlang terms, including variables, constants, and even other tuples.
 
-* Definitions, are considered facts they are always tuples and always global.
-  * Ex: (color yellow)
-  * In this example color and yellow are constants, constants don't need to be declared anywhere
-    because we consider that all constants exists.
-* Queries, are questions to the system definitions (facts),
-  * Ex: (color yellow)
-  * Because definitions/facts are tuples, all querys are also tuples,
-  * In this example the system will check if any of the definitions unify with the query,
-    if yes the result will be the tuple itself: (color yellow)
-  * If there is no awnser then the system will return nothing.
-* Queries, may also be inner tuples of queries or definitions
-  * The ideia is quite simple, a fact is only valid if all contained tuples are also valid facts.
-  * Ex: (man (person 'name) (male 'name) 'name)
-    * This fact is invalid because there is no (person 'name) or (male 'name) definitions,
-    * Here the 'name is a variable, all variables have the ' as prefix,
-    * You can also define anonimous variables, just use ' without a name,
-    * If we add the facts:
-      * (person filipe)
-      * (male filipe)
-    * The the fact would be valid and the query:
-      * ?(man ' ' 'man), returns:
-      * (man (person filipe) (male filipe) filipe)
-* Negation, has not-unify,
-  * Ex:
-    * ('x = 'x)
-    * ('x != ~'x)
-    * (color yellow)
-    * (color blue)
-    * Query: ((color 'x) != (color 'y))
-  * The query should return:
-    * ((color blue) != (color yellow))
-    * ((color yellow) != (color blue))
-  * We are asking for colors that are not equal.
-  * Queries and definitions can also have domains, domains can only contains constants and they work as a variable that is restricted to unify only the domains values.
+Examples:
+```
+('x = 'x) 
+# This tuple has 3 elements: two 'x variables and one "=" constant.
+```
 
-* Thats it.
+```
+('x != ~'x) 
+# This tuple has 3 elements: one 'x variable, one "!=" constant, and one ~'x anonimous variable that does not unify with 'x.
+```
 
-## Examples
-The is a new repository that contains zebrajs examples and a console program to run them.
+```
+((blue) != ~(blue)) 
+# Not-unify can also be used on tuples, like this tuple that has two elements: one "blue" constant and one ~'(blue) anonimous variable that does not unify with "blue".
+```
 
-https://github.com/fsvieira/zebrajs-examples
+## Definitions and Queries
+In Zebradb, definitions and queries are represented as tuples.
 
+### Definitions
+A definition tuple contains zlang terms, such as variables, constants, and other tuples.
+
+Examples:
+```
+('x != ~'x)
+('x = 'x)
+```
+
+The outermost tuple is considered a fact, and any tuple that successfully unifies with it is considered valid or checked. However, inner tuples are not considered to be facts, and so unified tuples are not automatically checked. This means that inner tuples of a definition must be unifiable with other definitions.
+
+Example:
+```
+((bit 'x) = (bit 'x))
+```
+
+All queries to this set of definitions will fail because the tuple (bit 'x) does not unify with any definition. To fix this, we can add a new definition:
+
+```
+(bit 'x:{0 1})
+((bit 'x) = (bit 'x))
+```
+
+### Queries
+A query is a tuple that we want to evaluate against the definitions. Zebradb uses unification to evaluate queries by attempting to unify the query tuple with each definition tuple.
+
+Example:
+```
+(blue 'x blue)
+```
+
+The output of this query is (blue = blue), which means that 'x can be unified with blue.
+After all queries are checked, a solution is found.
+
+### Hidden {}
+A hidden list of tuples can be added to a definition or query tuple by placing the list in curly braces immediately after the tuple.
+
+example:
+Suppose we have the following tuples representing Mary's preferences:
+
+```
+(mary likes food)
+(mary likes wine)
+```
+
+We can then use a hidden list of tuples to express John's preference for what Mary likes:
+
+```
+(john likes 'stuff) {(mary likes 'stuff)}
+```
+
+Here, the hidden list of tuples {(mary likes 'stuff)} indicates that the variable 'stuff must be assigned a value that Mary likes.
+
+### Recursive Definitions
+Recursion is a powerful technique that allows for defining complex structures and relationships. In Zebradb, it is possible to create recursive definitions, where a definition refers to itself. Here is an example of a recursive definition for an inductive type nat:
+
+```
+(nat 0)
+(nat (nat 'x))
+```
+
+The first line states that 0 is a natural number. The second line says that if 'x is a natural number, then (nat 'x) is also a natural number.
+
+To illustrate, consider the following query:
+
+```
+(nat (nat (nat 0)))
+```
+
+This query asks whether (nat (nat 0)) is itself a natural number. By the second definition, we know that (nat (nat 0)) is indeed a natural number, so the query is true.
+
+It is also possible to create queries that generate an infinite number of results. For instance, consider the query:
+
+```
+(nat 'x)
+```
+
+This query asks for all natural numbers. The answer is an infinite list of tuples, where each tuple corresponds to a natural number. The first tuple is (nat 0), the second is (nat (nat 0)), the third is (nat (nat (nat 0))), and so on, ad infinitum.
+
+It is important to note that recursive queries can run forever unless there is a stop condition. Thus, it is essential to carefully design recursive definitions to avoid infinite loops.
 
 ## Tests
 
