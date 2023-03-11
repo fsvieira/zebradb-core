@@ -15,22 +15,13 @@
   </style>
 </head>
 <body>
-<p>Zebradb got a major redesign, I think its on the rigth track but is still on a heavy experimental phase. Here is a list of the major changes:</p>
+<p>Zebradb has undergone a major redesign and is currently in a heavy experimental phase, although I believe it’s on the right track. The following are the major changes that have been implemented:</p>
 <ul>
-<li>Its now using <a href="https://github.com/fsvieira/beastdb" target="_blank">beastdb</a> for processing:
-<ul>
-<li>persists processing data on disk, so in case of stop or crash it can be resumed,</li>
-<li>better memory handling because not all branches need to be on memory.</li>
-</ul></li>
-<li>Added domains,</li>
-<li>Added hidden/body to definitions and queries,</li>
-<li>Added not-unify operator,</li>
-<li>Put negation-by-failure on hold:
-<ul>
-<li>Negation-by-failure is much more complicated than not-unify,</li>
-<li>Not-unify can solve some of the problems that negation-by-failure solves, but not all,</li>
-<li>It needs more research.</li>
-</ul></li>
+<li><a href="https://github.com/fsvieira/beastdb" target="_blank">BeastDB</a> is now being used for processing, which persists processing data on disk, allowing for resumption in case of a stop or crash. Additionally, this approach enables better memory handling since not all branches need to be in memory.</li>
+<li>Domains have been added.</li>
+<li>Hidden/body definitions and queries have been added.</li>
+<li>A not-unify operator has been implemented.</li>
+<li>Negation-by-failure has been put on hold. While it is a more complicated solution than not-unify, not-unify can solve some of the problems that negation-by-failure solves, but not all. Further research is needed.</li>
 </ul>
 </body>
 </html>

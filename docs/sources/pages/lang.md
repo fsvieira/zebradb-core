@@ -1,230 +1,215 @@
-# Zebradb Language
-
-Zebradb has a single language (zlang) for definitions and queries. 
-The following sections describes this language.
+# The Zebradb Language
+Zebradb features a unified language for defining data structures and querying them, known as zlang. In the sections that follow, we will provide a detailed description of this language, covering its syntax and semantics.
 
 ## Comments
+Zebradb supports both C-style multiline comments and shell-style single-line comments.
 
-C-style, shell-style
+### C-style comments
+C-style comments begin with /* and end with */. They can span multiple lines and are often used to provide detailed descriptions of code.
 
-* examples:
+Example:
+
 ```
 /*
-    Multiline comment
-
+This is a multiline comment that can span several lines.
+It can be used to provide documentation for 
+definitions and queries.
 */
 ```
+### Shell-style comments
+Shell-style comments begin with # and end with a new line. They are used for comments that span a single line.
+
+Example:
 
 ```
-    # single line comment.
+# This is a single-line comment.
 ```
 
-## Constants 
+Comments can be used to make code more readable and maintainable, and to provide additional information for others who may be working with the code.
 
-A string that does not include comments, ', (), {} and whitespaces.
 
-* examples
+## Constants
+A constant is a string of characters that does not include comments, quotes ('), parentheses (()) , curly braces ({}), square brackets ([]), or whitespace. It can include letters, numbers, and certain special characters, such as ., ,, =, +, -, *, /, ?, and !.
+
+Examples of constants in zlang include:
+
 ```
-    yellow red 0 1 , [ ] . = ...
+yellow red 0 1 , [] . = ...
 ```
+Note that constants are case sensitive and cannot contain spaces or other whitespace characters.
 
 ## Variables
+In Zebradb, variables always start with the apostrophe symbol (') and can be followed by a variable name. An anonymous variable can also be used by using only the apostrophe symbol.
 
-Variables start with ' and can be followed by varname
-
-* examples
-
+Examples:
 ```
-    'a   
-    # its variable "a"
+'a   # this is a variable with the name "a"
+'    # this is an anonymous variable
 ```
 
-```
-    ' 
-    # anonimous variable
-```
+### Domains
+Domains are sets of constants (e.g., {1 2 3 4}) that are associated with a variable.
 
-### domains
-
-Domains are sets of constants (eg. {1 2 3 4}) that are associated to a variable. 
-
-* examples
-
+Examples:
 ```
-    '{0 1 2 3}   
-    # anonimous variable can only be assigned to values 0, 1, 2 or 3.
-```
+'{0 1 2 3}   
+# Anonymous variable that can only be assigned to values 0, 1, 2 or 3.
 
-```
-    'color{blue pink black}  
-    # variable color can only be assigned to values blue, pink and black.
+'color{blue pink black}  
+# Variable "color" that can only be assigned to values blue, pink, and black.
+
+'color:{blue pink black}  
+# Same as above but with ":" for aesthetic purposes.
 ```
 
-For aesthetic purposes we can use : to separate the varname and domain, but its exactly the same as above.
+### Not-Unify Operator: ~
+The not-unify operator is used to indicate that a variable or zlang term cannot be unified with another term.
 
+Examples:
 ```
-    'color:{blue pink black}  
-    #  variable color can only be assigned to values 0, 1, 2 or 3.
-```
-
-### not-unify ~
-
-The not unify is used to say that a variable or zlang term is not unifable 
-with other term.
-
-* examples:
-
-```
-    'y~'x  
-    # it says that variable 'y does not-unify with 'x, 'y != 'x.
+'y~'x  
+# This says that variable 'y cannot be unified with 'x, meaning that 'y must be different from 'x.
 ```
 
 ```
-    'y~yellow  
-    # it says that variable 'y does not-unify with constant yellow, 'y != yellow.
+'y~yellow  
+# This says that variable 'y cannot be unified with the constant 'yellow', meaning that 'y must be different from 'yellow'.
 ```
 
 ```
-    '~yellow  
-    # it says that anonimous variable does not-unify with constant yellow, ' != yellow.
+'~yellow  
+# This says that the anonymous variable cannot be unified with the constant 'yellow', meaning that it cannot have the same value as 'yellow'.
 ```
 
-For aesthetic purposes we can rewrite the above example like this
+For aesthetic purposes, the above example can be rewritten as:
 
 ```
-    ~yellow  
-    #  it says that anonimous variable does not-unify with constant yellow, ' != yellow.
-```
-
-```
-    'x:{0 1}~'y{0 1}  
-    #  it says that 'x != y and both can only have the values 0 or 1, so x=0 then y=1, x=1 then y=0
-```
-
-It also suports a list of zlang terms using ~{...}
-
-```
-    'x~{'y 'z yellow} 
-    # its says that 'x can't be equal to 'y, 'z and constant yellow  
+~yellow  
+# This says that the anonymous variable cannot be unified with the constant 'yellow', meaning that it cannot have the same value as 'yellow'.
 ```
 
 ```
-    'x~{'y~'z} 
-    # its says that 'x != 'y, and 'y != 'z  
+'x:{0 1}~'y:{0 1}  
+# This says that 'x and 'y cannot be the same, and both can only have the values 0 or 1. So, if 'x is 0, then 'y must be 1, and vice versa.
+```
+
+The not-unify operator also supports a list of zlang terms using ~{...}:
+
+```
+'x~{'y 'z yellow} 
+# This says that 'x cannot have the same value as 'y, 'z, or the constant 'yellow'.
 ```
 
 ```
-    'x~'y~'z 
-    # its says that 'x != 'y, and 'y != 'z  
+'x~{'y~'z} 
+# This says that 'x cannot have the same value as 'y, and 'y cannot have the same value as 'z.
+```
+
+```
+'x~'y~'z 
+# This says that 'x cannot have the same value as 'y, and 'y cannot have the same value as 'z.
 ```
 
 ## Tuples
+Tuples are collections of zlang terms, including variables, constants, and even other tuples.
 
-Has the name says tuples are tuples of zlang terms (variables, constants, tuples, ...)
-
-* examples:
-
+Examples:
 ```
-    ('x = 'x) 
-    # tuple has 3 elements, 2 'x variables and one "=" constant
+('x = 'x) 
+# This tuple has 3 elements: two 'x variables and one "=" constant.
 ```
 
 ```
-    ('x != ~'x) 
-    # tuple has 3 elements, 'x variable, != constant and ~'x anonimous variable that does not-unify with 'x
+('x != ~'x) 
+# This tuple has 3 elements: one 'x variable, one "!=" constant, and one ~'x anonimous variable that does not unify with 'x.
 ```
 
 ```
-    ((blue) != ~(blue)) 
-    # not-unify can also be used on tuples.
+((blue) != ~(blue)) 
+# Not-unify can also be used on tuples, like this tuple that has two elements: one "blue" constant and one ~'(blue) anonimous variable that does not unify with "blue".
 ```
 
-## Definitions and Query
+## Definitions and Queries
+In Zebradb, definitions and queries are represented as tuples.
 
-Definitions and queries are only tuples. 
+### Definitions
+A definition tuple contains zlang terms, such as variables, constants, and other tuples.
 
-* example:
-
-definitions:
-
+Examples:
 ```
-    ('x != ~'x)
-    ('x = 'x)
-```
-
-query:
-
-```
-    (blue 'x blue)
+('x != ~'x)
+('x = 'x)
 ```
 
-output:
+The outermost tuple is considered a fact, and any tuple that successfully unifies with it is considered valid or checked. However, inner tuples are not considered to be facts, and so unified tuples are not automatically checked. This means that inner tuples of a definition must be unifiable with other definitions.
 
+Example:
 ```
-    (blue = blue)
-```
-
-1. Zebradb uses unification to evaluate the query, it basicly unifies the querie with the definitions tuple. 
-The outer definition tuple is considered a fact, so any tuple that sucessfuly unfies with it is considered to be valid or checked, however definition inner tuples are not considered to be a fact and so unified tuples are not automaticly checked.
-This means that defintion inner tuples must be unifiable with other definitions.
-
-* example:
-```
-    ((bit 'x) = (bit 'x))
-```
-    
-All queries to this set of definitions will fail because tuple (bit 'x)  does not unify with any definition.
-It can be fixed like this:
-
-```
-    (bit 'x:{0 1})
-    ((bit 'x) = (bit 'x))
+((bit 'x) = (bit 'x))
 ```
 
+All queries to this set of definitions will fail because the tuple (bit 'x) does not unify with any definition. To fix this, we can add a new definition:
 
-2. After all queries tuples are checked a solution is found.
+```
+(bit 'x:{0 1})
+((bit 'x) = (bit 'x))
+```
+
+### Queries
+A query is a tuple that we want to evaluate against the definitions. Zebradb uses unification to evaluate queries by attempting to unify the query tuple with each definition tuple.
+
+Example:
+```
+(blue 'x blue)
+```
+
+The output of this query is (blue = blue), which means that 'x can be unified with blue.
+After all queries are checked, a solution is found.
 
 ### Hidden {}
+A hidden list of tuples can be added to a definition or query tuple by placing the list in curly braces immediately after the tuple.
 
-A hidden list of tuples is preceded by the definition/query tuple like this:
-
-* example:
-```
-    (mary likes food)
-    (mary likes wine)
-
-    # john likes what mary likes.
-    (john likes 'stuff) {(mary likes 'stuff)}
+example:
+Suppose we have the following tuples representing Mary's preferences:
 
 ```
-
-### A word about recursion
-
-It may not be obvious but its possible to make recursive defintions, here is an example of inductive type nat:
-
-```
-    (nat 0)
-    (nat (nat 'x))
+(mary likes food)
+(mary likes wine)
 ```
 
-And a simple query:
-```
-    (nat (nat (nat 0)))
-```
-
-An infinity query:
-```
-    (nat 'x)
-```
-
-This query will return all numbers:
+We can then use a hidden list of tuples to express John's preference for what Mary likes:
 
 ```
-    (nat 0) # 0
-    (nat (nat 0)) # 1
-    (nat (nat (nat 0))) # 2
-    ...
-    (nat ...) # Infinity
+(john likes 'stuff) {(mary likes 'stuff)}
 ```
 
-Unless there is a stop condition recursive queries can run forever. 
+Here, the hidden list of tuples {(mary likes 'stuff)} indicates that the variable 'stuff must be assigned a value that Mary likes.
+
+### Recursive Definitions
+Recursion is a powerful technique that allows for defining complex structures and relationships. In Zebradb, it is possible to create recursive definitions, where a definition refers to itself. Here is an example of a recursive definition for an inductive type nat:
+
+```
+(nat 0)
+(nat (nat 'x))
+```
+
+The first line states that 0 is a natural number. The second line says that if 'x is a natural number, then (nat 'x) is also a natural number.
+
+To illustrate, consider the following query:
+
+```
+(nat (nat (nat 0)))
+```
+
+This query asks whether (nat (nat 0)) is itself a natural number. By the second definition, we know that (nat (nat 0)) is indeed a natural number, so the query is true.
+
+It is also possible to create queries that generate an infinite number of results. For instance, consider the query:
+
+```
+(nat 'x)
+```
+
+This query asks for all natural numbers. The answer is an infinite list of tuples, where each tuple corresponds to a natural number. The first tuple is (nat 0), the second is (nat (nat 0)), the third is (nat (nat (nat 0))), and so on, ad infinitum.
+
+It is important to note that recursive queries can run forever unless there is a stop condition. Thus, it is essential to carefully design recursive definitions to avoid infinite loops.
+
