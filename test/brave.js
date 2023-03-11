@@ -103,7 +103,7 @@ describe("Brave puzzle Tests.", () => {
     xit("should solve brave puzzle (2)",
 		test(
 			`
-            (letter '[B R A V E])
+            (letter '{B R A V E})
 
             ('x != ~'x)
 
@@ -163,10 +163,10 @@ describe("Brave puzzle Tests.", () => {
                     query: `
                         (brave
                             B R A V E
-                            V E B R A
-                            ' A V E B
-                            E B R A V
-                            A V E B R
+                            ' E B R '
+                            ' ' V ' '
+                            ' B R ' '
+                            ' ' E B '
                             '
                         )
                     `,                    

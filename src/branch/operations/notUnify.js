@@ -43,10 +43,10 @@ const notUnifyFn = {
         },
         c: async (ctx, p, q, cs) => {            
             if (p.e) {
-                /*console.log(
+                console.log(
                     "TODO: Not Unify; Check if there is alredy set constrains that don't allow unify, if yes we can return true.",
                     JSON.stringify(p), JSON.stringify(q)
-                );*/
+                );
 
                 process.exit();
             }

@@ -10,7 +10,7 @@ function parse (text) {
 		parsed = zparse(text);
 	}
 	catch (e) {
-		throw "Exception (l=" + e.line + ", c=" + e.column + ") " + e.message;
+		throw "Exception (l=" + e.location.start.line + ", c=" + e.location.start.column + ") " + e.message;
 	}
 
 	const result = [];
