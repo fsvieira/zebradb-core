@@ -1,4 +1,9 @@
 const {parse} = require('../parsing');
+const {DB: beastDB} = require("beastdb");
+const {SHA256} = require("sha2");
+const path = require("path");
+
+/*
 // const { v4 } = require('uuid');
 // const FSA = require("fsalib");
 
@@ -23,6 +28,8 @@ const varname = () => {
 
 const normalizeVarnames = (v, vn=varname()) => {
 
+    console.log("TODO: normalize varname on restrictions!");
+    
     if (v.t) {
         const t = [];
         for (let i=0; i < v.t.length; i++) {
@@ -44,6 +51,7 @@ const normalizeVarnames = (v, vn=varname()) => {
         throw "Unknwon type ", JSON.stringify(v);
     }
 }
+*/
 
 class DB {
     constructor (options, packageInfo) {
@@ -96,14 +104,29 @@ class DB {
 
     async add(definitions) {
         const tuples = parse(definitions).map(t => {
-            t.checked = true;
+            t.variables[t.root].checked = true;
             return t;
         });
 
         for (let i=0; i<tuples.length; i++) {
             const tuple = tuples[i];
-            const ts = normalizeVarnames(tuple);
-            const id = SHA256(JSON.stringify(ts)).toString('base64');
+//             const ts = normalizeVarnames(tuple);
+
+
+            console.log("TODO: generate a general hash for definition and then check if they are equal!!");
+            /*
+                TODO: before generate id and insert to database:
+                    1. Generate a general hash (replace varnmes with "'v", ignore domains?, ignore excetions?)
+                    2. Check database for the existing of the hash,
+                        2a. if not exists we can insert,
+                        2a. if does exist we compare all tuples on that hash, if none is equal we can insert.
+                    3. Insert:
+                        * we can insert normal definition and make a index for the compare hash.
+
+                Notes: the hash can be improved, also we can have more then one hash, or stats.
+            */
+
+            const id = SHA256(JSON.stringify(tuple)).toString('base64');
 
             const definition = await this.rDB.tables.definitions.insert({
                 definitionID: id,
@@ -111,12 +134,14 @@ class DB {
             }, null);
 
             // make indexes
-            for (let i=0; i<tuple.t.length; i++) {
-                const v = tuple.t[i];
+            const root = tuple.variables[tuple.root];
+
+            for (let i=0; i<root.t.length; i++) {
+                const v = tuple.variables[root.t[i]];
 
                 await this.rDB.tables.definitionIndexes.insert({
                     definition,
-                    tupleLength: tuple.t.length,
+                    tupleLength: root.t.length,
                     type: this.getType(v),
                     position: i
                 }, null);

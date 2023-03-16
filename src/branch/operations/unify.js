@@ -193,8 +193,8 @@ async function deepUnify(
 
     const definitionID = await copyTerm(ctx, definition);
 
-    ctx.unchecked = await ctx.unchecked.remove(definitionID);
-    ctx.checked = await ctx.checked.add(definitionID);
+    /*ctx.unchecked = await ctx.unchecked.remove(definitionID);
+    ctx.checked = await ctx.checked.add(definitionID);*/
 
     const ok = await doUnify(
         ctx,

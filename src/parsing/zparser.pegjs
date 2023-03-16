@@ -64,7 +64,7 @@ variable = variable:(
       {
         return {
         	type: 'variable',
-            except
+          except
         };
       } 
       

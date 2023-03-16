@@ -50,7 +50,7 @@ describe("Not Tests.", () => {
 
 	it("Simple not",
 		test(
-			`('x = 'x)
+			`# ('x = 'x)
 			 ('x != ~'x)
 			`, [
 				{
@@ -554,4 +554,39 @@ describe("Not Tests.", () => {
 			{path: 'dbs/not/16', timeout: 1000 * 60 * 60}
 		)
 	);
+
+	xit("Simple not with bound varnames at negation constrains", 
+		test(`
+			('x = 'x)
+			('x~{'y ('y = 1)})
+		`, [
+				{
+					query: "('x)",
+					results: [ 
+			  		]
+				}
+			],
+			{path: 'dbs/not/17', timeout: 1000 * 60 * 60}
+		)
+	)
+
+	xit("Complex not with contradictions", 
+		test(`
+			('x = 'x)
+			
+			/* 
+				This is the same as 'x != 'x, 
+				This should fail.
+			*/
+			('x~{'y ('y = 'x)})
+		`, [
+				{
+					query: "('x)",
+					results: []
+				}
+			],
+			{path: 'dbs/not/17', timeout: 1000 * 60 * 60}
+		)
+	)
+
 });

@@ -59,7 +59,8 @@ const copyTerms = async (ctx, t, preserveVarname=0, varIds={}) => {
     return ts;
 }
 
-const copyTerm = async (ctx, p, preserveVarname=0, varIds={}) => {
+/*const copyTerm = async (ctx, p, preserveVarname=0, varIds={}) => {
+    console.log(JSON.stringify(p));
     let id = typeof p === 'string' ? p : p.id;
 
     if (!id) {
@@ -114,6 +115,61 @@ const copyTerm = async (ctx, p, preserveVarname=0, varIds={}) => {
     }
 
     return id;
+}*/
+
+async function copyTerm(ctx, p) {
+    const mapVars = {};
+
+    const getVarname = v => {
+        let cid = v.cid || v;
+        let vn = mapVars[cid];
+        if (!vn) {
+            vn = mapVars[cid] = ctx.newVar(v.c);
+        }
+
+        return vn;
+    }
+
+
+    for (let varname in p.variables) {
+        const v = p.variables[varname];
+        const vn = getVarname(v);
+
+        if (v.t) {
+
+            let body;
+            if (v.body && v.body.length) {
+                body = v.body.map(getVariable);
+            }
+
+            ctx.variables = await ctx.variables.set(vn, {
+                t: v.t.map(getVarname), 
+                body,
+                id: vn
+                // checked: v.checked
+            });
+
+            if (v.checked) {
+                ctx.checked = await ctx.checked.add(vn);
+            }
+            else {
+                ctx.unchecked = await ctx.unchecked.add(vn);
+            }
+        }
+        else if (v.v) {
+            let d = v.d?v.d.map(getVarname):undefined;
+
+            console.log("v.e is a Set, this should go to constrains and save on constrains ? ")
+            let e = v.e?v.e.map(getVarname):undefined;
+ 
+            ctx.variables = await ctx.variables.set(vn, {v: v.v, d, e, id: vn});
+        }
+        else if (v.c) {
+            ctx.variables = await ctx.variables.set(vn, {c: v.c, id: vn});
+        }
+    }
+
+    return mapVars[p.root];
 }
 
 function varGenerator (counter) {

@@ -98,6 +98,7 @@ describe("ZQuery Tests.", () => {
 			"('x = 'x) ('x)", [{
 				query: "('x = ('x))",
 				results: [] // it doesnt give solutions, because toString cant habdle loops ?
+				// if x is checked it should stop since all x's will be checked!!
 			}],
 			{path: 'dbs/zquery/9.db', depth: 2}
 		)
