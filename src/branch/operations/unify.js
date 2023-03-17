@@ -64,9 +64,26 @@ const checkTuple = async (ctx, p, q) => {
     }
 }
 
-
-
 const setVariable = async (ctx, v, p) => {
+    if (v.id !== p.id) {
+        if (p.v) {
+            console.log("SET VARIABLES ", JSON.stringify(v), JSON.stringify(p));
+
+
+            
+        }
+        else {
+            ctx.variables = await ctx.variables.set(v.id, {
+                ...v,
+                defer: p.id
+            });
+        }
+    }
+
+    return true;
+}
+
+const __setVariable = async (ctx, v, p) => {
     if (v.id !== p.id) {
         if (p.v) {
             let a=v, b=p;
@@ -171,6 +188,7 @@ async function deepUnify(
     definition,
     level,
     variables=branch.table.db.iMap(),
+    constrains=branch.table.db.iSet(),
     unsolvedVariables=branch.table.db.iSet(),
     unchecked=branch.table.db.iSet(),
     checked=branch.table.db.iSet(),
@@ -179,6 +197,7 @@ async function deepUnify(
     const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
     const ctx = {
         variables,
+        constrains,
         unsolvedVariables,
         unchecked,
         checked,
@@ -215,7 +234,8 @@ async function deepUnify(
     }
 
     return {
-        variables: ctx.variables, 
+        variables: ctx.variables,
+        constrains: ctx.constrains,
         unsolvedVariables: unsolvedVariablesClean,
         unchecked: ctx.unchecked, 
         checked: ctx.checked, 
@@ -261,7 +281,7 @@ async function unify (branch, options, tuple, definition) {
     const rDB = branch.table.db;
 
     const {
-        variables, unsolvedVariables, unchecked, 
+        variables, constrains, unsolvedVariables, unchecked, 
         checked, fail, variableCounter, log
     } = await deepUnify(
         branch,
@@ -270,6 +290,7 @@ async function unify (branch, options, tuple, definition) {
         definition,
         level,
         await branch.data.variables,
+        await branch.data.constrains,
         await branch.data.unsolvedVariables,
         await branch.data.unchecked,
         await branch.data.checked, 
@@ -300,6 +321,7 @@ async function unify (branch, options, tuple, definition) {
         checked,
         unchecked,
         variables,
+        constrains,
         unsolvedVariables,
         children: [],
         state,

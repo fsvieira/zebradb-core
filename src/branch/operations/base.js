@@ -117,6 +117,15 @@ const copyTerms = async (ctx, t, preserveVarname=0, varIds={}) => {
     return id;
 }*/
 
+async function array2iset (ctx, array) {
+    let iset = ctx.rDB.iSet();
+    for (let i=0; i<array.length; i++) {
+        iset = await iset.add(array[i]);
+    }
+
+    return iset;
+}
+
 async function copyTerm(ctx, p) {
     const mapVars = {};
 
@@ -129,7 +138,6 @@ async function copyTerm(ctx, p) {
 
         return vn;
     }
-
 
     for (let varname in p.variables) {
         const v = p.variables[varname];
@@ -157,16 +165,27 @@ async function copyTerm(ctx, p) {
             }
         }
         else if (v.v) {
-            let d = v.d?v.d.map(getVarname):undefined;
-
-            console.log("v.e is a Set, this should go to constrains and save on constrains ? ")
-            let e = v.e?v.e.map(getVarname):undefined;
+            const d = v.d?await array2iset(ctx, v.d.map(getVarname)):undefined;
+            const e = v.e?await array2iset(ctx, v.e.map(getVarname)):undefined;
  
             ctx.variables = await ctx.variables.set(vn, {v: v.v, d, e, id: vn});
+
+            if (e && d) {
+                ctx.unsolvedVariables = await ctx.unsolvedVariables.add(vn);
+            }
         }
         else if (v.c) {
             ctx.variables = await ctx.variables.set(vn, {c: v.c, id: vn});
         }
+        else if (v.op) {
+            // its a constrain:
+            const c = {op: v.op, args: v.args.map(getVarname).sort(), id: vn};
+            ctx.variables = await ctx.variables.set(vn, c);
+        }
+    }
+
+    for (let i=0; i<p.constrains.length; i++) {
+        ctx.constrains = await ctx.constrains.add(getVarname(p.constrains[i]));
     }
 
     return mapVars[p.root];

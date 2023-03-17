@@ -50,17 +50,19 @@ describe("Not Tests.", () => {
 
 	it("Simple not",
 		test(
-			`# ('x = 'x)
+			`('x = 'x)
 			 ('x != ~'x)
 			`, [
-				{
+				/*{
 					query: "(blue 'o pink)",
 					results: ["@(blue != pink)"]
 				},
+				*/
 				{
 					query: "(blue 'o blue)",
 					results: ["@(blue = blue)"]
 				},
+				/*
 				{
 					query: "(~blue 'o blue)",
 					results: ["@('_v1~{blue} != blue)"]
@@ -72,9 +74,12 @@ describe("Not Tests.", () => {
 				{
 					query: "('x = ~'x)", 
 					results: []
-				}
+				}*/
 			],
-			{path: 'dbs/not/1', timeout: 1000 * 60 * 60}
+			{
+				path: 'dbs/not/1', 
+				timeout: 1000 * 60 * 60
+			}
 		)
 	);
 

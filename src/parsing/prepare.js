@@ -86,9 +86,13 @@ function terms (ctx, t) {
                 for (let i=0; i<t.except.length; i++) {
                     const ecid = terms(ctx, t.except[i]);
 
-                    const cs = {op: '!=', args: [cid, ecid].sort()};
-                    const constrainID = `_cs_${cs.args[0]}!=${cs.args[1]}`;
-                    ctx.constrains[constrainID] = cs;
+                    const args = [cid, ecid].sort();
+                    const constrainID = `_cs_${args[0]}!=${args[1]}`;
+                    const cs = {op: '!=', args, cid: constrainID };
+                    // ctx.constrains[constrainID] = cs;
+
+                    ctx.variables[constrainID] = cs;
+                    ctx.constrains.add(constrainID);
 
                     vdata.e = (vdata.e || new Set());
                     vdata.e.add(constrainID);
@@ -137,12 +141,22 @@ function prepare (tuple) {
 
     const ctx = {
         variables: {},
-        constrains: {},
+        constrains: new Set(),
         newVar
     }
 
     const root = terms(ctx, tuple);
-    return {variables: ctx.variables, constrains: ctx.constrains, root};
+
+    // convert constrains set to normal array
+    for (let varname in ctx.variables) {
+        const v = ctx.variables[varname];
+
+        if (v.v && v.e) {
+            v.e = [...v.e];
+        }
+    }
+
+    return {variables: ctx.variables, constrains: [...ctx.constrains], root};
 }
 
 module.exports = prepare;

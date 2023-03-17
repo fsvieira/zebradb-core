@@ -3,6 +3,7 @@ const branchOps = require('./branch');
 const query = async (rDB, tuple, branchID) => {    
     let unchecked = rDB.iSet();
     let variables = rDB.iMap();
+    let constrains = rDB.iSet();
     let unsolvedVariables = rDB.iSet();
     let log = rDB.iArray();
 
@@ -17,7 +18,8 @@ const query = async (rDB, tuple, branchID) => {
         level,
         rDB,
         definitionVariables: branchOps.prepareVariables(tuple),
-        log
+        log,
+        constrains
     };
 
     const root = await branchOps.copyTerm(ctx, tuple, 1);
@@ -30,6 +32,7 @@ const query = async (rDB, tuple, branchID) => {
         null, 
         ctx.unchecked,
         ctx.variables,
+        ctx.constrains,
         ctx.unsolvedVariables,
         undefined,
         branchID,
