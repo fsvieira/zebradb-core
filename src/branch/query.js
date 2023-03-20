@@ -22,7 +22,7 @@ const query = async (rDB, tuple, branchID) => {
         constrains
     };
 
-    const root = await branchOps.copyTerm(ctx, tuple, 1);
+    const root = await branchOps.copyTerm(ctx, tuple, true);
 
     return branchOps.create(
         rDB, 

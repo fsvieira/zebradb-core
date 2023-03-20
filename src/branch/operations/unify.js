@@ -5,7 +5,8 @@ const {
     copyTerm,
     copyTerms,
     toString,
-    prepareVariables
+    prepareVariables,
+    getVariable
 } = require("./base");
 
 const {
@@ -67,10 +68,113 @@ const checkTuple = async (ctx, p, q) => {
 const setVariable = async (ctx, v, p) => {
     if (v.id !== p.id) {
         if (p.v) {
-            console.log("SET VARIABLES ", JSON.stringify(v), JSON.stringify(p));
+            let a=v, b=p;
+
+            if (p.pv) {
+                a = p;
+                b = v;
+            }
+
+            let e;
+            let d;
+
+            if (a.e && b.e) {
+                e = a.e;
+                for await (let varname of b.e.values()) {
+                    e = await e.add(varname);
+                    console.log(await getVariable(undefined, varname, ctx));
+                }
+
+                for await (let varname of a.e.values()) {
+                    e = await e.add(varname);
+                    console.log(await getVariable(undefined, varname, ctx));
+                }
+
+                console.log(
+                    (await a.e.toArray()).join(", ")
+                    + " + " +
+                    (await b.e.toArray()).join(", ")
+                    + " = " +
+                    (await e.toArray()).join(", ")
+                
+                );
+            }
+            else {
+                e = a.e || b.e;
+            }
 
 
-            
+            if (a.d && b.d) {
+                // intersect both domains,
+                d = a.d;
+                for await (let e of b.d) {
+                    d.add(e);
+                }
+
+                if (d.size === 0) {
+                    return false;
+                }
+
+            }
+            else {
+                d = a.d || b.d;
+            }
+
+            if (e && d) {
+                /*
+                const es = [];
+                for (let i=0; i<e.length; i++) {
+                    const v = await get(ctx, e[i]);
+                    if (v.c) {
+                        const index = d.findIndex(c => c === v.id);
+                        if (index !== -1) {
+                            d.splice(index, 1);
+
+                            if (d.length === 0) {
+                                return false;
+                            }
+                        }
+                    }
+                    else if (v.v) {
+                        es.push(v.id);
+                    }
+                }
+
+                e = es.length ? es : undefined;*/
+
+                console.log("TODO TEST DOMAINS WITH EXCEPTIONS!!!!!!!!");
+            }
+
+            if (d && d.size === 1) {
+                ctx.variables = await ctx.variables.set(a.id, {
+                    ...a,
+                    defer: d[0]
+                });
+
+                ctx.variables = await ctx.variables.set(b.id, {
+                    ...b,
+                    defer: d[0]
+                });
+            }
+            else {
+                if (e || d) {
+                    ctx.variables = await ctx.variables.set(a.id, {
+                        ...a,
+                        e,
+                        d
+                    });
+
+                    if (e && d) {
+                        ctx.unsolvedVariables = await ctx.unsolvedVariables.remove(b.id);
+                        ctx.unsolvedVariables = await ctx.unsolvedVariables.add(a.id);
+                    }
+                }
+
+                ctx.variables = await ctx.variables.set(b.id, {
+                    ...v,
+                    defer: a.id
+                });
+            }
         }
         else {
             ctx.variables = await ctx.variables.set(v.id, {

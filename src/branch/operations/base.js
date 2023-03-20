@@ -126,7 +126,7 @@ async function array2iset (ctx, array) {
     return iset;
 }
 
-async function copyTerm(ctx, p) {
+async function copyTerm(ctx, p, preserveVarname=false) {
     const mapVars = {};
 
     const getVarname = v => {
@@ -168,7 +168,7 @@ async function copyTerm(ctx, p) {
             const d = v.d?await array2iset(ctx, v.d.map(getVarname)):undefined;
             const e = v.e?await array2iset(ctx, v.e.map(getVarname)):undefined;
  
-            ctx.variables = await ctx.variables.set(vn, {v: v.v, d, e, id: vn});
+            ctx.variables = await ctx.variables.set(vn, {v: v.v, d, e, pv: preserveVarname, id: vn});
 
             if (e && d) {
                 ctx.unsolvedVariables = await ctx.unsolvedVariables.add(vn);
@@ -235,18 +235,22 @@ const get = async (ctx, v) => {
     return v;
 }
 
-async function toString (branch, id, ctx, stop={}) {
+async function toStringConstrains (branch, v, cID, ctx) {
+    const constrain = await getVariable(branch, cID, ctx);
+
+    const cv = await getVariable(branch, constrain.args[0]);
+    const rv = v.id === cv.id ? constrain.args[1] : constrain.args[0];
+
+    return await toString(branch, rv, ctx, false);
+}
+
+async function toString (branch, id, ctx, constrains=true) {
     branch = branch || ctx?.branch;
     id = id || await branch.data.root;    
 
     const d = !!ctx; 
-    const v = await (ctx ? get(ctx, id) : getVariable(branch, id, ctx));
-
-    if (stop[v.id]) {
-        return "";
-    }
-
-    stop[v.id] = true;
+    const v = await getVariable(branch, id, ctx);
+    // const v = await (ctx ? get(ctx, id) : getVariable(branch, id, ctx));
     
     if (v.t) {
         const ts = [];
@@ -260,12 +264,21 @@ async function toString (branch, id, ctx, stop={}) {
             + `${d ? v.id || "" : ""}(${ts.join(" ")})`;
     }
     else if (v.v) {
-        const domain = v.d ? (await Promise.all(v.d.map(id => toString(branch, id, ctx, stop)))).filter(v => v !== ''):undefined;
+
+        const domain = v.d ? (await Promise.all(v.d.map(id => toString(branch, id, ctx)))).filter(v => v !== ''):undefined;
         const ds = domain && domain.length?`:{${domain.join(" ")}}`:"";
 
-        const es = v.e ? (await Promise.all(v.e.map(id => toString(branch, id, ctx, stop)))).filter(v => v !== ''):undefined;
-        const e = es && es.length?`~{${es.join(", ")}}`:"";
-        
+        let e = "";
+        if (constrains) { 
+            const es = v.e ? 
+                (await Promise.all(
+                    (await v.e.toArray())
+                    .map(cID => toStringConstrains(branch, v, cID, ctx)))).filter(v => v !== '')
+                : undefined;
+            // const es = v.e ? (await Promise.all(v.e.map(id => toString(branch, id, ctx, stop)))).filter(v => v !== ''):undefined;
+            e = es && es.length?`~{${es.join(", ")}}`:"";
+        }
+
         return "'" + (!v.pv && v.id?v.id + "::": "") + v.v + ds + e;
     }
     else if (v.c) {

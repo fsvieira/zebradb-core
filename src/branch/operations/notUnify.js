@@ -169,8 +169,7 @@ const checkConstrainsList = async (ctx, list, p) => {
 const testValue = async (ctx, constrains, value) => {
     const e = constrains.e;
 
-    for (let i=0; i<e.length; i++) {
-        const cID = e[i];
+    for await (let cID of e.values()) {
         const c = await get(ctx, cID);
 
         const updatedConstrains = await Promise.all(c.args.map(v => get(ctx, v)));
@@ -196,9 +195,16 @@ const checkConstrains = async (ctx, p, q) => {
 
     if (p.v && q.v) { 
         if (p.e && q.e) {
-            const e = p.e.filter(v => q.e.includes(v));
+            // const e = p.e.filter(v => q.e.includes(v));
 
-            if (e.length) {
+            let e = ctx.rDB.iSet();
+            for await (let varname of p.e.values()) {
+                if (await q.e.has(varname)) {
+                    e = await e.add(varname);
+                }
+            }
+
+            if (e.size) {
                 /*
                 for (let i=0; i<e.length; i++) {
                     console.log(e);
@@ -209,7 +215,11 @@ const checkConstrains = async (ctx, p, q) => {
                  * 
                  */
 
-                console.log("TODO: test checkConstrains 1: ", JSON.stringify(e));
+                for await (let varname of e.values()) {
+                    console.log("VARNME ", varname);
+                }
+
+                console.log("TODO: test checkConstrains 1: ");
             }
         }
     }
