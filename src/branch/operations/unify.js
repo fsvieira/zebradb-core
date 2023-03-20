@@ -9,18 +9,116 @@ const {
     getVariable
 } = require("./base");
 
+/*
 const {
     checkConstrains
 } = require("./notUnify");
+*/
 
-const unifyVariable = async (ctx, p, q) => (await checkConstrains(ctx, p, q)) 
+/*const unifyVariable = async (ctx, p, q) => (await checkConstrains(ctx, p, q)) 
     && (await setVariable(ctx, await get(ctx, p), await get(ctx, q)));
+*/
+
+const checkCondition = async (ctx, c) => {
+    const [p, q] = await Promise.all(c.args.map(vID => getVariable(null, vID, ctx)));
+    console.log({...p, e: null}, c.op, {...p, e: null});
+
+    const ok = (c.op === '!=' && p.id !== q.id);
+   
+    if (ok && !(p.v || q.v)) {
+        // if ok, and both p and q are not variables,
+        // we can remove constrain,
+        ctx.constrains = await ctx.constrains.remove(c.id);
+
+        // There is no advantage to remove constrain variable from variables...
+    }
+
+    return ok;
+}
+
+const checkConditions = async (ctx, cs) => {
+    if (cs) {
+        for await (let condID of cs.values()) {
+            const c = await getVariable(null, condID, ctx);
+            const ok = await checkCondition(ctx, c);
+
+            if (!ok) {
+                return false;
+            }
+        }
+    }
+    
+    return true;
+}
+
+const setVariable = async (ctx, v, p) => {
+    if (v.id !== p.id) {
+        if (v.d && (p.t || (p.c && !v.d.has(p.c)))) {
+            /*
+                if v has domain, then if value is:
+                    * a tuple, it fails,
+                    * if a constant not in domain, it fails. 
+            */
+            return false;
+        }
+
+        const c = !p.v || p.pv; 
+        let a = c ? p : v;
+        let b = c ? v : p;
+
+        ctx.variables = await ctx.variables.set(b.id, {v: b.id, defer: a.id});
+
+        let d = a.d || b.d;
+        if (a.d && b.d) {
+            for await (let c of a.d) {
+                if (!b.d.has(c)) {
+                    d = await d.remove(c);
+
+                    if (d.size === 0) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        if (!(await checkConditions(ctx, v.e))) {
+            return false;
+        }
+
+        if (!(await checkConditions(ctx, p.e))) {
+            return false;
+        }
+
+        if (d && (!a.d || a.d.id !== d)) {
+            // update a
+            ctx.variables = await ctx.variables.set(a.id, {...a, d});
+        }
+        /*
+        if (p.e) {
+            console.log("CHECK PE", p.e);
+        }
+
+        if (v.d) {
+            console.log("CHECK VD", v.d);
+        }
+
+        if (p.d) {
+            console.log("CHECK PD", p.d);
+        }*/
+
+        // TODO: set/check variable a, domains and constrains,
+        // TODO: check constrains of v. 
+    }
+
+    return true;
+}
+
 
 const unifyFn = {
     v: {
-        v: unifyVariable,
-        t: async (ctx, p, q) => !p.d && await unifyVariable(ctx, p, q),
-        c: async (ctx, p, q) => (!p.d || (p.d && p.d.includes(q.id))) && await unifyVariable(ctx, p, q)
+        v: setVariable,
+        t: setVariable, // !p.d && await unifyVariable(ctx, p, q),
+        c: setVariable, // async (ctx, p, q) => (!p.d || (p.d && p.d.includes(q.id))) && await unifyVariable(ctx, p, q)
     },
     t: {
         v: async (ctx, p, q) => unifyFn.v.t(ctx, q, p),
@@ -65,127 +163,6 @@ const checkTuple = async (ctx, p, q) => {
     }
 }
 
-const setVariable = async (ctx, v, p) => {
-    if (v.id !== p.id) {
-        if (p.v) {
-            let a=v, b=p;
-
-            if (p.pv) {
-                a = p;
-                b = v;
-            }
-
-            let e;
-            let d;
-
-            if (a.e && b.e) {
-                e = a.e;
-                for await (let varname of b.e.values()) {
-                    e = await e.add(varname);
-                    console.log(await getVariable(undefined, varname, ctx));
-                }
-
-                for await (let varname of a.e.values()) {
-                    e = await e.add(varname);
-                    console.log(await getVariable(undefined, varname, ctx));
-                }
-
-                console.log(
-                    (await a.e.toArray()).join(", ")
-                    + " + " +
-                    (await b.e.toArray()).join(", ")
-                    + " = " +
-                    (await e.toArray()).join(", ")
-                
-                );
-            }
-            else {
-                e = a.e || b.e;
-            }
-
-
-            if (a.d && b.d) {
-                // intersect both domains,
-                d = a.d;
-                for await (let e of b.d) {
-                    d.add(e);
-                }
-
-                if (d.size === 0) {
-                    return false;
-                }
-
-            }
-            else {
-                d = a.d || b.d;
-            }
-
-            if (e && d) {
-                /*
-                const es = [];
-                for (let i=0; i<e.length; i++) {
-                    const v = await get(ctx, e[i]);
-                    if (v.c) {
-                        const index = d.findIndex(c => c === v.id);
-                        if (index !== -1) {
-                            d.splice(index, 1);
-
-                            if (d.length === 0) {
-                                return false;
-                            }
-                        }
-                    }
-                    else if (v.v) {
-                        es.push(v.id);
-                    }
-                }
-
-                e = es.length ? es : undefined;*/
-
-                console.log("TODO TEST DOMAINS WITH EXCEPTIONS!!!!!!!!");
-            }
-
-            if (d && d.size === 1) {
-                ctx.variables = await ctx.variables.set(a.id, {
-                    ...a,
-                    defer: d[0]
-                });
-
-                ctx.variables = await ctx.variables.set(b.id, {
-                    ...b,
-                    defer: d[0]
-                });
-            }
-            else {
-                if (e || d) {
-                    ctx.variables = await ctx.variables.set(a.id, {
-                        ...a,
-                        e,
-                        d
-                    });
-
-                    if (e && d) {
-                        ctx.unsolvedVariables = await ctx.unsolvedVariables.remove(b.id);
-                        ctx.unsolvedVariables = await ctx.unsolvedVariables.add(a.id);
-                    }
-                }
-
-                ctx.variables = await ctx.variables.set(b.id, {
-                    ...v,
-                    defer: a.id
-                });
-            }
-        }
-        else {
-            ctx.variables = await ctx.variables.set(v.id, {
-                ...v,
-                defer: p.id
-            });
-        }
-    }
-
-    return true;
-}
 
 const __setVariable = async (ctx, v, p) => {
     if (v.id !== p.id) {

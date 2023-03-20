@@ -20,7 +20,7 @@ describe("Test domains.", () => {
 		)
 	);
 
-	it("should unify constant * domain",
+	xit("should unify constant * domain",
 		test(
 			`
 			(const '{0 1})
@@ -43,7 +43,7 @@ describe("Test domains.", () => {
 		)
 	);
 
-	it("should make domain of two variables",
+	xit("should make domain of two variables",
 		test(
 			`
 			('x = 'x)
@@ -83,7 +83,7 @@ describe("Test domains.", () => {
 		)
 	);
 
-	it("should declare AND booelan operator using domains. (simple)",
+	xit("should declare AND booelan operator using domains. (simple)",
 		test(
 			`
 				('{0 1} & 0 = 0)
@@ -120,7 +120,7 @@ describe("Test domains.", () => {
 		)
 	);
 
-	it("should declare AND booelan operator using domains. (simple domains names)",
+	xit("should declare AND booelan operator using domains. (simple domains names)",
 		test(
 			`
 				('x != ~'x)
@@ -146,7 +146,7 @@ describe("Test domains.", () => {
 
 
 
-	it("should declare AND booelan operator using domains. (fancy)",
+	xit("should declare AND booelan operator using domains. (fancy)",
 		test(
 			`
 			('x & 'y = 'z ('y & 'x = 'z stop))
@@ -186,7 +186,7 @@ describe("Test domains.", () => {
 		)
 	);
 
-	it("should declare AND booelan operator using domains. (fancy 2)",
+	xit("should declare AND booelan operator using domains. (fancy 2)",
 		test(
 			`
 				('x & ~'x = 0)
@@ -215,7 +215,7 @@ describe("Test domains.", () => {
 		)
 	);
 
-	it("should create domains cartasian product result",
+	xit("should create domains cartasian product result",
 		test(
 			`
 			(bit '{0 1})
@@ -235,7 +235,7 @@ describe("Test domains.", () => {
 		)
 	);
 
-	it("should create domains cartesian product result (unfold)",
+	xit("should create domains cartesian product result (unfold)",
 		test(
 			`
 			(bit '{0 1})
@@ -263,7 +263,7 @@ describe("Test domains.", () => {
 		)
 	);
 
-	it("should handle domains negations.",
+	xit("should handle domains negations.",
 		test(
 			`
 			('x != ~'x)

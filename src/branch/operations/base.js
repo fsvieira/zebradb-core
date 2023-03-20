@@ -264,8 +264,8 @@ async function toString (branch, id, ctx, constrains=true) {
             + `${d ? v.id || "" : ""}(${ts.join(" ")})`;
     }
     else if (v.v) {
-
-        const domain = v.d ? (await Promise.all(v.d.map(id => toString(branch, id, ctx)))).filter(v => v !== ''):undefined;
+        const domainArray = v.d ? (await v.d.toArray()).sort(): undefined;
+        const domain = domainArray ? (await Promise.all(domainArray.map(id => toString(branch, id, ctx)))).filter(v => v !== ''):undefined;
         const ds = domain && domain.length?`:{${domain.join(" ")}}`:"";
 
         let e = "";

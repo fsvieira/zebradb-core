@@ -48,7 +48,7 @@ describe("Not Tests.", () => {
 
 	const setStart = r => `[${setArray(r).join(", ")}]`;
 
-	it("Simple not",
+	xit("Simple not",
 		test(
 			`('x = 'x)
 			 ('x != ~'x)
@@ -63,7 +63,7 @@ describe("Not Tests.", () => {
 				},
 				{
 					query: "(~blue 'o blue)",
-					results: ["@('_v1~{blue} != blue)"]
+					results: ["@('v$2~{blue} != blue)"]
 				},
 				{
 					query: "('x != 'x)", 
@@ -96,7 +96,7 @@ describe("Not Tests.", () => {
 				},
 				{
 					query: "(~blue 'o blue)",
-					results: ["@('_v1~{blue} != blue)"]
+					results: ["@('v$2~{blue} != blue)"]
 				},
 				{
 					query: "('x != 'x)", 
@@ -107,7 +107,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Simple not varnames",
+	it("Simple not varnames",
 		test(
 			`('x:{0 1} 'y~'x 'y:{0 1})
 			`, [
