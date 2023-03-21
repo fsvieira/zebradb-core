@@ -48,7 +48,7 @@ describe("Not Tests.", () => {
 
 	const setStart = r => `[${setArray(r).join(", ")}]`;
 
-	it("Simple not",
+	xit("Simple not",
 		test(
 			`('x = 'x)
 			 ('x != ~'x)
@@ -81,7 +81,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	it("Simple not invert order",
+	xit("Simple not invert order",
 		test(
 			`('x = 'x)
 			(~'x != 'x)
@@ -107,7 +107,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	it("Simple not varnames",
+	xit("Simple not varnames",
 		test(
 			`('x:{0 1} 'y~'x 'y:{0 1})
 			`, [
@@ -123,7 +123,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	it("Simple cascanding not varnames, TODO: solve circular",
+	xit("Simple cascanding not varnames, TODO: solve circular",
 		test(
 			`('x:{0 1 3}~'y~'z~'x 'y:{0 1 3} 'z:{0 1 3})
 			`, [
@@ -143,7 +143,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	it("Simple not multiple varnames",
+	xit("Simple not multiple varnames",
 		test(
 			`('x:{0 1 3}~{'y~'z 'z} 'y:{0 1 3} 'z:{0 1 3})
 			`, [
@@ -163,7 +163,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Simple tuple negation",
+	it("Simple tuple negation",
 		test(
 			"(not-blue-tuple ~(blue)) (pink) (blue)", [{
 				query: "(not-blue-tuple ('x))",

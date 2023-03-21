@@ -61,7 +61,6 @@ const setVariable = async (ctx, v, p) => {
         }
 
         if (e && e.size > 0) {
-            console.log("TODO: Make tuple constrains!!!!!!!!!");
             const dups = {};
             const cs = e;
             for await (let condID of cs.values()) {
@@ -77,6 +76,10 @@ const setVariable = async (ctx, v, p) => {
                     const ok = (c.op === '!=' && p.id !== q.id);
 
                     if (ok && !(p.v || q.v)) {
+                        if (ok && p.t && q.t) {
+                            console.log("TODO: MAKE TUPLE CONSTRAINS!");
+                        }
+
                         // if ok, and both p and q are not variables,
                         // we can remove constrain,
                         ctx.constrains = await ctx.constrains.remove(c.id);
