@@ -51,7 +51,7 @@ async function expand (branch, options, selector, definitions) {
 
         const ds = await definitions(await toJS(branch, id));
 
-        const r = await Promise.all(ds.map(definition => unify(branch, options, id, definition)));
+        const r = await Promise.all(ds.map(definition => unify(branch, options, id, null, definition)));
 
         await branch.update({state: 'split'});
         return r;

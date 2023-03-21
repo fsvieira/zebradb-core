@@ -268,6 +268,7 @@ async function toString (branch, id, ctx, constrains=true) {
         const domain = domainArray ? (await Promise.all(domainArray.map(id => toString(branch, id, ctx)))).filter(v => v !== ''):undefined;
         const ds = domain && domain.length?`:{${domain.join(" ")}}`:"";
 
+        console.log("TODO: remove constrains duplicates on final fase.");
         let e = "";
         if (constrains) { 
             const es = v.e ? 
@@ -276,7 +277,7 @@ async function toString (branch, id, ctx, constrains=true) {
                     .map(cID => toStringConstrains(branch, v, cID, ctx)))).filter(v => v !== '')
                 : undefined;
             // const es = v.e ? (await Promise.all(v.e.map(id => toString(branch, id, ctx, stop)))).filter(v => v !== ''):undefined;
-            e = es && es.length?`~{${es.join(", ")}}`:"";
+            e = es && es.length?`~{${[...new Set(es)].join(" ")}}`:"";
         }
 
         return "'" + (!v.pv && v.id?v.id + "::": "") + v.v + ds + e;

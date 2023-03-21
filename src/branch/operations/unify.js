@@ -55,18 +55,20 @@ const setVariable = async (ctx, v, p) => {
 
         let e = v.e || p.e;
         if (v.e && p.e) {
-            for await (let c of p.e) {
+            for await (let c of p.e.values()) {
                 e = await e.add(c);
             }
         }
 
         if (e && e.size > 0) {
+            console.log("TODO: Make tuple constrains!!!!!!!!!");
             const dups = {};
             const cs = e;
             for await (let condID of cs.values()) {
                 const c = await getVariable(null, condID, ctx);
                 const [p, q] = await Promise.all(c.args.map(vID => getVariable(null, vID, ctx)));
-                console.log({...p, e: null}, c.op, {...p, e: null});
+                console.log("TODO: check domains constrains!!");
+                console.log(v.id, {...p, e: null}, c.op, {...q, e: null});
 
                 const dID = p.id + c.op + q.id;
 
@@ -93,11 +95,11 @@ const setVariable = async (ctx, v, p) => {
             }
         }
 
-        if (
+        if (a.v && (
             (d && (!a.d || a.d.id !== d.id))
             || 
             (e && (!a.e || a.e.id !== e.id))
-        ) {
+        )) {
             // update a
             ctx.variables = await ctx.variables.set(a.id, {...a, d, e});
 
@@ -260,38 +262,10 @@ const __setVariable = async (ctx, v, p) => {
 }
 
 async function deepUnify(
-    branch,
-    options,
+    ctx,
     tuple, 
-    definition,
-    level,
-    variables=branch.table.db.iMap(),
-    constrains=branch.table.db.iSet(),
-    unsolvedVariables=branch.table.db.iSet(),
-    unchecked=branch.table.db.iSet(),
-    checked=branch.table.db.iSet(),
-    log=branch.table.db.iArray()
+    definitionID,
 ) {
-    const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
-    const ctx = {
-        variables,
-        constrains,
-        unsolvedVariables,
-        unchecked,
-        checked,
-        definitionVariables: prepareVariables(definition),
-        newVar,
-        level,
-        rDB: branch.table.db,
-        branch,
-        log,
-        options  
-    };
-
-    const definitionID = await copyTerm(ctx, definition);
-
-    /*ctx.unchecked = await ctx.unchecked.remove(definitionID);
-    ctx.checked = await ctx.checked.add(definitionID);*/
 
     const ok = await doUnify(
         ctx,
@@ -318,7 +292,7 @@ async function deepUnify(
         unchecked: ctx.unchecked, 
         checked: ctx.checked, 
         fail: !ok, 
-        variableCounter: varCounter(),
+        // variableCounter: varCounter(),
         log: ctx.log
     };
 }
@@ -353,26 +327,35 @@ const doUnify = async (ctx, p, q) => {
 }
 
 
-async function unify (branch, options, tuple, definition) {
+async function unify (branch, options, tuple, defintionID, definition) {
 
     const level = await branch.data.level + 1;
     const rDB = branch.table.db;
 
+    const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
+    const ctx = {
+        variables: await branch.data.variables,
+        constrains: await branch.data.constrains,
+        unsolvedVariables: await branch.data.unsolvedVariables,
+        unchecked: await branch.data.unchecked,
+        checked: await branch.data.checked,
+        newVar,
+        level,
+        rDB: branch.table.db,
+        branch,
+        log: await branch.data.log,
+        options  
+    };
+
+    definitionID = defintionID || await copyTerm(ctx, definition);
+
     const {
         variables, constrains, unsolvedVariables, unchecked, 
-        checked, fail, variableCounter, log
+        checked, fail, log
     } = await deepUnify(
-        branch,
-        options,
+        ctx,
         tuple, 
-        definition,
-        level,
-        await branch.data.variables,
-        await branch.data.constrains,
-        await branch.data.unsolvedVariables,
-        await branch.data.unchecked,
-        await branch.data.checked, 
-        await branch.data.log    
+        definitionID
     );
 
     let state = 'maybe';
@@ -389,12 +372,10 @@ async function unify (branch, options, tuple, definition) {
         }
     }
 
-    // const state = fail?'no':await unchecked.size === 0?'yes':'maybe';
-
     const newBranch = await rDB.tables.branches.insert({
         parent: branch,
         root: await branch.data.root,
-        variableCounter,
+        variableCounter: varCounter(),
         level,
         checked,
         unchecked,

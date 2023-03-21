@@ -48,7 +48,7 @@ describe("Not Tests.", () => {
 
 	const setStart = r => `[${setArray(r).join(", ")}]`;
 
-	xit("Simple not",
+	it("Simple not",
 		test(
 			`('x = 'x)
 			 ('x != ~'x)
@@ -81,7 +81,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Simple not invert order",
+	it("Simple not invert order",
 		test(
 			`('x = 'x)
 			(~'x != 'x)
@@ -123,23 +123,27 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Simple cascanding not varnames, TODO: solve circular",
+	it("Simple cascanding not varnames, TODO: solve circular",
 		test(
 			`('x:{0 1 3}~'y~'z~'x 'y:{0 1 3} 'z:{0 1 3})
 			`, [
 				{
 					query: "('x 'y 'z)",
 					results: [ 
-						"@(0 1 1)",
-						"@(1 0 0)"
-			  		]
+						"@(0 1 3)",
+						"@(0 3 1)",
+						"@(1 0 3)",
+						"@(1 3 0)",
+						"@(3 0 1)",
+						"@(3 1 0)"
+					]
 				}
 			],
 			{path: 'dbs/not/4', timeout: 1000 * 60 * 60}
 		)
 	);
 
-	xit("Simple not multiple varnames",
+	it("Simple not multiple varnames",
 		test(
 			`('x:{0 1 3}~{'y~'z 'z} 'y:{0 1 3} 'z:{0 1 3})
 			`, [
