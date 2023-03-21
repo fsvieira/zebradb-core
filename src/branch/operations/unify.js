@@ -19,7 +19,7 @@ const {
     && (await setVariable(ctx, await get(ctx, p), await get(ctx, q)));
 */
 
-const checkCondition = async (ctx, c) => {
+const checkCondition = async (ctx, c, domain) => {
     const [p, q] = await Promise.all(c.args.map(vID => getVariable(null, vID, ctx)));
     console.log({...p, e: null}, c.op, {...p, e: null});
 
@@ -36,11 +36,11 @@ const checkCondition = async (ctx, c) => {
     return ok;
 }
 
-const checkConditions = async (ctx, cs) => {
+const checkConditions = async (ctx, cs, domain) => {
     if (cs) {
         for await (let condID of cs.values()) {
             const c = await getVariable(null, condID, ctx);
-            const ok = await checkCondition(ctx, c);
+            const ok = await checkCondition(ctx, c, domain);
 
             if (!ok) {
                 return false;
@@ -53,7 +53,12 @@ const checkConditions = async (ctx, cs) => {
 
 const setVariable = async (ctx, v, p) => {
     if (v.id !== p.id) {
-        if (v.d && (p.t || (p.c && !v.d.has(p.c)))) {
+        if (v.d) {
+            const dArray = await v.d.toArray();
+            const d = await Promise.all(dArray.map(id => getVariable(null, id, ctx)));
+            console.log(d);
+        }
+        if (v.d && (p.t || (p.c && !(await v.d.has(p.id))))) {
             /*
                 if v has domain, then if value is:
                     * a tuple, it fails,
@@ -68,24 +73,27 @@ const setVariable = async (ctx, v, p) => {
 
         ctx.variables = await ctx.variables.set(b.id, {v: b.id, defer: a.id});
 
-        let d = a.d || b.d;
-        if (a.d && b.d) {
-            for await (let c of a.d) {
-                if (!b.d.has(c)) {
-                    d = await d.remove(c);
+        let d;
+        if (!p.c) { 
+            d = a.d || b.d;
+            if (a.d && b.d) {
+                for await (let c of a.d) {
+                    if (!b.d.has(c)) {
+                        d = await d.remove(c);
 
-                    if (d.size === 0) {
-                        return false;
+                        if (d.size === 0) {
+                            return false;
+                        }
                     }
                 }
             }
         }
 
-        if (!(await checkConditions(ctx, v.e))) {
+        if (!(await checkConditions(ctx, v.e, d))) {
             return false;
         }
 
-        if (!(await checkConditions(ctx, p.e))) {
+        if (!(await checkConditions(ctx, p.e, d))) {
             return false;
         }
 

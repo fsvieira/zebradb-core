@@ -165,7 +165,7 @@ async function copyTerm(ctx, p, preserveVarname=false) {
             }
         }
         else if (v.v) {
-            const d = v.d?await array2iset(ctx, v.d.map(getVarname)):undefined;
+            const d = v.d?await array2iset(ctx, v.d):undefined;
             const e = v.e?await array2iset(ctx, v.e.map(getVarname)):undefined;
  
             ctx.variables = await ctx.variables.set(vn, {v: v.v, d, e, pv: preserveVarname, id: vn});

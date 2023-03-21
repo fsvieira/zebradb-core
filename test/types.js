@@ -37,7 +37,7 @@ describe("Types Tests.", () => {
                 {
                     query: `(* : int -> 'x -> real ')`,
                     results: [
-                        "@(* : int -> real -> real '_v1)"
+                        "@(* : int -> real -> real 'v$2)"
                     ]
                 },
                 {
@@ -47,10 +47,10 @@ describe("Types Tests.", () => {
                         ))
                     `,
                     results: [
-                        "@(x : int @(y : int @(* : int -> int -> int '_v2)))",
-                        "@(x : int @(y : real @(* : int -> real -> real '_v2)))",
-                        "@(x : real @(y : int @(* : real -> int -> real '_v2)))",
-                        "@(x : real @(y : real @(* : real -> real -> real '_v2)))"
+                        "@(x : int @(y : int @(* : int -> int -> int 'v$5)))",
+                        "@(x : int @(y : real @(* : int -> real -> real 'v$5)))",
+                        "@(x : real @(y : int @(* : real -> int -> real 'v$5)))",
+                        "@(x : real @(y : real @(* : real -> real -> real 'v$5)))"
                     ]
                 },
                 {

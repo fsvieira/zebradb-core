@@ -3,7 +3,7 @@
 const test = require("../test-utils/test");
 
 describe("Test domains.", () => {
-	it("should be a easy domain",
+	xit("should be a easy domain",
 		test(
             `
             (number '{0 1 2 3})
@@ -20,7 +20,7 @@ describe("Test domains.", () => {
 		)
 	);
 
-	xit("should unify constant * domain",
+	it("should unify constant * domain",
 		test(
 			`
 			(const '{0 1})

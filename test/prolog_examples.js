@@ -49,8 +49,8 @@ describe("Prolog examples port Tests.", () => {
             `, [{
 				query: "(john likes 'stuff 'p)",
 				results: [
-					"@(john likes food @(mary likes food 'v$5::_v1))",
-					"@(john likes wine @(mary likes wine 'v$5::_v1))"
+					"@(john likes food @(mary likes food 'v$5::v$3))",
+					"@(john likes wine @(mary likes wine 'v$5::v$3))"
 				]}
 			],
             {
@@ -107,8 +107,8 @@ describe("Prolog examples port Tests.", () => {
 
 				query: "(john likes 'stuff 'p)",
 				results: [
-					"@(john likes john @(john likes wine 'v$5::_v1))",
-					"@(john likes mary @(mary likes wine 'v$5::_v1))",
+					"@(john likes john @(john likes wine 'v$5::v$3))",
+					"@(john likes mary @(mary likes wine 'v$5::v$3))",
 					"@(john likes wine 'p)"
 				]
 			}],
@@ -134,13 +134,13 @@ describe("Prolog examples port Tests.", () => {
 			(john likes 'person ('person likes wine '))`, [{
 				query: "(john likes 'stuff 'p)",
 				results: [
-					"@(john likes food @(mary likes food 'v$5::_v1))",
-					"@(john likes john @(john likes wine 'v$5::_v1))",
-					"@(john likes john @(john likes wine @(mary likes wine 'v$9::_v1)))",
+					"@(john likes food @(mary likes food 'v$5::v$3))",
+					"@(john likes john @(john likes wine 'v$5::v$3))",
+					"@(john likes john @(john likes wine @(mary likes wine 'v$9::v$3)))",
 					"@(john likes mary 'p)",
-					"@(john likes mary @(mary likes wine 'v$5::_v1))",
+					"@(john likes mary @(mary likes wine 'v$5::v$3))",
 					"@(john likes wine 'p)",
-					"@(john likes wine @(mary likes wine 'v$5::_v1))"
+					"@(john likes wine @(mary likes wine 'v$5::v$3))"
 				]
 			}],
             {
@@ -170,9 +170,9 @@ describe("Prolog examples port Tests.", () => {
 			`, [{
 				query: "(john likes 'stuff 'p ')",
 				results: [
-					"@(john likes john @(john likes wine 'v$6::_v1 'v$7::_v2) '_v1)",
-					"@(john likes mary @(mary likes mary 'v$6::p 'v$7::_v1) @(mary != john))",
-					"@(john likes wine 'p '_v1)"
+					"@(john likes john @(john likes wine 'v$6::v$3 'v$7::v$4) 'v$2)",
+					"@(john likes mary @(mary likes mary 'v$6::p 'v$7::v$3) @(mary != john))",
+					"@(john likes wine 'p 'v$2)"
 				]
 			}],
             {
@@ -206,14 +206,14 @@ describe("Prolog examples port Tests.", () => {
             ('x != ~'x)`, [{
 				query: "(john likes 'stuff ' ')",
 				results: [
-					"@(john likes food @(mary likes food 'v$6::_v1 'v$7::_v2) '_v2)",
-					"@(john likes john @(john likes wine 'v$6::_v1 'v$7::_v2) '_v2)",
-					"@(john likes john @(john likes wine @(mary likes wine 'v$12::_v1 'v$13::_v2) 'v$7::_v2) '_v2)",
-					"@(john likes mary '_v1 '_v2)",
-					"@(john likes mary @(mary likes wine 'v$6::_v1 'v$7::_v2) '_v2)",
-					"@(john likes peter @(peter likes peter 'v$6::_v1 'v$7::_v2) @(peter != john))",
-					"@(john likes wine '_v1 '_v2)",
-					"@(john likes wine @(mary likes wine 'v$6::_v1 'v$7::_v2) '_v2)"
+					"@(john likes food @(mary likes food 'v$6::v$3 'v$7::v$4) 'v$3)",
+					"@(john likes john @(john likes wine 'v$6::v$3 'v$7::v$4) 'v$3)",
+					"@(john likes john @(john likes wine @(mary likes wine 'v$12::v$3 'v$13::v$4) 'v$7::v$4) 'v$3)",
+					"@(john likes mary 'v$2 'v$3)",
+					"@(john likes mary @(mary likes wine 'v$6::v$3 'v$7::v$4) 'v$3)",
+					"@(john likes peter @(peter likes peter 'v$6::v$3 'v$7::v$4) @(peter != john))",
+					"@(john likes wine 'v$2 'v$3)",
+					"@(john likes wine @(mary likes wine 'v$6::v$3 'v$7::v$4) 'v$3)"
 				]
 			}],
             {
