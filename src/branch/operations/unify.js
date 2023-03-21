@@ -19,45 +19,8 @@ const {
     && (await setVariable(ctx, await get(ctx, p), await get(ctx, q)));
 */
 
-const checkCondition = async (ctx, c, domain) => {
-    const [p, q] = await Promise.all(c.args.map(vID => getVariable(null, vID, ctx)));
-    console.log({...p, e: null}, c.op, {...p, e: null});
-
-    const ok = (c.op === '!=' && p.id !== q.id);
-   
-    if (ok && !(p.v || q.v)) {
-        // if ok, and both p and q are not variables,
-        // we can remove constrain,
-        ctx.constrains = await ctx.constrains.remove(c.id);
-
-        // There is no advantage to remove constrain variable from variables...
-    }
-
-    return ok;
-}
-
-const checkConditions = async (ctx, cs, domain) => {
-    if (cs) {
-        for await (let condID of cs.values()) {
-            const c = await getVariable(null, condID, ctx);
-            const ok = await checkCondition(ctx, c, domain);
-
-            if (!ok) {
-                return false;
-            }
-        }
-    }
-    
-    return true;
-}
-
 const setVariable = async (ctx, v, p) => {
     if (v.id !== p.id) {
-        if (v.d) {
-            const dArray = await v.d.toArray();
-            const d = await Promise.all(dArray.map(id => getVariable(null, id, ctx)));
-            console.log(d);
-        }
         if (v.d && (p.t || (p.c && !(await v.d.has(p.id))))) {
             /*
                 if v has domain, then if value is:
@@ -72,6 +35,7 @@ const setVariable = async (ctx, v, p) => {
         let b = c ? v : p;
 
         ctx.variables = await ctx.variables.set(b.id, {v: b.id, defer: a.id});
+        ctx.unsolvedVariables = await ctx.unsolvedVariables.remove(b.id);
 
         let d;
         if (!p.c) { 
@@ -89,33 +53,58 @@ const setVariable = async (ctx, v, p) => {
             }
         }
 
-        if (!(await checkConditions(ctx, v.e, d))) {
-            return false;
+        let e = v.e || p.e;
+        if (v.e && p.e) {
+            for await (let c of p.e) {
+                e = await e.add(c);
+            }
         }
 
-        if (!(await checkConditions(ctx, p.e, d))) {
-            return false;
+        if (e && e.size > 0) {
+            const dups = {};
+            const cs = e;
+            for await (let condID of cs.values()) {
+                const c = await getVariable(null, condID, ctx);
+                const [p, q] = await Promise.all(c.args.map(vID => getVariable(null, vID, ctx)));
+                console.log({...p, e: null}, c.op, {...p, e: null});
+
+                const dID = p.id + c.op + q.id;
+
+                if (!dups[dID]) {
+                    dups[dID] = true;
+                    const ok = (c.op === '!=' && p.id !== q.id);
+
+                    if (ok && !(p.v || q.v)) {
+                        // if ok, and both p and q are not variables,
+                        // we can remove constrain,
+                        ctx.constrains = await ctx.constrains.remove(c.id);
+                        e = await e.remove(c.id);
+                
+                        // There is no advantage to remove constrain variable from variables...
+                    }
+                    
+                    if (!ok) {
+                        return false;
+                    }
+                }
+                else {
+                    e = await e.remove(c.id);
+                }
+            }
         }
 
-        if (d && (!a.d || a.d.id !== d)) {
+        if (
+            (d && (!a.d || a.d.id !== d.id))
+            || 
+            (e && (!a.e || a.e.id !== e.id))
+        ) {
             // update a
-            ctx.variables = await ctx.variables.set(a.id, {...a, d});
-        }
-        /*
-        if (p.e) {
-            console.log("CHECK PE", p.e);
-        }
+            ctx.variables = await ctx.variables.set(a.id, {...a, d, e});
 
-        if (v.d) {
-            console.log("CHECK VD", v.d);
+            if (d && e) {
+                ctx.unsolvedVariables = await ctx.unsolvedVariables.add(a.id);
+            }
         }
-
-        if (p.d) {
-            console.log("CHECK PD", p.d);
-        }*/
-
-        // TODO: set/check variable a, domains and constrains,
-        // TODO: check constrains of v. 
     }
 
     return true;

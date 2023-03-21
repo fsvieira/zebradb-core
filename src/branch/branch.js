@@ -33,13 +33,14 @@ async function expand (branch, options, selector, definitions) {
         let min=Infinity, minVar; 
         for await (let vID of unsolvedVariables.values()) {
             const v = await branch.data.variables.get(vID);
-            if (v.d.length < min) {
-                min = v.d.length;
+            if (v.d.size < min) {
+                min = v.d.size;
                 minVar = v;
             }
         }
         
-        const r = await Promise.all(minVar.d.map(cID => unify(branch, options, minVar.id, cID)));
+        const minVarD = await minVar.d.toArray();
+        const r = await Promise.all(minVarD.map(cID => unify(branch, options, minVar.id, cID)));
 
         await branch.update({state: 'split'});
 
