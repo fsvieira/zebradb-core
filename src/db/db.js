@@ -3,56 +3,6 @@ const {DB: beastDB} = require("beastdb");
 const {SHA256} = require("sha2");
 const path = require("path");
 
-/*
-// const { v4 } = require('uuid');
-// const FSA = require("fsalib");
-
-const path = require("path");
-const {SHA256} = require("sha2");
-
-const {DB: beastDB} = require("beastdb");
-
-const varname = () => {
-    const varnames = {};
-    let counter = 1;
-    return name => {
-        let v = varnames[name];
-
-        if (!v) {
-            v = varnames[name] = `v_${counter++}`;
-        }
-
-        return v;
-    }
-}
-
-const normalizeVarnames = (v, vn=varname()) => {
-
-    console.log("TODO: normalize varname on restrictions!");
-    
-    if (v.t) {
-        const t = [];
-        for (let i=0; i < v.t.length; i++) {
-            t.push(normalizeVarnames(v.t[i], vn));
-        }
-
-        const body = v.body?v.body.map(t => normalizeVarnames(t, vn)):undefined;
-
-        return {...v, t, body};
-    }
-    else if (v.v) {
-        const e = v.e?v.e.map(v => normalizeVarnames(v, vn)):undefined;
-        return {...v, v: vn(v.v), e};
-    }
-    else if (v.c) {
-        return v;
-    }
-    else {
-        throw "Unknwon type ", JSON.stringify(v);
-    }
-}
-*/
-
 class DB {
     constructor (options, packageInfo) {
         this.options = options;

@@ -48,7 +48,7 @@ describe("Not Tests.", () => {
 
 	const setStart = r => `[${setArray(r).join(", ")}]`;
 
-	xit("Simple not",
+	it("Simple not",
 		test(
 			`('x = 'x)
 			 ('x != ~'x)
@@ -81,7 +81,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Simple not invert order",
+	it("Simple not invert order",
 		test(
 			`('x = 'x)
 			(~'x != 'x)
@@ -107,7 +107,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Simple not varnames",
+	it("Simple not varnames",
 		test(
 			`('x:{0 1} 'y~'x 'y:{0 1})
 			`, [
@@ -123,7 +123,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Simple cascanding not varnames, TODO: solve circular",
+	it("Simple cascanding not varnames, TODO: solve circular",
 		test(
 			`('x:{0 1 3}~'y~'z~'x 'y:{0 1 3} 'z:{0 1 3})
 			`, [
@@ -143,7 +143,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Simple not multiple varnames",
+	it("Simple not multiple varnames",
 		test(
 			`('x:{0 1 3}~{'y~'z 'z} 'y:{0 1 3} 'z:{0 1 3})
 			`, [
@@ -175,7 +175,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Not evaluation order",
+	it("Not evaluation order",
 		test(
 			"('x = 'x) ('x)", [{
 				query: "((~blue) = (yellow))",
@@ -187,7 +187,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Declare a not equal",
+	it("Declare a not equal",
 		test(
 			`(color 'a)
 			 ('x = 'x)
@@ -227,7 +227,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Should make distinct tuples",
+	it("Should make distinct tuples",
 		test(
 			`(color yellow)
             (color blue)
@@ -261,7 +261,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Should declare simple not.",
+	it("Should declare simple not.",
 		test(
 			`(number 0)
             (number 1)
@@ -277,7 +277,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Should declare a list",
+	it("Should declare a list",
 		test(
 			`(list)
             (list 'item (list ' '))
@@ -322,7 +322,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Should declare a two number Set",
+	it("Should declare a two number Set",
 		test(
 			`(number 0)
             (number 1)
@@ -357,7 +357,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Should declare a two number Set, query all",
+	it("Should declare a two number Set, query all",
 		test(
 			`(number 0)
             (number 1)
@@ -378,7 +378,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Should declare a number Set, 3 elements",
+	it("Should declare a number Set, 3 elements",
 		test(
 			`(number 0)
             (number 1)
@@ -422,7 +422,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Should declare a number Set, 4 elements",
+	it("Should declare a number Set, 4 elements",
 		test(
 			`(number 0)
             (number 1)
@@ -479,7 +479,7 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Should declare a number Set, 4 elements, all",
+	it("Should declare a number Set, 4 elements, all",
 		test(
 			`(number 0)
             (number 1)
@@ -562,22 +562,21 @@ describe("Not Tests.", () => {
 		)
 	);
 
-	xit("Simple not with bound varnames at negation constrains", 
+	it("Simple not with bound varnames at negation constrains", 
 		test(`
 			('x = 'x)
 			('x~{'y ('y = 1)})
 		`, [
 				{
 					query: "('x)",
-					results: [ 
-			  		]
+					results: ["@('x~{1 @(1 = 1)})"]
 				}
 			],
 			{path: 'dbs/not/17', timeout: 1000 * 60 * 60}
 		)
 	)
 
-	xit("Complex not with contradictions", 
+	it("Complex not with contradictions", 
 		test(`
 			('x = 'x)
 			
@@ -592,7 +591,7 @@ describe("Not Tests.", () => {
 					results: []
 				}
 			],
-			{path: 'dbs/not/17', timeout: 1000 * 60 * 60}
+			{path: 'dbs/not/18', timeout: 1000 * 60 * 60}
 		)
 	)
 

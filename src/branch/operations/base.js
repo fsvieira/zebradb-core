@@ -59,64 +59,6 @@ const copyTerms = async (ctx, t, preserveVarname=0, varIds={}) => {
     return ts;
 }
 
-/*const copyTerm = async (ctx, p, preserveVarname=0, varIds={}) => {
-    console.log(JSON.stringify(p));
-    let id = typeof p === 'string' ? p : p.id;
-
-    if (!id) {
-        if (p.c) {
-            // register constant
-            id = ctx.newVar(p.c);
-            ctx.variables = await ctx.variables.set(id, {...p, id});
-        }
-        else if (p.v) {
-            id = varIds[p.v];
-
-            if (!id) {
-                // create new variable and map it to definition variable.
-                id = ctx.newVar();
-                varIds[p.v] = id;
-                const e = p.e ? await copyTerms(ctx, p.e, preserveVarname, varIds):undefined;
-                const d = p.d ? await copyTerms(ctx, p.d, preserveVarname, varIds):undefined;
-                const v = {v: p.v, id, e, d, pv: preserveVarname};
-                ctx.variables = await ctx.variables.set(id, v);
-                // ctx.definitionVariables[p.v] = v;
-                // delete varIds[p.v];
-
-                if (e && d) {
-                    ctx.unsolvedVariables = await ctx.unsolvedVariables.add(id);
-                }
-            }
-        }
-        else if (p.t) {
-
-            if (p.body) {
-                const bodySet = await ctx.variables.get("_body") || ctx.rDB.iSet();
-                
-                for (let i=0; i<p.body.length; i++) {
-                    const id = await copyTerm(ctx, p.body[i], preserveVarname, varIds);
-                    ctx.unchecked = await ctx.unchecked.add(id);
-                    bodySet.add(id);
-                }
-                
-                ctx.variables.set("_body", id);
-            }
-            
-            let t = [];
-            for (let i=0; i<p.t.length; i++) {
-                const q = await get(ctx, p.t[i]);
-                t.push(await copyTerm(ctx, q, preserveVarname, varIds));
-            }
-
-            id = ctx.newVar();
-            ctx.variables = await ctx.variables.set(id, {t, id});    
-            ctx.unchecked = await ctx.unchecked.add(id);
-        }
-    }
-
-    return id;
-}*/
-
 async function array2iset (ctx, array) {
     let iset = ctx.rDB.iSet();
     for (let i=0; i<array.length; i++) {
@@ -250,7 +192,6 @@ async function toString (branch, id, ctx, constrains=true) {
 
     const d = !!ctx; 
     const v = await getVariable(branch, id, ctx);
-    // const v = await (ctx ? get(ctx, id) : getVariable(branch, id, ctx));
     
     if (v.t) {
         const ts = [];

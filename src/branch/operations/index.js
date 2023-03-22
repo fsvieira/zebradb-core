@@ -4,7 +4,7 @@ const {
     getVariable,
     toString,
     copyTerm,
-    prepareVariables
+   // prepareVariables
 } = require("./base");
 
 module.exports = {
@@ -13,5 +13,5 @@ module.exports = {
     getVariable,
     toString,
     copyTerm,
-    prepareVariables
+   // prepareVariables
 };

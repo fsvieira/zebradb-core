@@ -3,17 +3,13 @@ const {
     type,
     get,
     copyTerm,
-    copyTerms,
+    // copyTerms,
     toString,
-    prepareVariables,
+    // prepareVariables,
     getVariable
 } = require("./base");
 
-/*
-const {
-    checkConstrains
-} = require("./notUnify");
-*/
+const doNotUnify = require("./notUnify");
 
 /*const unifyVariable = async (ctx, p, q) => (await checkConstrains(ctx, p, q)) 
     && (await setVariable(ctx, await get(ctx, p), await get(ctx, q)));
@@ -67,7 +63,7 @@ const setVariable = async (ctx, v, p) => {
                 const c = await getVariable(null, condID, ctx);
                 const [p, q] = await Promise.all(c.args.map(vID => getVariable(null, vID, ctx)));
                 console.log("TODO: check domains constrains!!");
-                console.log(v.id, {...p, e: null}, c.op, {...q, e: null});
+                // console.log(v.id, {...p, e: null}, c.op, {...q, e: null});
 
                 const dID = p.id + c.op + q.id;
 
@@ -77,7 +73,17 @@ const setVariable = async (ctx, v, p) => {
 
                     if (ok && !(p.v || q.v)) {
                         if (ok && p.t && q.t) {
-                            console.log("TODO: MAKE TUPLE CONSTRAINS!");
+                            const [ok, cs] = await doNotUnify(ctx, p.id, q.id);
+
+                            if (!ok) {
+                                if (cs.length) {
+                                    console.log("TODO: SET OR CONSTRAINS!!");
+                                }
+                                else {
+                                    // tuples are equal so they should fail.
+                                    return false;
+                                }
+                            }
                         }
 
                         // if ok, and both p and q are not variables,
@@ -165,105 +171,6 @@ const checkTuple = async (ctx, p, q) => {
     }
 }
 
-
-const __setVariable = async (ctx, v, p) => {
-    if (v.id !== p.id) {
-        if (p.v) {
-            let a=v, b=p;
-
-            if (p.pv) {
-                a = p;
-                b = v;
-            }
-
-            let e;
-            let d;
-
-            if (a.e && b.e) {
-                // console.log("TODO: Exception Should use a ISet");
-                e = [...new Set((a.e || []).concat(b.e || []))].sort();
-            }
-            else {
-                e = a.e || b.e;
-            }
-
-
-            if (a.d && b.d) {
-                // intersect both domains,
-                d = a.d.filter(c => b.d.includes(c));
-
-                if (d.length === 0) {
-                    return false;
-                }
-            }
-            else {
-                d = a.d || b.d;
-            }
-
-            if (e && d) {
-                const es = [];
-                for (let i=0; i<e.length; i++) {
-                    const v = await get(ctx, e[i]);
-                    if (v.c) {
-                        const index = d.findIndex(c => c === v.id);
-                        if (index !== -1) {
-                            d.splice(index, 1);
-
-                            if (d.length === 0) {
-                                return false;
-                            }
-                        }
-                    }
-                    else if (v.v) {
-                        es.push(v.id);
-                    }
-                }
-
-                e = es.length ? es : undefined;
-            }
-
-            if (d && d.length === 1) {
-                ctx.variables = await ctx.variables.set(a.id, {
-                    ...a,
-                    defer: d[0]
-                });
-
-                ctx.variables = await ctx.variables.set(b.id, {
-                    ...b,
-                    defer: d[0]
-                });
-            }
-            else {
-                if (e || d) {
-                    ctx.variables = await ctx.variables.set(a.id, {
-                        ...a,
-                        e,
-                        d
-                    });
-
-                    if (e && d) {
-                        ctx.unsolvedVariables = await ctx.unsolvedVariables.remove(b.id);
-                        ctx.unsolvedVariables = await ctx.unsolvedVariables.add(a.id);
-                    }
-                }
-
-                ctx.variables = await ctx.variables.set(b.id, {
-                    ...v,
-                    defer: a.id
-                });
-            }
-        }
-        else {
-            ctx.variables = await ctx.variables.set(v.id, {
-                ...v,
-                defer: p.id
-            });
-        }
-    }
-
-    return true;
-}
-
 async function deepUnify(
     ctx,
     tuple, 
@@ -324,7 +231,6 @@ const doUnify = async (ctx, p, q) => {
             ctx.log = await ctx.log.push(`SUCC: ${s}`);
         }
     }
-    // console.log("  ===> ", await toString(undefined, undefined, ctx), '\n');
 
     return ok;
 }

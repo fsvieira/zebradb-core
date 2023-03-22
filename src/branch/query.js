@@ -17,7 +17,6 @@ const query = async (rDB, tuple, branchID) => {
         unsolvedVariables,
         level,
         rDB,
-        definitionVariables: branchOps.prepareVariables(tuple),
         log,
         constrains
     };
