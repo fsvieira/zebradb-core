@@ -1,3 +1,4 @@
+/*
 const prepareVariables = (p, vars={}) => {
     if (p.t) {
         if (p.body) {
@@ -58,6 +59,7 @@ const copyTerms = async (ctx, t, preserveVarname=0, varIds={}) => {
 
     return ts;
 }
+*/
 
 async function array2iset (ctx, array) {
     let iset = ctx.rDB.iSet();
@@ -234,7 +236,7 @@ module.exports = {
     getVariable,
     get,
     copyTerm,
-    copyTerms,
+    // copyTerms,
     toString,
-    prepareVariables
+    // prepareVariables
 };

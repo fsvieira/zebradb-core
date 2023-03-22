@@ -73,7 +73,7 @@ function terms (ctx, t) {
             if (t.domain) {
                 vdata.d = vdata.d?
                     vdata.filter(c => t.domain.includes(c.c)):
-                    t.domain.map(c => terms(ctx, c))
+                    t.domain.map(c => terms(ctx, c)).sort()
                 ;
         
                 if (vdata.d.length === 0) {

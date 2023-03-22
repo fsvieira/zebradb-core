@@ -3,7 +3,7 @@
 const test = require("../test-utils/test");
 
 describe("Test domains.", () => {
-	xit("should be a easy domain",
+	it("should be a easy domain",
 		test(
             `
             (number '{0 1 2 3})
@@ -43,7 +43,7 @@ describe("Test domains.", () => {
 		)
 	);
 
-	xit("should make domain of two variables",
+	it("should make domain of two variables",
 		test(
 			`
 			('x = 'x)
@@ -83,7 +83,7 @@ describe("Test domains.", () => {
 		)
 	);
 
-	xit("should declare AND booelan operator using domains. (simple)",
+	it("should declare AND booelan operator using domains. (simple)",
 		test(
 			`
 				('{0 1} & 0 = 0)
@@ -120,7 +120,7 @@ describe("Test domains.", () => {
 		)
 	);
 
-	xit("should declare AND booelan operator using domains. (simple domains names)",
+	it("should declare AND booelan operator using domains. (simple domains names)",
 		test(
 			`
 				('x != ~'x)
@@ -130,7 +130,7 @@ describe("Test domains.", () => {
 				{
 					query: "('a & 'b = 'c ')",
 					results: [
-						"@('a:{0 1} & 'a:{0 1} = 'a:{0 1} '_v1)",
+						"@('a:{0 1} & 'a:{0 1} = 'a:{0 1} 'v$2)",
 						"@(0 & 1 = 0 @(0 != 1))",
 						"@(1 & 0 = 0 @(1 != 0))"
 					]
@@ -146,7 +146,7 @@ describe("Test domains.", () => {
 
 
 
-	xit("should declare AND booelan operator using domains. (fancy)",
+	it("should declare AND booelan operator using domains. (fancy)",
 		test(
 			`
 			('x & 'y = 'z ('y & 'x = 'z stop))
@@ -156,17 +156,17 @@ describe("Test domains.", () => {
 				{
 					query: "('a & 'b = 'c ')",
 					results: [
-						"@('a:{0 1} & 0 = 0 '_v1)",
+						"@('a:{0 1} & 0 = 0 'v$2)",
 						"@(0 & 'b:{0 1} = 0 @('b:{0 1} & 0 = 0 stop))",
-						"@(1 & 1 = 1 '_v1)",
+						"@(1 & 1 = 1 'v$2)",
 						"@(1 & 1 = 1 @(1 & 1 = 1 stop))"
 					]
 				},
 				{
 					query: "(1 & 'b = 'c ')",
 					results: [
-						"@(1 & 0 = 0 '_v1)",
-						"@(1 & 1 = 1 '_v1)",
+						"@(1 & 0 = 0 'v$2)",
+						"@(1 & 1 = 1 'v$2)",
 						"@(1 & 1 = 1 @(1 & 1 = 1 stop))"
 					]
 				},
@@ -174,7 +174,7 @@ describe("Test domains.", () => {
 					query: "('a & 1 = 'c ')",
 					results: [
 						"@(0 & 1 = 0 @(1 & 0 = 0 stop))",
-						"@(1 & 1 = 1 '_v1)",
+						"@(1 & 1 = 1 'v$2)",
 						"@(1 & 1 = 1 @(1 & 1 = 1 stop))"
 					]
 				}
@@ -186,7 +186,7 @@ describe("Test domains.", () => {
 		)
 	);
 
-	xit("should declare AND booelan operator using domains. (fancy 2)",
+	it("should declare AND booelan operator using domains. (fancy 2)",
 		test(
 			`
 				('x & ~'x = 0)
@@ -195,7 +195,7 @@ describe("Test domains.", () => {
 				{
 					query: "('{0 1} & '{0 1} = 'c)",
 					results: [
-						"@('_v1:{0 1} & '_v1:{0 1} = '_v1:{0 1})",
+						"@('v$2:{0 1} & 'v$2:{0 1} = 'v$2:{0 1})",
       					"@(0 & 1 = 0)",
       					"@(1 & 0 = 0)"
 					]
@@ -215,7 +215,7 @@ describe("Test domains.", () => {
 		)
 	);
 
-	xit("should create domains cartasian product result",
+	it("should create domains cartasian product result",
 		test(
 			`
 			(bit '{0 1})
@@ -235,7 +235,7 @@ describe("Test domains.", () => {
 		)
 	);
 
-	xit("should create domains cartesian product result (unfold)",
+	it("should create domains cartesian product result (unfold)",
 		test(
 			`
 			(bit '{0 1})
@@ -253,7 +253,7 @@ describe("Test domains.", () => {
 					// 1 0 1
 					// 1 1 0
 					// 1 1 1
-					"@(unfold 2 @(bit 'v$4::c:{0 1}) @(unfold 1 @(bit 'v$12::b:{0 1}) @(unfold 0 @(bit 'v$20::a:{0 1}) 'v$15::_v2)))"
+					"@(unfold 2 @(bit 'v$4::c:{0 1}) @(unfold 1 @(bit 'v$12::b:{0 1}) @(unfold 0 @(bit 'v$20::a:{0 1}) 'v$15::v$5)))"
 				]
 			}],
 			{
@@ -263,7 +263,7 @@ describe("Test domains.", () => {
 		)
 	);
 
-	xit("should handle domains negations.",
+	it("should handle domains negations.",
 		test(
 			`
 			('x != ~'x)

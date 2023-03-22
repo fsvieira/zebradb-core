@@ -25,6 +25,7 @@ class DB {
         
         await this.rDB.tables.definitions
             .key('definitionID')
+            .index('compareHash')
             .save()
         ;
 
@@ -52,6 +53,111 @@ class DB {
         }
     }
 
+    genCompareHashRec (tuple, id=tuple.root) {
+        const v = tuple.variables[id];
+
+        if (v.t) {
+            const hash = `T${v.t.length}`;
+            let ts = [];
+            for (let i=0; i<v.t.length; i++) {
+                ts.push(this.genCompareHashRec(tuple, v.t[i]));
+            }
+
+            return `${hash}[${ts.join(":")}]`
+        }
+        else if (v.v) {
+            return 'V';
+        }
+        else if (v.c) {
+            return v.c;
+        }
+    }
+
+    compare (tupleA, tupleB, idA=tupleA.root, idB=tupleB.root, vars={}) {
+        const vA = tupleA.variables[idA];
+        const vB = tupleB.variables[idB];
+
+        if (vA.body && vB.body && vA.body.length===vB.body.length) {
+            console.log("TODO: compare body", vA.body, vB.body);
+            /*
+                Compare body is complicated, 
+                lets return false for now :D
+            */
+            return false;
+        }
+        else if (vA.body || vB.body) {
+            return false;
+        }
+
+        if (vA.c && vB.c) {
+            return vA.c === vB.c;
+        }
+        else if (vA.v && vB.v) {
+            const rB = vars[vA.id];
+
+            if (rB) {
+                return rB === vB.id;
+            }
+
+            if (vA.d && vB.d && vA.d.length === vB.d.length) {
+                for (let i=0; i<vA.d.length; i++) {
+                    if (vA.d[i] !== vB.d[i]) {
+                        return false;
+                    }
+                }
+            }
+            else if (vA.d || vB.d) {
+                return false;
+            }
+
+            if (vA.e && vB.e && vA.e.length === vB.e.length) {
+                console.log("TODO COMPARE EXCEPTIONS!!", vA.e, vB.e);
+                /*
+                    its hard to compare constrains, for now return false to insert it;
+                    1. we can make it lazzy, keeping the constrains separeted, 
+                    2. when we are able to replace the 2 variables we can search for it and remove it ? 
+                */
+
+                return false;
+            }
+            else if (vA.e || vB.e) {
+                return false;
+            }
+
+            vars[vA.id] = vB.id;
+            return true;
+        }
+        else if (vA.t && vB.t && vA.t.length === vB.t.length) {
+            for (let i=0; i<vA.t.length; i++) {
+                const cmp = this.compare(tupleA, tupleB, vA.t[i], vB.t[i]);
+
+                if (!cmp) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+
+    async genCompareHash (tuple) {
+        const hash = SHA256(this.genCompareHashRec(tuple)).toString("base64");
+
+        for await (let r of this.rDB.tables.definitions.findByIndex({compareHash: hash})) {
+            const dbTuple = await r.data.tuple;
+            const isEqual = this.compare(dbTuple, tuple);
+
+            if (isEqual) {
+                return;
+            }
+        }
+
+        return hash;
+    }
+
     async add(definitions) {
         const tuples = parse(definitions).map(t => {
             t.variables[t.root].checked = true;
@@ -60,41 +166,30 @@ class DB {
 
         for (let i=0; i<tuples.length; i++) {
             const tuple = tuples[i];
-//             const ts = normalizeVarnames(tuple);
+            const compareHash = await this.genCompareHash(tuple);
 
+            if (compareHash) {
+                const id = SHA256(JSON.stringify(tuple)).toString('base64');
 
-            console.log("TODO: generate a general hash for definition and then check if they are equal!!");
-            /*
-                TODO: before generate id and insert to database:
-                    1. Generate a general hash (replace varnmes with "'v", ignore domains?, ignore excetions?)
-                    2. Check database for the existing of the hash,
-                        2a. if not exists we can insert,
-                        2a. if does exist we compare all tuples on that hash, if none is equal we can insert.
-                    3. Insert:
-                        * we can insert normal definition and make a index for the compare hash.
-
-                Notes: the hash can be improved, also we can have more then one hash, or stats.
-            */
-
-            const id = SHA256(JSON.stringify(tuple)).toString('base64');
-
-            const definition = await this.rDB.tables.definitions.insert({
-                definitionID: id,
-                tuple
-            }, null);
-
-            // make indexes
-            const root = tuple.variables[tuple.root];
-
-            for (let i=0; i<root.t.length; i++) {
-                const v = tuple.variables[root.t[i]];
-
-                await this.rDB.tables.definitionIndexes.insert({
-                    definition,
-                    tupleLength: root.t.length,
-                    type: this.getType(v),
-                    position: i
+                const definition = await this.rDB.tables.definitions.insert({
+                    definitionID: id,
+                    tuple,
+                    compareHash
                 }, null);
+
+                // make indexes
+                const root = tuple.variables[tuple.root];
+
+                for (let i=0; i<root.t.length; i++) {
+                    const v = tuple.variables[root.t[i]];
+
+                    await this.rDB.tables.definitionIndexes.insert({
+                        definition,
+                        tupleLength: root.t.length,
+                        type: this.getType(v),
+                        position: i
+                    }, null);
+                }
             }
         }
     }
