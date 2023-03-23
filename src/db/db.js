@@ -78,7 +78,6 @@ class DB {
         const vB = tupleB.variables[idB];
 
         if (vA.body && vB.body && vA.body.length===vB.body.length) {
-            console.log("TODO: compare body", vA.body, vB.body);
             /*
                 Compare body is complicated, 
                 lets return false for now :D
@@ -111,7 +110,6 @@ class DB {
             }
 
             if (vA.e && vB.e && vA.e.length === vB.e.length) {
-                console.log("TODO COMPARE EXCEPTIONS!!", vA.e, vB.e);
                 /*
                     its hard to compare constrains, for now return false to insert it;
                     1. we can make it lazzy, keeping the constrains separeted, 

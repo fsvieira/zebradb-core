@@ -100,7 +100,7 @@ describe("Brave puzzle Tests.", () => {
 	);
 
     // TODO: Tuple negations needs more tests, this is failing!!
-    xit("should solve brave puzzle (2)",
+    it("should solve brave puzzle (2)",
 		test(
 			`
             (letter '{B R A V E})

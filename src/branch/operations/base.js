@@ -1,65 +1,3 @@
-/*
-const prepareVariables = (p, vars={}) => {
-    if (p.t) {
-        if (p.body) {
-            for (let i=0; i<p.body.length; i++) {
-                prepareVariables(p.body[i], vars);
-            }    
-        }
-
-        for (let i=0; i<p.t.length; i++) {
-            prepareVariables(p.t[i], vars);
-        }
-    }
-    else if (p.v) {
-        let x = vars[p.v];
-        let e;
-
-        if (x) {
-            if (p.e && x.e) {
-                const dups = x.e.reduce((acc, v) => {
-                    if (v.v) {
-                        acc[v.v] = true;
-                    }
-
-                    return acc;
-                }, {});
-
-                e = p.e.filter(v => !dups[v.v]).map(e => e.v?{...e, e:undefined}:e);
-
-                x.e = x.e.concat(e);
-            }
-            else if (p.e) {
-                x.e = p.e.map(e => e.v?{...e, e:undefined}:e);
-            }
-        }
-        else {
-            x = {...p, e: p.e?p.e.map(e => e.v?{...e, e:undefined}:e):undefined};
-        }
-
-        vars[x.v] = x;
-
-        e = e || p.e || [];
-        for (let i=0; i<e.length; i++) {
-            const a = e[i];
-            prepareVariables(a.v?{...a, e: [{...p, e: undefined}]}:a, vars);
-        }
-    }
-
-    return vars;
-}
-
-const copyTerms = async (ctx, t, preserveVarname=0, varIds={}) => {
-    const ts = [];
-    for (let i=0; i<t.length; i++) {
-        const v = await get(ctx, t[i]);
-
-        ts.push(await copyTerm(ctx, v, preserveVarname, varIds));
-    }
-
-    return ts;
-}
-*/
 
 async function array2iset (ctx, array) {
     let iset = ctx.rDB.iSet();
@@ -221,7 +159,6 @@ async function toString (branch, id, ctx, constrains=true) {
         const domain = domainArray ? (await Promise.all(domainArray.map(id => toString(branch, id, ctx)))).filter(v => v !== ''):undefined;
         const ds = domain && domain.length?`:{${domain.join(" ")}}`:"";
 
-        console.log("TODO: remove constrains duplicates on final fase.");
         let e = "";
         if (constrains) { 
             const es = v.e ? 

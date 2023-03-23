@@ -1,55 +1,3 @@
-/*
-const terms = (e, genVariable, variables, constrains={}) => {
-    switch(e.type) {
-        case 'constant': 
-            return {c: e.data, cid: e.data};
-
-        case 'variable': {
-            const v = e.data || genVariable();
-
-            let vdata = variables[v];
-            if (!vdata) {
-                vdata = variables[v] = {v};
-                vdata.cid = v;
-            }
-        
-            if (e.domain) {
-                vdata.d = vdata.d?
-                    vdata.filter(c => e.domain.includes(c.c)):
-                    e.domain.map(c => terms(c, genVariable, variables, constrains))
-                ;
-        
-                if (vdata.d.length === 0) {
-                    throw new Error("Definition has domains that cancel each other.");
-                }
-            }
-        
-            if (e.except) {
-                e.except.forEach(e => {
-                    const t = terms(e, genVariable, variables, constrains);
-                    const cs = {op: '!=', args: [vdata.cid, t.cid].sort()};
-                    constrains[`_cs_${cs.args[0]}!=${cs.args[1]}`] = cs;
-                })
-            }
-        
-            return vdata;
-        }
-
-        case 'tuple': {
-            let body;
-            if (e.body && e.body.length) {
-                body = ts(e.body, genVariable, variables, constrains);
-            }
-
-            return {t: ts(e.data, genVariable, variables, constrains), body, cid: genVariable()}
-        }
-    }
-}
-
-const ts = (tupleData, genVariable, variables={}, constrains={}) => tupleData
-    .map(e => terms(e, genVariable, variables, constrains));
-*/
-
 const {branchOps} = require("../branch");
 
 function terms (ctx, t) {
@@ -89,7 +37,6 @@ function terms (ctx, t) {
                     const args = [cid, ecid].sort();
                     const constrainID = `_cs_${args[0]}!=${args[1]}`;
                     const cs = {op: '!=', args, cid: constrainID };
-                    // ctx.constrains[constrainID] = cs;
 
                     ctx.variables[constrainID] = cs;
                     ctx.constrains.add(constrainID);
@@ -98,14 +45,11 @@ function terms (ctx, t) {
                     vdata.e.add(constrainID);
                     const cdata = ctx.variables[ecid];
 
-                    // if constrain is a variable then add constrain ref.
                     if (cdata.v) {
                         cdata.e = (cdata.e || new Set());
                         cdata.e.add(constrainID);
                     }
                 }
-
-                // console.log("TODO: if variable has domains, we should make a consistency check at this phase??? domains and constrains are evaluated on run phase?");
             }
 
             return cid;

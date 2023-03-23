@@ -3,17 +3,11 @@ const {
     type,
     get,
     copyTerm,
-    // copyTerms,
     toString,
-    // prepareVariables,
     getVariable
 } = require("./base");
 
 const doNotUnify = require("./notUnify");
-
-/*const unifyVariable = async (ctx, p, q) => (await checkConstrains(ctx, p, q)) 
-    && (await setVariable(ctx, await get(ctx, p), await get(ctx, q)));
-*/
 
 const C_FALSE = 0;
 const C_TRUE = 1;
@@ -62,7 +56,7 @@ const checkConstrains = async (ctx, c, or) => {
                             or.args = orConstrains;
                         }
                         else {
-                            ctx.variables = await ctx.variables.set(vcs, {op: "OR", args: orConstrains});
+                            ctx.variables = await ctx.variables.set(vcs, {op: "OR", args: orConstrains, id: vcs});
                             ctx.constrains = await ctx.constrains.add(vcs);
                         }
                     }
@@ -85,8 +79,6 @@ const checkConstrains = async (ctx, c, or) => {
         return ok ? C_UNKNOWN : C_FALSE;
     }
     else if (c.op === 'OR') {
-        console.log("OOOOOOOOOOORRRRRR", c);
-
         const cs = c.args;
         const cc = {...c};
         for await (let cid of cs.values()) {
@@ -165,8 +157,6 @@ const setVariable = async (ctx, v, p) => {
             const cs = e;
             for await (let condID of cs.values()) {
                 const c = await getVariable(null, condID, ctx);
-                console.log("TODO: check domains constrains!!");
-
                 const ok = await checkConstrains(ctx, c);
                 
                 if (ok === C_TRUE) {
@@ -300,7 +290,7 @@ const doUnify = async (ctx, p, q) => {
 
         s += `; p=${ps}, q=${qs}`;
         if (!ok) {
-            ctx.log = await ctx.log.push(`FAIL: ${s}`/*, JSON.stringify(p), " *** " , JSON.stringify(q)*/);
+            ctx.log = await ctx.log.push(`FAIL: ${s}`);
         }
         else {
             ctx.log = await ctx.log.push(`SUCC: ${s}`);
