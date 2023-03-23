@@ -15,6 +15,111 @@ const doNotUnify = require("./notUnify");
     && (await setVariable(ctx, await get(ctx, p), await get(ctx, q)));
 */
 
+const C_FALSE = 0;
+const C_TRUE = 1;
+const C_UNKNOWN = 2;
+
+const checkConstrains = async (ctx, c, or) => {
+    if (c.op === '!=') {
+        const [p, q] = await Promise.all(c.args.map(id => getVariable(null, id, ctx)));
+        const ok = p.id !== q.id;
+
+        if (ok && !(p.v || q.v)) {
+            if (p.t && q.t) {
+                const [ok, cs] = await doNotUnify(ctx, p.id, q.id);
+
+                if (!ok) {
+                    if (cs.length) {
+                        const vcs = ctx.newVar();
+
+                        let orConstrains = or ? or.args : ctx.rDB.iSet();
+                        for (let i=0; i<cs.length; i++) {
+                            const vc = ctx.newVar();
+                            const [pID, qID] = cs[i].args;
+
+                            const p = await getVariable(null, pID, ctx);
+                            const q = await getVariable(null, qID, ctx);
+
+                            const pe = await (p.e || ctx.rDB.iSet()).add(vcs);
+                            const qe = await (q.e || ctx.rDB.iSet()).add(vcs);
+
+                            if (p.d) {
+                                ctx.unsolvedVariables = await ctx.unsolvedVariables.add(p.id);
+                            }
+
+                            if (q.d) {
+                                ctx.unsolvedVariables = await ctx.unsolvedVariables.add(q.id);
+                            }
+
+                            ctx.variables = await ctx.variables.set(p.id, {...p, e: pe});
+                            ctx.variables = await ctx.variables.set(q.id, {...q, e: qe});
+
+                            ctx.variables = await ctx.variables.set(vc, cs[i]);
+                            orConstrains = await orConstrains.add(vc);
+                        }
+                        
+                        if (or) {
+                            or.args = orConstrains;
+                        }
+                        else {
+                            ctx.variables = await ctx.variables.set(vcs, {op: "OR", args: orConstrains});
+                            ctx.constrains = await ctx.constrains.add(vcs);
+                        }
+                    }
+                    else {
+                        // tuples are equal so they should fail.
+                        return C_FALSE;
+                    }
+                }
+            }
+
+            return C_TRUE;
+            // if ok, and both p and q are not variables,
+            // we can remove constrain,
+              // ctx.constrains = await ctx.constrains.remove(c.id);
+              // e = await e.remove(c.id);
+
+            // There is no advantage to remove constrain variable from variables...
+        }
+
+        return ok ? C_UNKNOWN : C_FALSE;
+    }
+    else if (c.op === 'OR') {
+        console.log("OOOOOOOOOOORRRRRR", c);
+
+        const cs = c.args;
+        const cc = {...c};
+        for await (let cid of cs.values()) {
+            const cOR = await getVariable(null, cid, ctx);
+         
+            const ok = await checkConstrains(ctx, cOR, cc);
+
+            if (ok === C_FALSE) {
+                cc.args = await cc.args.remove(cid);
+
+                if (cc.args.size === 0) {
+                    return C_FALSE;
+                }
+            }
+            else if (ok === C_TRUE) {
+                ctx.variables = await ctx.variables.set(c.id, {op: 'T'});
+                return C_TRUE;
+            }
+        }
+
+        if (cc.args.id !== c.args.id) {
+            ctx.variables = await ctx.variables.set(c.id, cc);
+        }
+
+        return C_UNKNOWN;
+    }
+    else if (c.op === 'T') {
+        return C_TRUE;
+    }
+
+    throw `Unknown operator ${op}!!`;
+}
+
 const setVariable = async (ctx, v, p) => {
     if (v.id !== p.id) {
         if (v.d && (p.t || (p.c && !(await v.d.has(p.id))))) {
@@ -57,49 +162,19 @@ const setVariable = async (ctx, v, p) => {
         }
 
         if (e && e.size > 0) {
-            const dups = {};
             const cs = e;
             for await (let condID of cs.values()) {
                 const c = await getVariable(null, condID, ctx);
-                const [p, q] = await Promise.all(c.args.map(vID => getVariable(null, vID, ctx)));
                 console.log("TODO: check domains constrains!!");
-                // console.log(v.id, {...p, e: null}, c.op, {...q, e: null});
 
-                const dID = p.id + c.op + q.id;
-
-                if (!dups[dID]) {
-                    dups[dID] = true;
-                    const ok = (c.op === '!=' && p.id !== q.id);
-
-                    if (ok && !(p.v || q.v)) {
-                        if (ok && p.t && q.t) {
-                            const [ok, cs] = await doNotUnify(ctx, p.id, q.id);
-
-                            if (!ok) {
-                                if (cs.length) {
-                                    console.log("TODO: SET OR CONSTRAINS!!");
-                                }
-                                else {
-                                    // tuples are equal so they should fail.
-                                    return false;
-                                }
-                            }
-                        }
-
-                        // if ok, and both p and q are not variables,
-                        // we can remove constrain,
-                        ctx.constrains = await ctx.constrains.remove(c.id);
-                        e = await e.remove(c.id);
+                const ok = await checkConstrains(ctx, c);
                 
-                        // There is no advantage to remove constrain variable from variables...
-                    }
-                    
-                    if (!ok) {
-                        return false;
-                    }
-                }
-                else {
+                if (ok === C_TRUE) {
+                    ctx.constrains = await ctx.constrains.remove(c.id);
                     e = await e.remove(c.id);
+                }
+                else if (ok === C_FALSE) {
+                    return false;
                 }
             }
         }

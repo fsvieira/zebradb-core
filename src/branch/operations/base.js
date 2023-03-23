@@ -182,10 +182,20 @@ const get = async (ctx, v) => {
 async function toStringConstrains (branch, v, cID, ctx) {
     const constrain = await getVariable(branch, cID, ctx);
 
-    const cv = await getVariable(branch, constrain.args[0]);
-    const rv = v.id === cv.id ? constrain.args[1] : constrain.args[0];
+    if (constrain.op === '!=') {
+        const cv = await getVariable(branch, constrain.args[0]);
+        const rv = v.id === cv.id ? constrain.args[1] : constrain.args[0];
 
-    return await toString(branch, rv, ctx, false);
+        return await toString(branch, rv, ctx, false);
+    }
+    else if (constrain.op === 'OR') {
+        const r = [];
+        for await (let e of constrain.args.values()) {
+            r.push(await toStringConstrains(branch, v, e, ctx));
+        }
+
+        return r.join(" OR ");
+    }
 }
 
 async function toString (branch, id, ctx, constrains=true) {
