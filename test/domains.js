@@ -144,8 +144,6 @@ describe("Test domains.", () => {
 		)
 	);
 
-
-
 	it("should declare AND booelan operator using domains. (fancy)",
 		test(
 			`

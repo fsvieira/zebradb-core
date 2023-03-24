@@ -279,14 +279,14 @@ const doUnify = async (ctx, p, q) => {
     let s;
     
     if (ctx.options.log) {
-        s = `${await toString(undefined, p, ctx)} ** ${await toString(undefined, q, ctx)}`;
+        s = `${await toString(undefined, p.id, ctx)} ** ${await toString(undefined, q.id, ctx)}`;
     }
 
     const ok =  await unifyFn[type(p)][type(q)](ctx, p, q);
 
     if (ctx.options.log) {
-        const ps = await toString(undefined, p, ctx);
-        const qs = await toString(undefined, q, ctx);
+        const ps = await toString(undefined, p.id, ctx);
+        const qs = await toString(undefined, q.id, ctx);
 
         s += `; p=${ps}, q=${qs}`;
         if (!ok) {
