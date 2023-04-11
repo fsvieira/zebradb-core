@@ -57,8 +57,13 @@ class QueryEngine {
 
     async run () {
         const selector = async branch => {
-            const cache = {};
+            const unchecked = await branch.data.unchecked;
 
+            for await (let id of unchecked.values()) {
+                return id;
+            }
+
+            /*const cache = {};
 
             const tupleVars = async (id) => {
                 let count = cache[id];
@@ -99,7 +104,7 @@ class QueryEngine {
                 }
             }
 
-            return t;
+            return t;*/
         }
 
         const definitions = async tuple => this.db.search(tuple);
