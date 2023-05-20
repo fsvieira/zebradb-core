@@ -6,7 +6,7 @@ describe("Test domains.", () => {
 	it("should be a easy domain",
 		test(
             `
-            (number '{0 1 2 3})
+            (number 'n) where 'n in {0 1 2 3} end
             `, [{
 				query: `(number 'a)`,
 				results: [
@@ -23,7 +23,7 @@ describe("Test domains.", () => {
 	it("should unify constant * domain",
 		test(
 			`
-			(const '{0 1})
+			(const 'c) where 'c in {0 1} end 
 			`, [
 				{
 					query: `(const 0)`,
@@ -47,7 +47,7 @@ describe("Test domains.", () => {
 		test(
 			`
 			('x = 'x)
-            (number '{0 1 2 3})
+            (number 'n) where 'n in {0 1 2 3} end 
 			((number 'x) (number 'y))
 			`, 
 			[
@@ -86,8 +86,8 @@ describe("Test domains.", () => {
 	it("should declare AND booelan operator using domains. (simple)",
 		test(
 			`
-				('{0 1} & 0 = 0)
-				( 0 & '{0 1} = 0)
+				('a & 0 = 0) where 'a in {0 1} end
+				( 0 & 'a = 0) where 'a in {0 1} end
 				( 1 & 1 = 1)
 			`, [
 				{
@@ -124,8 +124,11 @@ describe("Test domains.", () => {
 		test(
 			`
 				('x != ~'x)
-				('x:{0 1} & 'x = 'x ')
-				('x:{0 1} & 'y:{0 1} = 0 ('x != 'y))
+				('x & 'x = 'x ') where 'x in {0 1} end
+				('x & 'y = 0 ('x != 'y)) where 
+					'x in {0 1}
+					'y in {0 1} 
+				end
 			`, [
 				{
 					query: "('a & 'b = 'c ')",
@@ -148,7 +151,7 @@ describe("Test domains.", () => {
 		test(
 			`
 			('x & 'y = 'z ('y & 'x = 'z stop))
-			('{0 1} & 0 = 0 ')
+			('x & 0 = 0 ') where 'x in {0 1} end 
 			(1 & 1 = 1 ')
 			`, [
 				{
@@ -191,15 +194,22 @@ describe("Test domains.", () => {
 				('x & 'x = 'x)
 			`, [
 				{
-					query: "('{0 1} & '{0 1} = 'c)",
+					query: `
+						('a & 'b = 'c) where 
+							'a in {0 1} 
+							'b in {0 1} 
+						end`,
 					results: [
-						"@('v$2:{0 1} & 'v$2:{0 1} = 'v$2:{0 1})",
+						"@('a:{0 1} & 'a:{0 1} = 'a:{0 1})",
       					"@(0 & 1 = 0)",
       					"@(1 & 0 = 0)"
 					]
 				},
 				{
-					query: "(1 & '{0 1} = 'c)",
+					query: `(1 & 'x = 'c) where
+							'x in {0 1}
+						end
+					`,
 					results: [
 						"@(1 & 0 = 0)",
 						"@(1 & 1 = 1)"
@@ -216,7 +226,7 @@ describe("Test domains.", () => {
 	it("should create domains cartasian product result",
 		test(
 			`
-			(bit '{0 1})
+			(bit 'x) where 'x in {0 1} end
 			(list)
             (list (bit 'x) (list ' '))
 			(list (bit 'x) (list))
@@ -236,7 +246,7 @@ describe("Test domains.", () => {
 	it("should create domains cartesian product result (unfold)",
 		test(
 			`
-			(bit '{0 1})
+			(bit 'x) where 'x in {0 1} end
 			(unfold 0 (bit 'a) ')
 			(unfold 1 (bit 'b) (unfold 0 ' '))
 			(unfold 2 (bit 'c) (unfold 1 ' '))
@@ -266,10 +276,13 @@ describe("Test domains.", () => {
 			`
 			('x != ~'x)
 			(2bits 'a 'b)
-			(bit '{0 1})
+			(bit 'x) where 'x in {0 1} end
 			`, [
 				{
-					query: "('{0 1} != '{0 1})",
+					query: `('a != 'b) where
+							'a in {0 1}
+							'b in {0 1} 
+						end`,
 					results: [
 						"@(0 != 1)",
 						"@(1 != 0)"

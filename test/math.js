@@ -77,7 +77,7 @@ describe("Math Tests", () => {
                     'z17 'z18 'z19 'z20 'z21 'z22 'z23 'z24  
                     'z25 'z26 'z27 'z28 'z29 'z30 'z31 'z32 
                 )
-            ) {
+            ) where
                 (adder 0    'x32 'y32 'z32 'c1)
                 (adder 'c1  'x31 'y31 'z31 'c2)
                 (adder 'c2  'x30 'y30 'z30 'c3)
@@ -110,7 +110,7 @@ describe("Math Tests", () => {
                 (adder 'c29 'x3  'y3  'z3 'c30)
                 (adder 'c30 'x2  'y2  'z2 'c31)
                 (adder 'c31 'x1  'y1  'z1 'z0)
-            }        
+            end
         `, [{
             query: `
                 (
@@ -235,7 +235,7 @@ describe("Math Tests", () => {
                     'z17 'z18 'z19 'z20 'z21 'z22 'z23 'z24  
                     'z25 'z26 'z27 'z28 'z29 'z30 'z31 'z32 
                 )
-            ) {
+            ) where
                 (adder 0    'x32 'y32 'z32 'c1)
                 (adder 'c1  'x31 'y31 'z31 'c2)
                 (adder 'c2  'x30 'y30 'z30 'c3)
@@ -268,7 +268,7 @@ describe("Math Tests", () => {
                 (adder 'c29 'x3  'y3  'z3 'c30)
                 (adder 'c30 'x2  'y2  'z2 'c31)
                 (adder 'c31 'x1  'y1  'z1 'z0)
-            }
+            end
             
         `, [{
             query: `
@@ -346,7 +346,7 @@ describe("Math Tests", () => {
                     'z17 'z18 'z19 'z20 'z21 'z22 'z23 'z24  
                     'z25 'z26 'z27 'z28 'z29 'z30 'z31 'z32 
                 )
-            ) {
+            ) where
                 (adder 0    'x32 'y32 'z32 'c1)
                 (adder 'c1  'x31 'y31 'z31 'c2)
                 (adder 'c2  'x30 'y30 'z30 'c3)
@@ -379,9 +379,9 @@ describe("Math Tests", () => {
                 (adder 'c29 'x3  'y3  'z3 'c30)
                 (adder 'c30 'x2  'y2  'z2 'c31)
                 (adder 'c31 'x1  'y1  'z1 'z0)
-            }
+            end
             
-            ('x - 'y = 'z) { ('z + 'y = 'x) }
+            ('x - 'y = 'z) where ('z + 'y = 'x) end
         `,
             [
                 {
@@ -566,7 +566,7 @@ describe("Math Tests", () => {
                     'z17 'z18 'z19 'z20 'z21 'z22 'z23 'z24  
                     'z25 'z26 'z27 'z28 'z29 'z30 'z31 'z32 
                 )
-            ) {
+            ) where
                 (adder 0    'x32 'y32 'z32 'c1)
                 (adder 'c1  'x31 'y31 'z31 'c2)
                 (adder 'c2  'x30 'y30 'z30 'c3)
@@ -599,7 +599,7 @@ describe("Math Tests", () => {
                 (adder 'c29 'x3  'y3  'z3 'c30)
                 (adder 'c30 'x2  'y2  'z2 'c31)
                 (adder 'c31 'x1  'y1  'z1 'z0)
-            }
+            end
 
             (shift 
                 (float32
@@ -635,7 +635,7 @@ describe("Math Tests", () => {
                 )
                 =
                 'z
-            ) {
+            ) where
                 (if 'y16 'x  
                     (float32
                         0 0 0 0 0 0 0 0 
@@ -675,7 +675,7 @@ describe("Math Tests", () => {
                 (cond-add 'y5 'x11 'z10 'z11 ')
                 (cond-add 'y4 'x12 'z11 'z12 ')
                 (cond-add 'y3 'x13 'z12 'z ')
-            }
+            end
             `,
             [
                 {
@@ -819,7 +819,7 @@ describe("Math Tests", () => {
                     'z17 'z18 'z19 'z20 'z21 'z22 'z23 'z24  
                     'z25 'z26 'z27 'z28 'z29 'z30 'z31 'z32 
                 )
-            ) {
+            ) where
                 (adder 0    'x32 'y32 'z32 'c1)
                 (adder 'c1  'x31 'y31 'z31 'c2)
                 (adder 'c2  'x30 'y30 'z30 'c3)
@@ -852,7 +852,7 @@ describe("Math Tests", () => {
                 (adder 'c29 'x3  'y3  'z3 'c30)
                 (adder 'c30 'x2  'y2  'z2 'c31)
                 (adder 'c31 'x1  'y1  'z1 'z0)
-            }
+            end
 
             (shift 
                 (float32
@@ -888,7 +888,7 @@ describe("Math Tests", () => {
                 )
                 =
                 'z
-            ) {
+            ) where
                 (if 'y16 'x  
                     (float32
                         0 0 0 0 0 0 0 0 
@@ -928,7 +928,7 @@ describe("Math Tests", () => {
                 (cond-add 'y5 'x11 'z10 'z11 ')
                 (cond-add 'y4 'x12 'z11 'z12 ')
                 (cond-add 'y3 'x13 'z12 'z ')
-            }
+            end
 
             (join
                 (float32
@@ -960,13 +960,13 @@ describe("Math Tests", () => {
                 'y
                 =
                 'z
-            ) {
+            ) where
                 (step1 'x 'xi 'xf)
                 (step1 'y 'yi 'yf)
                 ('xi ** 'yf = 'a)
                 ('xf ** 'yi = 'b)
                 (join 'a 'b 'z)
-            }
+            end
             `,
             [
                 /*{

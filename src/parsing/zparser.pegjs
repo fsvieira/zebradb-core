@@ -9,9 +9,29 @@ z = definition:definition z:z
 
 definition = _ tuple:tuple _ body:body? _ {return {...tuple, body: body || []}}
 
-body = "{" tuples:( _ tuple:tuple {return tuple} )* _ "}" 
+set = "{" _  constants:constants _ "}" {
+      return {
+      		type: "cset",
+          data: constants
+      }
+  }
+  / tuple:tuple {
+     return tuple;
+  }
+
+bodyStatment = variable:variable _ "in" _  set:set {
+       return {
+          type: 'in',
+          variable,
+          set
+       }
+    } 
+    / tuple:tuple {return tuple}
+
+
+body = "where" bodyStatments:( _ bodyStatment:bodyStatment {return bodyStatment})+ _ "end" 
 	{
-    	return tuples;
+    	return bodyStatments;
     }
 
 tuple = "(" _ terms:terms _ ")"

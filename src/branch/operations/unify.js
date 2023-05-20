@@ -146,6 +146,15 @@ const setVariable = async (ctx, v, p) => {
             }
         }
 
+        console.log(v);
+        if (v.in) {
+            console.log("VIN ==========> ", v.in.join(", "));
+        }
+
+        if (p.in) {
+            console.log("VIN ==========> ", p.in.join(", "));
+        }
+
         let e = v.e || p.e;
         if (v.e && p.e) {
             for await (let c of p.e.values()) {

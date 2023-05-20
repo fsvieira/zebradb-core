@@ -2,6 +2,33 @@ const {branchOps} = require("../branch");
 
 function terms (ctx, t) {
     switch (t.type) {
+        case 'in': {
+            const {variable, set} = t;
+
+            if (set.type === 'cset') {
+                variable.domain = set.data;
+                return terms(ctx, variable);
+            }
+            else if (set.type === 'tuple') {
+                variable.in = set;
+                return terms(ctx, variable);
+                /*
+                const tid = terms(ctx, set);
+                const vid = terms(ctx, variable);
+
+                const constrainID = `_cs_${vid}_in_${tid}`;
+                const cs = {op: 'in', args: [vid, tid], cid: constrainID };
+
+                ctx.variables[constrainID] = cs;
+                ctx.constrains.add(constrainID);
+
+                vdata.e = (vdata.e || new Set());
+                vdata.e.add(constrainID);
+                */
+            }
+            
+            throw `Invalid Set type ${set.type}`;
+        }
         case 'constant': {
             const cid = ctx.newVar(t.data);
             ctx.variables[cid] = {c: t.data, cid};
@@ -19,9 +46,10 @@ function terms (ctx, t) {
             }
 
             if (t.domain) {
-                vdata.d = vdata.d?
-                    vdata.filter(c => t.domain.includes(c.c)):
-                    t.domain.map(c => terms(ctx, c)).sort()
+                const domains = t.domain.map(c => terms(ctx, c)).sort();
+                vdata.d = vdata.d ?
+                    vdata.d.filter(c => domains.includes(c)):
+                    domains
                 ;
         
                 if (vdata.d.length === 0) {
@@ -29,6 +57,10 @@ function terms (ctx, t) {
                 }
             }
 
+            if (t.in) {
+                const vin = (vdata.in || []).concat(terms(ctx, t.in));
+                vdata.in = [...new Set(vin)];
+            }
 
             if (t.except) {
                 for (let i=0; i<t.except.length; i++) {
@@ -100,6 +132,8 @@ function prepare (tuple) {
         }
     }
 
+    console.log(ctx.variables);
+    
     return {variables: ctx.variables, constrains: [...ctx.constrains], root};
 }
 

@@ -6,7 +6,7 @@ describe("Brave puzzle Tests.", () => {
     it("should solve brave puzzle",
 		test(
 			`
-            (letter '{B R A V E})
+            (letter 'l) where 'l in {B R A V E} end
 
             ('x != ~'x)
 
@@ -103,7 +103,7 @@ describe("Brave puzzle Tests.", () => {
     it("should solve brave puzzle (2)",
 		test(
 			`
-            (letter '{B R A V E})
+            (letter 'l) where 'l in {B R A V E} end
 
             ('x != ~'x)
 

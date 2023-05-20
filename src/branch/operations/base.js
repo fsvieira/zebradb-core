@@ -49,15 +49,21 @@ async function copyTerm(ctx, p, preserveVarname=false) {
         else if (v.v) {
             const d = v.d?await array2iset(ctx, v.d):undefined;
             const e = v.e?await array2iset(ctx, v.e.map(getVarname)):undefined;
+            // const vin = v.in?await array2iset(ctx, v.in.map(getVarname)):undefined;
+            const vin = v.in?v.in.map(getVarname):undefined;
  
-            ctx.variables = await ctx.variables.set(vn, {v: v.v, d, e, pv: preserveVarname, id: vn});
+            ctx.variables = await ctx.variables.set(vn, {v: v.v, d, e, in: vin, pv: preserveVarname, id: vn});
 
-            if (e && d) {
+            if (e && d && vin) {
                 ctx.unsolvedVariables = await ctx.unsolvedVariables.add(vn);
             }
         }
         else if (v.c) {
             ctx.variables = await ctx.variables.set(vn, {c: v.c, id: vn});
+        }
+        else if (v.op === 'in') {
+            const c = {op: v.op, x: getVarname(v.x), set: getVarname(v.set)};
+            ctx.variables = await ctx.variables.set(vn, c)
         }
         else if (v.op) {
             // its a constrain:
