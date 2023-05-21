@@ -132,7 +132,7 @@ function prepare (tuple) {
         }
     }
 
-    console.log(ctx.variables);
+    // console.log(ctx.variables);
     
     return {variables: ctx.variables, constrains: [...ctx.constrains], root};
 }
