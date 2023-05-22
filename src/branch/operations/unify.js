@@ -146,16 +146,6 @@ const setVariable = async (ctx, v, p) => {
             }
         }
 
-        /*
-        console.log(v);
-        if (v.in) {
-            console.log("VIN ==========> ", v.in.join(", "));
-        }
-
-        if (p.in) {
-            console.log("VIN ==========> ", p.in.join(", "));
-        }*/
-
         let e = v.e || p.e;
         if (v.e && p.e) {
             for await (let c of p.e.values()) {
@@ -179,15 +169,18 @@ const setVariable = async (ctx, v, p) => {
             }
         }
 
+        const vin = a.in || b.in;
+
         if (a.v && (
             (d && (!a.d || a.d.id !== d.id))
             || 
             (e && (!a.e || a.e.id !== e.id))
+            || vin
         )) {
             // update a
-            ctx.variables = await ctx.variables.set(a.id, {...a, d, e});
+            ctx.variables = await ctx.variables.set(a.id, {...a, d, e, in: vin});
 
-            if (d && e) {
+            if ((d && e) || vin) {
                 ctx.unsolvedVariables = await ctx.unsolvedVariables.add(a.id);
             }
         }
@@ -259,7 +252,21 @@ async function deepUnify(
     );
 
     let unsolvedVariablesClean = ctx.unsolvedVariables;
-    if (await ctx.unchecked.size === 0 && ctx.unsolvedVariables.size > 0) {
+
+    for await (let vid of ctx.unsolvedVariables.values()) {
+        const v = await get(ctx, vid);
+
+        if (v.in) {
+            for await (let eID of v.in.values()) {
+                await doUnify(ctx, v.id, eID);
+                // ctx.variables = await ctx.variables.set(v.id, {...v, defer: vin.id});
+
+                unsolvedVariablesClean = await unsolvedVariablesClean.remove(vid);
+            }
+        }
+    }
+
+    if (await ctx.unchecked.size === 0 && await ctx.unsolvedVariables.size > 0) {
         // Check if unsolved variables are solved.
         for await (let vid of ctx.unsolvedVariables.values()) {
             const v = await get(ctx, vid);
@@ -310,25 +317,24 @@ const doUnify = async (ctx, p, q) => {
     return ok;
 }
 
-async function getSet (ctx, definitionID) {
-    const variableSetID = `_set_${definitionID}`;
+async function getSet (ctx, definitionID, definition) {
+    const {did} = definition;
+    const variableSetID = `_set_${did}`;
 
-    const vs = await ctx.variables.get(variableSetID);
+    let tset = await ctx.variables.get(variableSetID);
 
-    console.log(variableSetID, vs);
+    if (!tset) {
+        definitionID = definitionID || await copyTerm(ctx, definition);
 
-    if (!vs) {
-        const tset = await ctx.rDB.iSet().add(definitionID);
+        tset = await ctx.rDB.iSet().add(definitionID);
 
         ctx.variables = await ctx.variables.set(variableSetID, tset);
-
-        const vs = await ctx.variables.get(variableSetID);
-        console.log("Set Exists!!", await vs.toArray());
-
     }
     else {
-        console.log("Set Exists!!", [...(await vs.values())]);
+        console.log("Set Exists!!", [...(await tset.values())]);
     }
+
+    return tset;
 }
 
 async function unify (branch, options, tuple, definitionID, definition) {
@@ -351,9 +357,9 @@ async function unify (branch, options, tuple, definitionID, definition) {
         options  
     };
 
-    definitionID = definitionID || await copyTerm(ctx, definition);
+    const tset = await getSet(ctx, definitionID, definition);
 
-    await getSet(ctx, definitionID);
+    definitionID = (await tset.toArray())[0];
 
     const {
         variables, constrains, unsolvedVariables, unchecked, 

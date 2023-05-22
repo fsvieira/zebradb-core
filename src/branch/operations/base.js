@@ -49,12 +49,11 @@ async function copyTerm(ctx, p, preserveVarname=false) {
         else if (v.v) {
             const d = v.d?await array2iset(ctx, v.d):undefined;
             const e = v.e?await array2iset(ctx, v.e.map(getVarname)):undefined;
-            // const vin = v.in?await array2iset(ctx, v.in.map(getVarname)):undefined;
-            const vin = v.in?v.in.map(getVarname):undefined;
+            const vin = v.in?await array2iset(ctx, v.in.map(getVarname)):undefined;
  
             ctx.variables = await ctx.variables.set(vn, {v: v.v, d, e, in: vin, pv: preserveVarname, id: vn});
 
-            if (e && d && vin) {
+            if ((e && d) || vin) {
                 ctx.unsolvedVariables = await ctx.unsolvedVariables.add(vn);
             }
         }

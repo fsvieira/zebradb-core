@@ -239,7 +239,7 @@ class DB {
             }
         }
 
-        return Promise.all(results.map(async d => d.data.tuple));
+        return Promise.all(results.map(async d => ({...(await d.data.tuple), did: d.id})));
     }
 }
 
