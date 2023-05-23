@@ -24,12 +24,14 @@ const checkConstrains = async (ctx, c, or) => {
 
                 if (!ok) {
                     if (cs.length) {
-                        const vcs = ctx.newVar();
+                        const vcs = or?.id || ctx.newVar();
 
                         let orConstrains = or ? or.args : ctx.rDB.iSet();
                         for (let i=0; i<cs.length; i++) {
                             const vc = ctx.newVar();
                             const [pID, qID] = cs[i].args;
+
+                            console.log(vc, vcs);
 
                             const p = await getVariable(null, pID, ctx);
                             const q = await getVariable(null, qID, ctx);
@@ -94,7 +96,7 @@ const checkConstrains = async (ctx, c, or) => {
                 }
             }
             else if (ok === C_TRUE) {
-                ctx.variables = await ctx.variables.set(c.id, {op: 'T'});
+                ctx.variables = await ctx.variables.set(c.id, {op: 'T', id: c.id});
                 return C_TRUE;
             }
         }
@@ -317,58 +319,19 @@ const doUnify = async (ctx, p, q) => {
     return ok;
 }
 
-async function getSet (ctx, definitionID, definition) {
-    const {did} = definition;
-    const variableSetID = `_set_${did}`;
-
-    let tset = await ctx.variables.get(variableSetID);
-
-    if (!tset) {
-        definitionID = definitionID || await copyTerm(ctx, definition);
-
-        tset = await ctx.rDB.iSet().add(definitionID);
-
-        ctx.variables = await ctx.variables.set(variableSetID, tset);
-    }
-    else {
-        console.log("Set Exists!!", [...(await tset.values())]);
-    }
-
-    return tset;
-}
-
-async function unify (branch, options, tuple, definitionID, definition) {
-
-    const level = await branch.data.level + 1;
+async function createBranch (
+    fail,
+    branch,
+    varCounter,
+    level,
+    checked,
+    unchecked,
+    variables,
+    constrains,
+    unsolvedVariables,
+    log
+) {
     const rDB = branch.table.db;
-
-    const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
-    const ctx = {
-        variables: await branch.data.variables,
-        constrains: await branch.data.constrains,
-        unsolvedVariables: await branch.data.unsolvedVariables,
-        unchecked: await branch.data.unchecked,
-        checked: await branch.data.checked,
-        newVar,
-        level,
-        rDB: branch.table.db,
-        branch,
-        log: await branch.data.log,
-        options  
-    };
-
-    const tset = await getSet(ctx, definitionID, definition);
-
-    definitionID = (await tset.toArray())[0];
-
-    const {
-        variables, constrains, unsolvedVariables, unchecked, 
-        checked, fail, log
-    } = await deepUnify(
-        ctx,
-        tuple, 
-        definitionID
-    );
 
     let state = 'maybe';
 
@@ -402,7 +365,233 @@ async function unify (branch, options, tuple, definitionID, definition) {
     const children = (await branch.data.children).concat([newBranch]);
     branch.update({children});
 
+    return newBranch;
+}
+
+async function getSet (ctx, branch, tuple, definitionID, definition, varCounter) {
+    console.log(definitionID, definition);
+
+    const {did} = definition;
+    const variableSetID = `_set_${did}`;
+
+    let dset = await ctx.variables.get(variableSetID);
+
+    /*
+        1. (set, tail):
+            1a. set has all elements unified with tuples,
+            1b. tail has the general element,
+        2. if set does not exits:
+            2a. unify tuple with defintion,
+            2b. set tail to be defintion~new element
+        3. if set does exists:
+            3a. foreach element, unify tuple  (create new branches)
+            3b. unify tuple with general case (tail) (create new branch)
+            3c. set tail to be definition~[...elements]
+        4. if tail fails, then the set is finit, and can be marked has completed.
+    */
+
+    if (!dset) {
+        definitionID = await copyTerm(ctx, definition);
+        let tailID = await copyTerm(ctx, definition);
+
+        const r = await checkConstrains(ctx, {op: '!=', args: [tailID, tuple]});
+
+        const tset = await ctx.rDB.iSet().add(tuple);
+
+        // const C_FALSE = 0;
+        // const C_TRUE = 1;
+        // const C_UNKNOWN = 2;
+        if (r === C_FALSE) {
+            // unable to not-unify, set is full ? 
+            tailID=null;
+        } // else keep tail.
+
+        dset = {
+            tset,
+            tail: tailID
+        };
+
+        ctx.variables = await ctx.variables.set(variableSetID, dset);
+
+        const {
+            variables, constrains, unsolvedVariables, unchecked, 
+            checked, fail, log
+        } = await deepUnify(
+            ctx,
+            tuple, 
+            definitionID
+        );
+
+        await createBranch(
+            fail,
+            branch,
+            varCounter,
+            ctx.level,
+            checked,
+            unchecked,
+            variables,
+            constrains,
+            unsolvedVariables,
+            log        
+        );
+    }
+    else {
+        console.log("Set Exists!!", await dset.tset.toArray(), dset.tail);
+
+        // create all branches that unify with set elements,
+        let {tset, tail} = dset;
+
+        for await (let vid of tset.values()) {
+            const copyCtx = {...ctx};
+
+            const {
+                variables, constrains, unsolvedVariables, unchecked, 
+                checked, fail, log
+            } = await deepUnify(
+                copyCtx,
+                vid,
+                tuple
+            );
+
+            await createBranch(
+                fail,
+                branch,
+                varCounter,
+                ctx.level,
+                checked,
+                unchecked,
+                variables,
+                constrains,
+                unsolvedVariables,
+                log        
+            );    
+        }
+
+        // create branch with potential new element,
+        let tailID = await copyTerm(ctx, definition);
+        tset = await tset.add(tuple);
+        const args = await tset.toArray();
+        
+        // make tail, to be general case that doesnt unify with any element,
+        const r = await checkConstrains(ctx, {op: '!=', args: [tailID, ...args]});
+
+        if (r === C_FALSE) {
+            // unable to not-unify, set is full ? 
+            tailID=null;
+        } // else keep tail.
+
+        ctx.variables = await ctx.variables.set(variableSetID, {
+            tset,
+            tail: tailID
+        });
+
+        const {
+            variables, constrains, unsolvedVariables, unchecked, 
+            checked, fail, log
+        } = await deepUnify(
+            ctx,
+            tuple, 
+            tail // tail has already negated elements,
+        );
+
+        await createBranch(
+            fail,
+            branch,
+            varCounter,
+            ctx.level,
+            checked,
+            unchecked,
+            variables,
+            constrains,
+            unsolvedVariables,
+            log        
+        );
+    }
+
     return branch;
+}
+
+async function unify (branch, options, tuple, definitionID, definition) {
+
+    const level = await branch.data.level + 1;
+    const rDB = branch.table.db;
+
+    const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
+    const ctx = {
+        variables: await branch.data.variables,
+        constrains: await branch.data.constrains,
+        unsolvedVariables: await branch.data.unsolvedVariables,
+        unchecked: await branch.data.unchecked,
+        checked: await branch.data.checked,
+        newVar,
+        level,
+        rDB: branch.table.db,
+        branch,
+        log: await branch.data.log,
+        options  
+    };
+
+    if (definition) {
+        return await getSet(ctx, branch, tuple, definitionID, definition, varCounter);
+    }
+
+    const {
+        variables, constrains, unsolvedVariables, unchecked, 
+        checked, fail, log
+    } = await deepUnify(
+        ctx,
+        tuple, 
+        definitionID
+    );
+
+    await createBranch(
+        fail,
+        branch,
+        varCounter,
+        ctx.level,
+        checked,
+        unchecked,
+        variables,
+        constrains,
+        unsolvedVariables,
+        log        
+    );
+
+    return branch;
+    /*
+    let state = 'maybe';
+
+    if (fail) {
+        state='no'
+    }
+    else if (await unchecked.size === 0) {
+        if (await unsolvedVariables.size === 0) {
+            state='yes';
+        }
+        else {
+            state='unsolved_variables';
+        }
+    }
+
+    const newBranch = await rDB.tables.branches.insert({
+        parent: branch,
+        root: await branch.data.root,
+        variableCounter: varCounter(),
+        level,
+        checked,
+        unchecked,
+        variables,
+        constrains,
+        unsolvedVariables,
+        children: [],
+        state,
+        log
+    }, null);
+
+    const children = (await branch.data.children).concat([newBranch]);
+    branch.update({children});
+
+    return branch;*/
 }
 
 module.exports = {unify};

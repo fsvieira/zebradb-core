@@ -29,7 +29,7 @@ async function copyTerm(ctx, p, preserveVarname=false) {
 
             let body;
             if (v.body && v.body.length) {
-                body = v.body.map(getVariable);
+                body = await v.body.map(getVarname);
             }
 
             ctx.variables = await ctx.variables.set(vn, {
@@ -126,7 +126,7 @@ async function toStringConstrains (branch, v, cID, ctx) {
     const constrain = await getVariable(branch, cID, ctx);
 
     if (constrain.op === '!=') {
-        const cv = await getVariable(branch, constrain.args[0]);
+        const cv = await getVariable(branch, constrain.args[0], ctx);
         const rv = v.id === cv.id ? constrain.args[1] : constrain.args[0];
 
         return await toString(branch, rv, ctx, false);
