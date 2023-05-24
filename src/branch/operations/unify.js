@@ -343,7 +343,8 @@ async function createBranch (
             state='yes';
         }
         else {
-            state='unsolved_variables';
+            // TODO: state='unsolved_variables';
+            state='yes';
         }
     }
 
@@ -390,18 +391,21 @@ async function getSet (ctx, branch, tuple, definitionID, definition, varCounter)
         4. if tail fails, then the set is finit, and can be marked has completed.
     */
 
+        console.log("UnChecked Start", ctx.unchecked.size);
+
+
     if (!dset) {
         definitionID = await copyTerm(ctx, definition);
-        let tailID = await copyTerm(ctx, definition);
+        // let tailID = await copyTerm(ctx, definition);
 
-        const r = await checkConstrains(ctx, {op: '!=', args: [tailID, tuple]});
+        // const r = await checkConstrains(ctx, {op: '!=', args: [tailID, tuple]});
 
         const tset = await ctx.rDB.iSet().add(tuple);
 
         // const C_FALSE = 0;
         // const C_TRUE = 1;
         // const C_UNKNOWN = 2;
-        if (r === C_FALSE) {
+        /*if (r === C_FALSE) {
             // unable to not-unify, set is full ? 
             tailID=null;
         } // else keep tail.
@@ -409,7 +413,8 @@ async function getSet (ctx, branch, tuple, definitionID, definition, varCounter)
         dset = {
             tset,
             tail: tailID
-        };
+        };*/
+        dset = tset;
 
         ctx.variables = await ctx.variables.set(variableSetID, dset);
 
@@ -422,7 +427,7 @@ async function getSet (ctx, branch, tuple, definitionID, definition, varCounter)
             definitionID
         );
 
-        await createBranch(
+        const newBranch = await createBranch(
             fail,
             branch,
             varCounter,
@@ -434,6 +439,13 @@ async function getSet (ctx, branch, tuple, definitionID, definition, varCounter)
             unsolvedVariables,
             log        
         );
+
+        console.log("Unchecked (2)", variableSetID, unchecked.size);
+
+        for await (let e of unchecked.values()) {
+            console.log("U - ", await toString(newBranch, e));
+        }
+
     }
     else {
         console.log("Set Exists!!", await dset.tset.toArray(), dset.tail);
@@ -453,7 +465,7 @@ async function getSet (ctx, branch, tuple, definitionID, definition, varCounter)
                 tuple
             );
 
-            await createBranch(
+            const newBranch = await createBranch(
                 fail,
                 branch,
                 varCounter,
@@ -465,47 +477,65 @@ async function getSet (ctx, branch, tuple, definitionID, definition, varCounter)
                 unsolvedVariables,
                 log        
             );    
+
+            console.log("Unchecked (2)", variableSetID, unchecked.size);
+
+            for await (let e of unchecked.values()) {
+                console.log("U - ", await toString(newBranch, e));
+            }
+
         }
 
         // create branch with potential new element,
-        let tailID = await copyTerm(ctx, definition);
+        // let tailID = await copyTerm(ctx, definition);
+        args = await tset.toArray();
         tset = await tset.add(tuple);
-        const args = await tset.toArray();
+        // const args = await tset.toArray();
         
         // make tail, to be general case that doesnt unify with any element,
-        const r = await checkConstrains(ctx, {op: '!=', args: [tailID, ...args]});
+        const r = await checkConstrains(ctx, {op: '!=', args: [tuple, ...args]});
 
+        /*
         if (r === C_FALSE) {
             // unable to not-unify, set is full ? 
             tailID=null;
         } // else keep tail.
+        */
 
-        ctx.variables = await ctx.variables.set(variableSetID, {
-            tset,
-            tail: tailID
-        });
+        // this element is alredy inserted ? 
+        if (r !== C_FALSE) {
 
-        const {
-            variables, constrains, unsolvedVariables, unchecked, 
-            checked, fail, log
-        } = await deepUnify(
-            ctx,
-            tuple, 
-            tail // tail has already negated elements,
-        );
+            ctx.variables = await ctx.variables.set(variableSetID, tset /*{
+                tset,
+                tail: tailID
+            }*/);
 
-        await createBranch(
-            fail,
-            branch,
-            varCounter,
-            ctx.level,
-            checked,
-            unchecked,
-            variables,
-            constrains,
-            unsolvedVariables,
-            log        
-        );
+            console.log("TSET", await tset.toArray());
+
+            definitionID = await copyTerm(ctx, definition);
+
+            const {
+                variables, constrains, unsolvedVariables, unchecked, 
+                checked, fail, log
+            } = await deepUnify(
+                ctx,
+                tuple, 
+                definitionID // tail // tail has already negated elements,
+            );
+
+            await createBranch(
+                fail,
+                branch,
+                varCounter,
+                ctx.level,
+                checked,
+                unchecked,
+                variables,
+                constrains,
+                unsolvedVariables,
+                log        
+            );
+        }
     }
 
     return branch;

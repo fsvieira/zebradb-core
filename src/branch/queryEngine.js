@@ -158,6 +158,7 @@ class QueryEngine {
             r.push(branch);
         }
 
+        console.log("BRANCHES", r.length, r.map(r => r.id));
         return r;
     }
 
