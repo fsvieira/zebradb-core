@@ -343,8 +343,8 @@ async function createBranch (
             state='yes';
         }
         else {
-            // TODO: state='unsolved_variables';
-            state='yes';
+            state='unsolved_variables';
+            // state='yes';
         }
     }
 
@@ -391,8 +391,7 @@ async function getSet (ctx, branch, tuple, definitionID, definition, varCounter)
         4. if tail fails, then the set is finit, and can be marked has completed.
     */
 
-        console.log("UnChecked Start", ctx.unchecked.size);
-
+    console.log("UnChecked Start", ctx.unchecked.size);
 
     if (!dset) {
         definitionID = await copyTerm(ctx, definition);
@@ -448,12 +447,10 @@ async function getSet (ctx, branch, tuple, definitionID, definition, varCounter)
 
     }
     else {
-        console.log("Set Exists!!", await dset.tset.toArray(), dset.tail);
+        console.log("Set Exists!!", await dset.toArray(), dset);
 
         // create all branches that unify with set elements,
-        let {tset, tail} = dset;
-
-        for await (let vid of tset.values()) {
+        for await (let vid of dset.values()) {
             const copyCtx = {...ctx};
 
             const {
@@ -488,8 +485,8 @@ async function getSet (ctx, branch, tuple, definitionID, definition, varCounter)
 
         // create branch with potential new element,
         // let tailID = await copyTerm(ctx, definition);
-        args = await tset.toArray();
-        tset = await tset.add(tuple);
+        args = await dset.toArray();
+        tset = await dset.add(tuple);
         // const args = await tset.toArray();
         
         // make tail, to be general case that doesnt unify with any element,
@@ -505,12 +502,12 @@ async function getSet (ctx, branch, tuple, definitionID, definition, varCounter)
         // this element is alredy inserted ? 
         if (r !== C_FALSE) {
 
-            ctx.variables = await ctx.variables.set(variableSetID, tset /*{
+            ctx.variables = await ctx.variables.set(variableSetID, dset /*{
                 tset,
                 tail: tailID
             }*/);
 
-            console.log("TSET", await tset.toArray());
+            console.log("TSET", await dset.toArray());
 
             definitionID = await copyTerm(ctx, definition);
 
