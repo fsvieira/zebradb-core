@@ -1,7 +1,42 @@
 const {branchOps} = require("../branch");
 
+const {
+    type: {
+        CONSTANT,
+        TUPLE,
+        VARIABLE,
+        CONSTRAINT,
+        SET
+    }
+} = branchOps.constants;
+
+/*
+    1. Structure: 
+        * (type, op?, data?)
+
+    2. Solving Operations:
+        * variable =, in ? solvable in compile time ?
+        * Make a list of operations, to be solved at the end 
+*/
+
+
 function terms (ctx, t) {
     switch (t.type) {
+        case '=': {
+            const {variable, set} = t;
+
+            if (set.type === 'set') {
+                variable.domain = set.data;
+                return terms(ctx, variable);
+            }
+            else if (set.type === 'tuple') {
+                variable.in = set;
+                return terms(ctx, variable);
+            }
+            
+            throw `Invalid Set type ${set.type}`;
+
+        }
         case 'in': {
             const {variable, set} = t;
 
@@ -12,26 +47,13 @@ function terms (ctx, t) {
             else if (set.type === 'tuple') {
                 variable.in = set;
                 return terms(ctx, variable);
-                /*
-                const tid = terms(ctx, set);
-                const vid = terms(ctx, variable);
-
-                const constrainID = `_cs_${vid}_in_${tid}`;
-                const cs = {op: 'in', args: [vid, tid], cid: constrainID };
-
-                ctx.variables[constrainID] = cs;
-                ctx.constrains.add(constrainID);
-
-                vdata.e = (vdata.e || new Set());
-                vdata.e.add(constrainID);
-                */
             }
             
             throw `Invalid Set type ${set.type}`;
         }
         case 'constant': {
             const cid = ctx.newVar(t.data);
-            ctx.variables[cid] = {c: t.data, cid};
+            ctx.variables[cid] = {type: CONSTANT, c: t.data, cid};
 
             return cid;
         }
@@ -42,7 +64,7 @@ function terms (ctx, t) {
             let vdata = ctx.variables[cid];
 
             if (!vdata) {
-                vdata = ctx.variables[cid] = {v, cid};
+                vdata = ctx.variables[cid] = {type: VARIABLE, v, cid};
             }
 
             if (t.domain) {
@@ -102,7 +124,7 @@ function terms (ctx, t) {
                 ts.push(terms(ctx, t.data[i]));
             }
 
-            ctx.variables[cid] = {t: ts, body, cid};
+            ctx.variables[cid] = {type: TUPLE, t: ts, body, cid};
 
             return cid;
         }

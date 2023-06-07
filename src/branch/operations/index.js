@@ -1,4 +1,7 @@
 const {unify} = require("./unify");
+
+const constants = require("./constants");
+
 const {
     varGenerator, 
     getVariable,
@@ -13,5 +16,6 @@ module.exports = {
     getVariable,
     toString,
     copyTerm,
+    constants
    // prepareVariables
 };

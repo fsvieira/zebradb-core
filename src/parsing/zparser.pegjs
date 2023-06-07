@@ -1,104 +1,121 @@
-z = definition:definition z:z
-    {
-    	return [definition].concat(z);
-    }
-    / definition:definition
-    {
-    	return [definition];
-    }
-
-definition = _ tuple:tuple _ body:body? _ {return {...tuple, body: body || []}}
-
-set = "{" _  constants:constants _ "}" {
-      return {
-      		type: "cset",
-          data: constants
+{
+  const {
+      type: {
+          CONSTANT,
+          TUPLE,
+          VARIABLE,
+          CONSTRAINT,
+          SET
+      },
+      operation: {
+          OR,
+          AND,
+          IN,
+          UNIFY
       }
-  }
-  / tuple:tuple {
-     return tuple;
-  }
+  } = require("../branch/operations/constants");
 
-bodyStatment = variable:variable _ "in" _  set:set {
-       return {
-          type: 'in',
-          variable,
-          set
-       }
+  const opCode = op => {
+    switch (op) {
+      case '=': return UNIFY;
+      case 'in': return IN;
+      case 'and': return AND;
+      case 'or': return OR;
+    }
+  }
+}
+
+start = definitions
+
+definitions = definitions:(definition:definition _ {return definition})* {return definitions}
+
+definition = variable:(globalVariable:globalVariable _ "=" {return globalVariable})? _ set:set {
+  return {
+  	...set,
+  	variable
+  }
+}
+
+/* Terms */
+
+// tuple
+tuple = "(" _ terms:tupleTerms _ ")" { return { type: TUPLE, data: terms } }
+       / "()" { return { type: TUPLE, data: [] } }
+
+tupleTerm = tuple / variable / constant
+tupleTerms = tupleTerm:tupleTerm terms:(wsp terms:tupleTerm {return terms})* { return [tupleTerm].concat(terms) }
+
+// variables,
+variable = globalVariable / localVariable
+globalVariable = "$" varname:[_a-zA-Z0-9]+ {return { type: GLOBAL_VAR, varname: varname.join("") } }
+localVariable = "'" varname:[_a-zA-Z0-9]* domain:(":" variable:variable {return variable})?
+  {
+  	return { 
+    	type: LOCAL_VAR, 
+		varname: varname.length ? varname.join(""):undefined,
+        domain
     } 
-    / tuple:tuple {return tuple}
+  }
 
-
-body = "where" bodyStatments:( _ bodyStatment:bodyStatment {return bodyStatment})+ _ "end" 
-	{
-    	return bodyStatments;
-    }
-
-tuple = "(" _ terms:terms _ ")"
-	{
-		var t = {
-        	type: 'tuple',
-            data: terms
-		};
-
-		return t;
-	} / "()" {return {type: "tuple", data: []}}
-
-terms = term:term wsp terms:terms
-	{
-    	return [term].concat(terms);
-	}
-	/ term:term
-    {
-    	return [term]
-    }
-
-term = term:(tuple / variable / constant) 
-	{
-       	return term
-	}
-
-except = "~" except:(
-      	 term:term {return [term];}
-        / "{" _ terms:terms _ "}" {return terms}
-      ) {return except}
-      
-variable = variable:(
-		"'" 
-        varname:[_a-zA-Z0-9]*
-        domain:(":"? "{" _  constants:constants _ "}" {
-              return constants;
-          }
-        )? 
-        except:except?
-        {
-          return {
-              type: 'variable',
-              data: varname.length > 0 ? varname.join("") : undefined,
-              domain,
-              except
-          }
+// constants,
+constant = constantExpression / 
+	!("«" / "/*") constant:[^ {}\n\t\(\)'|]+ {
+    	return {
+        	type: CONSTANT,
+            data: constant.join("")
         }
-      ) 
-      / except:except
-      {
-        return {
-        	type: 'variable',
-          except
-        };
-      } 
-      
-
-constants = constant:constant wsp constants:constants 
-    {
-    	return [constant].concat(constants);
     }
-	/ constant 
 
-constant = !"/*" constant:[^\{\} \n\t\(\)'\^]+
-	{
-    	return {type: 'constant', data: constant.join("")};
-  	}
+constantExpression = "«" constant:[^»]+ "»" {
+   return {
+      type: CONSTANT,
+      data: constant.join("")
+   }
+}
+
+/* 
+  sets 
+*/
+
+element = tuple / variable
+elements = (element:element _ {return element})* 
+set = "{" _ elements:elements "|" _ expression:expression _ "}"
+     {
+       return {
+         type: SET,
+         elements,
+         expression
+       }
+     }
+     / "{" _ elements:tupleTerms _ "}"
+     {
+       return {
+         type: SET,
+         elements,
+         expression: null
+       }
+     }
+     / tuple 
+
+/*
+Expression
+*/
+operations = op:('!=' / '=' / 'in' / 'and' / 'or') {return opCode(op)}
+
+expressionTerm = set / variable / constantExpression
+expressionTerms = expressionTerm:expressionTerm terms:(wsp terms:expressionTerm {return terms})* 
+  { return [expressionTerm].concat(terms) }
+
+expression = a:expressionTerm _ op:operations _ b:expression {
+   return {type: CONSTRAINT, a, op, b};
+} 
+/ '[' _ expression:expression _ ']' {return expression}
+/ expressionTerm
+
+
+/* 
+  Comments and Helpers,
+*/
 
 comment = "/*" (!"*/" .)* "*/" / "#" [^\n\r]* [\n\r]
 

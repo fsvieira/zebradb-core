@@ -4,7 +4,8 @@ const {
     getVariable,
     toString,
     copyTerm,
-    prepareVariables
+    // prepareVariables,
+    constants
 } = require('./operations');
 
 
@@ -97,7 +98,8 @@ module.exports = {
     toString,
     varGenerator,
     copyTerm,
-    prepareVariables,
-    getVariable
+    // prepareVariables,
+    getVariable,
+    constants
 }
 

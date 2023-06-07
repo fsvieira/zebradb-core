@@ -1,3 +1,18 @@
+const {
+    type: {
+        CONSTANT,
+        TUPLE,
+        VARIABLE,
+        CONSTRAINT,
+        SET
+    },
+    operation: {
+        OR,
+        AND,
+        IN
+    }
+} = require("./constants");
+
 
 async function array2iset (ctx, array) {
     let iset = ctx.rDB.iSet();
@@ -25,7 +40,7 @@ async function copyTerm(ctx, p, preserveVarname=false) {
         const v = p.variables[varname];
         const vn = getVarname(v);
 
-        if (v.t) {
+        if (v.type === TUPLE) {
 
             let body;
             if (v.body && v.body.length) {
@@ -46,7 +61,7 @@ async function copyTerm(ctx, p, preserveVarname=false) {
                 ctx.unchecked = await ctx.unchecked.add(vn);
             }
         }
-        else if (v.v) {
+        else if (v.type === VARIABLE) {
             const d = v.d?await array2iset(ctx, v.d):undefined;
             const e = v.e?await array2iset(ctx, v.e.map(getVarname)):undefined;
             const vin = v.in?await array2iset(ctx, v.in.map(getVarname)):undefined;
@@ -57,17 +72,20 @@ async function copyTerm(ctx, p, preserveVarname=false) {
                 ctx.unsolvedVariables = await ctx.unsolvedVariables.add(vn);
             }
         }
-        else if (v.c) {
+        else if (v.type === CONSTANT) {
             ctx.variables = await ctx.variables.set(vn, {c: v.c, id: vn});
         }
-        else if (v.op === 'in') {
+        else if (v.type === CONSTRAINT && v.op === IN) {
             const c = {op: v.op, x: getVarname(v.x), set: getVarname(v.set)};
             ctx.variables = await ctx.variables.set(vn, c)
         }
-        else if (v.op) {
+        else if (v.type === CONSTRAINT) {
             // its a constrain:
             const c = {op: v.op, args: v.args.map(getVarname).sort(), id: vn};
             ctx.variables = await ctx.variables.set(vn, c);
+        }
+        else {
+            console.log(v);
         }
     }
 
