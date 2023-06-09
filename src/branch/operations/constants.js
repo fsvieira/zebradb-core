@@ -3,16 +3,17 @@ module.exports = {
     type: {
         CONSTANT: "c",
         TUPLE: "t",
-        VARIABLE: "v",
         CONSTRAINT: "cs",
         SET: "s",
+        LOCAL_VAR: 'lv',
+        GLOBAL_VAR: 'gv',
     },
     operation: {
         OR: "or",
         AND: "and",
         IN: "in",
         UNIFY: "=",
-        NOTUNIFY: "!="
+        NOT_UNIFY: "!="
     }
 };
 

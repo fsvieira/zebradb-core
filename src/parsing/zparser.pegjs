@@ -3,21 +3,24 @@
       type: {
           CONSTANT,
           TUPLE,
-          VARIABLE,
           CONSTRAINT,
-          SET
+          SET,
+          LOCAL_VAR,
+          GLOBAL_VAR
       },
       operation: {
           OR,
           AND,
           IN,
-          UNIFY
+          UNIFY,
+          NOT_UNIFY
       }
   } = require("../branch/operations/constants");
 
   const opCode = op => {
     switch (op) {
       case '=': return UNIFY;
+      case '!=': return NOT_UNIFY;
       case 'in': return IN;
       case 'and': return AND;
       case 'or': return OR;
@@ -39,7 +42,7 @@ definition = variable:(globalVariable:globalVariable _ "=" {return globalVariabl
 /* Terms */
 
 // tuple
-tuple = "(" _ terms:tupleTerms _ ")" { return { type: TUPLE, data: terms } }
+tuple = "(" _ terms:tupleTerms _ ")" (':' variable)? { return { type: TUPLE, data: terms } }
        / "()" { return { type: TUPLE, data: [] } }
 
 tupleTerm = tuple / variable / constant
@@ -123,4 +126,3 @@ wsp = ([ \t\n\r] / comment)+ {return null}
 
 _ "whitespace"
   = ([ \t\n\r] / comment)* {return null}
-
