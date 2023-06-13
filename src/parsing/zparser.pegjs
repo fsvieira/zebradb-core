@@ -32,7 +32,7 @@ start = definitions
 
 definitions = definitions:(definition:definition _ {return definition})* {return definitions}
 
-definition = variable:(globalVariable:globalVariable _ "=" {return globalVariable})? _ set:set {
+definition = _ variable:(globalVariable:globalVariable _ "=" {return globalVariable})? _ set:set {
   return {
   	...set,
   	variable

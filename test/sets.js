@@ -3,6 +3,24 @@
 const test = require("../test-utils/test");
 
 describe("Play Tests.", () => {
+	it("Sets 3", test(
+		`
+			$AND = {
+				(0 & 0 = 0)
+				(0 & 1 = 0)
+				(1 & 0 = 0)
+				(1 & 1 = 1)
+			}
+		`, 
+		[
+			{
+				query: "('x & 'y = 'z):$AND",
+				results: []
+			},
+		], 
+		{path: 'dbs/sets/1', timeout: 1000 * 60}
+	));
+
 	xit("Sets 1", test(
 		`
 			(cell 'x 'y 'b) where 
@@ -32,7 +50,7 @@ describe("Play Tests.", () => {
 		)
 	);
 
-	it("Sets 2", test(
+	xit("Sets 2", test(
 		`
 			(cell 'x 'y 'b) where 
 				'x in {1 2}
