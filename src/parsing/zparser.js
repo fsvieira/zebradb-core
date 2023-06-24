@@ -212,14 +212,16 @@ function peg$parse(input, options) {
              return {
                type: SET,
                elements,
-               expression
+               expression,
+               size: -1
              }
            },
       peg$c47 = function(elements) {
              return {
                type: SET,
                elements,
-               expression: null
+               expression: null,
+               size: elements.length
              }
            },
       peg$c48 = "!=",

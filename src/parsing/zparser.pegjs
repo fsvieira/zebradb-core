@@ -87,7 +87,8 @@ set = "{" _ elements:elements "|" _ expression:expression _ "}"
        return {
          type: SET,
          elements,
-         expression
+         expression,
+         size: -1
        }
      }
      / "{" _ elements:tupleTerms _ "}"
@@ -95,7 +96,8 @@ set = "{" _ elements:elements "|" _ expression:expression _ "}"
        return {
          type: SET,
          elements,
-         expression: null
+         expression: null,
+         size: elements.length
        }
      }
      / tuple 

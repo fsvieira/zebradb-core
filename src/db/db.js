@@ -3,6 +3,27 @@ const {DB: beastDB} = require("beastdb");
 const {SHA256} = require("sha2");
 const path = require("path");
 
+const {branchOps} = require("../branch");
+
+const {
+    type: {
+        CONSTANT, // : "c",
+        TUPLE, // : "t",
+        CONSTRAINT, // : "cs",
+        SET, // : "s",
+        LOCAL_VAR, // : 'lv',
+        GLOBAL_VAR // : 'gv',
+    },
+    operation: {
+        OR, // : "or",
+        AND, // : "and",
+        IN, // : "in",
+        UNIFY, // : "=",
+        NOT_UNIFY, // : "!="
+    }
+} = branchOps.constants;
+
+
 class DB {
     constructor (options, packageInfo) {
         this.options = options;
@@ -156,12 +177,42 @@ class DB {
         return hash;
     }
 
+    async addSet (def) {
+        throw `Add Set ${JSON.stringify(def, null, '  ')}`;
+        /*
+            1. register all element tuples, 
+            2. register a set with tuple elements ids,
+            3. register register global variable pointing to registered set, (make sure it doesnt exist yet).
+         */
+    }
+
+    async addTuple (def) {
+        /* 
+            1. register tuple, associate tuple as globalSet variable ??
+        */
+        throw `Add Tuple ${JSON.stringify(def, null, '  ')}`;
+    }
+
     async add(definitions) {
-        const tuples = parse(definitions).map(t => {
+        const defs = parse(definitions); /*.map(t => {
             t.variables[t.root].checked = true;
             return t;
-        });
+        });*/
 
+        for (let i=0; i<defs.length; i++) {
+            const def = defs[i];
+
+            const type = def.variables[def.root].type;
+            
+            switch (type) {
+                case SET: await this.addSet(def); break;
+                case TUPLE: await this.addTuple(def); break;
+                default:
+                    throw `Unkown def type ${JSON.stringify(def)}`;
+            }
+        }
+
+        /*
         for (let i=0; i<tuples.length; i++) {
             const tuple = tuples[i];
             const compareHash = await this.genCompareHash(tuple);
@@ -189,7 +240,7 @@ class DB {
                     }, null);
                 }
             }
-        }
+        }*/
     }
 
     async search (tuple) {
