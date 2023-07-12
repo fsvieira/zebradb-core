@@ -4,6 +4,7 @@ const {SHA256} = require("sha2");
 const path = require("path");
 
 const {branchOps} = require("../branch");
+const { constrainedMemory } = require('process');
 
 const {
     type: {
@@ -50,6 +51,11 @@ class DB {
             .save()
         ;
 
+        await this.rDB.tables.definitionVariables
+            .key('definitionsVariablesID', ["varname"])
+            .save()
+        ;
+
         await this.rDB.tables.definitionIndexes
             .key('definitionIndexID', ['definition', 'type', 'position', 'tupleLength'])
             .index('type', 'position', 'tupleLength')
@@ -59,6 +65,7 @@ class DB {
 
     }
 
+    /*
     getType (v) {
         if (v.t) {
             return 'T' + v.t.length;
@@ -72,25 +79,32 @@ class DB {
         else {
             throw `Unkown type, ${JSON.stringify(v)}.`;
         }
-    }
+    }*/
 
     genCompareHashRec (tuple, id=tuple.root) {
         const v = tuple.variables[id];
 
-        if (v.t) {
-            const hash = `T${v.t.length}`;
-            let ts = [];
-            for (let i=0; i<v.t.length; i++) {
-                ts.push(this.genCompareHashRec(tuple, v.t[i]));
-            }
+        switch (v.type) {
+            case TUPLE: {
+                const hash = `T${v.data.length}`;
+                let ts = [];
+                for (let i=0; i<v.data.length; i++) {
+                    ts.push(this.genCompareHashRec(tuple, v.data[i]));
+                }
 
-            return `${hash}[${ts.join(":")}]`
-        }
-        else if (v.v) {
-            return 'V';
-        }
-        else if (v.c) {
-            return v.c;
+                return `${hash}[${ts.join(":")}]`
+            }
+            case LOCAL_VAR: {
+                return 'V';
+            }
+            case GLOBAL_VAR: {
+                return 'G';
+            }
+            case CONSTANT: {
+                return `C${v.data}`;
+            }
+            default:
+                throw `Gen Compare HASH, unkwon type ${v.type}`
         }
     }
 
@@ -109,6 +123,30 @@ class DB {
             return false;
         }
 
+        if (vA.type === vB.type) {
+            switch (vA.type) {
+                case CONSTANT: return vA.data === vB.data;
+                case TUPLE: {
+                    if (vA.data.length === vB.data.length) {
+                        for (let i=0; i<vA.data.length; i++) {
+                            const cmp = this.compare(tupleA, tupleB, vA.data[i], vB.data[i]);
+            
+                            if (!cmp) {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    }
+
+                    return false;
+                }
+                default:
+                    throw `COMPARE NOT IMPLEMENTED: ${JSON.stringify(vA)} = ${JSON.stringify(vB)}`
+            }
+        }
+
+        /*
         if (vA.c && vB.c) {
             return vA.c === vB.c;
         }
@@ -131,11 +169,9 @@ class DB {
             }
 
             if (vA.e && vB.e && vA.e.length === vB.e.length) {
-                /*
-                    its hard to compare constrains, for now return false to insert it;
-                    1. we can make it lazzy, keeping the constrains separeted, 
-                    2. when we are able to replace the 2 variables we can search for it and remove it ? 
-                */
+                // its hard to compare constrains, for now return false to insert it;
+                //   1. we can make it lazzy, keeping the constrains separeted, 
+                //   2. when we are able to replace the 2 variables we can search for it and remove it ? 
 
                 return false;
             }
@@ -156,28 +192,61 @@ class DB {
             }
 
             return true;
-        }
+        }*/
 
         return false;
     }
 
 
     async genCompareHash (tuple) {
-        const hash = SHA256(this.genCompareHashRec(tuple)).toString("base64");
+        const tupleHash = this.genCompareHashRec(tuple);
+        const hash = SHA256(tupleHash).toString("base64");
 
         for await (let r of this.rDB.tables.definitions.findByIndex({compareHash: hash})) {
             const dbTuple = await r.data.tuple;
             const isEqual = this.compare(dbTuple, tuple);
 
             if (isEqual) {
-                return;
+                return [hash, r.definitionID];
             }
         }
 
-        return hash;
+        return [hash, null];
     }
 
-    async addSet (def) {
+    async addSet (def, varID=def.root) {
+        console.log(`Add Set ${JSON.stringify(def, null, '  ')}`);
+
+        const {variables} = def;
+
+        const set = variables[varID];
+
+        console.log("SET >>>>>>>>>>>> ", set);
+        if (set.size > 0) {
+            const elements = new Set();
+
+            for (let i=0; i<set.size; i++) {
+                const varID = set.elements[i];
+
+                const id = await this.addElement(def, varID);
+                elements.add(id);
+            }
+
+            console.log("ADD SET TO DB ", JSON.stringify({
+                variables: {
+                    varID: {
+                        type: set.type,
+                        elements: [...elements]
+                    },
+                    root: varID
+                },
+            }, null, '  '));
+
+        }
+        else {
+            throw 'Undefined set size';
+        }
+
         throw `Add Set ${JSON.stringify(def, null, '  ')}`;
         /*
             1. register all element tuples, 
@@ -186,11 +255,82 @@ class DB {
          */
     }
 
-    async addTuple (def) {
+    getTuple (def, varID) {
+        const variables = {};
+
+        const stack = [varID];
+
+        do {
+            const vID = stack.pop();
+
+            if (!variables[vID]) {
+                const d = variables[vID] = def.variables[vID];
+
+                switch (d.type) {
+                    case TUPLE: {
+                        stack.push(...d.data); break;
+                    }
+                    default:
+                        console.log(`TT TYPE ${d.type}`);
+                }
+            }
+        }
+        while (stack.length);
+
+        return {
+            variables,
+            root: varID
+        };
+    }
+
+    async addTuple (def, varID) {
         /* 
             1. register tuple, associate tuple as globalSet variable ??
         */
-        throw `Add Tuple ${JSON.stringify(def, null, '  ')}`;
+
+        const tuple = this.getTuple(def, varID);
+
+        let [compareHash, id] = await this.genCompareHash(tuple);
+
+        if (!id) {
+            id = SHA256(JSON.stringify(tuple)).toString('base64');
+
+            const definition = await this.rDB.tables.definitions.insert({
+                definitionID: id,
+                tuple,
+                compareHash
+            }, null);
+
+            // make indexes
+            const root = tuple.variables[tuple.root];
+
+            for (let i=0; i<root.data.length; i++) {
+                const v = tuple.variables[root.data[i]];
+
+                await this.rDB.tables.definitionIndexes.insert({
+                    definition,
+                    tupleLength: root.data.length,
+                    type: v.type,
+                    position: i
+                }, null);
+            }
+        }
+
+        return id;
+
+        // throw `Add Tuple ${JSON.stringify(def, null, '  ')}`;
+    }
+
+    async addElement (def, varID=def.root) {
+        const type = def.variables[varID].type;
+
+        console.log("TYPE", type);
+        switch (type) {
+            case SET: return this.addSet(def, varID); break;
+            case TUPLE: return this.addTuple(def, varID); break;
+            default:
+                throw `Unkown def type ${JSON.stringify(def, varID)}`;
+        }
     }
 
     async add(definitions) {
@@ -202,14 +342,7 @@ class DB {
         for (let i=0; i<defs.length; i++) {
             const def = defs[i];
 
-            const type = def.variables[def.root].type;
-            
-            switch (type) {
-                case SET: await this.addSet(def); break;
-                case TUPLE: await this.addTuple(def); break;
-                default:
-                    throw `Unkown def type ${JSON.stringify(def)}`;
-            }
+            await this.addElement(def);
         }
 
         /*
