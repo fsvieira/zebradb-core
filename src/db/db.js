@@ -4,7 +4,6 @@ const {SHA256} = require("sha2");
 const path = require("path");
 
 const {branchOps} = require("../branch");
-const { constrainedMemory } = require('process');
 
 const {
     type: {
@@ -13,7 +12,8 @@ const {
         CONSTRAINT, // : "cs",
         SET, // : "s",
         LOCAL_VAR, // : 'lv',
-        GLOBAL_VAR // : 'gv',
+        GLOBAL_VAR, // : 'gv',
+        DEF_REF // d
     },
     operation: {
         OR, // : "or",
@@ -51,8 +51,10 @@ class DB {
             .save()
         ;
 
+        // find definitions by var name and id,
         await this.rDB.tables.definitionVariables
-            .key('definitionsVariablesID', ["varname"])
+            .key('definitionsVariablesID', ["varname", "definition"])
+            .index("varname")
             .save()
         ;
 
@@ -81,6 +83,47 @@ class DB {
         }
     }*/
 
+    genDefinitionHashID (v) {
+        const type = v.constructor.name;
+        let s = v;
+
+        switch (v.constructor.name) {
+            case 'Object': {
+                const keys = Object.keys(v).sort();
+                const values = [];
+                for (let i=0; i<keys.length; i++) {
+                    const key = keys[i];
+                    const value = v[key];
+                    if (value !== undefined) {
+                        values.push([key, this.genDefinitionHashID(v[key])]);
+                    }
+                }
+
+                s = JSON.stringify(values);
+                break;
+            }
+            case 'Array': {
+                const values = v.map(e => this.genDefinitionHashID(e));
+                s = JSON.stringify(values)
+                break;
+            }
+            case 'Record': {
+                s = `${v.table.name}:${v.id}`;
+                break;
+            }
+            case 'Number':
+            case 'String': 
+                break;
+            default: 
+                console.log(v.constructor.name);
+                throw 'STOP THIS!';
+        }
+
+        const id = SHA256(`${type}:${s}`).toString('base64');
+        return id;
+
+    }
+
     genCompareHashRec (tuple, id=tuple.root) {
         const v = tuple.variables[id];
 
@@ -102,6 +145,18 @@ class DB {
             }
             case CONSTANT: {
                 return `C${v.data}`;
+            }
+            case SET: {
+                const hash = `S${v.size}`;
+                let ts = [];
+                for (let i=0; i<v.elements.length; i++) {
+                    ts.push(this.genCompareHashRec(tuple, v.elements[i]));
+                }
+
+                return `${hash}[${ts.join(":")}]`
+            }
+            case DEF_REF: {
+                return `DR${v.data.id}`;
             }
             default:
                 throw `Gen Compare HASH, unkwon type ${v.type}`
@@ -202,12 +257,12 @@ class DB {
         const tupleHash = this.genCompareHashRec(tuple);
         const hash = SHA256(tupleHash).toString("base64");
 
-        for await (let r of this.rDB.tables.definitions.findByIndex({compareHash: hash})) {
-            const dbTuple = await r.data.tuple;
+        for await (let def of this.rDB.tables.definitions.findByIndex({compareHash: hash})) {
+            const dbTuple = await def.data.tuple;
             const isEqual = this.compare(dbTuple, tuple);
 
             if (isEqual) {
-                return [hash, r.definitionID];
+                return [hash, def];
             }
         }
 
@@ -215,44 +270,64 @@ class DB {
     }
 
     async addSet (def, varID=def.root) {
-        console.log(`Add Set ${JSON.stringify(def, null, '  ')}`);
-
         const {variables} = def;
 
         const set = variables[varID];
 
-        console.log("SET >>>>>>>>>>>> ", set);
         if (set.size > 0) {
             const elements = new Set();
+            const sVariables = {};
 
+            console.log("TODO: (ADD SET DEF) check for duplicates defRecord!!");
             for (let i=0; i<set.size; i++) {
                 const varID = set.elements[i];
 
-                const id = await this.addElement(def, varID);
-                elements.add(id);
+                const defRecord = await this.addElement(def, varID);
+
+                sVariables[varID] = {
+                    type: DEF_REF,
+                    data: defRecord
+                };
+
+                elements.add(varID);
             }
 
-            console.log("ADD SET TO DB ", JSON.stringify({
-                variables: {
-                    varID: {
-                        type: set.type,
-                        elements: [...elements]
-                    },
-                    root: varID
-                },
-            }, null, '  '));
+            sVariables[varID] = {
+                ...set,
+                elements: [...elements].sort()
+            };
 
+            const saveSet = {
+                variables: sVariables,
+                root: varID
+            };
+
+            let [compareHash, definition] = await this.genCompareHash(saveSet);
+
+            if (!definition) {
+                const id = this.genDefinitionHashID(saveSet);
+
+                definition = await this.rDB.tables.definitions.insert({
+                    definitionID: id,
+                    saveSet,
+                    compareHash
+                }, null);
+            }
+            // else should we update with globalVariables.
+
+            await this.rDB.tables.definitionVariables.insert({
+                varname: def.globalVariable,
+                definition
+            });
+
+            // No need for indexes because sets will be searched by variable name,
+            // if a match is done with an element, then element must have the set reference.
+            return definition;
         }
         else {
             throw 'Undefined set size';
         }
 
-        throw `Add Set ${JSON.stringify(def, null, '  ')}`;
-        /*
-            1. register all element tuples, 
-            2. register a set with tuple elements ids,
-            3. register register global variable pointing to registered set, (make sure it doesnt exist yet).
-         */
     }
 
     getTuple (def, varID) {
@@ -290,12 +365,13 @@ class DB {
 
         const tuple = this.getTuple(def, varID);
 
-        let [compareHash, id] = await this.genCompareHash(tuple);
+        let [compareHash, definition] = await this.genCompareHash(tuple);
 
-        if (!id) {
-            id = SHA256(JSON.stringify(tuple)).toString('base64');
+        if (!definition) {
+            // id = SHA256(JSON.stringify(tuple)).toString('base64');
+            const id = this.genDefinitionHashID(tuple);
 
-            const definition = await this.rDB.tables.definitions.insert({
+            definition = await this.rDB.tables.definitions.insert({
                 definitionID: id,
                 tuple,
                 compareHash
@@ -316,7 +392,7 @@ class DB {
             }
         }
 
-        return id;
+        return definition;
 
         // throw `Add Tuple ${JSON.stringify(def, null, '  ')}`;
     }

@@ -7,6 +7,7 @@ module.exports = {
         SET: "s",
         LOCAL_VAR: 'lv',
         GLOBAL_VAR: 'gv',
+        DEF_REF: 'd'
     },
     operation: {
         OR: "or",
