@@ -174,6 +174,20 @@ function termGlobalVariable (ctx, t) {
     return cid;
 }
 
+function termLocalVariable (ctx, lv) {
+    console.log("TODO: When local variables come from sets we may need a new scope!!");
+    // this can be done using a scope stack ? 
+
+    const cid = ctx.newVar();
+    const v = ctx.variables[cid];
+
+    if (!v) {
+        ctx.variables[cid] = {...lv, cid};
+    }
+
+    return cid;
+}
+
 function termTuple(ctx, t) {
     const {data, type} = t;
 
@@ -200,6 +214,7 @@ function term (ctx, t) {
         switch (t.type) {
             case SET: return termSet(ctx, t);
             case GLOBAL_VAR: return termGlobalVariable(ctx, t);
+            case LOCAL_VAR: return termLocalVariable(ctx, t);
             case TUPLE: return termTuple(ctx, t);
             case CONSTANT: return termConstant(ctx, t);
             default:

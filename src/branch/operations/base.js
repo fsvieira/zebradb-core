@@ -42,14 +42,15 @@ async function copyTerm(ctx, p, preserveVarname=false) {
 
         if (v.type === TUPLE) {
 
-            let body;
+            /*let body;
             if (v.body && v.body.length) {
                 body = await v.body.map(getVarname);
-            }
+            }*/
 
             ctx.variables = await ctx.variables.set(vn, {
-                t: v.t.map(getVarname), 
-                body,
+                ...v,
+                data: v.data.map(getVarname),
+                // body,
                 id: vn
                 // checked: v.checked
             });
@@ -75,6 +76,7 @@ async function copyTerm(ctx, p, preserveVarname=false) {
         else if (v.type === CONSTANT) {
             ctx.variables = await ctx.variables.set(vn, {c: v.c, id: vn});
         }
+        /*
         else if (v.type === CONSTRAINT && v.op === IN) {
             const c = {op: v.op, x: getVarname(v.x), set: getVarname(v.set)};
             ctx.variables = await ctx.variables.set(vn, c)
@@ -83,15 +85,16 @@ async function copyTerm(ctx, p, preserveVarname=false) {
             // its a constrain:
             const c = {op: v.op, args: v.args.map(getVarname).sort(), id: vn};
             ctx.variables = await ctx.variables.set(vn, c);
-        }
+        }*/
         else {
             console.log(v);
         }
     }
 
+    /*
     for (let i=0; i<p.constrains.length; i++) {
         ctx.constrains = await ctx.constrains.add(getVarname(p.constrains[i]));
-    }
+    }*/
 
     return mapVars[p.root];
 }
