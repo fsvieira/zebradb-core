@@ -63,18 +63,27 @@ async function copyTerm(ctx, p, preserveVarname=false) {
             }
         }
         else if (v.type === VARIABLE) {
-            const d = v.d?await array2iset(ctx, v.d):undefined;
+            /*const d = v.d?await array2iset(ctx, v.d):undefined;
             const e = v.e?await array2iset(ctx, v.e.map(getVarname)):undefined;
             const vin = v.in?await array2iset(ctx, v.in.map(getVarname)):undefined;
- 
-            ctx.variables = await ctx.variables.set(vn, {v: v.v, d, e, in: vin, pv: preserveVarname, id: vn});
+            */
 
-            if ((e && d) || vin) {
+            ctx.variables = await ctx.variables.set(
+                vn, {
+                    ...v,
+                    pv: preserveVarname,
+                    id: vn
+                }
+            );
+
+            // ctx.variables = await ctx.variables.set(vn, {v: v.v, d, e, in: vin, pv: preserveVarname, id: vn});
+
+            /*if ((e && d) || vin) {
                 ctx.unsolvedVariables = await ctx.unsolvedVariables.add(vn);
-            }
+            }*/
         }
         else if (v.type === CONSTANT) {
-            ctx.variables = await ctx.variables.set(vn, {c: v.c, id: vn});
+            ctx.variables = await ctx.variables.set(vn, {...v, id: vn});
         }
         /*
         else if (v.type === CONSTRAINT && v.op === IN) {
