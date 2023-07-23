@@ -12,6 +12,8 @@ const {
 async function toJS (branch, id) {
     id = id || await branch.data.root;
 
+    console.log(`VERIFY ToJS : `, branch, id);
+
     const v = await getVariable(branch, id);
 
     if (v.t) {

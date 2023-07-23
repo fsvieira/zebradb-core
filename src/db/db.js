@@ -474,10 +474,18 @@ class DB {
         }*/
     }
 
-    async search (tuple) {
+    async search (def) {
         const definitionIndexes = this.rDB.tables.definitionIndexes;
         let results = [];
 
+        switch (def.type) {
+            case TUPLE: {
+            }
+
+            default:
+                throw `SEARCH ${JSON.stringify(def)} NOT IMPLEMENTED;`;
+        }
+        /*
         for (let i=0; i<tuple.t.length; i++) {
             const v = tuple.t[i];
 
@@ -522,6 +530,7 @@ class DB {
         }
 
         return Promise.all(results.map(async d => ({...(await d.data.tuple), did: d.id})));
+        */
     }
 }
 
