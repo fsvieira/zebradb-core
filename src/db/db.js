@@ -475,6 +475,16 @@ class DB {
     }
 
     async getDefByVariable (variable) {
+        const definitionVariables = this.rDB.tables.definitionVariables;
+
+        const index = {varname: variable.id};
+        for await (let d of definitionVariables.findByIndex(index)) {
+            const def = await d.data.definition;
+            const definition = await def.data.definition;
+            console.log("-----------------------");
+            console.log(definition);
+        }
+
         throw 'GET DEF VARIBLE ' + JSON.stringify(variable);
     }
 
@@ -484,7 +494,7 @@ class DB {
 
         switch (def.type) {
             case GLOBAL_VAR: {
-                return this.getDefByVariable (def);
+                return this.getDefByVariable(def);
             }
             case TUPLE: {
             }
