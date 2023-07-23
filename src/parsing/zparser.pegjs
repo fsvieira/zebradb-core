@@ -42,7 +42,7 @@ definition = _ variable:(globalVariable:globalVariable _ "=" {return globalVaria
 /* Terms */
 
 // tuple
-tuple = "(" _ terms:tupleTerms _ ")" (':' variable)? { return { type: TUPLE, data: terms } }
+tuple = "(" _ terms:tupleTerms _ ")" domain:(':' domain:variable {return domain})? { return { type: TUPLE, data: terms, domain } }
        / "()" { return { type: TUPLE, data: [] } }
 
 tupleTerm = tuple / variable / constant
