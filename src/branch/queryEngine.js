@@ -107,7 +107,13 @@ class QueryEngine {
             return t;*/
         }
 
-        const definitions = async tuple => this.db.search(tuple);
+        const definitions = async tuple => 
+            tuple.domain?
+                this.db.getDefByVariable(
+                    tuple.domain
+                )
+                : this.db.search(tuple)
+        ;
 
         let branch;
 

@@ -52,7 +52,17 @@ async function expand (branch, options, selector, definitions) {
     else {
         const id = await selector(branch);
 
-        const ds = await definitions(await toJS(branch, id));
+        const v = await getVariable(branch, id);
+
+        let ds;
+        if (v.domain) {
+            const domain = await getVariable(branch, v.domain);
+
+            throw 'GET DOMAIN VARIABLE ::: ' + JSON.stringify(domain);
+        }
+        else {
+            ds = await definitions(await toJS(branch, id));
+        }
 
         const r = await Promise.all(ds.map(definition => unify(branch, options, id, null, definition)));
 

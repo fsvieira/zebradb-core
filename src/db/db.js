@@ -474,6 +474,10 @@ class DB {
         }*/
     }
 
+    async getDefByVariable (variable) {
+        throw 'GET DEF VARIBLE ' + variable;
+    }
+
     async search (def) {
         const definitionIndexes = this.rDB.tables.definitionIndexes;
         let results = [];

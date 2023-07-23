@@ -1,10 +1,12 @@
 const {
     type: {
-        CONSTANT,
-        TUPLE,
-        VARIABLE,
-        CONSTRAINT,
-        SET
+        CONSTANT, // : "c",
+        TUPLE, // : "t",
+        CONSTRAINT, // : "cs",
+        SET, // : "s",
+        LOCAL_VAR, // : 'lv',
+        GLOBAL_VAR, // : 'gv',
+        DEF_REF // d
     },
     operation: {
         OR,
@@ -29,7 +31,10 @@ async function copyTerm(ctx, p, preserveVarname=false) {
     const getVarname = v => {
         let cid = v.cid || v;
         let vn = mapVars[cid];
-        if (!vn) {
+        if (v.type === GLOBAL_VAR) {
+            vn = mapVars[cid] = cid;
+        }
+        else if (!vn) {
             vn = mapVars[cid] = ctx.newVar(v.c);
         }
 
@@ -63,7 +68,16 @@ async function copyTerm(ctx, p, preserveVarname=false) {
                 ctx.unchecked = await ctx.unchecked.add(vn);
             }
         }
-        else if (v.type === VARIABLE) {
+        else if (v.type === GLOBAL_VAR) {
+            ctx.variables = await ctx.variables.set(
+                vn, {
+                    ...v,
+                    pv: preserveVarname,
+                    id: vn
+                }
+            );
+        }
+        else if (v.type === LOCAL_VAR) {
             /*const d = v.d?await array2iset(ctx, v.d):undefined;
             const e = v.e?await array2iset(ctx, v.e.map(getVarname)):undefined;
             const vin = v.in?await array2iset(ctx, v.in.map(getVarname)):undefined;
