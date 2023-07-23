@@ -167,16 +167,14 @@ class DB {
         const vA = tupleA.variables[idA];
         const vB = tupleB.variables[idB];
 
-        if (vA.body && vB.body && vA.body.length===vB.body.length) {
-            /*
-                Compare body is complicated, 
-                lets return false for now :D
-            */
+        /*if (vA.body && vB.body && vA.body.length===vB.body.length) {
+            //    Compare body is complicated, 
+            //    lets return false for now :D
             return false;
         }
         else if (vA.body || vB.body) {
             return false;
-        }
+        }*/
 
         if (vA.type === vB.type) {
             switch (vA.type) {
@@ -196,8 +194,32 @@ class DB {
 
                     return false;
                 }
+                case SET: {
+                    if (vA.size === vB.size) {
+                        for (let i=0; i<vA.elements.length; i++) {
+                            
+                            const cmp = this.compare(
+                                tupleA, 
+                                tupleB, 
+                                vA.elements[i], 
+                                vB.elements[i]
+                            );
+
+                            if (!cmp) {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    }
+
+                    return false;
+                }
+                case DEF_REF: {
+                    return vA.data.id === vB.data.id
+                }
                 default:
-                    throw `COMPARE NOT IMPLEMENTED: ${JSON.stringify(vA)} = ${JSON.stringify(vB)}`
+                    throw `COMPARE NOT IMPLEMENTED: ${vA.type} = ${vB.type}`
             }
         }
 
@@ -253,13 +275,13 @@ class DB {
     }
 
 
-    async genCompareHash (tuple) {
-        const tupleHash = this.genCompareHashRec(tuple);
-        const hash = SHA256(tupleHash).toString("base64");
+    async genCompareHash (definition) {
+        const defHash = this.genCompareHashRec(definition);
+        const hash = SHA256(defHash).toString("base64");
 
         for await (let def of this.rDB.tables.definitions.findByIndex({compareHash: hash})) {
-            const dbTuple = await def.data.tuple;
-            const isEqual = this.compare(dbTuple, tuple);
+            const dbDef = await def.data.definition;
+            const isEqual = this.compare(dbDef, definition);
 
             if (isEqual) {
                 return [hash, def];
@@ -309,7 +331,7 @@ class DB {
 
                 definition = await this.rDB.tables.definitions.insert({
                     definitionID: id,
-                    saveSet,
+                    definition: saveSet,
                     compareHash
                 }, null);
             }
@@ -318,7 +340,7 @@ class DB {
             await this.rDB.tables.definitionVariables.insert({
                 varname: def.globalVariable,
                 definition
-            });
+            }, null);
 
             // No need for indexes because sets will be searched by variable name,
             // if a match is done with an element, then element must have the set reference.
@@ -373,7 +395,7 @@ class DB {
 
             definition = await this.rDB.tables.definitions.insert({
                 definitionID: id,
-                tuple,
+                definition: tuple,
                 compareHash
             }, null);
 
