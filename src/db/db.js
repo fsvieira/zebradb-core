@@ -475,7 +475,7 @@ class DB {
     }
 
     async getDefByVariable (variable) {
-        throw 'GET DEF VARIBLE ' + variable;
+        throw 'GET DEF VARIBLE ' + JSON.stringify(variable);
     }
 
     async search (def) {
@@ -483,6 +483,9 @@ class DB {
         let results = [];
 
         switch (def.type) {
+            case GLOBAL_VAR: {
+                return this.getDefByVariable (def);
+            }
             case TUPLE: {
             }
 
