@@ -189,13 +189,17 @@ function termLocalVariable (ctx, lv) {
 }
 
 function termTuple(ctx, t) {
-    const {data, type} = t;
+    const {data, type, domain} = t;
 
     const cid = ctx.newVar();
     const nt = ctx.variables[cid] = {type, data: [], cid};
 
     for (let i=0; i<data.length; i++) {
-        nt.data.push(term(ctx, t.data[i]));
+        nt.data.push(term(ctx, data[i]));
+    }
+
+    if (domain) {
+        nt.domain = term(ctx, domain);
     }
 
     return cid;

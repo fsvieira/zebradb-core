@@ -51,7 +51,8 @@ async function copyTerm(ctx, p, preserveVarname=false) {
                 ...v,
                 data: v.data.map(getVarname),
                 // body,
-                id: vn
+                id: vn,
+                domain: getVarname(p.variables[v.domain])
                 // checked: v.checked
             });
 
