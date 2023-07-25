@@ -8,7 +8,6 @@ const {
     constants
 } = require('./operations');
 
-
 async function toJS (branch, id) {
     id = id || await branch.data.root;
 
@@ -27,6 +26,93 @@ async function toJS (branch, id) {
     return v;
 }
 
+async function unifyDomain (
+    branch,
+    options,
+    id,
+    variable,
+    definition
+) {
+
+    // check if global variable already exists,
+    const g = await getVariable(branch, variable.id);
+    
+    if (
+        g.type === constants.type.LOCAL_VAR || 
+        g.type === constants.type.GLOBAL_VAR
+    ) {
+        console.log("=== SET DEFINITION ====>", g);
+        console.log(
+            'branch',
+            g,
+            options,
+            id,
+            variable,
+            definition    
+        );
+    }
+
+    throw 'set-definition';
+}
+
+async function getDomain (
+    branch,
+    options,
+    variableID, 
+    definitions
+) {
+    const domain = await getVariable(branch, variableID);
+
+    console.log("TODO: on copy terms we need to check if variable alredy exists");
+
+    if (domain.type === constants.type.GLOBAL_VAR) {
+        const definition = await definitions(domain);
+
+        const level = await branch.data.level + 1;
+        const rDB = branch.table.db;
+    
+        const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
+        const ctx = {
+            variables: await branch.data.variables,
+            constrains: await branch.data.constrains,
+            unsolvedVariables: await branch.data.unsolvedVariables,
+            unchecked: await branch.data.unchecked,
+            checked: await branch.data.checked,
+            newVar,
+            level,
+            rDB: branch.table.db,
+            branch,
+            log: await branch.data.log,
+            options  
+        };
+    
+        const id = await copyTerm(ctx, definition, true);
+
+        ctx.variables.set(variableID, {...domain, defer: id});
+
+        console.log("SETUP DEFINITION");
+
+        const newBranch = await rDB.tables.branches.insert({
+            parent: branch,
+            root: await branch.data.root,
+            variableCounter: varCounter(),
+            level,
+            checked: ctx.checked,
+            unchecked: ctx.unchecked,
+            variables: ctx.variables,
+            constrains: ctx.constrains,
+            unsolvedVariables: ctx.unsolvedVariables,
+            children: [],
+            state: 'maybe',
+            log: ctx.log
+        }, null);
+        
+        return {branch: newBranch, variableID};
+
+    }
+ 
+    return {branch, variableID};
+}
 
 async function expand (branch, options, selector, definitions) {
     const state = await branch.data.state;
@@ -54,25 +140,61 @@ async function expand (branch, options, selector, definitions) {
 
         const v = await getVariable(branch, id);
 
-        let searchTerm;
+        let r;
         if (v.domain) {
-            const domain = await getVariable(branch, v.domain);
+            /*const domain = await getVariable(branch, v.domain);
 
-            searchTerm = domain;
+            const searchTerm = domain;
+            const definition = await definitions(searchTerm);
+
+            console.log("--====--");
+            console.log(definition);*/
+
+            // If is a set:
+            //  1. we need to save the set, 
+            //    a. check if set exists, if not: 
+            //      1. create set,
+            //      2. if elements don't exists add them,
+            //      3. setup elements distinction constrains.
+            //  2. unify elements with tuple, create branches
+            // NOTES: we can send the defintion to unify, and let it do the rest, 
+            //        unify must be capable to return multiple branches.  
+
+            const domainID = await getDomain(
+                branch,
+                options,
+                v.domain,
+                definitions
+            );
+
+            /*
+            r = await unifyDomain(
+                branch,
+                options,
+                id,
+                domainID,
+            );*/
         }
         else {
-            searchTerm = await toJS(branch, id);
+            const searchTerm = await toJS(branch, id);
+            const ds = await definitions(searchTerm);
+
+            r = await Promise.all(ds.map(definition => unify(branch, options, id, null, definition)));
+
         }
 
-        const ds = await definitions(searchTerm);
+        await branch.update({state: 'split'});
+        return r;    
 
+
+        /*
         console.log(ds);
-        throw "DS ..."
 
         const r = await Promise.all(ds.map(definition => unify(branch, options, id, null, definition)));
 
         await branch.update({state: 'split'});
         return r;
+        */
     }
 }
 

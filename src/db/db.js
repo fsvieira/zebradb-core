@@ -481,11 +481,10 @@ class DB {
         for await (let d of definitionVariables.findByIndex(index)) {
             const def = await d.data.definition;
             const definition = await def.data.definition;
-            console.log("-----------------------");
-            console.log(definition);
+            return definition;
         }
 
-        throw 'GET DEF VARIBLE ' + JSON.stringify(variable);
+        throw 'Global variable ' + variable.id + " is not defined!";
     }
 
     async search (def) {

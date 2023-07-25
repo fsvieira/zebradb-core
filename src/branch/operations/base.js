@@ -69,13 +69,15 @@ async function copyTerm(ctx, p, preserveVarname=false) {
             }
         }
         else if (v.type === GLOBAL_VAR) {
-            ctx.variables = await ctx.variables.set(
-                vn, {
-                    ...v,
-                    pv: preserveVarname,
-                    id: vn
-                }
-            );
+            if (!ctx.variables.has(vn)) {
+                ctx.variables = await ctx.variables.set(
+                    vn, {
+                        ...v,
+                        pv: preserveVarname,
+                        id: vn
+                    }
+                );
+            }
         }
         else if (v.type === LOCAL_VAR) {
             /*const d = v.d?await array2iset(ctx, v.d):undefined;
@@ -100,6 +102,9 @@ async function copyTerm(ctx, p, preserveVarname=false) {
         else if (v.type === CONSTANT) {
             ctx.variables = await ctx.variables.set(vn, {...v, id: vn});
         }
+        else if (v.type === DEF_REF) {
+            console.log(v, 'TODO: make a func param that this is a set flag.');
+        }
         /*
         else if (v.type === CONSTRAINT && v.op === IN) {
             const c = {op: v.op, x: getVarname(v.x), set: getVarname(v.set)};
@@ -111,7 +116,7 @@ async function copyTerm(ctx, p, preserveVarname=false) {
             ctx.variables = await ctx.variables.set(vn, c);
         }*/
         else {
-            console.log(v);
+            throw 'COPY TERTM CANT COPY ' + v.type;
         }
     }
 

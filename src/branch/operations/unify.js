@@ -563,7 +563,8 @@ async function unify (branch, options, tuple, definitionID, definition) {
     }
 
     const {
-        variables, constrains, unsolvedVariables, unchecked, 
+        variables, constrains, 
+        unsolvedVariables, unchecked, 
         checked, fail, log
     } = await deepUnify(
         ctx,
