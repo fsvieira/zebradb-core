@@ -69,7 +69,7 @@ async function copyTerm(ctx, p, preserveVarname=false) {
             }
         }
         else if (v.type === GLOBAL_VAR) {
-            if (!ctx.variables.has(vn)) {
+            if (!(await ctx.variables.has(vn))) {
                 ctx.variables = await ctx.variables.set(
                     vn, {
                         ...v,
@@ -103,7 +103,53 @@ async function copyTerm(ctx, p, preserveVarname=false) {
             ctx.variables = await ctx.variables.set(vn, {...v, id: vn});
         }
         else if (v.type === DEF_REF) {
-            console.log(v, 'TODO: make a func param that this is a set flag.');
+            const id = v.data.id;
+            const def = await v.data.data.definition;
+
+            console.log(`TODO: 
+                we need better handler of variables names!! 
+                So that we can easly map variables to their global and local names,
+                ex. Set must convert variables to their global name when aproprieted.
+            `);
+
+            const gvID = `__d_${id}`;
+
+            // 1. we need to check if gvID is already set, if not we can create them,
+            const hasVar = await hasVariable(null, gvID, ctx);
+            
+            if (!hasVar) {
+                // if its not set yet, we need to set them,
+
+                throw 'DEF REF COPY TERM!!' + id + ' ' + JSON.stringify(def)
+                + " --> NEED TO MAKE THIS IF's function so that we can call them recursive!!";
+
+            }
+            // else do nothing.
+
+        }
+        else if (v.type === SET) {
+            const variableID = v.variable;
+            const vs = p.variables[variableID];
+
+            if (vs.type === GLOBAL_VAR) {
+                const hasVar = await hasVariable(null, variableID, ctx); 
+                let gv = hasVar?await getVariable(null, variableID, ctx):null;
+
+                if (!gv || gv.type === GLOBAL_VAR) {
+                    console.log("We should also set Set variable did!!");
+
+                    ctx.variables = await ctx.variables.set(vs.cid, {
+                        ...v,
+                        // body,
+                        elements: v.elements.map(getVarname),
+                        id: vs.cid,
+                    });
+                }
+                // else nothing to do,
+            }
+            else {
+                throw 'CREATE LOCAL SET???';
+            }
         }
         /*
         else if (v.type === CONSTRAINT && v.op === IN) {
@@ -138,16 +184,27 @@ function varGenerator (counter) {
     }
 }
 
+async function hasVariable (branch, id, ctx) {
+    let v;
+    const variables = ctx ? ctx.variables : await branch.data.variables;
+
+    v = await variables.get(id);
+    
+    return !!v;
+}
+
 async function getVariable (branch, id, ctx) {
     let v;
     const variables = ctx ? ctx.variables : await branch.data.variables;
 
     do {
         v = await variables.get(id);
+        
         if (id && id === v.defer) {
             console.log("BUG: id can't defer to itself!", id, v);
             process.exit();
         }
+
         id = v.defer;
     }
     while(id);
@@ -236,6 +293,7 @@ module.exports = {
     varGenerator, 
     type,
     getVariable,
+    hasVariable,
     get,
     copyTerm,
     // copyTerms,

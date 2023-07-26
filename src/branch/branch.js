@@ -7,6 +7,7 @@ const {
     // prepareVariables,
     constants
 } = require('./operations');
+const { hasVariable } = require('./operations/base');
 
 async function toJS (branch, id) {
     id = id || await branch.data.root;
@@ -70,7 +71,7 @@ async function getDomain (
 
         const level = await branch.data.level + 1;
         const rDB = branch.table.db;
-    
+        
         const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
         const ctx = {
             variables: await branch.data.variables,
@@ -85,7 +86,7 @@ async function getDomain (
             log: await branch.data.log,
             options  
         };
-    
+        
         const id = await copyTerm(ctx, definition, true);
 
         ctx.variables.set(variableID, {...domain, defer: id});
@@ -106,11 +107,10 @@ async function getDomain (
             state: 'maybe',
             log: ctx.log
         }, null);
-        
+            
         return {branch: newBranch, variableID};
-
     }
- 
+
     return {branch, variableID};
 }
 

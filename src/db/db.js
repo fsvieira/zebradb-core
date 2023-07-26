@@ -292,13 +292,15 @@ class DB {
     }
 
     async addSet (def, varID=def.root) {
-        const {variables} = def;
+        const {variables, globalVariable} = def;
 
         const set = variables[varID];
 
         if (set.size > 0) {
             const elements = new Set();
-            const sVariables = {};
+            const sVariables = {
+                [globalVariable]: variables[globalVariable]
+            };
 
             console.log("TODO: (ADD SET DEF) check for duplicates defRecord!!");
             for (let i=0; i<set.size; i++) {
@@ -338,7 +340,7 @@ class DB {
             // else should we update with globalVariables.
 
             await this.rDB.tables.definitionVariables.insert({
-                varname: def.globalVariable,
+                varname: globalVariable,
                 definition
             }, null);
 
