@@ -1,6 +1,4 @@
-const {unify} = require("./unify");
-
-const constants = require("./constants");
+const {unify, constants} = require("./unify");
 
 const {
     varGenerator, 

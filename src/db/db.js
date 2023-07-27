@@ -310,7 +310,8 @@ class DB {
 
                 sVariables[varID] = {
                     type: DEF_REF,
-                    data: defRecord
+                    data: defRecord,
+                    cid: varID
                 };
 
                 elements.add(varID);

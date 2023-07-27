@@ -7,7 +7,6 @@ const {
     // prepareVariables,
     constants
 } = require('./operations');
-const { hasVariable } = require('./operations/base');
 
 async function toJS (branch, id) {
     id = id || await branch.data.root;
@@ -31,29 +30,15 @@ async function unifyDomain (
     branch,
     options,
     id,
-    variable,
-    definition
+    domainID
 ) {
+    const s = await getVariable(branch, domainID);
 
-    // check if global variable already exists,
-    const g = await getVariable(branch, variable.id);
-    
-    if (
-        g.type === constants.type.LOCAL_VAR || 
-        g.type === constants.type.GLOBAL_VAR
-    ) {
-        console.log("=== SET DEFINITION ====>", g);
-        console.log(
-            'branch',
-            g,
-            options,
-            id,
-            variable,
-            definition    
-        );
-    }
+    const r = await Promise.all(s.elements.map(
+        definitionID => unify(branch, options, id, definitionID)
+    ));
 
-    throw 'set-definition';
+    return r;
 }
 
 async function getDomain (
@@ -160,20 +145,22 @@ async function expand (branch, options, selector, definitions) {
             // NOTES: we can send the defintion to unify, and let it do the rest, 
             //        unify must be capable to return multiple branches.  
 
-            const domainID = await getDomain(
+            const {
+                branch: domainBranch, 
+                variableID: domainID
+            } = await getDomain(
                 branch,
                 options,
                 v.domain,
                 definitions
             );
 
-            /*
             r = await unifyDomain(
-                branch,
+                domainBranch,
                 options,
                 id,
                 domainID,
-            );*/
+            );
         }
         else {
             const searchTerm = await toJS(branch, id);

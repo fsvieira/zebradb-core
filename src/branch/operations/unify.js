@@ -7,6 +7,28 @@ const {
     getVariable
 } = require("./base");
 
+const constants = require("./constants");
+
+const {
+    type: {
+        CONSTANT, // : "c",
+        TUPLE, // : "t",
+        CONSTRAINT, // : "cs",
+        SET, // : "s",
+        LOCAL_VAR, // : 'lv',
+        GLOBAL_VAR, // : 'gv',
+        DEF_REF // d
+    },
+    operation: {
+        OR, // : "or",
+        AND, // : "and",
+        IN, // : "in",
+        UNIFY, // : "=",
+        NOT_UNIFY, // : "!="
+    }
+} = constants;
+
+
 const doNotUnify = require("./notUnify");
 
 const C_FALSE = 0;
@@ -193,18 +215,18 @@ const setVariable = async (ctx, v, p) => {
 
 
 const unifyFn = {
-    v: {
-        v: setVariable,
-        t: setVariable, // !p.d && await unifyVariable(ctx, p, q),
-        c: setVariable, // async (ctx, p, q) => (!p.d || (p.d && p.d.includes(q.id))) && await unifyVariable(ctx, p, q)
+    [LOCAL_VAR]: {
+        [LOCAL_VAR]: setVariable,
+        [TUPLE]: setVariable, // !p.d && await unifyVariable(ctx, p, q),
+        [CONSTANT]: setVariable, // async (ctx, p, q) => (!p.d || (p.d && p.d.includes(q.id))) && await unifyVariable(ctx, p, q)
     },
-    t: {
-        v: async (ctx, p, q) => unifyFn.v.t(ctx, q, p),
-        t: async (ctx, p, q) => {
+    [TUPLE]: {
+        [LOCAL_VAR]: async (ctx, p, q) => unifyFn.v.t(ctx, q, p),
+        [TUPLE]: async (ctx, p, q) => {
             if (p.id !== q.id) {
-                if (p.t.length === q.t.length) {
-                    for (let i=0; i<p.t.length; i++) {
-                        const r = await doUnify(ctx, p.t[i], q.t[i]);
+                if (p.data.length === q.data.length) {
+                    for (let i=0; i<p.data.length; i++) {
+                        const r = await doUnify(ctx, p.data[i], q.data[i]);
 
                         if (!r) {
                             return false;
@@ -221,12 +243,12 @@ const unifyFn = {
 
             return true;
         },
-        c: async () => false
+        [CONSTANT]: async () => false
     },
-    c: {
-        v: async (ctx, p, q) => unifyFn.v.c(ctx, q, p),
-        t: async () => false,
-        c: async (ctx, p, q) => p.c === q.c
+    [CONSTANT]: {
+        [LOCAL_VAR]: async (ctx, p, q) => unifyFn.v.c(ctx, q, p),
+        [TUPLE]: async () => false,
+        [CONSTANT]: async (ctx, p, q) => p.c === q.c
     }
 }
 
@@ -290,8 +312,36 @@ async function deepUnify(
         log: ctx.log
     };
 }
-    
+
 const doUnify = async (ctx, p, q) => {
+    p = await get(ctx, p);
+    q = await get(ctx, q);
+
+    let s;
+    
+    if (ctx.options.log) {
+        s = `${await toString(undefined, p.id, ctx)} ** ${await toString(undefined, q.id, ctx)}`;
+    }
+
+    const ok =  await unifyFn[p.type][q.type](ctx, p, q);
+
+    if (ctx.options.log) {
+        const ps = await toString(undefined, p.id, ctx);
+        const qs = await toString(undefined, q.id, ctx);
+
+        s += `; p=${ps}, q=${qs}`;
+        if (!ok) {
+            ctx.log = await ctx.log.push(`FAIL: ${s}`);
+        }
+        else {
+            ctx.log = await ctx.log.push(`SUCC: ${s}`);
+        }
+    }
+
+    return ok;
+}
+
+const __doUnify = async (ctx, p, q) => {
     p = await get(ctx, p);
     q = await get(ctx, q);
 
@@ -622,4 +672,88 @@ async function unify (branch, options, tuple, definitionID, definition) {
     return branch;*/
 }
 
-module.exports = {unify};
+async function __unify (branch, options, tuple, definitionID, definition) {
+
+    const level = await branch.data.level + 1;
+    const rDB = branch.table.db;
+
+    const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
+    const ctx = {
+        variables: await branch.data.variables,
+        constrains: await branch.data.constrains,
+        unsolvedVariables: await branch.data.unsolvedVariables,
+        unchecked: await branch.data.unchecked,
+        checked: await branch.data.checked,
+        newVar,
+        level,
+        rDB: branch.table.db,
+        branch,
+        log: await branch.data.log,
+        options  
+    };
+
+    if (definition) {
+        return await getSet(ctx, branch, tuple, definitionID, definition, varCounter);
+    }
+
+    const {
+        variables, constrains, 
+        unsolvedVariables, unchecked, 
+        checked, fail, log
+    } = await deepUnify(
+        ctx,
+        tuple, 
+        definitionID
+    );
+
+    await createBranch(
+        fail,
+        branch,
+        varCounter,
+        ctx.level,
+        checked,
+        unchecked,
+        variables,
+        constrains,
+        unsolvedVariables,
+        log        
+    );
+
+    return branch;
+    /*
+    let state = 'maybe';
+
+    if (fail) {
+        state='no'
+    }
+    else if (await unchecked.size === 0) {
+        if (await unsolvedVariables.size === 0) {
+            state='yes';
+        }
+        else {
+            state='unsolved_variables';
+        }
+    }
+
+    const newBranch = await rDB.tables.branches.insert({
+        parent: branch,
+        root: await branch.data.root,
+        variableCounter: varCounter(),
+        level,
+        checked,
+        unchecked,
+        variables,
+        constrains,
+        unsolvedVariables,
+        children: [],
+        state,
+        log
+    }, null);
+
+    const children = (await branch.data.children).concat([newBranch]);
+    branch.update({children});
+
+    return branch;*/
+}
+
+module.exports = {unify, constants};
