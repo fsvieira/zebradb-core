@@ -38,6 +38,7 @@ async function unifyDomain (
         definitionID => unify(branch, options, id, definitionID)
     ));
 
+    console.log("RRRRRRRRRRRR UUU", r.length);
     return r;
 }
 
@@ -92,7 +93,9 @@ async function getDomain (
             state: 'maybe',
             log: ctx.log
         }, null);
-            
+        
+        await branch.update({state: 'split'});
+
         return {branch: newBranch, variableID};
     }
 
@@ -161,6 +164,9 @@ async function expand (branch, options, selector, definitions) {
                 id,
                 domainID,
             );
+
+            await domainBranch.update({state: 'split'});
+
         }
         else {
             const searchTerm = await toJS(branch, id);
@@ -168,9 +174,9 @@ async function expand (branch, options, selector, definitions) {
 
             r = await Promise.all(ds.map(definition => unify(branch, options, id, null, definition)));
 
+            await branch.update({state: 'split'});
         }
 
-        await branch.update({state: 'split'});
         return r;    
 
 
