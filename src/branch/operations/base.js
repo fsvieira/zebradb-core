@@ -291,37 +291,43 @@ async function toString (branch, id, ctx, constrains=true) {
     const d = !!ctx; 
     const v = await getVariable(branch, id, ctx);
     
-    if (v.t) {
-        const ts = [];
-        for (let i=0; i<v.t.length; i++) {
-            const a = v.t[i];
-            ts.push(await toString(branch, a, ctx));
+    switch (v.type) {
+        case TUPLE: {
+            const ts = [];
+            for (let i=0; i<v.data.length; i++) {
+                const a = v.data[i];
+                ts.push(await toString(branch, a, ctx));
+            }
+
+            const checked = await (ctx?.checked || (await branch.data.checked)).has(v.id);
+            return (checked?'@' :"")
+                + `${d ? v.id || "" : ""}(${ts.join(" ")})`;
         }
+        case GLOBAL_VAR:
+        case LOCAL_VAR: {
+            throw 'TO STRING VARIABLE NOT DEFINED!';
+            const domainArray = v.d ? (await v.d.toArray()).sort(): undefined;
+            const domain = domainArray ? (await Promise.all(domainArray.map(id => toString(branch, id, ctx)))).filter(v => v !== ''):undefined;
+            const ds = domain && domain.length?`:{${domain.join(" ")}}`:"";
 
-        const checked = await (ctx?.checked || (await branch.data.checked)).has(v.id);
-        return (checked?'@' :"")
-            + `${d ? v.id || "" : ""}(${ts.join(" ")})`;
-    }
-    else if (v.v) {
-        const domainArray = v.d ? (await v.d.toArray()).sort(): undefined;
-        const domain = domainArray ? (await Promise.all(domainArray.map(id => toString(branch, id, ctx)))).filter(v => v !== ''):undefined;
-        const ds = domain && domain.length?`:{${domain.join(" ")}}`:"";
+            let e = "";
+            if (constrains) { 
+                const es = v.e ? 
+                    (await Promise.all(
+                        (await v.e.toArray())
+                        .map(cID => toStringConstrains(branch, v, cID, ctx)))).filter(v => v !== '')
+                    : undefined;
+                // const es = v.e ? (await Promise.all(v.e.map(id => toString(branch, id, ctx, stop)))).filter(v => v !== ''):undefined;
+                e = es && es.length?`~{${[...new Set(es)].join(" ")}}`:"";
+            }
 
-        let e = "";
-        if (constrains) { 
-            const es = v.e ? 
-                (await Promise.all(
-                    (await v.e.toArray())
-                    .map(cID => toStringConstrains(branch, v, cID, ctx)))).filter(v => v !== '')
-                : undefined;
-            // const es = v.e ? (await Promise.all(v.e.map(id => toString(branch, id, ctx, stop)))).filter(v => v !== ''):undefined;
-            e = es && es.length?`~{${[...new Set(es)].join(" ")}}`:"";
+            return "'" + (!v.pv && v.id?v.id + "::": "") + v.v + ds + e;
         }
-
-        return "'" + (!v.pv && v.id?v.id + "::": "") + v.v + ds + e;
-    }
-    else if (v.c) {
-        return v.c;
+        case CONSTANT: {
+            return v.data;
+        }
+        default:
+            throw `Base toString: Unknow Type ${v.type}`;
     }
 }
 

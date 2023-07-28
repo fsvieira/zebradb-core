@@ -113,10 +113,10 @@ class DB {
             }
             case 'Number':
             case 'String': 
+            case 'Boolean': 
                 break;
             default: 
-                console.log(v.constructor.name);
-                throw 'STOP THIS!';
+                throw `genDefinitionHashID: Unknown Type ${v.constructor.name}`;
         }
 
         const id = SHA256(`${type}:${s}`).toString('base64');
