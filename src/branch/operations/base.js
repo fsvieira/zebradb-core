@@ -39,7 +39,7 @@ async function save2db (
 
         ctx.variables = await ctx.variables.set(vn, {
             ...v,
-            data: v.data.map(getVarname),
+            data: v.data.map(v => getVarname(p.variables[v])),
             // body,
             id: vn,
             domain: v.domain ? getVarname(p.variables[v.domain]) : undefined
@@ -162,8 +162,11 @@ async function copyTerm(ctx, p, preserveVarname=false) {
             else if (v.type === GLOBAL_VAR) {
                 vn = mapVars[cid] = cid;
             }
+            else if (v.type === CONSTANT) {
+                vn = mapVars[cid] = ctx.newVar(v.data);
+            }
             else {
-                vn = mapVars[cid] = ctx.newVar(v.c);
+                vn = mapVars[cid] = ctx.newVar();
             }
         }
         /*

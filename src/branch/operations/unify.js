@@ -317,6 +317,7 @@ const doUnify = async (ctx, p, q) => {
     p = await get(ctx, p);
     q = await get(ctx, q);
 
+    console.log("-------->", p, q);
     let s;
     
     if (ctx.options.log) {
