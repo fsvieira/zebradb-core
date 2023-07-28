@@ -98,11 +98,20 @@ async function save2db (
         if (!hasVar) {
             // if its not set yet, we need to set them,
 
-            await save2db(
+            /*await save2db(
                 ctx, def, preserveVarname,
                 getVarname,
                 def.variables[def.root], vn            
-            );
+            );*/
+            const id = await copyTerm(ctx, def, preserveVarname);
+
+            ctx.variables = await ctx.variables.set(
+                vn, {
+                    type: GLOBAL_VAR,
+                    id: vn,
+                    defer: id
+                }
+            );            
         }
         // else do nothing.
 

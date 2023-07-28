@@ -390,6 +390,8 @@ class DB {
 
         const tuple = this.getTuple(def, varID);
 
+        tuple.variables[tuple.root].checked = true;
+
         let [compareHash, definition] = await this.genCompareHash(tuple);
 
         if (!definition) {
