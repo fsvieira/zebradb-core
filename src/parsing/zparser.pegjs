@@ -106,6 +106,7 @@ return expression;
        }
      }
      / tuple 
+     / variable
      / '[' _ set:set _ ']' {return set}
 
 set_op = 'union'

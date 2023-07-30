@@ -29,11 +29,9 @@ describe("Play Tests.", () => {
 	it("Sets AND (2)", test(
 		`
 			$BOOL = {true false}
-			$AND = {('x:$BOOL & 'x:$BOOL = 'x:$BOOL) |} 
-				union {
-					('a:$BOOL & 'b:$BOOL = false) 
-					| 'a != 'b 
-				}
+			$AND_1 = {('x:$BOOL & 'x:$BOOL = 'x:$BOOL) |} 
+			$AND_2 = {('a:$BOOL & 'b:$BOOL = false) | 'a != 'b }
+			$AND = $AND_1 union $AND_2
 		`, 
 		[
 			{
