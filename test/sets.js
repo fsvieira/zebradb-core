@@ -3,7 +3,7 @@
 const test = require("../test-utils/test");
 
 describe("Play Tests.", () => {
-	it("Sets 3", test(
+	xit("Sets AND (1)", test(
 		`
 			$AND = {
 				(0 & 0 = 0)
@@ -15,10 +15,38 @@ describe("Play Tests.", () => {
 		[
 			{
 				query: "('x & 'y = 'z):$AND",
-				results: []
+				results: [
+					"@(0 & 0 = 0)", 
+					"@(0 & 1 = 0)", 
+					"@(1 & 0 = 0)", 
+					"@(1 & 1 = 1)" 
+				]
 			},
 		], 
 		{path: 'dbs/sets/1', timeout: 1000 * 60}
+	));
+
+	it("Sets AND (2)", test(
+		`
+			$BOOL = {true false}
+			$AND = {('x:$BOOL & 'x:$BOOL = 'x:$BOOL) |} 
+				union {
+					('a:$BOOL & 'b:$BOOL = false) 
+					| 'a != 'b 
+				}
+		`, 
+		[
+			{
+				query: "('x & 'y = 'z):$AND",
+				results: [
+					"@(0 & 0 = 0)", 
+					"@(0 & 1 = 0)", 
+					"@(1 & 0 = 0)", 
+					"@(1 & 1 = 1)" 
+				]
+			},
+		], 
+		{path: 'dbs/sets/2', timeout: 1000 * 60}
 	));
 
 	xit("Sets 1", test(

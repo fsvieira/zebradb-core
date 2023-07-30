@@ -5,6 +5,7 @@ module.exports = {
         TUPLE: "t",
         CONSTRAINT: "cs",
         SET: "s",
+        SET_EXP: 'se',
         LOCAL_VAR: 'lv',
         GLOBAL_VAR: 'gv',
         DEF_REF: 'd'
@@ -14,7 +15,8 @@ module.exports = {
         AND: "and",
         IN: "in",
         UNIFY: "=",
-        NOT_UNIFY: "!="
+        NOT_UNIFY: "!=",
+        UNION: "union"
     }
 };
 

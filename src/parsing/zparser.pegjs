@@ -5,6 +5,7 @@
           TUPLE,
           CONSTRAINT,
           SET,
+          SET_EXP,
           LOCAL_VAR,
           GLOBAL_VAR
       },
@@ -13,7 +14,8 @@
           AND,
           IN,
           UNIFY,
-          NOT_UNIFY
+          NOT_UNIFY,
+          UNION
       }
   } = require("../branch/operations/constants");
 
@@ -24,6 +26,7 @@
       case 'in': return IN;
       case 'and': return AND;
       case 'or': return OR;
+      case 'union': return UNION;
     }
   }
 }
@@ -82,11 +85,13 @@ constantExpression = "«" constant:[^»]+ "»" {
 
 element = tuple / variable
 elements = (element:element _ {return element})* 
-set = "{" _ elements:elements "|" _ expression:expression _ "}"
+set_def = "{" _ element:element _ "|" _ expression:(expression:expression _ {
+return expression;
+})? "}"
      {
        return {
          type: SET,
-         elements,
+         element,
          expression,
          size: -1
        }
@@ -101,6 +106,20 @@ set = "{" _ elements:elements "|" _ expression:expression _ "}"
        }
      }
      / tuple 
+     / '[' _ set:set _ ']' {return set}
+
+set_op = 'union'
+
+set = a:set_def _ op:set_op _ b:set {
+  	return {
+       type: SET_EXP,
+       a,
+       op: opCode(op),
+       b
+    }
+  }
+  / set:set_def {return set} 
+
 
 /*
 Expression
