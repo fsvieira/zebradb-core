@@ -6,6 +6,8 @@ const {
         TUPLE, // : "t",
         CONSTRAINT, // : "cs",
         SET, // : "s",
+        SET_CS, // 'sc'
+        SET_EXP, // 'se'
         LOCAL_VAR, // : 'lv',
         GLOBAL_VAR // : 'gv',
     },
@@ -139,8 +141,15 @@ function terms (ctx, t) {
     }
 
 }*/
+function termSetConstrains (ctx, t) {
+    const {type, element, expression, variable, size} = t;
+
+    
+    throw "term set constrains" + JSON.stringify(t);
+}
+
 function termSet (ctx, t) {
-    const {type, elements, variable, expression, size} = t;
+    const {type, elements, variable, size} = t;
 
     const cid = ctx.newVar();
 
@@ -148,7 +157,6 @@ function termSet (ctx, t) {
         type,
         elements: [],
         variable: term(ctx, variable),
-        expression: term(ctx, expression),
         size
     };
 
@@ -217,6 +225,7 @@ function term (ctx, t) {
     if (t) {
         switch (t.type) {
             case SET: return termSet(ctx, t);
+            case SET_CS: return termSetConstrains(ctx, t);
             case GLOBAL_VAR: return termGlobalVariable(ctx, t);
             case LOCAL_VAR: return termLocalVariable(ctx, t);
             case TUPLE: return termTuple(ctx, t);

@@ -214,7 +214,7 @@ function peg$parse(input, options) {
       peg$c47 = peg$literalExpectation("}", false),
       peg$c48 = function(element, expression) {
              return {
-               type: SET,
+               type: SET_CS,
                element,
                expression,
                size: -1
@@ -1763,6 +1763,7 @@ function peg$parse(input, options) {
             TUPLE,
             CONSTRAINT,
             SET,
+            SET_CS,
             SET_EXP,
             LOCAL_VAR,
             GLOBAL_VAR

@@ -5,6 +5,7 @@
           TUPLE,
           CONSTRAINT,
           SET,
+          SET_CS,
           SET_EXP,
           LOCAL_VAR,
           GLOBAL_VAR
@@ -90,7 +91,7 @@ return expression;
 })? "}"
      {
        return {
-         type: SET,
+         type: SET_CS,
          element,
          expression,
          size: -1

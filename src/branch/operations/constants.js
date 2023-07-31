@@ -5,6 +5,7 @@ module.exports = {
         TUPLE: "t",
         CONSTRAINT: "cs",
         SET: "s",
+        SET_CS: 'sc',
         SET_EXP: 'se',
         LOCAL_VAR: 'lv',
         GLOBAL_VAR: 'gv',
