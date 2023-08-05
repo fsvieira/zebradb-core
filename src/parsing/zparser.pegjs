@@ -26,6 +26,7 @@
       case '!=': return NOT_UNIFY;
       case 'in': return IN;
       case 'and': return AND;
+      case ',': return AND;
       case 'or': return OR;
       case 'union': return UNION;
     }
@@ -126,7 +127,7 @@ set = a:set_def _ op:set_op _ b:set {
 /*
 Expression
 */
-operations = op:('!=' / '=' / 'in' / 'and' / 'or') {return opCode(op)}
+operations = op:('!=' / '=' / 'in' / 'and' / ',') {return opCode(op)}
 
 expressionTerm = set / variable / constantExpression
 expressionTerms = expressionTerm:expressionTerm terms:(wsp terms:expressionTerm {return terms})* 

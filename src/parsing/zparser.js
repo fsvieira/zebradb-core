@@ -249,8 +249,8 @@ function peg$parse(input, options) {
       peg$c61 = peg$literalExpectation("in", false),
       peg$c62 = "and",
       peg$c63 = peg$literalExpectation("and", false),
-      peg$c64 = "or",
-      peg$c65 = peg$literalExpectation("or", false),
+      peg$c64 = ",",
+      peg$c65 = peg$literalExpectation(",", false),
       peg$c66 = function(op) {return opCode(op)},
       peg$c67 = function(expressionTerm, terms) {return terms},
       peg$c68 = function(expressionTerm, terms) { return [expressionTerm].concat(terms) },
@@ -1321,9 +1321,9 @@ function peg$parse(input, options) {
             if (peg$silentFails === 0) { peg$fail(peg$c63); }
           }
           if (s1 === peg$FAILED) {
-            if (input.substr(peg$currPos, 2) === peg$c64) {
+            if (input.charCodeAt(peg$currPos) === 44) {
               s1 = peg$c64;
-              peg$currPos += 2;
+              peg$currPos++;
             } else {
               s1 = peg$FAILED;
               if (peg$silentFails === 0) { peg$fail(peg$c65); }
@@ -1784,6 +1784,7 @@ function peg$parse(input, options) {
         case '!=': return NOT_UNIFY;
         case 'in': return IN;
         case 'and': return AND;
+        case ',': return AND;
         case 'or': return OR;
         case 'union': return UNION;
       }

@@ -11,6 +11,8 @@ const {
         TUPLE, // : "t",
         CONSTRAINT, // : "cs",
         SET, // : "s",
+        SET_CS, // 'sc'
+        SET_EXP, // 'se'
         LOCAL_VAR, // : 'lv',
         GLOBAL_VAR, // : 'gv',
         DEF_REF // d
@@ -137,15 +139,19 @@ class DB {
 
                 return `${hash}[${ts.join(":")}]`
             }
+            
             case LOCAL_VAR: {
                 return 'V';
             }
+            
             case GLOBAL_VAR: {
                 return 'G';
             }
+            
             case CONSTANT: {
                 return `C${v.data}`;
             }
+            
             case SET: {
                 const hash = `S${v.size}`;
                 let ts = [];
@@ -155,9 +161,15 @@ class DB {
 
                 return `${hash}[${ts.join(":")}]`
             }
+            
             case DEF_REF: {
                 return `DR${v.data.id}`;
             }
+
+            case SET_CS: {
+                return `SC::${this.genCompareHashRec(tuple, v.element)}`
+            }
+
             default:
                 throw `Gen Compare HASH, unkwon type ${v.type}`
         }
@@ -182,7 +194,7 @@ class DB {
                 case TUPLE: {
                     if (vA.data.length === vB.data.length) {
                         for (let i=0; i<vA.data.length; i++) {
-                            const cmp = this.compare(tupleA, tupleB, vA.data[i], vB.data[i]);
+                            const cmp = this.compare(tupleA, tupleB, vA.data[i], vB.data[i], vars);
             
                             if (!cmp) {
                                 return false;
@@ -215,9 +227,31 @@ class DB {
 
                     return false;
                 }
+
                 case DEF_REF: {
                     return vA.data.id === vB.data.id
                 }
+
+                case LOCAL_VAR: {
+                    const v = vars[vA.cid];
+
+                    if (!v) {
+                        vars[vA.cid] = vB;
+                        return true;
+                    }
+                    else if (vB.cid !== v.cid) {
+                        return this.compare(
+                            tupleA, 
+                            tupleB, 
+                            vA, 
+                            v,
+                            vars
+                        );
+                    }
+
+                    return true;
+                }
+
                 default:
                     throw `COMPARE NOT IMPLEMENTED: ${vA.type} = ${vB.type}`
             }
@@ -306,15 +340,28 @@ class DB {
             for (let i=0; i<set.size; i++) {
                 const varID = set.elements[i];
 
-                const defRecord = await this.addElement(def, varID);
+                const v = def.variables[varID];
+                switch (v.type) {
+                    case TUPLE: {
+                        const defRecord = await this.addElement(def, varID);
 
-                sVariables[varID] = {
-                    type: DEF_REF,
-                    data: defRecord,
-                    cid: varID
-                };
+                        sVariables[varID] = {
+                            type: DEF_REF,
+                            data: defRecord,
+                            cid: varID
+                        };
 
-                elements.add(varID);
+                        elements.add(varID);
+                        break;
+                    }
+                    case CONSTANT: {
+                        sVariables[varID] = v;
+                        elements.add(varID);
+                        break;
+                    }
+                    default: 
+                        throw 'addSet - Not implemented! ' + v.type;
+                }
             }
 
             sVariables[varID] = {
@@ -424,15 +471,76 @@ class DB {
         // throw `Add Tuple ${JSON.stringify(def, null, '  ')}`;
     }
 
+    async addSetConstrain (def, varID) {
+        const {variables, globalVariable} = def;
+
+        const set = variables[varID];
+        const sVariables = {
+            [globalVariable]: variables[globalVariable]
+        };
+
+        console.log("TODO: (ADD SET CONSTRAIN DEF) check for duplicates defRecord!!");
+        const {element: elementID} = set;
+        const v = def.variables[elementID];
+        
+        switch (v.type) {
+            case TUPLE: {
+                const defRecord = await this.addElement(def, elementID);
+
+                sVariables[elementID] = {
+                    type: DEF_REF,
+                    data: defRecord,
+                    cid: elementID
+                };
+
+                break;
+            }
+            default: 
+                throw 'addSet - Not implemented! ' + v.type;
+        }
+
+        sVariables[varID] = {
+            ...set,
+            element: elementID
+        };
+
+        const saveSet = {
+            variables: sVariables,
+            root: varID
+        };
+
+        let [compareHash, definition] = await this.genCompareHash(saveSet);
+
+        if (!definition) {
+            const id = this.genDefinitionHashID(saveSet);
+
+            definition = await this.rDB.tables.definitions.insert({
+                definitionID: id,
+                definition: saveSet,
+                compareHash
+            }, null);
+        }
+        
+        // else should we update with globalVariables.
+        await this.rDB.tables.definitionVariables.insert({
+            varname: globalVariable,
+            definition
+        }, null);
+
+        // No need for indexes because sets will be searched by variable name,
+        // if a match is done with an element, then element must have the set reference.
+        return definition;
+    }
+
     async addElement (def, varID=def.root) {
         const type = def.variables[varID].type;
 
-        console.log("TYPE", type);
         switch (type) {
             case SET: return this.addSet(def, varID); break;
             case TUPLE: return this.addTuple(def, varID); break;
+            case SET_CS: return this.addSetConstrain(def, varID); break;
             default:
-                throw `Unkown def type ${JSON.stringify(def, varID)}`;
+                throw `Unkown def type ${type}`;
         }
     }
 

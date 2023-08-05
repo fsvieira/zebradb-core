@@ -141,11 +141,62 @@ function terms (ctx, t) {
     }
 
 }*/
+
+function termSetExpression (ctx, s) {
+    console.log(JSON.stringify(s));
+
+    const {type, a, op, b, variable} = s;
+
+    const cid = ctx.newVar();
+
+    const v = {
+        type,
+        a: term(ctx, a),
+        op,
+        b: term(ctx, b),
+        variable: variable?term(ctx, variable):undefined
+    };
+
+    ctx.variables[cid] = v;
+
+    return cid;
+}
+
 function termSetConstrains (ctx, t) {
     const {type, element, expression, variable, size} = t;
 
-    
-    throw "term set constrains" + JSON.stringify(t);
+    const cid = ctx.newVar();
+
+    const v = term(ctx, {
+        ...element,
+        expression
+    });
+
+    const nt = {
+        type,
+        element: v,
+        variable: term(ctx, variable),
+        size
+    };
+
+    ctx.variables[cid] = nt;
+
+    return cid;
+}
+
+function termConstrains(ctx, exp) {
+    const {a, op, b} = exp;
+
+    const cid = ctx.newVar();
+
+    ctx.variables[cid] = {
+        a: term(ctx, a),
+        op,
+        b: term(ctx, b)
+    };
+
+    return cid;
+
 }
 
 function termSet (ctx, t) {
@@ -197,13 +248,17 @@ function termLocalVariable (ctx, lv) {
 }
 
 function termTuple(ctx, t) {
-    const {data, type, domain} = t;
+    const {data, type, domain, expression} = t;
 
     const cid = ctx.newVar();
     const nt = ctx.variables[cid] = {type, data: [], cid};
 
     for (let i=0; i<data.length; i++) {
         nt.data.push(term(ctx, data[i]));
+    }
+
+    if (expression) {
+        nt.expression = term(ctx, expression);
     }
 
     if (domain) {
@@ -230,6 +285,8 @@ function term (ctx, t) {
             case LOCAL_VAR: return termLocalVariable(ctx, t);
             case TUPLE: return termTuple(ctx, t);
             case CONSTANT: return termConstant(ctx, t);
+            case CONSTRAINT: return termConstrains(ctx, t);
+            case SET_EXP: return termSetExpression(ctx, t);
             default:
                 throw `TYPE ${t.type} IS NOT DEFINED, ${JSON.stringify(t)}`;
         }

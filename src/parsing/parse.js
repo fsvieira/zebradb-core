@@ -15,7 +15,6 @@ function parse (text) {
 
 	const result = [];
 
-
 	for (var i=0; i<parsed.length; i++) {
 		const p = prepare(parsed[i]);
 
