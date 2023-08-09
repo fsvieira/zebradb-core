@@ -252,6 +252,16 @@ class DB {
                     return true;
                 }
 
+                case SET_CS: {
+                    return this.compare(
+                        tupleA, 
+                        tupleB, 
+                        vA.element, 
+                        vB.element,
+                        vars
+                    ) 
+                }
+
                 default:
                     throw `COMPARE NOT IMPLEMENTED: ${vA.type} = ${vB.type}`
             }
@@ -479,7 +489,6 @@ class DB {
             [globalVariable]: variables[globalVariable]
         };
 
-        console.log("TODO: (ADD SET CONSTRAIN DEF) check for duplicates defRecord!!");
         const {element: elementID} = set;
         const v = def.variables[elementID];
         
@@ -532,13 +541,39 @@ class DB {
         return definition;
     }
 
+    async addSetExpression (def, varID=def.root) {
+        const {variables, globalVariable} = def;
+
+        const set = variables[varID];
+        const sVariables = {
+            [globalVariable]: variables[globalVariable]
+        };
+
+        const {a, b} = set;
+
+        sVariables[varID] = {
+            ...set,
+            a: await this.addElement(def, a),
+            b: await this.addElement(def, b)
+        };
+
+        const saveSet = {
+            variables: sVariables,
+            root: varID
+        };
+
+        console.log(JSON.stringify(def, null, '  '));
+        throw 'ADD SET EXPRSSION NOT IMPLEMENTED!'; 
+    }
+
     async addElement (def, varID=def.root) {
         const type = def.variables[varID].type;
 
         switch (type) {
-            case SET: return this.addSet(def, varID); break;
-            case TUPLE: return this.addTuple(def, varID); break;
-            case SET_CS: return this.addSetConstrain(def, varID); break;
+            case SET: return this.addSet(def, varID);
+            case TUPLE: return this.addTuple(def, varID);
+            case SET_CS: return this.addSetConstrain(def, varID);
+            case SET_EXP: return this.addSetExpression(def, varID);
             default:
                 throw `Unkown def type ${type}`;
         }
