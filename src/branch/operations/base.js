@@ -4,6 +4,8 @@ const {
         TUPLE, // : "t",
         CONSTRAINT, // : "cs",
         SET, // : "s",
+        SET_EXP, // 'se',
+        SET_CS, // 'cs',
         LOCAL_VAR, // : 'lv',
         GLOBAL_VAR, // : 'gv',
         DEF_REF // d
@@ -54,7 +56,12 @@ async function save2db (
         }
     }
     else if (v.type === GLOBAL_VAR) {
-        if (!(await ctx.variables.has(vn))) {
+        const gv = await ctx.variables.get(vn); 
+
+        if (v.definition && (!gv || (gv.type === GLOBAL_VAR))) {
+            await copyTerm(ctx, v.definition, true);
+        }
+        else if (!gv) {
             ctx.variables = await ctx.variables.set(
                 vn, {
                     ...v,
@@ -62,7 +69,7 @@ async function save2db (
                     id: vn
                 }
             );
-        }
+        } 
     }
     else if (v.type === LOCAL_VAR) {
         /*const d = v.d?await array2iset(ctx, v.d):undefined;
@@ -140,6 +147,52 @@ async function save2db (
             throw 'CREATE LOCAL SET???';
         }
     }
+    else if (v.type === SET_EXP) {
+        const variableID = v.variable;
+        const vs = p.variables[variableID];
+
+        if (vs.type === GLOBAL_VAR) {
+            const hasVar = await hasVariable(null, variableID, ctx); 
+            let gv = hasVar?await getVariable(null, variableID, ctx):null;
+
+            if (!gv || gv.type === GLOBAL_VAR) {
+                console.log("We should also set Set variable did!!");
+
+                ctx.variables = await ctx.variables.set(vs.cid, {
+                    ...v,
+                    a: getVarname(p.variables[v.a]),
+                    b: getVarname(p.variables[v.b]),
+                    id: vs.cid,
+                });
+            }
+            // else nothing to do,
+        }
+        else {
+            throw 'CREATE LOCAL EXP SET???';
+        }
+    }
+    else if (v.type === SET_CS) {
+        const variableID = v.variable;
+        const vs = p.variables[variableID];
+
+        if (vs.type === GLOBAL_VAR) {
+            const hasVar = await hasVariable(null, variableID, ctx); 
+            let gv = hasVar?await getVariable(null, variableID, ctx):null;
+
+            if (!gv || gv.type === GLOBAL_VAR) {
+                console.log("We should also set Set variable did!!");
+
+                ctx.variables = await ctx.variables.set(vs.cid, {
+                    ...v,
+                    // body,
+                    element: getVarname(p.variables[v.element]),
+                    id: vs.cid,
+                });
+            }
+            // else nothing to do,
+        }
+    }
+
     /*
     else if (v.type === CONSTRAINT && v.op === IN) {
         const c = {op: v.op, x: getVarname(v.x), set: getVarname(v.set)};
@@ -151,7 +204,7 @@ async function save2db (
         ctx.variables = await ctx.variables.set(vn, c);
     }*/
     else {
-        throw 'COPY TERTM CANT COPY ' + v.type;
+        throw 'COPY TERM CANT COPY ' + v.type;
     }
 }
 
@@ -305,6 +358,9 @@ async function toString (branch, id, ctx, constrains=true) {
         }
         case GLOBAL_VAR:
         case LOCAL_VAR: {
+            const ds = v.domain?':' + (v.domain.type === GLOBAL_VAR?'$':"'") + v.domain.varname : '';
+            return "'" + (!v.pv && v.id?v.id + "::": "") + v.varname + ds;
+/*
             throw 'TO STRING VARIABLE NOT DEFINED!';
             const domainArray = v.d ? (await v.d.toArray()).sort(): undefined;
             const domain = domainArray ? (await Promise.all(domainArray.map(id => toString(branch, id, ctx)))).filter(v => v !== ''):undefined;
@@ -322,6 +378,7 @@ async function toString (branch, id, ctx, constrains=true) {
             }
 
             return "'" + (!v.pv && v.id?v.id + "::": "") + v.v + ds + e;
+ */
         }
         case CONSTANT: {
             return v.data;

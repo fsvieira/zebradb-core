@@ -34,12 +34,37 @@ async function unifyDomain (
 ) {
     const s = await getVariable(branch, domainID);
 
-    const r = await Promise.all(s.elements.map(
-        definitionID => unify(branch, options, id, definitionID)
-    ));
+    switch (s.type) {
+        case constants.type.SET: {
+            return await Promise.all(s.elements.map(
+                definitionID => unify(branch, options, id, definitionID)
+            ));        
+        }
 
-    console.log("RRRRRRRRRRRR UUU", r.length);
-    return r;
+        case constants.type.SET_EXP: {
+            console.log(s);
+            const {a, op, b} = s;
+
+            switch (op) {
+                case constants.operation.UNION: {
+                    const av = await getVariable(branch, a);
+                    const bv = await getVariable(branch, b);
+
+                    const branches = [
+                        await unify(branch, options, id, av.element),
+                        await unify(branch, options, id, bv.element),
+                    ];
+
+                    console.log(branches);
+                    return branches;
+                }
+            } 
+
+        }
+
+        default:
+            throw 'unify domain unknown type ' + s.type;
+    }
 }
 
 async function getDomain (

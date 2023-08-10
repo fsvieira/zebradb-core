@@ -4,6 +4,7 @@ const {SHA256} = require("sha2");
 const path = require("path");
 
 const {branchOps} = require("../branch");
+const { PassThrough } = require('stream');
 
 const {
     type: {
@@ -145,7 +146,7 @@ class DB {
             }
             
             case GLOBAL_VAR: {
-                return 'G';
+                return 'G' + v.cid;
             }
             
             case CONSTANT: {
@@ -168,6 +169,13 @@ class DB {
 
             case SET_CS: {
                 return `SC::${this.genCompareHashRec(tuple, v.element)}`
+            }
+
+            case SET_EXP: {
+                const a = this.genCompareHashRec(tuple, v.a);
+                const b = this.genCompareHashRec(tuple, v.b);
+
+                return `SE::${a}:${v.op}:${b}`;
             }
 
             default:
@@ -260,6 +268,28 @@ class DB {
                         vB.element,
                         vars
                     ) 
+                }
+
+                case GLOBAL_VAR: {
+                    return vA.cid === vB.cid;
+                }
+                    
+                case SET_EXP: {
+                    return vA.op === vB.op && 
+                        this.compare(
+                            tupleA,
+                            tupleB,
+                            vA.a,
+                            vB.a,
+                            vars
+                        ) && 
+                        this.compare(
+                            tupleA,
+                            tupleB,
+                            vA.b,
+                            vB.b,
+                            vars
+                        )
                 }
 
                 default:
@@ -549,12 +579,26 @@ class DB {
             [globalVariable]: variables[globalVariable]
         };
 
+        const solve = async id => {
+            const v = def.variables[id];
+
+            switch (v.type) {
+                case GLOBAL_VAR: {
+                    sVariables[id] = def.variables[id]
+                    return id;
+                }
+
+                default: 
+                    throw 'Add expression solve unknown type ' + v.type;   
+            }
+        } 
+
         const {a, b} = set;
 
         sVariables[varID] = {
             ...set,
-            a: await this.addElement(def, a),
-            b: await this.addElement(def, b)
+            a: await solve(a),
+            b: await solve(b)
         };
 
         const saveSet = {
@@ -562,8 +606,27 @@ class DB {
             root: varID
         };
 
-        console.log(JSON.stringify(def, null, '  '));
-        throw 'ADD SET EXPRSSION NOT IMPLEMENTED!'; 
+        let [compareHash, definition] = await this.genCompareHash(saveSet);
+
+        if (!definition) {
+            const id = this.genDefinitionHashID(saveSet);
+
+            definition = await this.rDB.tables.definitions.insert({
+                definitionID: id,
+                definition: saveSet,
+                compareHash
+            }, null);
+        }
+        
+        // else should we update with globalVariables.
+        await this.rDB.tables.definitionVariables.insert({
+            varname: globalVariable,
+            definition
+        }, null);
+
+        // No need for indexes because sets will be searched by variable name,
+        // if a match is done with an element, then element must have the set reference.
+        return definition;
     }
 
     async addElement (def, varID=def.root) {
@@ -625,7 +688,7 @@ class DB {
     async getDefByVariable (variable) {
         const definitionVariables = this.rDB.tables.definitionVariables;
 
-        const index = {varname: variable.id};
+        const index = {varname: variable.cid};
         for await (let d of definitionVariables.findByIndex(index)) {
             const def = await d.data.definition;
             const definition = await def.data.definition;
@@ -636,14 +699,45 @@ class DB {
     }
 
     async search (def) {
-        const definitionIndexes = this.rDB.tables.definitionIndexes;
-        let results = [];
+        // const definitionIndexes = this.rDB.tables.definitionIndexes;
+        // let results = [];
 
         switch (def.type) {
             case GLOBAL_VAR: {
-                return this.getDefByVariable(def);
-            }
-            case TUPLE: {
+                const dups = {[def.cid]: true};
+                const stack = [def];
+
+                let r;
+                do {
+                    const def = stack.pop();
+                    const d = await this.getDefByVariable(def);
+
+                    const ds = {
+                        ...d,
+                        variables: {...d.variables}                    
+                    }
+    
+                    if (r) {
+                        r.variables[def.cid].definition = ds;
+                    }
+                    else {
+                        r = ds;
+                    }
+
+                    for (let vID in ds.variables) {
+                        const v = ds.variables[vID];
+
+                        if (v.type === GLOBAL_VAR
+                            && !dups[v.cid]    
+                        ) {
+                            dups[def.cid] = true;
+                            stack.push(v);
+                        }
+                    }
+                }
+                while (stack.length > 0);
+
+                return r;
             }
 
             default:
