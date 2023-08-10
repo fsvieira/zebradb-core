@@ -457,6 +457,7 @@ class DB {
                     case TUPLE: {
                         if (d.expression) {
                             throw 'getTuple : Expression Does not have type it should be constraint!!!';
+                            throw 'getTuple: expression should be linked on variables! Should it be on prepare ??';
                             stack.push(d.expression);
                         }
 
