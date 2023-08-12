@@ -185,18 +185,28 @@ function termSetConstrains (ctx, t) {
 }
 
 function termConstrains(ctx, exp) {
-    const {a, op, b} = exp;
+    const {type, a, op, b} = exp;
 
-    const cid = ctx.newVar();
+    const av = term(ctx, a);
+    const bv = term(ctx, b);
 
-    ctx.variables[cid] = {
-        a: term(ctx, a),
-        op,
-        b: term(ctx, b)
-    };
+    const cid = `__${type}:${[av, bv].sort().join(op)}`;
+
+    console.log(cid, `TODO: [termConstrains] make a better variable generator`);
+
+    if (!ctx.constrains.includes(cid)) {
+        ctx.constrains.push(cid);
+
+        ctx.variables[cid] = {
+            type,
+            a: av,
+            op,
+            b: bv,
+            cid
+        };
+    }
 
     return cid;
-
 }
 
 function termSet (ctx, t) {
@@ -300,6 +310,7 @@ function prepare (tuple) {
     const {newVar} = branchOps.varGenerator(0); 
     const ctx = {
         variables: {},
+        constrains: [],
         newVar
     }
 
@@ -307,7 +318,27 @@ function prepare (tuple) {
 
     const globalVariable = ctx.variables[root].variable;
 
-    return {variables: ctx.variables, root, globalVariable};
+    console.log("CONSTRAINTS", ctx.constrains);
+
+    if (ctx.constrains.length) {
+        for (let i=0; i<ctx.constrains.length; i++) {
+            const cid = ctx.constrains[i];
+            const {a, b} = ctx.variables[cid];
+
+            const av = ctx.variables[a];
+            const bv = ctx.variables[b];
+
+            av.constrains = (av.constrains || []).concat(cid);
+            bv.constrains = (bv.constrains || []).concat(cid);
+        }
+    }
+
+    return {
+        variables: ctx.variables, 
+        root, 
+        globalVariable,
+        constrains: ctx.constrains
+    };
 
     /*
     const {newVar} = branchOps.varGenerator(0); 
