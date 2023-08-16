@@ -258,7 +258,12 @@ function termLocalVariable (ctx, lv) {
 }
 
 function termTuple(ctx, t) {
-    const {data, type, domain, expression} = t;
+    const {
+        data, 
+        type, 
+        domain,
+        expression
+    } = t;
 
     const cid = ctx.newVar();
     const nt = ctx.variables[cid] = {type, data: [], cid};
@@ -268,7 +273,8 @@ function termTuple(ctx, t) {
     }
 
     if (expression) {
-        nt.expression = term(ctx, expression);
+        term(ctx, expression);
+        // nt.expression = term(ctx, expression);
     }
 
     if (domain) {

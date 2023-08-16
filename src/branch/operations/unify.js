@@ -137,13 +137,16 @@ const checkConstrains = async (ctx, c, or) => {
 }
 
 const setVariable = async (ctx, v, p) => {
+    // throw 'setVariable is not implemented!';
+
+    console.log("TODO: setVariable not implemented!!");
+    
     if (v.id !== p.id) {
         if (v.d && (p.t || (p.c && !(await v.d.has(p.id))))) {
-            /*
-                if v has domain, then if value is:
-                    * a tuple, it fails,
-                    * if a constant not in domain, it fails. 
-            */
+
+            // if v has domain, then if value is:
+            //        * a tuple, it fails,
+            //        * if a constant not in domain, it fails. 
             return false;
         }
 
@@ -610,6 +613,7 @@ async function unify (branch, options, tuple, definitionID, definition) {
     };
 
     if (definition) {
+        throw 'Is this a thing!!';
         return await getSet(ctx, branch, tuple, definitionID, definition, varCounter);
     }
 
