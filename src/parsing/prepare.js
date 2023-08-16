@@ -147,7 +147,7 @@ function termSetExpression (ctx, s) {
 
     const {type, a, op, b, variable} = s;
 
-    const cid = ctx.newVar();
+    const cid = ctx.newVar(s);
 
     const v = {
         type,
@@ -165,7 +165,7 @@ function termSetExpression (ctx, s) {
 function termSetConstrains (ctx, t) {
     const {type, element, expression, variable, size} = t;
 
-    const cid = ctx.newVar();
+    const cid = ctx.newVar(t);
 
     const v = term(ctx, {
         ...element,
@@ -212,7 +212,7 @@ function termConstrains(ctx, exp) {
 function termSet (ctx, t) {
     const {type, elements, variable, size} = t;
 
-    const cid = ctx.newVar();
+    const cid = ctx.newVar(t);
 
     const nt = {
         type,
@@ -247,7 +247,7 @@ function termLocalVariable (ctx, lv) {
     console.log("TODO: When local variables come from sets we may need a new scope!!");
     // this can be done using a scope stack ? 
 
-    const cid = ctx.newVar();
+    const cid = ctx.newVar(lv);
     const v = ctx.variables[cid];
 
     if (!v) {
@@ -265,7 +265,7 @@ function termTuple(ctx, t) {
         expression
     } = t;
 
-    const cid = ctx.newVar();
+    const cid = ctx.newVar(t);
     const nt = ctx.variables[cid] = {type, data: [], cid};
 
     for (let i=0; i<data.length; i++) {
@@ -284,10 +284,11 @@ function termTuple(ctx, t) {
     return cid;
 }
 
-function termConstant (ctx, t) {
-    const {type, data} = t;
-    const cid = ctx.newVar(data);
-    ctx.variables[cid] = {type, data: t.data, cid};
+function termConstant (ctx, c) {
+    // const {type, data} = c;
+    // const cid = ctx.newVar(data);
+    const cid = ctx.newVar(c);
+    ctx.variables[cid] = {...c, cid};
 
     return cid;
 }
@@ -311,13 +312,25 @@ function term (ctx, t) {
 
 function prepare (tuple) {
 
-    console.log("PREPARE TUPLE", JSON.stringify(tuple, null, '  '));
-
     const {newVar} = branchOps.varGenerator(0); 
     const ctx = {
         variables: {},
-        constrains: [],
-        newVar
+        constrains: []
+    }
+
+    ctx.newVar = v => {
+        console.log("NEW VAR ON PREPARE!!", v);
+        switch(v.type) {
+            case SET_CS:
+            case TUPLE:
+            case SET_EXP:
+            case SET: return newVar();
+            case CONSTANT: return newVar(v.data);
+            case LOCAL_VAR:
+                return v.varname || newVar();
+            default:
+                throw 'prepare : type is not defined ' + v.type;
+        }
     }
 
     const root = term(ctx, tuple);
