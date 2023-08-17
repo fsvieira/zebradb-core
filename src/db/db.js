@@ -455,7 +455,13 @@ class DB {
 
                 switch (d.type) {
                     case TUPLE: {
-                        stack.push(...d.data); break;
+                        stack.push(...d.data); 
+                        break;
+                    }
+                    case LOCAL_VAR: {
+                        d.domain && stack.push(d.domain);
+                        d.constrains && stack.push(...d.constrains);
+                        break;
                     }
                     default:
                         console.log(`TT TYPE ${d.type}`);

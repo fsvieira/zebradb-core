@@ -136,11 +136,69 @@ const checkConstrains = async (ctx, c, or) => {
     throw `Unknown operator ${op}!!`;
 }
 
+async function intersectDomains(ctx, a, b) {
+    if (a.domain && b.domain) {
+
+        if (a.domain === b.domain) {
+            return a.domain;
+        }
+        else {
+            throw 'Domain A x B';
+        }
+    }
+
+    return b.domain || a.domain;
+    
+}
+
+async function setVariableLocalVarLocalVar (ctx, v, p) {
+    let a = p.pv ? p : v;
+    let b = p.pv ? v : p;
+
+    let domain = await intersectDomains(ctx, a, b);
+
+    if (a.constrains) {
+        throw 'setVariableLocalVarLocalVar A has constrains!!'
+    }
+
+    ctx.variables = await ctx.variables.set(b.id, {v: b.id, defer: a.id});
+    ctx.unsolvedVariables = await ctx.unsolvedVariables.remove(b.id);
+
+
+    if (domain && b.domain !== domain) {
+        throw 'Need to set b.domain';
+    }
+
+//    throw `FUNCTION ${v.type} x ${p.type} not implemented`;
+
+    return true;
+}
+
+const setVariableFn = {
+    [LOCAL_VAR]: {
+        [LOCAL_VAR]: setVariableLocalVarLocalVar
+    }
+}
+
 const setVariable = async (ctx, v, p) => {
-    // throw 'setVariable is not implemented!';
+
+    console.log("------------>", JSON.stringify(v, null, '  '), '\n-->',  JSON.stringify(p, null, '  '));
+
+    if (p.constrains || v.constrains) {
+        console.log("PPP");
+    }
 
     console.log("TODO: setVariable not implemented!!");
     
+    const fn = setVariableFn[v.type][p.type];
+    
+    if (!fn) {
+        throw `Set Variable ${v.type} x ${p.type} not implemented`
+    }
+
+    return fn(ctx, v, p);
+
+
     if (v.id !== p.id) {
         if (v.d && (p.t || (p.c && !(await v.d.has(p.id))))) {
 

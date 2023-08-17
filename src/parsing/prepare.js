@@ -251,7 +251,11 @@ function termLocalVariable (ctx, lv) {
     const v = ctx.variables[cid];
 
     if (!v) {
-        ctx.variables[cid] = {...lv, cid};
+        ctx.variables[cid] = {
+            ...lv, 
+            domain: term(ctx, lv.domain),
+            cid
+        };
     }
 
     return cid;

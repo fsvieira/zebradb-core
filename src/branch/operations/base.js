@@ -76,11 +76,23 @@ async function save2db (
         const e = v.e?await array2iset(ctx, v.e.map(getVarname)):undefined;
         const vin = v.in?await array2iset(ctx, v.in.map(getVarname)):undefined;
         */
+       let constrains;
+        if (v.constrains) {
+            constrains = ctx.rDB.iSet();
+
+            for (let i=0; i<v.constrains.length; i++) {
+                const vc = v.constrains[i];
+                const id = getVarname(p.variables[vc]);
+                constrains = await constrains.add(id);
+            }
+        }
 
         ctx.variables = await ctx.variables.set(
             vn, {
                 ...v,
                 pv: preserveVarname,
+                domain: v.domain ? getVarname(p.variables[v.domain]) : undefined,
+                constrains,
                 id: vn
             }
         );
@@ -192,6 +204,9 @@ async function save2db (
             // else nothing to do,
         }
     }
+    else if (v.type === CONSTRAINT) {
+        throw 'COPY TERM CONSTAINT : ' + JSON.stringify(v, null, '  ');
+    }
 
     /*
     else if (v.type === CONSTRAINT && v.op === IN) {
@@ -301,7 +316,7 @@ async function getVariable (branch, id, ctx) {
     return v;
 }
 
-const type = v => v.t ? "t" : v.c?"c": v.v ? "v" : "";
+// const type = v => v.t ? "t" : v.c?"c": v.v ? "v" : "";
 
 const get = async (ctx, v) => {
     if (typeof v === 'string' || v.id) {
@@ -390,7 +405,7 @@ async function toString (branch, id, ctx, constrains=true) {
 
 module.exports = {
     varGenerator, 
-    type,
+//     type,
     getVariable,
     hasVariable,
     get,
