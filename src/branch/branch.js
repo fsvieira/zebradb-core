@@ -132,13 +132,20 @@ async function expand (branch, options, selector, definitions) {
 
     if (state === 'unsolved_variables') {
         const unsolvedVariables = await branch.data.unsolvedVariables;
-        let min=Infinity, minVar; 
+        // let min=Infinity, minVar; 
+        let v;
         for await (let vID of unsolvedVariables.values()) {
-            const v = await branch.data.variables.get(vID);
-            if (v.d.size < min) {
+            v = await branch.data.variables.get(vID);
+
+            const domain = await getVariable(branch, v.domain);
+
+            console.log(domain);
+            
+            /*if (v.d.size < min) {
                 min = v.d.size;
                 minVar = v;
-            }
+            }*/
+
         }
         
         const minVarD = await minVar.d.toArray();

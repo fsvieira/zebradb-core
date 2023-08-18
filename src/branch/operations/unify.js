@@ -155,18 +155,27 @@ async function setVariableLocalVarLocalVar (ctx, v, p) {
     let a = p.pv ? p : v;
     let b = p.pv ? v : p;
 
-    let domain = await intersectDomains(ctx, a, b);
+    const domain = await intersectDomains(ctx, a, b);
 
-    if (a.constrains) {
-        throw 'setVariableLocalVarLocalVar A has constrains!!'
+    console.log("TODO: check if domain is empty, it should fail!!");
+
+    const aDomain = (domain && a.domain !== domain)?domain:null;
+
+    if (b.constrains) {
+        throw 'setVariableLocalVarLocalVar B has constrains!!'
     }
 
-    ctx.variables = await ctx.variables.set(b.id, {v: b.id, defer: a.id});
-    ctx.unsolvedVariables = await ctx.unsolvedVariables.remove(b.id);
+    if (aDomain) {
+        ctx.variables = await ctx.variables.set(a.id, {
+            ...a,
+            domain: aDomain
+        });
+    }
 
+    ctx.variables = await ctx.variables.set(b.id, {...b, defer: a.id});
 
-    if (domain && b.domain !== domain) {
-        throw 'Need to set b.domain';
+    if (b.constrains) {
+        ctx.unsolvedVariables = await ctx.unsolvedVariables.remove(b.id);
     }
 
 //    throw `FUNCTION ${v.type} x ${p.type} not implemented`;
@@ -174,15 +183,29 @@ async function setVariableLocalVarLocalVar (ctx, v, p) {
     return true;
 }
 
+async function setVariableLocalVarConstant (ctx, v, c) {
+    if (v.domain) {
+        throw `setVariableLocalVarConstant: CHECK IF ${c} in ${v.domain}!!`;
+    }
+
+    ctx.variables = await ctx.variables.set(v.id, {...v, defer: c.id});
+
+    if (v.constrains) {
+        throw 'setVariableLocalVarConstant : Check Constrains with new value!';
+        ctx.unsolvedVariables = await ctx.unsolvedVariables.remove(v.id);
+    }
+
+    return true;
+}
+
 const setVariableFn = {
     [LOCAL_VAR]: {
-        [LOCAL_VAR]: setVariableLocalVarLocalVar
+        [LOCAL_VAR]: setVariableLocalVarLocalVar,
+        [CONSTANT]: setVariableLocalVarConstant
     }
 }
 
 const setVariable = async (ctx, v, p) => {
-
-    console.log("------------>", JSON.stringify(v, null, '  '), '\n-->',  JSON.stringify(p, null, '  '));
 
     if (p.constrains || v.constrains) {
         console.log("PPP");
@@ -338,7 +361,7 @@ async function deepUnify(
 
     let unsolvedVariablesClean = ctx.unsolvedVariables;
 
-    for await (let vid of ctx.unsolvedVariables.values()) {
+    /*for await (let vid of ctx.unsolvedVariables.values()) {
         const v = await get(ctx, vid);
 
         if (v.in) {
@@ -349,14 +372,14 @@ async function deepUnify(
                 unsolvedVariablesClean = await unsolvedVariablesClean.remove(vid);
             }
         }
-    }
+    }*/
 
     if (await ctx.unchecked.size === 0 && await ctx.unsolvedVariables.size > 0) {
         // Check if unsolved variables are solved.
         for await (let vid of ctx.unsolvedVariables.values()) {
             const v = await get(ctx, vid);
 
-            if (!(v.e && v.d)) {
+            if (!(v.constrains && v.domain)) {
                 unsolvedVariablesClean = await unsolvedVariablesClean.remove(vid);
             }
         }

@@ -97,6 +97,10 @@ async function save2db (
             }
         );
 
+        if (v.constrains && v.domain) {
+            ctx.unsolvedVariables = await ctx.unsolvedVariables.add(vn);
+        }
+
         // ctx.variables = await ctx.variables.set(vn, {v: v.v, d, e, in: vin, pv: preserveVarname, id: vn});
 
         /*if ((e && d) || vin) {
@@ -203,9 +207,20 @@ async function save2db (
             }
             // else nothing to do,
         }
+        else {
+            throw 'CREATE LOCAL EXP SET???';
+        }
     }
     else if (v.type === CONSTRAINT) {
-        throw 'COPY TERM CONSTAINT : ' + JSON.stringify(v, null, '  ');
+        const a = getVarname(p.variables[v.a]);
+        const b = getVarname(p.variables[v.b]);
+
+        ctx.variables = await ctx.variables.set(vn, {
+            ...v,
+            a, b,
+            id: vn
+        });
+
     }
 
     /*
@@ -373,7 +388,13 @@ async function toString (branch, id, ctx, constrains=true) {
         }
         case GLOBAL_VAR:
         case LOCAL_VAR: {
-            const ds = v.domain?':' + (v.domain.type === GLOBAL_VAR?'$':"'") + v.domain.varname : '';
+            let vd;
+            if (v.domain) {
+                vd = await getVariable(branch, v.domain, ctx);
+            }
+
+            const ds = vd?':' + (vd.type === GLOBAL_VAR?'$':"'") + vd.varname : '';
+
             return "'" + (!v.pv && v.id?v.id + "::": "") + v.varname + ds;
 /*
             throw 'TO STRING VARIABLE NOT DEFINED!';
