@@ -4,15 +4,15 @@ const {
 } = require("./base");
 
 /*
-    1. v variable with constrains is going to unify with tuple.
-    2. at least one constrains are set on variable tuple,
-        2a. if this fails: there is no constrains and tuple unification didn't fail everithing fails,
-    3. else, v variable unify with tuple with at least constrains or none.
+    1. v variable with constraints is going to unify with tuple.
+    2. at least one constraints are set on variable tuple,
+        2a. if this fails: there is no constraints and tuple unification didn't fail everithing fails,
+    3. else, v variable unify with tuple with at least constraints or none.
 
     True - doesnt unify
     False - it may unify or not unify
 
-    * Functions to set tuple at least one constrains
+    * Functions to set tuple at least one constraints
 */
 const notUnifyFn = {
     v: {

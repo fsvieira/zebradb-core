@@ -16,13 +16,13 @@ const {
 
 const varname = ({did}) => `__set_${did}`;
 
-async function create (definition, constrains) {
+async function create (definition, constraints) {
 
     const dset = {
         type: SET,
         set: ctx.branch.rDB.iSet(),
         definition,
-        constrains
+        constraints
     };
     
     return dset;
@@ -34,7 +34,7 @@ async function getSet (ctx, definition) {
     let dset = await ctx.variables.get(vid);
 
     if (!dset) {
-        dset = await create(definition, constrains);
+        dset = await create(definition, constraints);
     }
 
     return dset;

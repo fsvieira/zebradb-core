@@ -81,7 +81,7 @@ const checkConstrains = async (ctx, c, or) => {
                         }
                         else {
                             ctx.variables = await ctx.variables.set(vcs, {op: "OR", args: orConstrains, id: vcs});
-                            ctx.constrains = await ctx.constrains.add(vcs);
+                            ctx.constraints = await ctx.constraints.add(vcs);
                         }
                     }
                     else {
@@ -94,10 +94,10 @@ const checkConstrains = async (ctx, c, or) => {
             return C_TRUE;
             // if ok, and both p and q are not variables,
             // we can remove constrain,
-              // ctx.constrains = await ctx.constrains.remove(c.id);
+              // ctx.constraints = await ctx.constraints.remove(c.id);
               // e = await e.remove(c.id);
 
-            // There is no advantage to remove constrain variable from variables...
+            // There is no advantage to remove constraint variable from variables...
         }
 
         return ok ? C_UNKNOWN : C_FALSE;
@@ -161,20 +161,27 @@ async function setVariableLocalVarLocalVar (ctx, v, p) {
 
     const aDomain = (domain && a.domain !== domain)?domain:null;
 
-    if (b.constrains) {
-        throw 'setVariableLocalVarLocalVar B has constrains!!'
+    let aConstraints;
+    if (b.constraints) {
+        if (!a.constraints) {
+            aConstraints = b.constraints;
+        }
+        else {
+            throw 'A AND B has constraints!!';
+        }
     }
 
-    if (aDomain) {
+    if (aDomain || aConstraints) {
         ctx.variables = await ctx.variables.set(a.id, {
             ...a,
-            domain: aDomain
+            domain: aDomain || a.domain,
+            constraints: aConstraints || a.constraints
         });
     }
 
     ctx.variables = await ctx.variables.set(b.id, {...b, defer: a.id});
 
-    if (b.constrains) {
+    if (b.constraints) {
         ctx.unsolvedVariables = await ctx.unsolvedVariables.remove(b.id);
     }
 
@@ -190,8 +197,8 @@ async function setVariableLocalVarConstant (ctx, v, c) {
 
     ctx.variables = await ctx.variables.set(v.id, {...v, defer: c.id});
 
-    if (v.constrains) {
-        throw 'setVariableLocalVarConstant : Check Constrains with new value!';
+    if (v.constraints) {
+        throw 'setVariableLocalVarConstant : Check constraints with new value!';
         ctx.unsolvedVariables = await ctx.unsolvedVariables.remove(v.id);
     }
 
@@ -207,20 +214,24 @@ const setVariableFn = {
 
 const setVariable = async (ctx, v, p) => {
 
-    if (p.constrains || v.constrains) {
-        console.log("PPP");
+    if (v.id !== p.id) {
+
+        if (p.constraints || v.constraints) {
+            console.log("PPP");
+        }
+
+        console.log("TODO: setVariable not implemented!!");
+        
+        const fn = setVariableFn[v.type][p.type];
+        
+        if (!fn) {
+            throw `Set Variable ${v.type} x ${p.type} not implemented`
+        }
+
+        return fn(ctx, v, p);
     }
-
-    console.log("TODO: setVariable not implemented!!");
     
-    const fn = setVariableFn[v.type][p.type];
-    
-    if (!fn) {
-        throw `Set Variable ${v.type} x ${p.type} not implemented`
-    }
-
-    return fn(ctx, v, p);
-
+    return true; 
 
     if (v.id !== p.id) {
         if (v.d && (p.t || (p.c && !(await v.d.has(p.id))))) {
@@ -268,7 +279,7 @@ const setVariable = async (ctx, v, p) => {
                 const ok = await checkConstrains(ctx, c);
                 
                 if (ok === C_TRUE) {
-                    ctx.constrains = await ctx.constrains.remove(c.id);
+                    ctx.constraints = await ctx.constraints.remove(c.id);
                     e = await e.remove(c.id);
                 }
                 else if (ok === C_FALSE) {
@@ -379,7 +390,7 @@ async function deepUnify(
         for await (let vid of ctx.unsolvedVariables.values()) {
             const v = await get(ctx, vid);
 
-            if (!(v.constrains && v.domain)) {
+            if (!(v.constraints && v.domain)) {
                 unsolvedVariablesClean = await unsolvedVariablesClean.remove(vid);
             }
         }
@@ -387,7 +398,7 @@ async function deepUnify(
 
     return {
         variables: ctx.variables,
-        constrains: ctx.constrains,
+        constraints: ctx.constraints,
         unsolvedVariables: unsolvedVariablesClean,
         unchecked: ctx.unchecked, 
         checked: ctx.checked, 
@@ -462,7 +473,7 @@ async function createBranch (
     checked,
     unchecked,
     variables,
-    constrains,
+    constraints,
     unsolvedVariables,
     log
 ) {
@@ -491,7 +502,7 @@ async function createBranch (
         checked,
         unchecked,
         variables,
-        constrains,
+        constraints,
         unsolvedVariables,
         children: [],
         state,
@@ -504,6 +515,7 @@ async function createBranch (
     return newBranch;
 }
 
+/*
 async function getSet (ctx, branch, tuple, definitionID, definition, varCounter) {
     console.log(definitionID, definition);
 
@@ -512,19 +524,18 @@ async function getSet (ctx, branch, tuple, definitionID, definition, varCounter)
 
     let dset = await ctx.variables.get(variableSetID);
 
-    /*
-        1. (set, tail):
-            1a. set has all elements unified with tuples,
-            1b. tail has the general element,
-        2. if set does not exits:
-            2a. unify tuple with defintion,
-            2b. set tail to be defintion~new element
-        3. if set does exists:
-            3a. foreach element, unify tuple  (create new branches)
-            3b. unify tuple with general case (tail) (create new branch)
-            3c. set tail to be definition~[...elements]
-        4. if tail fails, then the set is finit, and can be marked has completed.
-    */
+    //
+    //    1. (set, tail):
+    //        1a. set has all elements unified with tuples,
+    //        1b. tail has the general element,
+    //    2. if set does not exits:
+    //        2a. unify tuple with defintion,
+    //        2b. set tail to be defintion~new element
+    //    3. if set does exists:
+    //        3a. foreach element, unify tuple  (create new branches)
+    //        3b. unify tuple with general case (tail) (create new branch)
+    //        3c. set tail to be definition~[...elements]
+    //    4. if tail fails, then the set is finit, and can be marked has completed.
 
     console.log("UnChecked Start", ctx.unchecked.size);
 
@@ -539,21 +550,21 @@ async function getSet (ctx, branch, tuple, definitionID, definition, varCounter)
         // const C_FALSE = 0;
         // const C_TRUE = 1;
         // const C_UNKNOWN = 2;
-        /*if (r === C_FALSE) {
-            // unable to not-unify, set is full ? 
-            tailID=null;
-        } // else keep tail.
+        /// if (r === C_FALSE) {
+        ///     // unable to not-unify, set is full ? 
+        ///     tailID=null;
+        /// } // else keep tail.
 
-        dset = {
-            tset,
-            tail: tailID
-        };*/
+        /// dset = {
+        ///     tset,
+        ///     tail: tailID
+        /// };
         dset = tset;
 
         ctx.variables = await ctx.variables.set(variableSetID, dset);
 
         const {
-            variables, constrains, unsolvedVariables, unchecked, 
+            variables, constraints, unsolvedVariables, unchecked, 
             checked, fail, log
         } = await deepUnify(
             ctx,
@@ -569,7 +580,7 @@ async function getSet (ctx, branch, tuple, definitionID, definition, varCounter)
             checked,
             unchecked,
             variables,
-            constrains,
+            constraints,
             unsolvedVariables,
             log        
         );
@@ -589,7 +600,7 @@ async function getSet (ctx, branch, tuple, definitionID, definition, varCounter)
             const copyCtx = {...ctx};
 
             const {
-                variables, constrains, unsolvedVariables, unchecked, 
+                variables, constraints, unsolvedVariables, unchecked, 
                 checked, fail, log
             } = await deepUnify(
                 copyCtx,
@@ -605,7 +616,7 @@ async function getSet (ctx, branch, tuple, definitionID, definition, varCounter)
                 checked,
                 unchecked,
                 variables,
-                constrains,
+                constraints,
                 unsolvedVariables,
                 log        
             );    
@@ -627,27 +638,26 @@ async function getSet (ctx, branch, tuple, definitionID, definition, varCounter)
         // make tail, to be general case that doesnt unify with any element,
         const r = await checkConstrains(ctx, {op: '!=', args: [tuple, ...args]});
 
-        /*
-        if (r === C_FALSE) {
-            // unable to not-unify, set is full ? 
-            tailID=null;
-        } // else keep tail.
-        */
+        /// if (r === C_FALSE) {
+        ///     // unable to not-unify, set is full ? 
+        ///     tailID=null;
+        /// } // else keep tail.
 
         // this element is alredy inserted ? 
-        if (r !== C_FALSE) {
+        /// if (r !== C_FALSE) {
 
-            ctx.variables = await ctx.variables.set(variableSetID, dset /*{
-                tset,
-                tail: tailID
-            }*/);
+        ///     ctx.variables = await ctx.variables.set(variableSetID, dset /*{
+        ///         tset,
+        ///         tail: tailID
+        ///     }
+        );
 
             console.log("TSET", await dset.toArray());
 
             definitionID = await copyTerm(ctx, definition);
 
             const {
-                variables, constrains, unsolvedVariables, unchecked, 
+                variables, constraints, unsolvedVariables, unchecked, 
                 checked, fail, log
             } = await deepUnify(
                 ctx,
@@ -663,7 +673,7 @@ async function getSet (ctx, branch, tuple, definitionID, definition, varCounter)
                 checked,
                 unchecked,
                 variables,
-                constrains,
+                constraints,
                 unsolvedVariables,
                 log        
             );
@@ -671,7 +681,7 @@ async function getSet (ctx, branch, tuple, definitionID, definition, varCounter)
     }
 
     return branch;
-}
+}*/
 
 async function unify (branch, options, tuple, definitionID, definition) {
 
@@ -681,7 +691,7 @@ async function unify (branch, options, tuple, definitionID, definition) {
     const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
     const ctx = {
         variables: await branch.data.variables,
-        constrains: await branch.data.constrains,
+        constraints: await branch.data.constraints,
         unsolvedVariables: await branch.data.unsolvedVariables,
         unchecked: await branch.data.unchecked,
         checked: await branch.data.checked,
@@ -693,13 +703,13 @@ async function unify (branch, options, tuple, definitionID, definition) {
         options  
     };
 
-    if (definition) {
+    /*if (definition) {
         throw 'Is this a thing!!';
         return await getSet(ctx, branch, tuple, definitionID, definition, varCounter);
-    }
+    }*/
 
     const {
-        variables, constrains, 
+        variables, constraints, 
         unsolvedVariables, unchecked, 
         checked, fail, log
     } = await deepUnify(
@@ -716,7 +726,7 @@ async function unify (branch, options, tuple, definitionID, definition) {
         checked,
         unchecked,
         variables,
-        constrains,
+        constraints,
         unsolvedVariables,
         log        
     );
@@ -745,7 +755,7 @@ async function unify (branch, options, tuple, definitionID, definition) {
         checked,
         unchecked,
         variables,
-        constrains,
+        constraints,
         unsolvedVariables,
         children: [],
         state,
@@ -766,7 +776,7 @@ async function __unify (branch, options, tuple, definitionID, definition) {
     const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
     const ctx = {
         variables: await branch.data.variables,
-        constrains: await branch.data.constrains,
+        constraints: await branch.data.constraints,
         unsolvedVariables: await branch.data.unsolvedVariables,
         unchecked: await branch.data.unchecked,
         checked: await branch.data.checked,
@@ -783,7 +793,7 @@ async function __unify (branch, options, tuple, definitionID, definition) {
     }
 
     const {
-        variables, constrains, 
+        variables, constraints, 
         unsolvedVariables, unchecked, 
         checked, fail, log
     } = await deepUnify(
@@ -800,7 +810,7 @@ async function __unify (branch, options, tuple, definitionID, definition) {
         checked,
         unchecked,
         variables,
-        constrains,
+        constraints,
         unsolvedVariables,
         log        
     );
@@ -829,7 +839,7 @@ async function __unify (branch, options, tuple, definitionID, definition) {
         checked,
         unchecked,
         variables,
-        constrains,
+        constraints,
         unsolvedVariables,
         children: [],
         state,

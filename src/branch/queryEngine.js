@@ -33,7 +33,7 @@ class QueryEngine {
                 .save()
             ;
 
-            await query(this.rDB, queryTuple, branchID);
+            await query(this.rDB, queryTuple, branchID, this.db);
 
             return this;
         }

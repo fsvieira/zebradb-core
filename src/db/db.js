@@ -320,8 +320,8 @@ class DB {
             }
 
             if (vA.e && vB.e && vA.e.length === vB.e.length) {
-                // its hard to compare constrains, for now return false to insert it;
-                //   1. we can make it lazzy, keeping the constrains separeted, 
+                // its hard to compare constraints, for now return false to insert it;
+                //   1. we can make it lazzy, keeping the constraints separeted, 
                 //   2. when we are able to replace the 2 variables we can search for it and remove it ? 
 
                 return false;
@@ -460,7 +460,7 @@ class DB {
                     }
                     case LOCAL_VAR: {
                         d.domain && stack.push(d.domain);
-                        d.constrains && stack.push(...d.constrains);
+                        d.constraints && stack.push(...d.constraints);
                         break;
                     }
                     default:

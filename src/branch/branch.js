@@ -67,6 +67,7 @@ async function unifyDomain (
     }
 }
 
+/*
 async function getDomain (
     branch,
     options,
@@ -86,7 +87,7 @@ async function getDomain (
         const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
         const ctx = {
             variables: await branch.data.variables,
-            constrains: await branch.data.constrains,
+            constraints: await branch.data.constraints,
             unsolvedVariables: await branch.data.unsolvedVariables,
             unchecked: await branch.data.unchecked,
             checked: await branch.data.checked,
@@ -112,7 +113,7 @@ async function getDomain (
             checked: ctx.checked,
             unchecked: ctx.unchecked,
             variables: ctx.variables,
-            constrains: ctx.constrains,
+            constraints: ctx.constraints,
             unsolvedVariables: ctx.unsolvedVariables,
             children: [],
             state: 'maybe',
@@ -125,7 +126,7 @@ async function getDomain (
     }
 
     return {branch, variableID};
-}
+}*/
 
 async function expand (branch, options, selector, definitions) {
     const state = await branch.data.state;
@@ -161,26 +162,27 @@ async function expand (branch, options, selector, definitions) {
         const v = await getVariable(branch, id);
 
         let r;
+
         if (v.domain) {
-            /*const domain = await getVariable(branch, v.domain);
+            /// const domain = await getVariable(branch, v.domain);
 
-            const searchTerm = domain;
-            const definition = await definitions(searchTerm);
+            /// const searchTerm = domain;
+            /// const definition = await definitions(searchTerm);
 
-            console.log("--====--");
-            console.log(definition);*/
+            /// console.log("--====--");
+            /// console.log(definition);
 
             // If is a set:
             //  1. we need to save the set, 
             //    a. check if set exists, if not: 
             //      1. create set,
             //      2. if elements don't exists add them,
-            //      3. setup elements distinction constrains.
+            //      3. setup elements distinction constraints.
             //  2. unify elements with tuple, create branches
             // NOTES: we can send the defintion to unify, and let it do the rest, 
             //        unify must be capable to return multiple branches.  
 
-            const {
+            /*const {
                 branch: domainBranch, 
                 variableID: domainID
             } = await getDomain(
@@ -188,16 +190,16 @@ async function expand (branch, options, selector, definitions) {
                 options,
                 v.domain,
                 definitions
-            );
+            );*/
 
             r = await unifyDomain(
-                domainBranch,
+                branch,
                 options,
                 id,
-                domainID,
+                v.domain,
             );
 
-            await domainBranch.update({state: 'split'});
+            await branch.update({state: 'split'});
 
         }
         else {
@@ -209,9 +211,7 @@ async function expand (branch, options, selector, definitions) {
             await branch.update({state: 'split'});
         }
 
-        return r;    
-
-
+        return r;
         /*
         console.log(ds);
 
@@ -231,7 +231,7 @@ async function create (
     parent=null, 
     unchecked=rDB.iSet(), 
     variables=rDB.iMap(),
-    constrains=rDB.iSet(),
+    constraints=rDB.iSet(),
     unsolvedVariables=rDB.iSet(), 
     checked=rDB.iSet(),
     branchID,
@@ -246,7 +246,7 @@ async function create (
         checked,
         unchecked,
         variables,
-        constrains,
+        constraints,
         unsolvedVariables,
         children: [],
         state: 'maybe',

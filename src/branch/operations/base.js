@@ -30,7 +30,8 @@ async function array2iset (ctx, array) {
 async function save2db (
     ctx, p, preserveVarname, 
     getVarname,
-    v, vn
+    v, vn,
+    definitionsDB
 ) {
     if (v.type === TUPLE) {
 
@@ -56,10 +57,31 @@ async function save2db (
         }
     }
     else if (v.type === GLOBAL_VAR) {
-        const gv = await ctx.variables.get(vn); 
+        const gv = await ctx.variables.get(vn);
 
+        if (v.definition) {
+            throw 'copy term v has definition!!';
+        }
+
+        if (!gv) {
+            const definition = await definitionsDB.getDefByVariable(v);
+
+            console.log("copyterm global var: we need a new scope ??");
+
+            ctx.variables = await ctx.variables.set(
+                vn, {
+                    ...v,
+                    pv: preserveVarname,
+                    id: vn
+                }
+            );
+
+            await copyTerm(ctx, definition, definitionsDB, true);
+        }
+        /*
         if (v.definition && (!gv || (gv.type === GLOBAL_VAR))) {
-            await copyTerm(ctx, v.definition, true);
+            definitionsDB.getDefByVariable(v)
+            // await copyTerm(ctx, v.definition, true);
         }
         else if (!gv) {
             ctx.variables = await ctx.variables.set(
@@ -69,21 +91,21 @@ async function save2db (
                     id: vn
                 }
             );
-        } 
+        }*/
     }
     else if (v.type === LOCAL_VAR) {
         /*const d = v.d?await array2iset(ctx, v.d):undefined;
         const e = v.e?await array2iset(ctx, v.e.map(getVarname)):undefined;
         const vin = v.in?await array2iset(ctx, v.in.map(getVarname)):undefined;
         */
-       let constrains;
-        if (v.constrains) {
-            constrains = ctx.rDB.iSet();
+       let constraints;
+        if (v.constraints) {
+            constraints = ctx.rDB.iSet();
 
-            for (let i=0; i<v.constrains.length; i++) {
-                const vc = v.constrains[i];
+            for (let i=0; i<v.constraints.length; i++) {
+                const vc = v.constraints[i];
                 const id = getVarname(p.variables[vc]);
-                constrains = await constrains.add(id);
+                constraints = await constraints.add(id);
             }
         }
 
@@ -92,12 +114,12 @@ async function save2db (
                 ...v,
                 pv: preserveVarname,
                 domain: v.domain ? getVarname(p.variables[v.domain]) : undefined,
-                constrains,
+                constraints,
                 id: vn
             }
         );
 
-        if (v.constrains && v.domain) {
+        if (v.constraints && v.domain) {
             ctx.unsolvedVariables = await ctx.unsolvedVariables.add(vn);
         }
 
@@ -126,7 +148,7 @@ async function save2db (
                 getVarname,
                 def.variables[def.root], vn            
             );*/
-            const id = await copyTerm(ctx, def, preserveVarname);
+            const id = await copyTerm(ctx, def, definitionsDB, preserveVarname);
 
             ctx.variables = await ctx.variables.set(
                 vn, {
@@ -229,7 +251,7 @@ async function save2db (
         ctx.variables = await ctx.variables.set(vn, c)
     }
     else if (v.type === CONSTRAINT) {
-        // its a constrain:
+        // its a constraint:
         const c = {op: v.op, args: v.args.map(getVarname).sort(), id: vn};
         ctx.variables = await ctx.variables.set(vn, c);
     }*/
@@ -238,7 +260,7 @@ async function save2db (
     }
 }
 
-async function copyTerm(ctx, p, preserveVarname=false) {
+async function copyTerm(ctx, p, definitionsDB, preserveVarname=false) {
     const mapVars = {};
 
     const getVarname = v => {
@@ -281,13 +303,14 @@ async function copyTerm(ctx, p, preserveVarname=false) {
         await save2db(
             ctx, p, preserveVarname, 
             getVarname, 
-            v, vn
+            v, vn,
+            definitionsDB
         );
     }
 
     /*
-    for (let i=0; i<p.constrains.length; i++) {
-        ctx.constrains = await ctx.constrains.add(getVarname(p.constrains[i]));
+    for (let i=0; i<p.constraints.length; i++) {
+        ctx.constraints = await ctx.constraints.add(getVarname(p.constraints[i]));
     }*/
 
     return mapVars[p.root];
@@ -320,8 +343,7 @@ async function getVariable (branch, id, ctx) {
         v = await variables.get(id);
         
         if (id && id === v.defer) {
-            console.log("BUG: id can't defer to itself!", id, v);
-            process.exit();
+            throw "BUG: id can't defer to itself! " +  id + ' ' + JSON.stringify(v, null, '  ');
         }
 
         id = v.defer;
@@ -348,26 +370,26 @@ const get = async (ctx, v) => {
     return v;
 }
 
-async function toStringConstrains (branch, v, cID, ctx) {
-    const constrain = await getVariable(branch, cID, ctx);
+async function toStringConstraints (branch, v, cID, ctx) {
+    const constraint = await getVariable(branch, cID, ctx);
 
-    if (constrain.op === '!=') {
-        const cv = await getVariable(branch, constrain.args[0], ctx);
-        const rv = v.id === cv.id ? constrain.args[1] : constrain.args[0];
+    if (constraint.op === '!=') {
+        const cv = await getVariable(branch, constraint.args[0], ctx);
+        const rv = v.id === cv.id ? constraint.args[1] : constraint.args[0];
 
         return await toString(branch, rv, ctx, false);
     }
-    else if (constrain.op === 'OR') {
+    else if (constraint.op === 'OR') {
         const r = [];
-        for await (let e of constrain.args.values()) {
-            r.push(await toStringConstrains(branch, v, e, ctx));
+        for await (let e of constraint.args.values()) {
+            r.push(await toStringConstraints(branch, v, e, ctx));
         }
 
         return r.join(" OR ");
     }
 }
 
-async function toString (branch, id, ctx, constrains=true) {
+async function toString (branch, id, ctx, constraints=true) {
     branch = branch || ctx?.branch;
     id = id || await branch.data.root;    
 
@@ -403,11 +425,11 @@ async function toString (branch, id, ctx, constrains=true) {
             const ds = domain && domain.length?`:{${domain.join(" ")}}`:"";
 
             let e = "";
-            if (constrains) { 
+            if (constraints) { 
                 const es = v.e ? 
                     (await Promise.all(
                         (await v.e.toArray())
-                        .map(cID => toStringConstrains(branch, v, cID, ctx)))).filter(v => v !== '')
+                        .map(cID => toStringconstraints(branch, v, cID, ctx)))).filter(v => v !== '')
                     : undefined;
                 // const es = v.e ? (await Promise.all(v.e.map(id => toString(branch, id, ctx, stop)))).filter(v => v !== ''):undefined;
                 e = es && es.length?`~{${[...new Set(es)].join(" ")}}`:"";

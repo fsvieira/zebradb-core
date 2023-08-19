@@ -103,7 +103,7 @@ function terms (ctx, t) {
                     const cs = {op: '!=', args, cid: constrainID };
 
                     ctx.variables[constrainID] = cs;
-                    ctx.constrains.add(constrainID);
+                    ctx.constraints.add(constrainID);
 
                     vdata.e = (vdata.e || new Set());
                     vdata.e.add(constrainID);
@@ -194,8 +194,8 @@ function termConstrains(ctx, exp) {
 
     console.log(cid, `TODO: [termConstrains] make a better variable generator`);
 
-    if (!ctx.constrains.includes(cid)) {
-        ctx.constrains.push(cid);
+    if (!ctx.constraints.includes(cid)) {
+        ctx.constraints.push(cid);
 
         ctx.variables[cid] = {
             type,
@@ -319,7 +319,7 @@ function prepare (tuple) {
     const {newVar} = branchOps.varGenerator(0); 
     const ctx = {
         variables: {},
-        constrains: []
+        constraints: []
     }
 
     ctx.newVar = v => {
@@ -341,18 +341,18 @@ function prepare (tuple) {
 
     const globalVariable = ctx.variables[root].variable;
 
-    console.log("CONSTRAINTS", ctx.constrains);
+    console.log("CONSTRAINTS", ctx.constraints);
 
-    if (ctx.constrains.length) {
-        for (let i=0; i<ctx.constrains.length; i++) {
-            const cid = ctx.constrains[i];
+    if (ctx.constraints.length) {
+        for (let i=0; i<ctx.constraints.length; i++) {
+            const cid = ctx.constraints[i];
             const {a, b} = ctx.variables[cid];
 
             const av = ctx.variables[a];
             const bv = ctx.variables[b];
 
-            av.constrains = (av.constrains || []).concat(cid);
-            bv.constrains = (bv.constrains || []).concat(cid);
+            av.constraints = (av.constraints || []).concat(cid);
+            bv.constraints = (bv.constraints || []).concat(cid);
         }
     }
 
@@ -360,7 +360,7 @@ function prepare (tuple) {
         variables: ctx.variables, 
         root, 
         globalVariable,
-        constrains: ctx.constrains
+        constraints: ctx.constraints
     };
 
     /*
@@ -368,13 +368,13 @@ function prepare (tuple) {
 
     const ctx = {
         variables: {},
-        constrains: new Set(),
+        constraints: new Set(),
         newVar
     }
 
     const root = terms(ctx, tuple);
 
-    // convert constrains set to normal array
+    // convert constraints set to normal array
     for (let varname in ctx.variables) {
         const v = ctx.variables[varname];
 
@@ -385,7 +385,7 @@ function prepare (tuple) {
 
     // console.log(ctx.variables);
     
-    return {variables: ctx.variables, constrains: [...ctx.constrains], root};
+    return {variables: ctx.variables, constraints: [...ctx.constraints], root};
     */
 }
 
