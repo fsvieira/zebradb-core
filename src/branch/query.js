@@ -36,7 +36,7 @@ const query = async (rDB, tuple, branchID, definitionsDB) => {
         ctx.variables,
         ctx.constraints,
         ctx.unsolvedVariables,
-        undefined,
+        ctx.checked,
         branchID,
         ctx.log
     );
