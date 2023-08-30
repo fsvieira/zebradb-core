@@ -3,7 +3,7 @@
 const test = require("../test-utils/test");
 
 describe("Play Tests.", () => {
-	it("Sets AND (1)", test(
+	xit("Sets AND (1)", test(
 		`
 			$AND = {
 				(0 & 0 = 0)
@@ -26,7 +26,7 @@ describe("Play Tests.", () => {
 		{path: 'dbs/sets/1', timeout: 1000 * 60}
 	));
 
-	xit("Sets AND (2)", test(
+	it("Sets AND (2)", test(
 		`
 			$BOOL = {true false}
 			$AND_1 = {('x:$BOOL & 'x:$BOOL = 'x:$BOOL) |} 

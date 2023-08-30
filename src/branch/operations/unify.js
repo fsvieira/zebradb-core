@@ -35,7 +35,7 @@ const C_FALSE = 0;
 const C_TRUE = 1;
 const C_UNKNOWN = 2;
 
-const checkConstrains = async (ctx, c, or) => {
+const __checkConstrains = async (ctx, c, or) => {
     if (c.op === '!=') {
         const [p, q] = await Promise.all(c.args.map(id => getVariable(null, id, ctx)));
         const ok = p.id !== q.id;
@@ -136,6 +136,75 @@ const checkConstrains = async (ctx, c, or) => {
     throw `Unknown operator ${op}!!`;
 }
 
+async function checkConstrainNotUnifyLocalVarConstant (ctx, a, b) {
+    if (a.domain) {
+        const domain = await getVariable(null, a.domain, ctx);
+        const index = domain.elements.findIndex(vID => vID === b.id);
+        if (index >= 0) {
+            const es = domain.elements.slice();
+            es.splice(index, 1);
+
+            if (es.length === 1) {
+                const v = await getVariable(null, es[0], ctx);
+
+                const r = await setVariableLocalVarConstant(ctx, a, v);
+
+                return r?C_TRUE:C_FALSE;
+            }
+            else {
+                throw `checkConstrainNotUnifyLocalVarConstant: Not implemented!`;
+            }
+        }
+        else {
+            return C_TRUE;
+        }
+    }
+
+    return C_UNKNOWN; 
+}
+
+async function checkConstrainNotUnifyConstantConstant (ctx, a, b) {
+    return a.id != b.id ? C_TRUE : C_FALSE;
+}
+
+
+const constrainsFn = {
+    [NOT_UNIFY]: {
+        [LOCAL_VAR]: {
+            [CONSTANT]: checkConstrainNotUnifyLocalVarConstant
+        },
+        [CONSTANT]: {
+            [CONSTANT]: checkConstrainNotUnifyConstantConstant
+        }
+    }
+}
+
+async function checkConstrain(ctx, cs) {
+    const {a, op, b, id} = cs;
+
+    const av = await getVariable(null, a, ctx);
+    const bv = await getVariable(null, b, ctx);
+
+    console.log(`checkConstrain: ${op} ${av.type} ${bv.type} !!`);
+    const fn = constrainsFn[op][av.type][bv.type];
+
+    return await fn(ctx, av, bv);
+}
+
+async function checkVariableConstrains (ctx, v) {
+    console.log(v);
+
+    for await (let vcID of v.constraints.values()) {
+        const cs = await getVariable(null, vcID, ctx);
+
+        console.log(vcID, cs);
+        const r = await checkConstrain(ctx, cs);
+        console.log(r);
+    }
+
+    throw "checkVariableConstrains : Not Implemented"
+}
+
 async function intersectDomains(ctx, a, b) {
     if (a.domain && b.domain) {
 
@@ -192,12 +261,26 @@ async function setVariableLocalVarLocalVar (ctx, v, p) {
 
 async function setVariableLocalVarConstant (ctx, v, c) {
     if (v.domain) {
-        throw `setVariableLocalVarConstant: CHECK IF ${c} in ${v.domain}!!`;
+        const d = await getVariable(null, v.domain, ctx);
+        
+        switch (d.type) {
+            case SET:
+                if (!d.elements.includes(c.id)) {
+                    return false;
+                }
+
+                break;
+
+            default:
+                throw `setVariableLocalVarConstant Domain ${d.type} not defined!`;
+        }
     }
 
     ctx.variables = await ctx.variables.set(v.id, {...v, defer: c.id});
 
     if (v.constraints) {
+        await checkVariableConstrains(ctx, v);
+
         throw 'setVariableLocalVarConstant : Check constraints with new value!';
         ctx.unsolvedVariables = await ctx.unsolvedVariables.remove(v.id);
     }

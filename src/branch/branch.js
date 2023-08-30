@@ -133,23 +133,25 @@ async function expand (branch, options, selector, definitions) {
 
     if (state === 'unsolved_variables') {
         const unsolvedVariables = await branch.data.unsolvedVariables;
-        // let min=Infinity, minVar; 
+        let min=Infinity, minVar, minDomain; 
         let v;
         for await (let vID of unsolvedVariables.values()) {
             v = await branch.data.variables.get(vID);
 
             const domain = await getVariable(branch, v.domain);
 
+            console.log("TODO: WHY Variable HAS NO CONSTRAINS!!", v);
             console.log(domain);
             
-            /*if (v.d.size < min) {
-                min = v.d.size;
+            if (domain.size < min) {
+                min = domain.size;
+                minDomain = domain;
                 minVar = v;
-            }*/
+            }
 
         }
         
-        const minVarD = await minVar.d.toArray();
+        const minVarD = minDomain.elements;
         const r = await Promise.all(minVarD.map(cID => unify(branch, options, minVar.id, cID)));
 
         await branch.update({state: 'split'});
