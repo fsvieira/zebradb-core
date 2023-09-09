@@ -415,7 +415,8 @@ async function toString (branch, id, ctx, constraints=true) {
                 vd = await getVariable(branch, v.domain, ctx);
             }
 
-            const ds = vd?':' + (vd.type === GLOBAL_VAR?'$':"'") + vd.varname : '';
+            // const ds = vd?':' + (vd.type === GLOBAL_VAR?'$':"'") + vd.varname : '';
+            const ds = vd?':' + vd.id : '';
 
             return "'" + (!v.pv && v.id?v.id + "::": "") + v.varname + ds;
 /*

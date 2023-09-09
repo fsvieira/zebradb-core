@@ -199,10 +199,16 @@ async function checkVariableConstrains (ctx, v) {
 
         console.log(vcID, cs);
         const r = await checkConstrain(ctx, cs);
+
+        if (r === C_FALSE) {
+            return false;
+        }
+
         console.log(r);
     }
 
-    throw "checkVariableConstrains : Not Implemented"
+    return true;
+    // throw "checkVariableConstrains : Not Implemented"
 }
 
 async function intersectDomains(ctx, a, b) {
@@ -279,10 +285,14 @@ async function setVariableLocalVarConstant (ctx, v, c) {
     ctx.variables = await ctx.variables.set(v.id, {...v, defer: c.id});
 
     if (v.constraints) {
-        await checkVariableConstrains(ctx, v);
+        const r = await checkVariableConstrains(ctx, v);
 
-        throw 'setVariableLocalVarConstant : Check constraints with new value!';
-        ctx.unsolvedVariables = await ctx.unsolvedVariables.remove(v.id);
+        if (r === false) {
+            return r;
+        }
+
+        // throw 'setVariableLocalVarConstant : Check constraints with new value!';
+        // ctx.unsolvedVariables = await ctx.unsolvedVariables.remove(v.id);
     }
 
     return true;
