@@ -224,9 +224,6 @@ async function save2db (
                     ...v,
                     // body,
                     // element: getVarname(p.variables[v.element]),
-                    element: await copyAsDef(
-                        p.variables[v.element]
-                    ),
                     id: vs.cid,
                 });
             }
@@ -260,6 +257,58 @@ async function save2db (
     }*/
     else {
         throw 'COPY TERM CANT COPY ' + v.type;
+    }
+}
+
+async function copySetConstrains (
+    ctx, p, preserveVarname, 
+    getVarname, 
+    v, vn,
+    definitionsDB
+) {
+    console.log(p, v, vn);
+    const variableID = v.variable;
+    const vs = p.variables[variableID];
+
+    if (vs.type === GLOBAL_VAR) {
+        const hasVar = await hasVariable(null, variableID, ctx); 
+        let gv = hasVar?await getVariable(null, variableID, ctx):null;
+
+        if (!gv || gv.type === GLOBAL_VAR) {
+            console.log("We should also set Set variable did!!");
+
+            let element = p.variables[v.element];
+
+            if (element.type === DEF_REF) {
+                element = await element.data.data.definition;
+            }
+    
+            ctx.variables = await ctx.variables.set(vs.cid, {
+                ...v,
+                element,
+                id: vs.cid,
+            });
+
+            // Check if element has globals variables,
+            for (let varname in p.variables) {
+                const v = p.variables[varname];
+                if (v.type === GLOBAL_VAR) {
+                    const vn = getVarname(v);
+                    
+                    await save2db(
+                        ctx, p, preserveVarname, 
+                        getVarname, 
+                        v, vn,
+                        definitionsDB
+                    );
+                }
+            }
+            
+        }
+
+    }
+    else {
+        throw 'CREATE LOCAL EXP SET???';
     }
 }
 
@@ -300,24 +349,30 @@ async function copyTerm(ctx, p, definitionsDB, preserveVarname=false) {
     }
 
     const {root, variables} = p;
-    const r = variables[root];
+    const v = variables[root];
 
-    if (r.type === SET_CS) {
-        throw '===== TODO ===========> WE NEED TO IMPLEMENT SET CONSTRAINS SPECIAL COPY';
-    }
-    
-    for (let varname in p.variables) {
-        const v = p.variables[varname];
+    if (v.type === SET_CS) {
         const vn = getVarname(v);
-
-        await save2db(
+        await copySetConstrains(
             ctx, p, preserveVarname, 
             getVarname, 
             v, vn,
             definitionsDB
         );
     }
+    else {
+        for (let varname in p.variables) {
+            const v = p.variables[varname];
+            const vn = getVarname(v);
 
+            await save2db(
+                ctx, p, preserveVarname, 
+                getVarname, 
+                v, vn,
+                definitionsDB
+            );
+        }
+    }
     /*
     for (let i=0; i<p.constraints.length; i++) {
         ctx.constraints = await ctx.constraints.add(getVarname(p.constraints[i]));
