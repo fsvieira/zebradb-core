@@ -223,7 +223,10 @@ async function save2db (
                 ctx.variables = await ctx.variables.set(vs.cid, {
                     ...v,
                     // body,
-                    element: getVarname(p.variables[v.element]),
+                    // element: getVarname(p.variables[v.element]),
+                    element: await copyAsDef(
+                        p.variables[v.element]
+                    ),
                     id: vs.cid,
                 });
             }
@@ -296,6 +299,13 @@ async function copyTerm(ctx, p, definitionsDB, preserveVarname=false) {
         return vn;
     }
 
+    const {root, variables} = p;
+    const r = variables[root];
+
+    if (r.type === SET_CS) {
+        throw '===== TODO ===========> WE NEED TO IMPLEMENT SET CONSTRAINS SPECIAL COPY';
+    }
+    
     for (let varname in p.variables) {
         const v = p.variables[varname];
         const vn = getVarname(v);
