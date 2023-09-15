@@ -290,8 +290,8 @@ async function copySetConstrains (
             });
 
             // Check if element has globals variables,
-            for (let varname in p.variables) {
-                const v = p.variables[varname];
+            for (let varname in element.variables) {
+                const v = element.variables[varname];
                 if (v.type === GLOBAL_VAR) {
                     const vn = getVarname(v);
                     

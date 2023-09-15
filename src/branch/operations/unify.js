@@ -256,9 +256,10 @@ async function setVariableLocalVarLocalVar (ctx, v, p) {
 
     ctx.variables = await ctx.variables.set(b.id, {...b, defer: a.id});
 
-    if (b.constraints) {
-        ctx.unsolvedVariables = await ctx.unsolvedVariables.remove(b.id);
-    }
+    /*if (b.constraints) {
+        // throw "Constrains may have been passed to variable A but they can't be removed!!"
+       // ctx.unsolvedVariables = await ctx.unsolvedVariables.remove(b.id);
+    }*/
 
 //    throw `FUNCTION ${v.type} x ${p.type} not implemented`;
 
@@ -608,174 +609,6 @@ async function createBranch (
     return newBranch;
 }
 
-/*
-async function getSet (ctx, branch, tuple, definitionID, definition, varCounter) {
-    console.log(definitionID, definition);
-
-    const {did} = definition;
-    const variableSetID = `_set_${did}`;
-
-    let dset = await ctx.variables.get(variableSetID);
-
-    //
-    //    1. (set, tail):
-    //        1a. set has all elements unified with tuples,
-    //        1b. tail has the general element,
-    //    2. if set does not exits:
-    //        2a. unify tuple with defintion,
-    //        2b. set tail to be defintion~new element
-    //    3. if set does exists:
-    //        3a. foreach element, unify tuple  (create new branches)
-    //        3b. unify tuple with general case (tail) (create new branch)
-    //        3c. set tail to be definition~[...elements]
-    //    4. if tail fails, then the set is finit, and can be marked has completed.
-
-    console.log("UnChecked Start", ctx.unchecked.size);
-
-    if (!dset) {
-        definitionID = await copyTerm(ctx, definition);
-        // let tailID = await copyTerm(ctx, definition);
-
-        // const r = await checkConstrains(ctx, {op: '!=', args: [tailID, tuple]});
-
-        const tset = await ctx.rDB.iSet().add(tuple);
-
-        // const C_FALSE = 0;
-        // const C_TRUE = 1;
-        // const C_UNKNOWN = 2;
-        /// if (r === C_FALSE) {
-        ///     // unable to not-unify, set is full ? 
-        ///     tailID=null;
-        /// } // else keep tail.
-
-        /// dset = {
-        ///     tset,
-        ///     tail: tailID
-        /// };
-        dset = tset;
-
-        ctx.variables = await ctx.variables.set(variableSetID, dset);
-
-        const {
-            variables, constraints, unsolvedVariables, unchecked, 
-            checked, fail, log
-        } = await deepUnify(
-            ctx,
-            tuple, 
-            definitionID
-        );
-
-        const newBranch = await createBranch(
-            fail,
-            branch,
-            varCounter,
-            ctx.level,
-            checked,
-            unchecked,
-            variables,
-            constraints,
-            unsolvedVariables,
-            log        
-        );
-
-        console.log("Unchecked (2)", variableSetID, unchecked.size);
-
-        for await (let e of unchecked.values()) {
-            console.log("U - ", await toString(newBranch, e));
-        }
-
-    }
-    else {
-        console.log("Set Exists!!", await dset.toArray(), dset);
-
-        // create all branches that unify with set elements,
-        for await (let vid of dset.values()) {
-            const copyCtx = {...ctx};
-
-            const {
-                variables, constraints, unsolvedVariables, unchecked, 
-                checked, fail, log
-            } = await deepUnify(
-                copyCtx,
-                vid,
-                tuple
-            );
-
-            const newBranch = await createBranch(
-                fail,
-                branch,
-                varCounter,
-                ctx.level,
-                checked,
-                unchecked,
-                variables,
-                constraints,
-                unsolvedVariables,
-                log        
-            );    
-
-            console.log("Unchecked (2)", variableSetID, unchecked.size);
-
-            for await (let e of unchecked.values()) {
-                console.log("U - ", await toString(newBranch, e));
-            }
-
-        }
-
-        // create branch with potential new element,
-        // let tailID = await copyTerm(ctx, definition);
-        args = await dset.toArray();
-        tset = await dset.add(tuple);
-        // const args = await tset.toArray();
-        
-        // make tail, to be general case that doesnt unify with any element,
-        const r = await checkConstrains(ctx, {op: '!=', args: [tuple, ...args]});
-
-        /// if (r === C_FALSE) {
-        ///     // unable to not-unify, set is full ? 
-        ///     tailID=null;
-        /// } // else keep tail.
-
-        // this element is alredy inserted ? 
-        /// if (r !== C_FALSE) {
-
-        ///     ctx.variables = await ctx.variables.set(variableSetID, dset /*{
-        ///         tset,
-        ///         tail: tailID
-        ///     }
-        );
-
-            console.log("TSET", await dset.toArray());
-
-            definitionID = await copyTerm(ctx, definition);
-
-            const {
-                variables, constraints, unsolvedVariables, unchecked, 
-                checked, fail, log
-            } = await deepUnify(
-                ctx,
-                tuple, 
-                definitionID // tail // tail has already negated elements,
-            );
-
-            await createBranch(
-                fail,
-                branch,
-                varCounter,
-                ctx.level,
-                checked,
-                unchecked,
-                variables,
-                constraints,
-                unsolvedVariables,
-                log        
-            );
-        }
-    }
-
-    return branch;
-}*/
-
 async function unify (branch, options, tuple, definitionID, definition) {
 
     const level = await branch.data.level + 1;
@@ -796,10 +629,9 @@ async function unify (branch, options, tuple, definitionID, definition) {
         options  
     };
 
-    /*if (definition) {
-        throw 'Is this a thing!!';
-        return await getSet(ctx, branch, tuple, definitionID, definition, varCounter);
-    }*/
+    if (definition) {
+        definitionID = await copyTerm(ctx, definition);
+    }
 
     const {
         variables, constraints, 

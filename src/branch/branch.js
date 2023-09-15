@@ -51,8 +51,8 @@ async function unifyDomain (
                     const bv = await getVariable(branch, b);
 
                     const branches = [
-                        await unify(branch, options, id, av.element),
-                        await unify(branch, options, id, bv.element),
+                        await unify(branch, options, id, null, av.element),
+                        await unify(branch, options, id, null, bv.element),
                     ];
 
                     console.log(branches);
