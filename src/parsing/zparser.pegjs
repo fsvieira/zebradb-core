@@ -3,6 +3,7 @@
       type: {
           CONSTANT,
           TUPLE,
+          NUMBER,
           CONSTRAINT,
           SET,
           SET_CS,
@@ -16,7 +17,9 @@
           IN,
           UNIFY,
           NOT_UNIFY,
-          UNION
+          UNION,
+          ADD,
+          SUB
       }
   } = require("../branch/operations/constants");
 
@@ -29,6 +32,8 @@
       case ',': return AND;
       case 'or': return OR;
       case 'union': return UNION;
+      case '+': return ADD;
+      case '-': return SUB;
     }
   }
 }
@@ -67,19 +72,24 @@ localVariable = "'" varname:[_a-zA-Z0-9]* domain:(":" variable:variable {return 
 
 // constants,
 constant = constantExpression / 
-	!("«" / "/*") constant:[^ {}\n\t\(\)'|]+ {
+	!("«" / "/*" / [0-9]) constant:[^ {}\n\t\(\)'|]+ {
     	return {
         	type: CONSTANT,
             data: constant.join("")
         }
     }
 
+number = sign:'-'? int:[0-9]+ float:('.' float:[0-9]+ {return '.' + float.join('')})? {
+  const n = (sign || '') + int.join('') + (float || '');
+  return {type: NUMBER, data: +n }
+} 
+
 constantExpression = "«" constant:[^»]+ "»" {
    return {
       type: CONSTANT,
       data: constant.join("")
    }
-}
+} / number
 
 /* 
   sets 
@@ -127,16 +137,18 @@ set = a:set_def _ op:set_op _ b:set {
 /*
 Expression
 */
-operations = op:('!=' / '=' / 'in' / 'and' / ',') {return opCode(op)}
+operations = op:('!=' / '=' / 'in' / 'and' / ',' / '+' / '-' ) {return opCode(op)}
 
-expressionTerm = set / variable / constantExpression
+expressionPar = '[' _ expression:expression _ ']' {return expression}
+
+expressionTerm = set / variable / constantExpression / expressionPar
 expressionTerms = expressionTerm:expressionTerm terms:(wsp terms:expressionTerm {return terms})* 
   { return [expressionTerm].concat(terms) }
 
 expression = a:expressionTerm _ op:operations _ b:expression {
    return {type: CONSTRAINT, a, op, b};
 } 
-/ '[' _ expression:expression _ ']' {return expression}
+/ expressionPar
 / expressionTerm
 
 
