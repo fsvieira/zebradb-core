@@ -2,7 +2,6 @@
 module.exports = {
     type: {
         CONSTANT: "c",
-        NUMBER: 'n',
         TUPLE: "t",
         CONSTRAINT: "cs",
         SET: "s",
@@ -20,7 +19,8 @@ module.exports = {
         NOT_UNIFY: "!=",
         UNION: "union",
         ADD: '+',
-        SUB: '-'
+        SUB: '-',
+        MUL: '*'
     }
 };
 

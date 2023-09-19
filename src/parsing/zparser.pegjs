@@ -3,7 +3,6 @@
       type: {
           CONSTANT,
           TUPLE,
-          NUMBER,
           CONSTRAINT,
           SET,
           SET_CS,
@@ -19,7 +18,8 @@
           NOT_UNIFY,
           UNION,
           ADD,
-          SUB
+          SUB,
+          MUL
       }
   } = require("../branch/operations/constants");
 
@@ -34,6 +34,7 @@
       case 'union': return UNION;
       case '+': return ADD;
       case '-': return SUB;
+      case '*': return MUL;
     }
   }
 }
@@ -81,8 +82,8 @@ constant = constantExpression /
 
 number = sign:'-'? int:[0-9]+ float:('.' float:[0-9]+ {return '.' + float.join('')})? {
   const n = (sign || '') + int.join('') + (float || '');
-  return {type: NUMBER, data: +n }
-} 
+  return {type: CONSTANT, data: n }
+}
 
 constantExpression = "«" constant:[^»]+ "»" {
    return {
@@ -137,7 +138,7 @@ set = a:set_def _ op:set_op _ b:set {
 /*
 Expression
 */
-operations = op:('!=' / '=' / 'in' / 'and' / ',' / '+' / '-' ) {return opCode(op)}
+operations = op:('!=' / '=' / 'in' / 'and' / ',' / '+' / '-' / '*') {return opCode(op)}
 
 expressionPar = '[' _ expression:expression _ ']' {return expression}
 
