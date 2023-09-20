@@ -30,7 +30,51 @@ describe("Plan Math graphs.", () => {
         `, 
 		[
 			{
-				query: "(10 = ('a + 3)):$MATH_ADD",
+				query: `(
+				    'S 'E 'N 'D +
+					'M 'O 'R 'E =
+				 'M 'O 'N 'E 'Y
+				):$SEND_MORE_MONEY`,
+				results: [
+					"@(0 & 0 = 0)", 
+					"@(0 & 1 = 0)", 
+					"@(1 & 0 = 0)", 
+					"@(1 & 1 = 1)" 
+				]
+			},
+		], 
+		{path: 'dbs/plan-math-ops/1', timeout: 1000 * 60}
+	));
+
+	xit("Plan Math Ops: Send More Money (distinct)", test(
+		`			
+			$DIGITS = {0 1 2 3 4 5 6 7 8 9}
+			
+			$SEND_MORE_MONEY = {
+				(
+					'S 'E 'N 'D +
+					'M 'O 'R 'E =
+					'M 'O 'N 'E 'Y
+				) |
+
+				# make variables distinct 
+				'vars = {
+					'S:$DIGITS 'E:DIGITS 'N:DIGITS 'D:DIGITS 
+					'M:DIGITS 'O:DIGITS 'R:DIGITS 'Y:DIGITS
+				}
+
+				# Define the addition equation
+				'M * 10000 + 'O * 1000 + 'N * 100 + 'E * 10 + 'Y =
+					['S * 1000 + 'E * 100 + 'N * 10 + 'D] + ['M * 1000 + 'O * 100 + 'R * 10 + 'E]
+			}
+        `, 
+		[
+			{
+				query: `(
+				    'S 'E 'N 'D +
+					'M 'O 'R 'E =
+				 'M 'O 'N 'E 'Y
+				):$SEND_MORE_MONEY`,
 				results: [
 					"@(0 & 0 = 0)", 
 					"@(0 & 1 = 0)", 

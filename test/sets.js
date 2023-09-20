@@ -37,11 +37,9 @@ describe("Play Tests.", () => {
 			{
 				query: "('x & 'y = 'z):$AND",
 				results: [
-					"@(0 & 0 = 0)", 
-					"@(0 & 1 = 0)", 
-					"@(1 & 0 = 0)", 
-					"@(1 & 1 = 1)" 
-				]
+					"@('x:$BOOL & 'x:$BOOL = 'x:$BOOL)",
+					"@(false & true = false)",
+					"@(true & false = false)"				]
 			},
 		], 
 		{path: 'dbs/sets/2', timeout: 1000 * 60}

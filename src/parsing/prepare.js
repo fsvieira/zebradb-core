@@ -1,4 +1,5 @@
 const {branchOps} = require("../branch");
+const {SHA256} = require("sha2");
 
 const {
     type: {
@@ -190,7 +191,7 @@ function termConstrains(ctx, exp) {
     const av = term(ctx, a);
     const bv = term(ctx, b);
 
-    const cid = `__${type}:${[av, bv].sort().join(op)}`;
+    const cid = `__${type}:${SHA256([av, bv].sort().join(op)).toString('base64')}`;
 
     console.log(cid, `TODO: [termConstrains] make a better variable generator`);
 

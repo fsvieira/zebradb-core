@@ -62,6 +62,10 @@ async function unifyDomain (
 
         }
 
+        case constants.type.SET_CS: {
+            console.log(JSON.stringify(s, null, '  '));
+        }
+
         default:
             throw 'unify domain unknown type ' + s.type;
     }

@@ -4,7 +4,6 @@ const {SHA256} = require("sha2");
 const path = require("path");
 
 const {branchOps} = require("../branch");
-const { PassThrough } = require('stream');
 
 const {
     type: {
