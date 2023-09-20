@@ -20,11 +20,15 @@ const {
         DEF_REF // d
     },
     operation: {
-        OR, // : "or",
-        AND, // : "and",
-        IN, // : "in",
-        UNIFY, // : "=",
-        NOT_UNIFY, // : "!="
+        OR, // "or",
+        AND, // "and",
+        IN, // "in",
+        UNIFY, // "=",
+        NOT_UNIFY, // "!=",
+        UNION, // "union",
+        ADD, // '+',
+        SUB, // '-',
+        MUL, // '*'
     }
 } = constants;
 
@@ -167,6 +171,15 @@ async function checkConstrainNotUnifyConstantConstant (ctx, a, b) {
     return a.id != b.id ? C_TRUE : C_FALSE;
 }
 
+async function checkConstrainUnknown (ctx, a, b) {
+    // throw JSON.stringify(a) + " --- " + JSON.stringify(b);
+    return C_UNKNOWN;
+}
+
+async function checkConstrainAddConstantConstant(ctx, a, b) {
+    console.log(JSON.stringify(a), JSON.stringify(b), parseInt(a.data) + parseInt(b.data));
+    throw `checkConstrainAddConstantConstant ` + (parseInt(a.data) + parseInt(b.data));
+}
 
 const constrainsFn = {
     [NOT_UNIFY]: {
@@ -175,8 +188,38 @@ const constrainsFn = {
         },
         [CONSTANT]: {
             [CONSTANT]: checkConstrainNotUnifyConstantConstant
+        },
+        [CONSTANT]: {
+            [CONSTRAINT]: checkConstrainUnknown
         }
-    }
+    },
+    [UNIFY]: {
+        [CONSTANT]: {
+            [CONSTRAINT]: checkConstrainUnknown
+        }
+    },
+    [AND]: {
+        [CONSTANT]: {
+            [CONSTRAINT]: checkConstrainUnknown
+        }
+    },
+    [MUL]: {
+        [CONSTANT]: {
+            [CONSTRAINT]: checkConstrainUnknown
+        }
+    },
+    [ADD]: {
+        [CONSTANT]: {
+            [CONSTRAINT]: checkConstrainUnknown
+        },
+        [CONSTANT]: {
+            [CONSTANT]: checkConstrainAddConstantConstant
+        }
+    },
+
+
+
+
 }
 
 async function checkConstrain(ctx, cs) {

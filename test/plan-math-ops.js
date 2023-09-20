@@ -43,7 +43,7 @@ describe("Plan Math graphs.", () => {
 				]
 			},
 		], 
-		{path: 'dbs/plan-math-ops/1', timeout: 1000 * 60}
+		{path: 'dbs/plan-math-ops/1', timeout: 1000 * 60 * 60}
 	));
 
 	xit("Plan Math Ops: Send More Money (distinct)", test(

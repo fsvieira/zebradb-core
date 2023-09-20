@@ -234,6 +234,7 @@ async function save2db (
         }
     }
     else if (v.type === CONSTRAINT) {
+        console.log(JSON.stringify(v, null, '  '), p.variables[v.a], p.variables[v.b]);
         const a = getVarname(p.variables[v.a]);
         const b = getVarname(p.variables[v.b]);
 

@@ -462,6 +462,11 @@ class DB {
                         d.constraints && stack.push(...d.constraints);
                         break;
                     }
+                    case CONSTRAINT: {
+                        stack.push(d.a, d.b);
+                        d.constraints && stack.push(...d.constraints);
+                        break;
+                    }
                     default:
                         console.log(`TT TYPE ${d.type}`);
                 }

@@ -63,7 +63,7 @@ async function unifyDomain (
         }
 
         case constants.type.SET_CS: {
-            console.log(JSON.stringify(s, null, '  '));
+            return [await unify(branch, options, id, null, s.element)];
         }
 
         default:
