@@ -382,11 +382,15 @@ async function copyTerm(ctx, p, definitionsDB, preserveVarname=false) {
     return mapVars[p.root];
 }
 
+function getConstantVarname (constant) {
+    return `c#${constant}`;
+}
+
 function varGenerator (counter) {
     return {
         varCounter: () => counter,
         newVar: v => {
-            const varname = 'v$' + (v?`c#${v}`:++counter);
+            const varname = 'v$' + (v?getConstantVarname(v):++counter);
             return varname;
         }
     }
@@ -408,6 +412,7 @@ async function getVariable (branch, id, ctx) {
     do {
         v = await variables.get(id);
         
+        console.log(id, v);
         if (id && id === v.defer) {
             throw "BUG: id can't defer to itself! " +  id + ' ' + JSON.stringify(v, null, '  ');
         }
@@ -522,5 +527,6 @@ module.exports = {
     copyTerm,
     // copyTerms,
     toString,
+    getConstantVarname
     // prepareVariables
 };

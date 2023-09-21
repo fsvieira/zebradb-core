@@ -342,8 +342,6 @@ function prepare (tuple) {
 
     const globalVariable = ctx.variables[root].variable;
 
-    console.log("CONSTRAINTS", ctx.constraints);
-
     if (ctx.constraints.length) {
         for (let i=0; i<ctx.constraints.length; i++) {
             const cid = ctx.constraints[i];
@@ -352,8 +350,13 @@ function prepare (tuple) {
             const av = ctx.variables[a];
             const bv = ctx.variables[b];
 
-            av.constraints = (av.constraints || []).concat(cid);
-            bv.constraints = (bv.constraints || []).concat(cid);
+            if ([GLOBAL_VAR, LOCAL_VAR, CONSTRAINT].includes(av.type)) {
+                av.constraints = (av.constraints || []).concat(cid);
+            }
+
+            if ([GLOBAL_VAR, LOCAL_VAR, CONSTRAINT].includes(bv.type)) {
+                bv.constraints = (bv.constraints || []).concat(cid);
+            }
         }
     }
 

@@ -71,67 +71,6 @@ async function unifyDomain (
     }
 }
 
-/*
-async function getDomain (
-    branch,
-    options,
-    variableID, 
-    definitions
-) {
-    const domain = await getVariable(branch, variableID);
-
-    console.log("TODO: on copy terms we need to check if variable alredy exists");
-
-    if (domain.type === constants.type.GLOBAL_VAR) {
-        const definition = await definitions(domain);
-
-        const level = await branch.data.level + 1;
-        const rDB = branch.table.db;
-        
-        const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
-        const ctx = {
-            variables: await branch.data.variables,
-            constraints: await branch.data.constraints,
-            unsolvedVariables: await branch.data.unsolvedVariables,
-            unchecked: await branch.data.unchecked,
-            checked: await branch.data.checked,
-            newVar,
-            level,
-            rDB: branch.table.db,
-            branch,
-            log: await branch.data.log,
-            options  
-        };
-        
-        const id = await copyTerm(ctx, definition, true);
-
-        ctx.variables.set(variableID, {...domain, defer: id});
-
-        console.log("SETUP DEFINITION");
-
-        const newBranch = await rDB.tables.branches.insert({
-            parent: branch,
-            root: await branch.data.root,
-            variableCounter: varCounter(),
-            level,
-            checked: ctx.checked,
-            unchecked: ctx.unchecked,
-            variables: ctx.variables,
-            constraints: ctx.constraints,
-            unsolvedVariables: ctx.unsolvedVariables,
-            children: [],
-            state: 'maybe',
-            log: ctx.log
-        }, null);
-        
-        await branch.update({state: 'split'});
-
-        return {branch: newBranch, variableID};
-    }
-
-    return {branch, variableID};
-}*/
-
 async function expand (branch, options, selector, definitions) {
     const state = await branch.data.state;
 
@@ -170,34 +109,6 @@ async function expand (branch, options, selector, definitions) {
         let r;
 
         if (v.domain) {
-            /// const domain = await getVariable(branch, v.domain);
-
-            /// const searchTerm = domain;
-            /// const definition = await definitions(searchTerm);
-
-            /// console.log("--====--");
-            /// console.log(definition);
-
-            // If is a set:
-            //  1. we need to save the set, 
-            //    a. check if set exists, if not: 
-            //      1. create set,
-            //      2. if elements don't exists add them,
-            //      3. setup elements distinction constraints.
-            //  2. unify elements with tuple, create branches
-            // NOTES: we can send the defintion to unify, and let it do the rest, 
-            //        unify must be capable to return multiple branches.  
-
-            /*const {
-                branch: domainBranch, 
-                variableID: domainID
-            } = await getDomain(
-                branch,
-                options,
-                v.domain,
-                definitions
-            );*/
-
             r = await unifyDomain(
                 branch,
                 options,

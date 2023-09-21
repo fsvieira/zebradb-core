@@ -4,7 +4,8 @@ const {
     get,
     copyTerm,
     toString,
-    getVariable
+    getVariable,
+    getConstantVarname
 } = require("./base");
 
 const constants = require("./constants");
@@ -176,9 +177,41 @@ async function checkConstrainUnknown (ctx, a, b) {
     return C_UNKNOWN;
 }
 
-async function checkConstrainAddConstantConstant(ctx, a, b) {
-    console.log(JSON.stringify(a), JSON.stringify(b), parseInt(a.data) + parseInt(b.data));
-    throw `checkConstrainAddConstantConstant ` + (parseInt(a.data) + parseInt(b.data));
+async function getConstant (ctx, string) {
+    const vID = getConstantVarname(string);
+
+    if (!(await ctx.variables.has(vID))) {
+        const c = {
+            type: CONSTANT,
+            data: string,
+            id: vID
+        };
+
+        ctx.variables = await ctx.variables.set(vID, c);
+
+        return c;
+    }
+
+    return ctx.variables.get(vID);
+}
+
+async function checkConstrainAddConstantConstant(ctx, a, b, cs) {
+    const r = parseInt(a.data) + parseInt(b.data);
+
+    if (!isNaN(r)) {
+        // get or create constant value,
+        const vID = await getConstant(ctx, r.toString());
+
+        const ok = await setVariable(ctx, cs, vID);
+
+        if (ok) {
+            return C_TRUE;
+        }
+    }
+
+    return C_FALSE;
+    // console.log(JSON.stringify(a), JSON.stringify(b), parseInt(a.data) + parseInt(b.data));
+    // throw `checkConstrainAddConstantConstant ` + (parseInt(a.data) + parseInt(b.data));
 }
 
 const constrainsFn = {
@@ -215,11 +248,7 @@ const constrainsFn = {
         [CONSTANT]: {
             [CONSTANT]: checkConstrainAddConstantConstant
         }
-    },
-
-
-
-
+    }
 }
 
 async function checkConstrain(ctx, cs) {
@@ -231,7 +260,7 @@ async function checkConstrain(ctx, cs) {
     console.log(`checkConstrain: ${op} ${av.type} ${bv.type} !!`);
     const fn = constrainsFn[op][av.type][bv.type];
 
-    return await fn(ctx, av, bv);
+    return await fn(ctx, av, bv, cs);
 }
 
 async function checkVariableConstrains (ctx, v) {
@@ -342,11 +371,30 @@ async function setVariableLocalVarConstant (ctx, v, c) {
     return true;
 }
 
+async function setVariableConstraintConstant (ctx, cs, c) {
+    ctx.variables = await ctx.variables.set(cs.id, {...cs, defer: c.id});
+
+    if (cs.constraints) {
+        const r = await checkVariableConstrains(ctx, cs);
+
+        if (r === false) {
+            return r;
+        }
+    }
+
+    return true;
+
+}
+
 const setVariableFn = {
     [LOCAL_VAR]: {
         [LOCAL_VAR]: setVariableLocalVarLocalVar,
         [CONSTANT]: setVariableLocalVarConstant
+    },
+    [CONSTRAINT]: {
+        [CONSTANT]: setVariableConstraintConstant
     }
+
 }
 
 const setVariable = async (ctx, v, p) => {
@@ -357,8 +405,10 @@ const setVariable = async (ctx, v, p) => {
             console.log("PPP");
         }
 
-        console.log("TODO: setVariable not implemented!!");
+        console.log("TODO: setVariable not implemented!! ");
         
+        console.log(`==> Set Variable ${v.type} x ${p.type} not implemented`);
+
         const fn = setVariableFn[v.type][p.type];
         
         if (!fn) {
