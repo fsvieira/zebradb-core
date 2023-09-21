@@ -98,7 +98,7 @@ async function save2db (
         const e = v.e?await array2iset(ctx, v.e.map(getVarname)):undefined;
         const vin = v.in?await array2iset(ctx, v.in.map(getVarname)):undefined;
         */
-       let constraints;
+        let constraints;
         if (v.constraints) {
             constraints = ctx.rDB.iSet();
 
@@ -238,9 +238,21 @@ async function save2db (
         const a = getVarname(p.variables[v.a]);
         const b = getVarname(p.variables[v.b]);
 
+        let constraints;
+        if (v.constraints) {
+            constraints = ctx.rDB.iSet();
+
+            for (let i=0; i<v.constraints.length; i++) {
+                const vc = v.constraints[i];
+                const id = getVarname(p.variables[vc]);
+                constraints = await constraints.add(id);
+            }
+        }
+
         ctx.variables = await ctx.variables.set(vn, {
             ...v,
             a, b,
+            constraints,
             id: vn
         });
 

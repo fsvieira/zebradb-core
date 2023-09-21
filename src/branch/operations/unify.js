@@ -172,7 +172,13 @@ async function checkConstrainNotUnifyConstantConstant (ctx, a, b) {
     return a.id != b.id ? C_TRUE : C_FALSE;
 }
 
-async function checkConstrainUnknown (ctx, a, b) {
+async function checkConstrainConstantUnknown (ctx, c) {
+    const v = parseFloat(c.data);
+
+    if (isNaN(v)) {
+        return C_FALSE;
+    }
+
     // throw JSON.stringify(a) + " --- " + JSON.stringify(b);
     return C_UNKNOWN;
 }
@@ -196,7 +202,7 @@ async function getConstant (ctx, string) {
 }
 
 async function checkConstrainAddConstantConstant(ctx, a, b, cs) {
-    const r = parseInt(a.data) + parseInt(b.data);
+    const r = parseFloat(a.data) + parseFloat(b.data);
 
     if (!isNaN(r)) {
         // get or create constant value,
@@ -210,9 +216,58 @@ async function checkConstrainAddConstantConstant(ctx, a, b, cs) {
     }
 
     return C_FALSE;
-    // console.log(JSON.stringify(a), JSON.stringify(b), parseInt(a.data) + parseInt(b.data));
-    // throw `checkConstrainAddConstantConstant ` + (parseInt(a.data) + parseInt(b.data));
 }
+
+async function checkConstrainMulLocalVarConstant (ctx, v, c, cs) {
+    const value = parseFloat(c.data);
+
+    if (isNaN(value)) {
+        // c must be a number,
+        return C_FALSE;
+    }
+
+    if (v.domain) {
+        /*
+            1. if domain we can create a new domain where all values are multiplied by c.
+            2. if domain is not finit it would be more complicated. 
+            3. if domain is not numeric it should fail.
+
+            Notes: calculating possible values may help to reduce the options if 
+            there is other constraints that would restrict the possible values. 
+         */
+        const domain = await getVariable(null, v.domain, ctx);
+
+        if (domain.type === SET) {
+            const newDomain = [];
+            for (let i=0; i<domain.elements.length; i++) {
+                const c = await getVariable(null, domain.elements[i], ctx);
+                if (c.type === CONSTANT) {
+                    const dValue = parseFloat(c.data);
+
+                    if (!isNaN(dValue)) {
+                        newDomain.push(value * dValue);
+                    }
+                }
+                else {
+                    throw 'checkConstrainMulLocalVarConstant Domain Element type ' + c.type;
+                }
+            }
+
+            // 1. create new domain and update local variable,
+            // 2. replace/defer cs to local variable,
+            // 3. process...
+
+            console.log("NEW DOMAIN", newDomain, value);
+            throw 'NEW DOMAIN!!';
+        }
+        else {
+            console.log(domain);
+            throw 'checkConstrainMulLocalVarConstant: check domain case!!';
+        }
+    }
+
+    return C_UNKNOWN;
+} 
 
 const constrainsFn = {
     [NOT_UNIFY]: {
@@ -223,27 +278,30 @@ const constrainsFn = {
             [CONSTANT]: checkConstrainNotUnifyConstantConstant
         },
         [CONSTANT]: {
-            [CONSTRAINT]: checkConstrainUnknown
+            [CONSTRAINT]: checkConstrainConstantUnknown
         }
     },
     [UNIFY]: {
         [CONSTANT]: {
-            [CONSTRAINT]: checkConstrainUnknown
+            [CONSTRAINT]: checkConstrainConstantUnknown
         }
     },
     [AND]: {
         [CONSTANT]: {
-            [CONSTRAINT]: checkConstrainUnknown
+            [CONSTRAINT]: checkConstrainConstantUnknown
         }
     },
     [MUL]: {
         [CONSTANT]: {
-            [CONSTRAINT]: checkConstrainUnknown
+            [CONSTRAINT]: checkConstrainConstantUnknown
+        },
+        [LOCAL_VAR]: {
+            [CONSTANT]: checkConstrainMulLocalVarConstant
         }
     },
     [ADD]: {
         [CONSTANT]: {
-            [CONSTRAINT]: checkConstrainUnknown
+            [CONSTRAINT]: checkConstrainConstantUnknown
         },
         [CONSTANT]: {
             [CONSTANT]: checkConstrainAddConstantConstant
