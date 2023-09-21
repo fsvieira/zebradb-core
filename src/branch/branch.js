@@ -11,8 +11,6 @@ const {
 async function toJS (branch, id) {
     id = id || await branch.data.root;
 
-    console.log(`VERIFY ToJS : `, branch, id);
-
     const v = await getVariable(branch, id);
 
     if (v.t) {
@@ -42,7 +40,6 @@ async function unifyDomain (
         }
 
         case constants.type.SET_EXP: {
-            console.log(s);
             const {a, op, b} = s;
 
             switch (op) {
@@ -55,7 +52,6 @@ async function unifyDomain (
                         await unify(branch, options, id, null, bv.element),
                     ];
 
-                    console.log(branches);
                     return branches;
                 }
             } 
@@ -82,9 +78,6 @@ async function expand (branch, options, selector, definitions) {
             v = await branch.data.variables.get(vID);
 
             const domain = await getVariable(branch, v.domain);
-
-            console.log("TODO: WHY Variable HAS NO CONSTRAINS!!", v);
-            console.log(domain);
             
             if (domain.size < min) {
                 min = domain.size;
@@ -129,14 +122,6 @@ async function expand (branch, options, selector, definitions) {
         }
 
         return r;
-        /*
-        console.log(ds);
-
-        const r = await Promise.all(ds.map(definition => unify(branch, options, id, null, definition)));
-
-        await branch.update({state: 'split'});
-        return r;
-        */
     }
 }
 

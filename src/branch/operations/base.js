@@ -170,8 +170,6 @@ async function save2db (
             let gv = hasVar?await getVariable(null, variableID, ctx):null;
 
             if (!gv || gv.type === GLOBAL_VAR) {
-                console.log("We should also set Set variable did!!");
-
                 ctx.variables = await ctx.variables.set(vs.cid, {
                     ...v,
                     // body,
@@ -194,8 +192,6 @@ async function save2db (
             let gv = hasVar?await getVariable(null, variableID, ctx):null;
 
             if (!gv || gv.type === GLOBAL_VAR) {
-                console.log("We should also set Set variable did!!");
-
                 ctx.variables = await ctx.variables.set(vs.cid, {
                     ...v,
                     a: getVarname(p.variables[v.a]),
@@ -218,8 +214,6 @@ async function save2db (
             let gv = hasVar?await getVariable(null, variableID, ctx):null;
 
             if (!gv || gv.type === GLOBAL_VAR) {
-                console.log("We should also set Set variable did!!");
-
                 ctx.variables = await ctx.variables.set(vs.cid, {
                     ...v,
                     // body,
@@ -234,7 +228,6 @@ async function save2db (
         }
     }
     else if (v.type === CONSTRAINT) {
-        console.log(JSON.stringify(v, null, '  '), p.variables[v.a], p.variables[v.b]);
         const a = getVarname(p.variables[v.a]);
         const b = getVarname(p.variables[v.b]);
 
@@ -279,7 +272,6 @@ async function copySetConstrains (
     v, vn,
     definitionsDB
 ) {
-    console.log(p, v, vn);
     const variableID = v.variable;
     const vs = p.variables[variableID];
 
@@ -288,8 +280,6 @@ async function copySetConstrains (
         let gv = hasVar?await getVariable(null, variableID, ctx):null;
 
         if (!gv || gv.type === GLOBAL_VAR) {
-            console.log("We should also set Set variable did!!");
-
             let element = p.variables[v.element];
 
             if (element.type === DEF_REF) {
@@ -395,14 +385,14 @@ async function copyTerm(ctx, p, definitionsDB, preserveVarname=false) {
 }
 
 function getConstantVarname (constant) {
-    return `c#${constant}`;
+    return `v$c#${constant}`;
 }
 
 function varGenerator (counter) {
     return {
         varCounter: () => counter,
         newVar: v => {
-            const varname = 'v$' + (v?getConstantVarname(v):++counter);
+            const varname = (v?getConstantVarname(v):'v$' + (++counter));
             return varname;
         }
     }
@@ -424,7 +414,6 @@ async function getVariable (branch, id, ctx) {
     do {
         v = await variables.get(id);
         
-        console.log(id, v);
         if (id && id === v.defer) {
             throw "BUG: id can't defer to itself! " +  id + ' ' + JSON.stringify(v, null, '  ');
         }

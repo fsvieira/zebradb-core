@@ -23,7 +23,6 @@ const query = async (rDB, tuple, branchID, definitionsDB) => {
         constraints
     };
 
-    console.log("QUERY : ", JSON.stringify(tuple, null, '  '));
     const root = await branchOps.copyTerm(ctx, tuple, definitionsDB, true);
 
     return branchOps.create(

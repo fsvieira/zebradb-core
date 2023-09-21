@@ -58,8 +58,6 @@ const __checkConstrains = async (ctx, c, or) => {
                             const vc = ctx.newVar();
                             const [pID, qID] = cs[i].args;
 
-                            console.log(vc, vcs);
-
                             const p = await getVariable(null, pID, ctx);
                             const q = await getVariable(null, qID, ctx);
 
@@ -198,7 +196,27 @@ async function getConstant (ctx, string) {
         return c;
     }
 
-    return ctx.variables.get(vID);
+    return await ctx.variables.get(vID);
+}
+
+async function checkConstrainSubConstantConstant (ctx, a, b, cs) {
+    const r = parseFloat(a.data) - parseFloat(b.data);
+
+    if (!isNaN(r)) {
+        // get or create constant value,
+        const vc = await getConstant(ctx, r.toString());
+
+        console.log("========>", r);
+        const ok = await setVariable(ctx, cs, vc);
+
+        if (ok) {
+            console.log('CALC ADD VALUE '+ r + " = " + a.data + ' - ' + b.data);
+
+            return C_TRUE;
+        }
+    }
+
+    return C_FALSE;
 }
 
 async function checkConstrainAddConstantConstant(ctx, a, b, cs) {
@@ -206,9 +224,52 @@ async function checkConstrainAddConstantConstant(ctx, a, b, cs) {
 
     if (!isNaN(r)) {
         // get or create constant value,
-        const vID = await getConstant(ctx, r.toString());
+        const vc = await getConstant(ctx, r.toString());
 
-        const ok = await setVariable(ctx, cs, vID);
+        const ok = await setVariable(ctx, cs, vc);
+
+        if (ok) {
+            console.log('CALC ADD VALUE '+ r + " = " + a.data + ' + ' + b.data);
+
+            return C_TRUE;
+        }
+    }
+
+    return C_FALSE;
+}
+
+async function checkConstrainUnifyLocalVarConstant (ctx, lv, c, cs) {
+
+    /*if (lv.domain) {
+
+
+        throw "check if variable is on domain";
+    }*/
+
+    const ok = await setVariable(ctx, lv, c);
+
+    return ok?C_TRUE:C_FALSE;
+    
+}
+
+async function checkConstrainUnifyConstantConstant (ctx, a, b, cs) {
+
+    if (a.id === b.id) {
+        const vc = await getConstant(ctx, '1');
+        const ok = await setVariable(ctx, cs, vc);
+
+        if (ok) {
+            return C_TRUE;
+        }
+
+    }
+
+    return C_FALSE;
+}
+
+async function checkConstrainAndConstantConstant (ctx, a, b, cs) {
+    if (a.data === b.data && b.data==='1') {
+        const ok = await setVariable(ctx, cs, a);
 
         if (ok) {
             return C_TRUE;
@@ -218,6 +279,7 @@ async function checkConstrainAddConstantConstant(ctx, a, b, cs) {
     return C_FALSE;
 }
 
+/* TODO: MAYBE FOR LATER ??
 async function checkConstrainMulLocalVarConstant (ctx, v, c, cs) {
     const value = parseFloat(c.data);
 
@@ -227,14 +289,14 @@ async function checkConstrainMulLocalVarConstant (ctx, v, c, cs) {
     }
 
     if (v.domain) {
-        /*
             1. if domain we can create a new domain where all values are multiplied by c.
             2. if domain is not finit it would be more complicated. 
             3. if domain is not numeric it should fail.
 
             Notes: calculating possible values may help to reduce the options if 
             there is other constraints that would restrict the possible values. 
-         */
+         
+          
         const domain = await getVariable(null, v.domain, ctx);
 
         if (domain.type === SET) {
@@ -267,7 +329,7 @@ async function checkConstrainMulLocalVarConstant (ctx, v, c, cs) {
     }
 
     return C_UNKNOWN;
-} 
+}*/ 
 
 const constrainsFn = {
     [NOT_UNIFY]: {
@@ -275,20 +337,23 @@ const constrainsFn = {
             [CONSTANT]: checkConstrainNotUnifyLocalVarConstant
         },
         [CONSTANT]: {
-            [CONSTANT]: checkConstrainNotUnifyConstantConstant
-        },
-        [CONSTANT]: {
+            [CONSTANT]: checkConstrainNotUnifyConstantConstant,
             [CONSTRAINT]: checkConstrainConstantUnknown
         }
     },
     [UNIFY]: {
         [CONSTANT]: {
-            [CONSTRAINT]: checkConstrainConstantUnknown
+            [CONSTRAINT]: checkConstrainConstantUnknown,
+            [CONSTANT]: checkConstrainUnifyConstantConstant
+        },
+        [LOCAL_VAR]: {
+            [CONSTANT]: checkConstrainUnifyLocalVarConstant
         }
     },
     [AND]: {
         [CONSTANT]: {
-            [CONSTRAINT]: checkConstrainConstantUnknown
+            [CONSTRAINT]: checkConstrainConstantUnknown,
+            [CONSTANT]: checkConstrainAndConstantConstant
         }
     },
     [MUL]: {
@@ -296,15 +361,29 @@ const constrainsFn = {
             [CONSTRAINT]: checkConstrainConstantUnknown
         },
         [LOCAL_VAR]: {
-            [CONSTANT]: checkConstrainMulLocalVarConstant
+            [CONSTANT]: (ctx, lv, c) => checkConstrainConstantUnknown(ctx, c) // checkConstrainMulLocalVarConstant
+        }
+    },
+    [SUB]: {
+        [CONSTANT]: {
+            [LOCAL_VAR]: checkConstrainConstantUnknown,
+            [CONSTRAINT]: checkConstrainConstantUnknown,
+            [CONSTANT]: checkConstrainSubConstantConstant
         }
     },
     [ADD]: {
         [CONSTANT]: {
-            [CONSTRAINT]: checkConstrainConstantUnknown
+            [CONSTRAINT]: checkConstrainConstantUnknown,
+            [CONSTANT]: checkConstrainAddConstantConstant,
+            [LOCAL_VAR]: checkConstrainConstantUnknown
         },
-        [CONSTANT]: {
-            [CONSTANT]: checkConstrainAddConstantConstant
+        [CONSTRAINT]: {
+            [CONSTANT]: (ctx, cs, c, ...args) => 
+                constrainsFn[ADD][CONSTANT][CONSTRAINT](ctx, cs, c, ...args)
+        },
+        [LOCAL_VAR]: {
+            [CONSTANT]: (ctx, lv, c, ...args) => 
+                constrainsFn[ADD][CONSTANT][LOCAL_VAR](ctx, c, lv, ...args)
         }
     }
 }
@@ -315,30 +394,30 @@ async function checkConstrain(ctx, cs) {
     const av = await getVariable(null, a, ctx);
     const bv = await getVariable(null, b, ctx);
 
-    console.log(`checkConstrain: ${op} ${av.type} ${bv.type} !!`);
-    const fn = constrainsFn[op][av.type][bv.type];
+    try {
+        console.log(`======> ${av.type} ${op} ${bv.type}`);
+        const fn = constrainsFn[op][av.type][bv.type];
+        return await fn(ctx, av, bv, cs);
+    }
+    catch (e) {
+        console.log(e);
+        throw `checkConstrain: ${op} ${av.type} ${bv.type} !!`;
+    } 
 
-    return await fn(ctx, av, bv, cs);
 }
 
 async function checkVariableConstrains (ctx, v) {
-    console.log(v);
-
     for await (let vcID of v.constraints.values()) {
         const cs = await getVariable(null, vcID, ctx);
 
-        console.log(vcID, cs);
         const r = await checkConstrain(ctx, cs);
 
         if (r === C_FALSE) {
             return false;
         }
-
-        console.log(r);
     }
 
     return true;
-    // throw "checkVariableConstrains : Not Implemented"
 }
 
 async function intersectDomains(ctx, a, b) {
@@ -386,13 +465,6 @@ async function setVariableLocalVarLocalVar (ctx, v, p) {
 
     ctx.variables = await ctx.variables.set(b.id, {...b, defer: a.id});
 
-    /*if (b.constraints) {
-        // throw "Constrains may have been passed to variable A but they can't be removed!!"
-       // ctx.unsolvedVariables = await ctx.unsolvedVariables.remove(b.id);
-    }*/
-
-//    throw `FUNCTION ${v.type} x ${p.type} not implemented`;
-
     return true;
 }
 
@@ -421,9 +493,6 @@ async function setVariableLocalVarConstant (ctx, v, c) {
         if (r === false) {
             return r;
         }
-
-        // throw 'setVariableLocalVarConstant : Check constraints with new value!';
-        // ctx.unsolvedVariables = await ctx.unsolvedVariables.remove(v.id);
     }
 
     return true;
@@ -460,12 +529,8 @@ const setVariable = async (ctx, v, p) => {
     if (v.id !== p.id) {
 
         if (p.constraints || v.constraints) {
-            console.log("PPP");
+            console.log("TODO : CHECK setVariable with constrains on both vars!!");
         }
-
-        console.log("TODO: setVariable not implemented!! ");
-        
-        console.log(`==> Set Variable ${v.type} x ${p.type} not implemented`);
 
         const fn = setVariableFn[v.type][p.type];
         
@@ -477,80 +542,6 @@ const setVariable = async (ctx, v, p) => {
     }
     
     return true; 
-
-    if (v.id !== p.id) {
-        if (v.d && (p.t || (p.c && !(await v.d.has(p.id))))) {
-
-            // if v has domain, then if value is:
-            //        * a tuple, it fails,
-            //        * if a constant not in domain, it fails. 
-            return false;
-        }
-
-        const c = !p.v || p.pv; 
-        let a = c ? p : v;
-        let b = c ? v : p;
-
-        ctx.variables = await ctx.variables.set(b.id, {v: b.id, defer: a.id});
-        ctx.unsolvedVariables = await ctx.unsolvedVariables.remove(b.id);
-
-        let d;
-        if (!p.c) { 
-            d = a.d || b.d;
-            if (a.d && b.d) {
-                for await (let c of a.d) {
-                    if (!b.d.has(c)) {
-                        d = await d.remove(c);
-
-                        if (d.size === 0) {
-                            return false;
-                        }
-                    }
-                }
-            }
-        }
-
-        let e = v.e || p.e;
-        if (v.e && p.e) {
-            for await (let c of p.e.values()) {
-                e = await e.add(c);
-            }
-        }
-
-        if (e && e.size > 0) {
-            const cs = e;
-            for await (let condID of cs.values()) {
-                const c = await getVariable(null, condID, ctx);
-                const ok = await checkConstrains(ctx, c);
-                
-                if (ok === C_TRUE) {
-                    ctx.constraints = await ctx.constraints.remove(c.id);
-                    e = await e.remove(c.id);
-                }
-                else if (ok === C_FALSE) {
-                    return false;
-                }
-            }
-        }
-
-        const vin = a.in || b.in;
-
-        if (a.v && (
-            (d && (!a.d || a.d.id !== d.id))
-            || 
-            (e && (!a.e || a.e.id !== e.id))
-            || vin
-        )) {
-            // update a
-            ctx.variables = await ctx.variables.set(a.id, {...a, d, e, in: vin});
-
-            if ((d && e) || vin) {
-                ctx.unsolvedVariables = await ctx.unsolvedVariables.add(a.id);
-            }
-        }
-    }
-
-    return true;
 }
 
 
@@ -561,7 +552,7 @@ const unifyFn = {
         [CONSTANT]: setVariable, // async (ctx, p, q) => (!p.d || (p.d && p.d.includes(q.id))) && await unifyVariable(ctx, p, q)
     },
     [TUPLE]: {
-        [LOCAL_VAR]: async (ctx, p, q) => unifyFn.v.t(ctx, q, p),
+        [LOCAL_VAR]: async (ctx, p, q) => unifyFn[LOCAL_VAR][TUPLE](ctx, q, p),
         [TUPLE]: async (ctx, p, q) => {
             if (p.id !== q.id) {
                 if (p.data.length === q.data.length) {
@@ -586,9 +577,9 @@ const unifyFn = {
         [CONSTANT]: async () => false
     },
     [CONSTANT]: {
-        [LOCAL_VAR]: async (ctx, p, q) => unifyFn.v.c(ctx, q, p),
+        [LOCAL_VAR]: async (ctx, p, q) => unifyFn[LOCAL_VAR][CONSTANT](ctx, q, p),
         [TUPLE]: async () => false,
-        [CONSTANT]: async (ctx, p, q) => p.c === q.c
+        [CONSTANT]: async (ctx, p, q) => p.data === q.data
     }
 }
 
@@ -657,7 +648,6 @@ const doUnify = async (ctx, p, q) => {
     p = await get(ctx, p);
     q = await get(ctx, q);
 
-    console.log("-------->", p, q);
     let s;
     
     if (ctx.options.log) {
@@ -665,34 +655,6 @@ const doUnify = async (ctx, p, q) => {
     }
 
     const ok =  await unifyFn[p.type][q.type](ctx, p, q);
-
-    if (ctx.options.log) {
-        const ps = await toString(undefined, p.id, ctx);
-        const qs = await toString(undefined, q.id, ctx);
-
-        s += `; p=${ps}, q=${qs}`;
-        if (!ok) {
-            ctx.log = await ctx.log.push(`FAIL: ${s}`);
-        }
-        else {
-            ctx.log = await ctx.log.push(`SUCC: ${s}`);
-        }
-    }
-
-    return ok;
-}
-
-const __doUnify = async (ctx, p, q) => {
-    p = await get(ctx, p);
-    q = await get(ctx, q);
-
-    let s;
-    
-    if (ctx.options.log) {
-        s = `${await toString(undefined, p.id, ctx)} ** ${await toString(undefined, q.id, ctx)}`;
-    }
-
-    const ok =  await unifyFn[type(p)][type(q)](ctx, p, q);
 
     if (ctx.options.log) {
         const ps = await toString(undefined, p.id, ctx);
@@ -808,124 +770,6 @@ async function unify (branch, options, tuple, definitionID, definition) {
     );
 
     return branch;
-    /*
-    let state = 'maybe';
-
-    if (fail) {
-        state='no'
-    }
-    else if (await unchecked.size === 0) {
-        if (await unsolvedVariables.size === 0) {
-            state='yes';
-        }
-        else {
-            state='unsolved_variables';
-        }
-    }
-
-    const newBranch = await rDB.tables.branches.insert({
-        parent: branch,
-        root: await branch.data.root,
-        variableCounter: varCounter(),
-        level,
-        checked,
-        unchecked,
-        variables,
-        constraints,
-        unsolvedVariables,
-        children: [],
-        state,
-        log
-    }, null);
-
-    const children = (await branch.data.children).concat([newBranch]);
-    branch.update({children});
-
-    return branch;*/
-}
-
-async function __unify (branch, options, tuple, definitionID, definition) {
-
-    const level = await branch.data.level + 1;
-    const rDB = branch.table.db;
-
-    const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
-    const ctx = {
-        variables: await branch.data.variables,
-        constraints: await branch.data.constraints,
-        unsolvedVariables: await branch.data.unsolvedVariables,
-        unchecked: await branch.data.unchecked,
-        checked: await branch.data.checked,
-        newVar,
-        level,
-        rDB: branch.table.db,
-        branch,
-        log: await branch.data.log,
-        options  
-    };
-
-    if (definition) {
-        return await getSet(ctx, branch, tuple, definitionID, definition, varCounter);
-    }
-
-    const {
-        variables, constraints, 
-        unsolvedVariables, unchecked, 
-        checked, fail, log
-    } = await deepUnify(
-        ctx,
-        tuple, 
-        definitionID
-    );
-
-    await createBranch(
-        fail,
-        branch,
-        varCounter,
-        ctx.level,
-        checked,
-        unchecked,
-        variables,
-        constraints,
-        unsolvedVariables,
-        log        
-    );
-
-    return branch;
-    /*
-    let state = 'maybe';
-
-    if (fail) {
-        state='no'
-    }
-    else if (await unchecked.size === 0) {
-        if (await unsolvedVariables.size === 0) {
-            state='yes';
-        }
-        else {
-            state='unsolved_variables';
-        }
-    }
-
-    const newBranch = await rDB.tables.branches.insert({
-        parent: branch,
-        root: await branch.data.root,
-        variableCounter: varCounter(),
-        level,
-        checked,
-        unchecked,
-        variables,
-        constraints,
-        unsolvedVariables,
-        children: [],
-        state,
-        log
-    }, null);
-
-    const children = (await branch.data.children).concat([newBranch]);
-    branch.update({children});
-
-    return branch;*/
 }
 
 module.exports = {unify, constants};

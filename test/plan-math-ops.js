@@ -3,7 +3,77 @@
 const test = require("../test-utils/test");
 
 describe("Plan Math graphs.", () => {
-	it("Plan Math Ops: Send More Money", test(
+	xit("Simple Add", test(
+		`
+		$DIGITS = {0 1 2 3 4 5 6 7 8 9}
+			
+		$ADD = {('r = 'a:$DIGITS + 'b:$DIGITS) | 'r = 'a + 'b }
+	`
+		,	 
+		[
+			{
+				query: `('r = 1 + 1):$ADD`,
+				results: [
+					"@(2 = 1 + 1)" 
+				]
+			},
+			{
+				query: `('r = 'a + 1):$ADD`,
+				results: [
+					"@(1 = 0 + 1)",
+					"@(10 = 9 + 1)",
+					"@(2 = 1 + 1)",
+					"@(3 = 2 + 1)",
+					"@(4 = 3 + 1)",
+					"@(5 = 4 + 1)",
+					"@(6 = 5 + 1)",
+					"@(7 = 6 + 1)",
+					"@(8 = 7 + 1)",
+					"@(9 = 8 + 1)"
+				]
+			},
+		], 
+		{path: 'dbs/plan-math-ops/1', timeout: 1000 * 60 * 60}
+	));
+
+	it("Solve Add", test(
+		`
+		$DIGITS = {0 1 2 3 4 5 6 7 8 9}
+			
+		$ADD = {('r = 'a:$DIGITS + 'b:$DIGITS) | 
+			['r = ['a + 'b]], 
+			['a = ['r - 'b]],
+			['b = ['r - 'a]]
+		}
+	`
+		,	 
+		[
+			{
+				query: `(8 = 'a + 2):$ADD`,
+				results: [
+					"@(2 = 1 + 1)" 
+				]
+			},
+			{
+				query: `('r = 'a + 1):$ADD`,
+				results: [
+					"@(1 = 0 + 1)",
+					"@(10 = 9 + 1)",
+					"@(2 = 1 + 1)",
+					"@(3 = 2 + 1)",
+					"@(4 = 3 + 1)",
+					"@(5 = 4 + 1)",
+					"@(6 = 5 + 1)",
+					"@(7 = 6 + 1)",
+					"@(8 = 7 + 1)",
+					"@(9 = 8 + 1)"
+				]
+			},
+		], 
+		{path: 'dbs/plan-math-ops/2', timeout: 1000 * 60 * 60}
+	));
+
+	xit("Plan Math Ops: Send More Money", test(
 		`			
 			$DIGITS = {0 1 2 3 4 5 6 7 8 9}
 			
@@ -24,8 +94,9 @@ describe("Plan Math graphs.", () => {
 				'R != 'Y,
 
 				# Define the addition equation
-				'M * 10000 + 'O * 1000 + 'N * 100 + 'E * 10 + 'Y =
-					['S * 1000 + 'E * 100 + 'N * 10 + 'D] + ['M * 1000 + 'O * 100 + 'R * 10 + 'E]
+				[['M * 10000] + ['O * 1000] + ['N * 100] + ['E * 10] + 'Y] = [
+					['S * 1000] + ['E * 100] + ['N * 10] + 'D + ['M * 1000] + ['O * 100] + ['R * 10] + 'E
+				]
 			}
         `, 
 		[
@@ -43,7 +114,7 @@ describe("Plan Math graphs.", () => {
 				]
 			},
 		], 
-		{path: 'dbs/plan-math-ops/1', timeout: 1000 * 60 * 60}
+		{path: 'dbs/plan-math-ops/2', timeout: 1000 * 60 * 60}
 	));
 
 	xit("Plan Math Ops: Send More Money (distinct)", test(

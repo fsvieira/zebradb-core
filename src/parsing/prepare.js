@@ -144,8 +144,6 @@ function terms (ctx, t) {
 }*/
 
 function termSetExpression (ctx, s) {
-    console.log(JSON.stringify(s));
-
     const {type, a, op, b, variable} = s;
 
     const cid = ctx.newVar(s);
@@ -324,7 +322,6 @@ function prepare (tuple) {
     }
 
     ctx.newVar = v => {
-        console.log("NEW VAR ON PREPARE!!", v);
         switch(v.type) {
             case SET_CS:
             case TUPLE:
