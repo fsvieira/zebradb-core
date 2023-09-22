@@ -163,7 +163,8 @@ async function checkConstrainNotUnifyLocalVarConstant (ctx, a, b, cs) {
                     const s = {
                         type: SET,
                         elements: es,
-                        id
+                        id,
+                        size: es.length
                     };
 
                     ctx.variables = await ctx.variables.set(id, s);
@@ -234,6 +235,23 @@ async function getConstant (ctx, string) {
 
 async function checkConstrainSubConstantConstant (ctx, a, b, cs) {
     const r = parseFloat(a.data) - parseFloat(b.data);
+
+    if (!isNaN(r)) {
+        // get or create constant value,
+        const vc = await getConstant(ctx, r.toString());
+
+        const ok = await setVariable(ctx, cs, vc);
+
+        if (ok) {
+            return C_TRUE;
+        }
+    }
+
+    return C_FALSE;
+}
+
+async function checkConstrainMulConstantConstant (ctx, a, b, cs) {
+    const r = parseFloat(a.data) * parseFloat(b.data);
 
     if (!isNaN(r)) {
         // get or create constant value,
@@ -364,27 +382,38 @@ const constrainsFn = {
         },
         [CONSTANT]: {
             [CONSTANT]: checkConstrainNotUnifyConstantConstant,
-            [CONSTRAINT]: checkConstrainConstantUnknown
+            [CONSTRAINT]: checkConstrainConstantUnknown,
+            [LOCAL_VAR]: (ctx, c, lv, ...args) => 
+                constrainsFn[NOT_UNIFY][LOCAL_VAR][CONSTANT](ctx, lv, c, ...args) 
         }
     },
     [UNIFY]: {
         [CONSTANT]: {
-            [CONSTRAINT]: checkConstrainConstantUnknown,
+            [CONSTRAINT]: () => C_UNKNOWN, // checkConstrainConstantUnknown,
             [CONSTANT]: checkConstrainUnifyConstantConstant
         },
         [LOCAL_VAR]: {
             [CONSTANT]: checkConstrainUnifyLocalVarConstant
+        },
+        [CONSTRAINT]: {
+           [CONSTANT]: () => C_UNKNOWN
         }
+
     },
     [AND]: {
         [CONSTANT]: {
             [CONSTRAINT]: checkConstrainConstantUnknown,
             [CONSTANT]: checkConstrainAndConstantConstant
+        },
+        [CONSTRAINT]: {
+            [CONSTANT]: (ctx, cs, c, ...args) => 
+                constrainsFn[AND][CONSTANT][CONSTRAINT](ctx, c, cs, ...args)
         }
     },
     [MUL]: {
         [CONSTANT]: {
-            [CONSTRAINT]: checkConstrainConstantUnknown
+            [CONSTRAINT]: checkConstrainConstantUnknown,
+            [CONSTANT]: checkConstrainMulConstantConstant
         },
         [LOCAL_VAR]: {
             [CONSTANT]: (ctx, lv, c) => checkConstrainConstantUnknown(ctx, c) // checkConstrainMulLocalVarConstant
@@ -405,7 +434,7 @@ const constrainsFn = {
         },
         [CONSTRAINT]: {
             [CONSTANT]: (ctx, cs, c, ...args) => 
-                constrainsFn[ADD][CONSTANT][CONSTRAINT](ctx, cs, c, ...args)
+                constrainsFn[ADD][CONSTANT][CONSTRAINT](ctx, c, cs, ...args)
         },
         [LOCAL_VAR]: {
             [CONSTANT]: (ctx, lv, c, ...args) => 
@@ -534,6 +563,7 @@ async function setVariableLocalVarConstant (ctx, v, c) {
 }
 
 async function setVariableConstraintConstant (ctx, cs, c) {
+    console.log("CCCCCCCCCCCCCCCCCC ", c);
     ctx.variables = await ctx.variables.set(cs.id, {...cs, defer: c.id});
 
     if (cs.constraints) {

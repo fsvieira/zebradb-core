@@ -107,27 +107,34 @@ describe("Plan Math graphs.", () => {
 				'R != 'Y,
 
 				# Define the addition equation
-				[['M * 10000] + ['O * 1000] + ['N * 100] + ['E * 10] + 'Y] = [
-					['S * 1000] + ['E * 100] + ['N * 10] + 'D + ['M * 1000] + ['O * 100] + ['R * 10] + 'E
-				]
+				'M * 10000 + 'O * 1000 + 'N * 100 + 'E * 10 + 'Y = 
+					'S * 1000 + 'E * 100 + 'N * 10 + 'D + 'M * 1000 + 'O * 100 + 'R * 10 + 'E
+				
 			}
         `, 
 		[
+			/*{
+				query: `(
+				    9 5 'N 'D +
+					'M 'O 'R 'E =
+				 1 0 'N 'E 'Y
+				):$SEND_MORE_MONEY`,
+				results: [
+					"@(9 5 6 7 + 1 0 8 5 = 1 0 6 5 2)" 
+				]
+			},*/
 			{
 				query: `(
 				    'S 'E 'N 'D +
 					'M 'O 'R 'E =
-				 'M 'O 'N 'E 'Y
+				  1 'O 'N 'E 'Y
 				):$SEND_MORE_MONEY`,
 				results: [
-					"@(0 & 0 = 0)", 
-					"@(0 & 1 = 0)", 
-					"@(1 & 0 = 0)", 
-					"@(1 & 1 = 1)" 
+					"@(9 5 6 7 + 1 0 8 5 = 1 0 6 5 2)" 
 				]
 			},
 		], 
-		{path: 'dbs/plan-math-ops/2', timeout: 1000 * 60 * 60}
+		{path: 'dbs/plan-math-ops/4', timeout: 1000 * 60 * 60}
 	));
 
 	xit("Plan Math Ops: Send More Money (distinct)", test(
