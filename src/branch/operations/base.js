@@ -66,8 +66,6 @@ async function save2db (
         if (!gv) {
             const definition = await definitionsDB.getDefByVariable(v);
 
-            console.log("copyterm global var: we need a new scope ??");
-
             ctx.variables = await ctx.variables.set(
                 vn, {
                     ...v,

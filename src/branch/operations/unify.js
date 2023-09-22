@@ -206,12 +206,9 @@ async function checkConstrainSubConstantConstant (ctx, a, b, cs) {
         // get or create constant value,
         const vc = await getConstant(ctx, r.toString());
 
-        console.log("========>", r);
         const ok = await setVariable(ctx, cs, vc);
 
         if (ok) {
-            console.log('CALC ADD VALUE '+ r + " = " + a.data + ' - ' + b.data);
-
             return C_TRUE;
         }
     }
@@ -229,8 +226,6 @@ async function checkConstrainAddConstantConstant(ctx, a, b, cs) {
         const ok = await setVariable(ctx, cs, vc);
 
         if (ok) {
-            console.log('CALC ADD VALUE '+ r + " = " + a.data + ' + ' + b.data);
-
             return C_TRUE;
         }
     }
@@ -319,11 +314,9 @@ async function checkConstrainMulLocalVarConstant (ctx, v, c, cs) {
             // 2. replace/defer cs to local variable,
             // 3. process...
 
-            console.log("NEW DOMAIN", newDomain, value);
             throw 'NEW DOMAIN!!';
         }
         else {
-            console.log(domain);
             throw 'checkConstrainMulLocalVarConstant: check domain case!!';
         }
     }
@@ -389,13 +382,21 @@ const constrainsFn = {
 }
 
 async function checkConstrain(ctx, cs) {
+    if (cs.type === CONSTANT) {
+        if (cs.data === '1') {
+            return C_TRUE;
+        }
+
+        return C_FALSE;
+    }
+
     const {a, op, b, id} = cs;
+
 
     const av = await getVariable(null, a, ctx);
     const bv = await getVariable(null, b, ctx);
 
     try {
-        console.log(`======> ${av.type} ${op} ${bv.type}`);
         const fn = constrainsFn[op][av.type][bv.type];
         return await fn(ctx, av, bv, cs);
     }
