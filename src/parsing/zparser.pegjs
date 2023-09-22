@@ -138,11 +138,15 @@ set = a:set_def _ op:set_op _ b:set {
 /*
 Expression
 */
+/*
+
 operations = op:('!=' / '=' / 'in' / 'and' / ',' / '+' / '-' / '*') {return opCode(op)}
 
 expressionPar = '[' _ expression:expression _ ']' {return expression}
 
 expressionTerm = set / variable / constantExpression / expressionPar
+
+DELETE ??
 expressionTerms = expressionTerm:expressionTerm terms:(wsp terms:expressionTerm {return terms})* 
   { return [expressionTerm].concat(terms) }
 
@@ -151,6 +155,33 @@ expression = a:expressionTerm _ op:operations _ b:expression {
 } 
 / expressionPar
 / expressionTerm
+
+*/
+
+expression = logical_and
+
+logical_and
+  = a:equality _ op:('and' / ',') _ b:logical_and { return { type: CONSTRAINT, op: opCode(op), a, b }; }
+  / equality
+
+equality
+  = a:additive _ op:('=' / '!=') _ b:equality { return { type: CONSTRAINT, op: opCode(op), a, b }; }
+  / additive
+
+additive
+  = a:multiplicative _ op:('+' / '-') _ b:additive { return { type: CONSTRAINT, op: opCode(op), a, b }; }
+  / multiplicative
+
+multiplicative
+  = a:expressionTerm _ op:('*' / '/') _ b:multiplicative { return { type: CONSTRAINT, op: opCode(op), a, b }; }
+  / expressionTerm
+
+expressionTerm
+  = set 
+  / variable 
+  / constantExpression
+  / '[' _ expression:expression _ ']' {return expression}
+
 
 
 /* 

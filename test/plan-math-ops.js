@@ -11,7 +11,7 @@ describe("Plan Math graphs.", () => {
 	`
 		,	 
 		[
-			/*{
+			{
 				query: `('r = 1 + 1):$ADD`,
 				results: [
 					"@(2 = 1 + 1)" 
@@ -31,7 +31,7 @@ describe("Plan Math graphs.", () => {
 					"@(8 = 7 + 1)",
 					"@(9 = 8 + 1)"
 				]
-			},*/
+			},
 			{
 				query: `(8 = 'a + 2):$ADD`,
 				results: [
@@ -64,7 +64,29 @@ describe("Plan Math graphs.", () => {
 		{path: 'dbs/plan-math-ops/2', timeout: 1000 * 60 * 60}
 	));
 
-	xit("Plan Math Ops: Send More Money", test(
+	it("Solve Add (precedence in operators Expressions)", test(
+		`
+		$DIGITS = {0 1 2 3 4 5 6 7 8 9}
+			
+		$ADD = {('r = 'a:$DIGITS + 'b:$DIGITS) | 
+			'r = 'a + 'b, 
+			'a = 'r - 'b,
+			'b = 'r - 'a
+		}
+	`
+		,	 
+		[
+			{
+				query: `(8 = 'a + 2):$ADD`,
+				results: [
+					"@(8 = 6 + 2)" 
+				]
+			}
+		], 
+		{path: 'dbs/plan-math-ops/3', timeout: 1000 * 60 * 60}
+	));
+
+	it("Plan Math Ops: Send More Money", test(
 		`			
 			$DIGITS = {0 1 2 3 4 5 6 7 8 9}
 			
