@@ -139,27 +139,60 @@ const __checkConstrains = async (ctx, c, or) => {
     throw `Unknown operator ${op}!!`;
 }
 
-async function checkConstrainNotUnifyLocalVarConstant (ctx, a, b) {
+async function checkConstrainNotUnifyLocalVarConstant (ctx, a, b, cs) {
     if (a.domain) {
         const domain = await getVariable(null, a.domain, ctx);
-        const index = domain.elements.findIndex(vID => vID === b.id);
-        if (index >= 0) {
-            const es = domain.elements.slice();
-            es.splice(index, 1);
 
-            if (es.length === 1) {
-                const v = await getVariable(null, es[0], ctx);
+        if (domain.type === SET) {
+            const index = domain.elements.findIndex(vID => vID === b.id);
 
-                const r = await setVariableLocalVarConstant(ctx, a, v);
+            if (index >= 0) {
+                const es = domain.elements.slice();
+                es.splice(index, 1);
 
-                return r?C_TRUE:C_FALSE;
+                if (es.length === 1) {
+                    const v = await getVariable(null, es[0], ctx);
+
+                    const r = await setVariableLocalVarConstant(ctx, a, v);
+
+                    return r?C_TRUE:C_FALSE;
+                }
+                else {
+                    // 1. create a new domain variable, 
+                    const id = ctx.newVar();
+                    const s = {
+                        type: SET,
+                        elements: es,
+                        id
+                    };
+
+                    ctx.variables = await ctx.variables.set(id, s);
+
+                    // 2. remove a constrains,
+                    const constraints = await a.constraints.remove(cs.id);
+
+                    // 3. save modifications,
+                    ctx.variables = await ctx.variables.set(a.id, {
+                        ...a, 
+                        constraints: constraints.size === 0?undefined:constraints,
+                        domain: id
+                    });
+                }
+            }
+
+            // 4. set constraint to true,
+            const vc = await getConstant(ctx, '1');
+            const ok = await setVariable(ctx, cs, vc);
+    
+            if (ok) {
+                return C_TRUE;
             }
             else {
-                throw `checkConstrainNotUnifyLocalVarConstant: Not implemented!`;
+                return C_FALSE;
             }
         }
         else {
-            return C_TRUE;
+            throw `checkConstrainNotUnifyLocalVarConstant: Not implemented for domain type ${domain.type}!`;
         }
     }
 
@@ -402,6 +435,7 @@ async function checkConstrain(ctx, cs) {
     }
     catch (e) {
         console.log(e);
+        console.log(`checkConstrain: ${op} ${av.type} ${bv.type} !!`);
         throw `checkConstrain: ${op} ${av.type} ${bv.type} !!`;
     } 
 

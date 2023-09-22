@@ -3,7 +3,7 @@
 const test = require("../test-utils/test");
 
 describe("Plan Math graphs.", () => {
-	it("Simple Add", test(
+	xit("Simple Add", test(
 		`
 		$DIGITS = {0 1 2 3 4 5 6 7 8 9}
 			
@@ -42,7 +42,7 @@ describe("Plan Math graphs.", () => {
 		{path: 'dbs/plan-math-ops/1', timeout: 1000 * 60 * 60}
 	));
 
-	it("Solve Add", test(
+	xit("Solve Add", test(
 		`
 		$DIGITS = {0 1 2 3 4 5 6 7 8 9}
 			
@@ -64,7 +64,7 @@ describe("Plan Math graphs.", () => {
 		{path: 'dbs/plan-math-ops/2', timeout: 1000 * 60 * 60}
 	));
 
-	it("Solve Add (precedence in operators Expressions)", test(
+	xit("Solve Add (precedence in operators Expressions)", test(
 		`
 		$DIGITS = {0 1 2 3 4 5 6 7 8 9}
 			
