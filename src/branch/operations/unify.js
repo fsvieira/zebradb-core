@@ -10,7 +10,10 @@ const {
 
 const constants = require("./constants");
 
-const {checkVariableConstrains} = require("./built-in/constraints.js");
+const {
+    checkVariableConstrains,
+    setVariable
+} = require("./built-in/constraints.js");
 
 const {
     type: {
@@ -483,6 +486,7 @@ async function checkVariableConstrains (ctx, v) {
     return true;
 }*/
 
+/*
 async function intersectDomains(ctx, a, b) {
     if (a.domain && b.domain) {
 
@@ -497,7 +501,8 @@ async function intersectDomains(ctx, a, b) {
     return b.domain || a.domain;
     
 }
-
+*/
+/*
 async function setVariableLocalVarLocalVar (ctx, v, p) {
     let a = p.pv ? p : v;
     let b = p.pv ? v : p;
@@ -529,8 +534,9 @@ async function setVariableLocalVarLocalVar (ctx, v, p) {
     ctx.variables = await ctx.variables.set(b.id, {...b, defer: a.id});
 
     return true;
-}
+}*/
 
+/*
 async function setVariableLocalVarConstant (ctx, v, c) {
     if (v.domain) {
         const d = await getVariable(null, v.domain, ctx);
@@ -560,6 +566,7 @@ async function setVariableLocalVarConstant (ctx, v, c) {
 
     return true;
 }
+*/
 
 async function setVariableConstraintConstant (ctx, cs, c) {
     console.log("CCCCCCCCCCCCCCCCCC ", c);
@@ -577,6 +584,7 @@ async function setVariableConstraintConstant (ctx, cs, c) {
 
 }
 
+/*
 const setVariableFn = {
     [LOCAL_VAR]: {
         [LOCAL_VAR]: setVariableLocalVarLocalVar,
@@ -585,29 +593,7 @@ const setVariableFn = {
     [CONSTRAINT]: {
         [CONSTANT]: setVariableConstraintConstant
     }
-
-}
-
-const setVariable = async (ctx, v, p) => {
-
-    if (v.id !== p.id) {
-
-        if (p.constraints || v.constraints) {
-            console.log("TODO : CHECK setVariable with constrains on both vars!!");
-        }
-
-        const fn = setVariableFn[v.type][p.type];
-        
-        if (!fn) {
-            throw `Set Variable ${v.type} x ${p.type} not implemented`
-        }
-
-        return fn(ctx, v, p);
-    }
-    
-    return true; 
-}
-
+}*/
 
 const unifyFn = {
     [LOCAL_VAR]: {
