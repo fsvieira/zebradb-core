@@ -19,7 +19,10 @@
           UNION,
           ADD,
           SUB,
-          MUL
+          MUL,
+          DIV,
+          MOD,
+          FUNCTION
       }
   } = require("../branch/operations/constants");
 
@@ -35,6 +38,8 @@
       case '+': return ADD;
       case '-': return SUB;
       case '*': return MUL;
+      case '/': return DIV;
+      case '%': return MOD;
     }
   }
 }
@@ -173,16 +178,18 @@ additive
   / multiplicative
 
 multiplicative
-  = a:expressionTerm _ op:('*' / '/') _ b:multiplicative { return { type: CONSTRAINT, op: opCode(op), a, b }; }
+  = a:expressionTerm _ op:('*' / '/' / '%') _ b:multiplicative { return { type: CONSTRAINT, op: opCode(op), a, b }; }
   / expressionTerm
 
 expressionTerm
   = set 
   / variable 
   / constantExpression
+  / [a-zA-Z]+ args
   / '[' _ expression:expression _ ']' {return expression}
 
-
+func = f:('floor' / 'round' / 'ceil') '[' args:args ']' {return {type: FUNCTION, name: f, args }}
+args = a:expression _ rest:(';' _ r:expression _ {return r;})* {return [a].concat(rest)}  
 
 /* 
   Comments and Helpers,

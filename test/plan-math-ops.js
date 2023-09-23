@@ -3,7 +3,7 @@
 const test = require("../test-utils/test");
 
 describe("Plan Math graphs.", () => {
-	xit("Simple Add", test(
+	it("Simple Add", test(
 		`
 		$DIGITS = {0 1 2 3 4 5 6 7 8 9}
 			
@@ -86,7 +86,7 @@ describe("Plan Math graphs.", () => {
 		{path: 'dbs/plan-math-ops/3', timeout: 1000 * 60 * 60}
 	));
 
-	it("Plan Math Ops: Send More Money", test(
+	xit("Plan Math Ops: Send More Money", test(
 		`			
 			$DIGITS = {0 1 2 3 4 5 6 7 8 9}
 			
@@ -113,7 +113,7 @@ describe("Plan Math graphs.", () => {
 			}
         `, 
 		[
-			/*{
+			{
 				query: `(
 				    9 5 'N 'D +
 					'M 'O 'R 'E =
@@ -122,8 +122,8 @@ describe("Plan Math graphs.", () => {
 				results: [
 					"@(9 5 6 7 + 1 0 8 5 = 1 0 6 5 2)" 
 				]
-			},*/
-			{
+			},
+			/*{
 				query: `(
 				    'S 'E 'N 'D +
 					'M 'O 'R 'E =
@@ -132,9 +132,84 @@ describe("Plan Math graphs.", () => {
 				results: [
 					"@(9 5 6 7 + 1 0 8 5 = 1 0 6 5 2)" 
 				]
-			},
+			},*/
 		], 
 		{path: 'dbs/plan-math-ops/4', timeout: 1000 * 60 * 60}
+	));
+
+	xit("Plan Math Ops: Make Adder", test(
+		`			
+			$DIGITS = {0 1 2 3 4 5 6 7 8 9}
+
+			$DECIMAL_ADD = {
+				(
+					'a:$DIGITS
+					'b:$DIGITS
+					'cin:$DIGITS
+					'sum:$DIGITS
+					'cout:$DIGITS
+				) | 'sum = ['a + 'b + 'cin] % 10,
+					'cout = floor[['a + 'b + 'cin] / 10]
+			}
+
+			/*
+			$DECIMAL_ADD = {
+				(
+					'a:$DIGITS
+					'b:$DIGITS
+					'cin:$DIGITS
+					'sum:$DIGITS
+					'cout:$DIGITS
+				) | 
+					[
+						's = 'a + 'b + 'cin
+						's >= 10,
+						'sum = 's - 10
+					] or [
+						's = 'a + 'b + 'cin
+						's < 10
+					] 
+			}
+
+			$DECIMAL_ADD = {
+				(
+					'a:$DIGITS
+					'b:$DIGITS
+					'cin:$DIGITS
+					'sum:$DIGITS
+					1
+				) | 
+					's = 'a + 'b + 'cin
+					's >= 10,
+					'sum = 's - 10,
+			} union {
+				(
+					'a:$DIGITS
+					'b:$DIGITS
+					'cin:$DIGITS
+					'sum:$DIGITS
+					0
+				) | 
+					's = 'a + 'b + 'cin
+					's < 10
+			}*/
+        `, 
+		[
+			{
+				query: `(
+				    'S 'E 'N 'D +
+					'M 'O 'R 'E =
+				 'M 'O 'N 'E 'Y
+				):$SEND_MORE_MONEY`,
+				results: [
+					"@(0 & 0 = 0)", 
+					"@(0 & 1 = 0)", 
+					"@(1 & 0 = 0)", 
+					"@(1 & 1 = 1)" 
+				]
+			},
+		], 
+		{path: 'dbs/plan-math-ops/5', timeout: 1000 * 60}
 	));
 
 	xit("Plan Math Ops: Send More Money (distinct)", test(
@@ -176,6 +251,8 @@ describe("Plan Math graphs.", () => {
 		], 
 		{path: 'dbs/plan-math-ops/1', timeout: 1000 * 60}
 	));
+
+	
 
 	xit("Plan Math Ops: Send More Money", test(
 		`			

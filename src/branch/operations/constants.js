@@ -20,7 +20,10 @@ module.exports = {
         UNION: "union",
         ADD: '+',
         SUB: '-',
-        MUL: '*'
+        MUL: '*',
+        DIV: '/',
+        MOD: '%',
+        FUNCTION: 'fn'
     }
 };
 

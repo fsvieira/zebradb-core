@@ -10,6 +10,8 @@ const {
 
 const constants = require("./constants");
 
+const {checkVariableConstrains} = require("./built-in/constraints.js");
+
 const {
     type: {
         CONSTANT, // : "c",
@@ -40,6 +42,7 @@ const C_FALSE = 0;
 const C_TRUE = 1;
 const C_UNKNOWN = 2;
 
+/*
 const __checkConstrains = async (ctx, c, or) => {
     if (c.op === '!=') {
         const [p, q] = await Promise.all(c.args.map(id => getVariable(null, id, ctx)));
@@ -286,12 +289,6 @@ async function checkConstrainAddConstantConstant(ctx, a, b, cs) {
 
 async function checkConstrainUnifyLocalVarConstant (ctx, lv, c, cs) {
 
-    /*if (lv.domain) {
-
-
-        throw "check if variable is on domain";
-    }*/
-
     const ok = await setVariable(ctx, lv, c);
 
     return ok?C_TRUE:C_FALSE;
@@ -324,7 +321,7 @@ async function checkConstrainAndConstantConstant (ctx, a, b, cs) {
 
     return C_FALSE;
 }
-
+*/
 /* TODO: MAYBE FOR LATER ??
 async function checkConstrainMulLocalVarConstant (ctx, v, c, cs) {
     const value = parseFloat(c.data);
@@ -375,6 +372,7 @@ async function checkConstrainMulLocalVarConstant (ctx, v, c, cs) {
     return C_UNKNOWN;
 }*/ 
 
+/*
 const constrainsFn = {
     [NOT_UNIFY]: {
         [LOCAL_VAR]: {
@@ -468,8 +466,9 @@ async function checkConstrain(ctx, cs) {
         throw `checkConstrain: ${op} ${av.type} ${bv.type} !!`;
     } 
 
-}
+}*/
 
+/*
 async function checkVariableConstrains (ctx, v) {
     for await (let vcID of v.constraints.values()) {
         const cs = await getVariable(null, vcID, ctx);
@@ -482,7 +481,7 @@ async function checkVariableConstrains (ctx, v) {
     }
 
     return true;
-}
+}*/
 
 async function intersectDomains(ctx, a, b) {
     if (a.domain && b.domain) {
