@@ -3,7 +3,7 @@
 const test = require("../test-utils/test");
 
 describe("Plan Math graphs.", () => {
-	it("Simple Add", test(
+	xit("Simple Add", test(
 		`
 		$DIGITS = {0 1 2 3 4 5 6 7 8 9}
 			
@@ -86,7 +86,7 @@ describe("Plan Math graphs.", () => {
 		{path: 'dbs/plan-math-ops/3', timeout: 1000 * 60 * 60}
 	));
 
-	xit("Plan Math Ops: Send More Money", test(
+	it("Plan Math Ops: Send More Money", test(
 		`			
 			$DIGITS = {0 1 2 3 4 5 6 7 8 9}
 			
@@ -108,7 +108,8 @@ describe("Plan Math graphs.", () => {
 
 				# Define the addition equation
 				'M * 10000 + 'O * 1000 + 'N * 100 + 'E * 10 + 'Y = 
-					'S * 1000 + 'E * 100 + 'N * 10 + 'D + 'M * 1000 + 'O * 100 + 'R * 10 + 'E
+					'S * 1000 + 'E * 100 + 'N * 10 + 'D + 
+					'M * 1000 + 'O * 100 + 'R * 10 + 'E
 				
 			}
         `, 

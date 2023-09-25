@@ -260,9 +260,41 @@ async function checkNumberConstrain(ctx, cs) {
 }
 
 async function checkVariableConstrainsNotUnify (ctx, cs) {
-    throw cs;
-}
+    const {a, op, b, id} = cs;
+    const av = await getVariable(null, a, ctx);
+    const bv = await getVariable(null, b, ctx);
 
+    const sa = getValue(av);
+    const sb = getValue(bv);
+
+    let state = C_UNKNOWN;
+
+    if (av.id === bv.id) {
+        state = C_FALSE;
+    }
+    else if (sa !== null && sb !== null) {
+        state = sa !== sb ? C_TRUE : C_FALSE;
+    }
+    /*
+    else if (sa !== null && bv.domain) {
+        throw 'Check DOMAIN ?? SA + BV ' + sa + " , " + bv.domain
+    } 
+    else if (sb !== null && av.domain) {
+        throw 'Check DOMAIN ?? SB + AV ' + sb + " , " + av.domain
+    }*/
+
+    console.log(`${sa} != ${sb} => ${state}`);
+
+
+    if (state !== C_UNKNOWN) {
+        ctx.variables = await ctx.variables.set(cs.id, {
+            ...cs, state, value: (state === C_TRUE?1:0).toString()
+        });
+    }
+
+    return state;
+
+}
 
 async function checkVariableConstrainsUnify (ctx, cs) {
     const {a, op, b, id} = cs;
@@ -295,7 +327,7 @@ async function checkVariableConstrainsUnify (ctx, cs) {
         state = sa === sb? C_TRUE:C_FALSE;
     }
 
-    if (state) {
+    if (state !== C_UNKNOWN) {
         ctx.variables = await ctx.variables.set(cs.id, {
             ...cs, state, value: (state === C_TRUE?1:0).toString()
         });
