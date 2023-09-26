@@ -162,7 +162,12 @@ function getNumber (v) {
     const n = getValue(v);
 
     if (n !== null) {
-        return parseFloat(n);
+        const r = parseFloat(n);
+        if (!isNaN(r)) {
+            return r;
+        }
+
+        return null;
     }
 
     return n;
@@ -199,15 +204,28 @@ async function checkNumberConstrain(ctx, cs) {
     if (isNaN(an) || isNaN(bn)) {    
         state = C_FALSE;
     }
+    /*else if ([OR, AND].includes(op)) {
+        if (an !== null && bn !== null) {
+            const r = an || bn;
+        }
+        else if (an !== null) {
+            if (an === 1) {
+
+            }
+            else {
+
+            }         
+
+        }
+        else if (bn !== null) {
+
+        }
+
+        return C_UNKNOWN;
+
+    }*/
     else if (an === null || bn === null) {
         state = C_UNKNOWN;
-    }
-    else if (
-        (op === OR || op === AND) 
-        &&
-        (an < 0 || an > 1 || bn < 0 || bn > 1)
-    ) {
-        state = C_FALSE;
     }
 
     if (state !== undefined) {
@@ -222,13 +240,14 @@ async function checkNumberConstrain(ctx, cs) {
 
     let r;
     switch (op) {
-        case OR:
+        /*case OR:
+            throw 'OR OP IS NOT DEFINED!'
             r = an || bn;
             break;
 
         case AND:
             r = an && bn;
-            break;
+            break;*/
 
         // Math Operators,
         case ADD:
@@ -296,6 +315,46 @@ async function checkVariableConstrainsNotUnify (ctx, cs) {
 
 }
 
+async function checkAndConstrain (ctx, cs) {
+    const {a, op, b, id} = cs;
+    const av = await getVariable(null, a, ctx);
+    const bv = await getVariable(null, b, ctx);
+
+    const sa = getNumber(av);
+    const sb = getNumber(bv);
+
+    if (sa !== null || sb !== null) {
+        const state = sa && sb?C_TRUE:C_FALSE;
+
+        ctx.variables = await ctx.variables.set(cs.id, {
+            ...cs, state, value: (state === C_TRUE?1:0).toString()
+        });
+        
+    }
+
+    return C_UNKNOWN;
+}
+
+async function checkOrConstrain (ctx, cs) {
+    const {a, op, b, id} = cs;
+    const av = await getVariable(null, a, ctx);
+    const bv = await getVariable(null, b, ctx);
+
+    const sa = getNumber(av);
+    const sb = getNumber(bv);
+
+    if (sa !== null || sb !== null) {
+        const state = sa || sb?C_TRUE:C_FALSE;
+
+        ctx.variables = await ctx.variables.set(cs.id, {
+            ...cs, state, value: (state === C_TRUE?1:0).toString()
+        });
+        
+    }
+
+    return C_UNKNOWN;
+}
+
 async function checkVariableConstrainsUnify (ctx, cs) {
     const {a, op, b, id} = cs;
     const av = await getVariable(null, a, ctx);
@@ -337,11 +396,19 @@ async function checkVariableConstrainsUnify (ctx, cs) {
     return state;
 }
 
+async function isAnd (ctx, v) {
+    return true;
+}
+
 async function checkVariableConstrains (ctx, v) {
     // let constraints = v.constraints;
 
     if (v.state) {
-        return v.state === C_TRUE?1:0;
+        console.log('checkVariableConstrains (V) ', v.op, v.state, 
+            v.state === C_TRUE?true:false
+        );
+
+        return v.state === C_TRUE?true:false;
         // throw 'checkVariableConstrains: Variable State : ' + v.state + ' is not handled!!';
     }
 
@@ -369,7 +436,12 @@ async function checkVariableConstrains (ctx, v) {
 
             // Logical Operators,
             case OR:
+                r = await checkOrConstrain(ctx, cs);
+                break;
+
             case AND:
+                r = await checkAndConstrain(ctx, cs);
+                break;
                 
             // Math Operators,
             case ADD:
@@ -384,17 +456,20 @@ async function checkVariableConstrains (ctx, v) {
             case FUNCTION:
         }
 
+        console.log('checkVariableConstrains (CP) ', cs.op, r);
         if (r !== C_UNKNOWN) {
             // remove constraints,
             // constraints = await constraints.remove(vcID);
 
             // check parent constraints,
-            if (cs.constraints && cs.constraints.size) {
-                parentConstraints.add(cs);
-            }
-            else if (r === C_FALSE) {
+            if (r === C_FALSE && await isAnd(ctx, cs)) {
                 // there is no parent constraints, so it should fail
+                console.log('checkVariableConstrains (1) ', cs.op, r, false);
+
                 return false;
+            }
+            else if (cs.constraints && cs.constraints.size) {
+                parentConstraints.add(cs);
             }
         }
     }
@@ -411,10 +486,14 @@ async function checkVariableConstrains (ctx, v) {
         const r = await checkVariableConstrains(ctx, cs);
 
         if (r === false) {
+            console.log('checkVariableConstrains (2) ', v.op, r);
+
             return false;
         }
     }
-    
+
+    console.log('checkVariableConstrains (3) ', v.op, true);
+
     return true;
 }
 
