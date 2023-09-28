@@ -23,7 +23,11 @@ module.exports = {
         MUL: '*',
         DIV: '/',
         MOD: '%',
-        FUNCTION: 'fn'
+        FUNCTION: 'fn',
+        BELOW: '<',
+        BELOW_OR_EQUAL: '<=',
+        ABOVE: '>',
+        ABOVE_OR_EQUAL: '>='
     }
 };
 

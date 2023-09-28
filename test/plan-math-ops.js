@@ -174,7 +174,7 @@ describe("Plan Math graphs.", () => {
 		`			
 			$DIGITS = {0 1 2 3 4 5 6 7 8 9}
 
-			$DECIMAL_ADD = {
+			/*$DECIMAL_ADD = {
 				(
 					'a:$DIGITS
 					'b:$DIGITS
@@ -182,10 +182,9 @@ describe("Plan Math graphs.", () => {
 					'sum:$DIGITS
 					'cout:$DIGITS
 				) | 'sum = ['a + 'b + 'cin] % 10,
-					'cout = floor[['a + 'b + 'cin] / 10]
-			}
+					'cout = floor ['a + 'b + 'cin] / 10
+			}*/
 
-			/*
 			$DECIMAL_ADD = {
 				(
 					'a:$DIGITS
@@ -194,16 +193,19 @@ describe("Plan Math graphs.", () => {
 					'sum:$DIGITS
 					'cout:$DIGITS
 				) | 
+					's = 'a + 'b + 'cin,
 					[
-						's = 'a + 'b + 'cin
 						's >= 10,
-						'sum = 's - 10
+						'sum = 's - 10,
+						'cout = 1
 					] or [
-						's = 'a + 'b + 'cin
-						's < 10
+						's < 10,
+						'sum = 's,
+						'cout = 0
 					] 
 			}
 
+			/*
 			$DECIMAL_ADD = {
 				(
 					'a:$DIGITS
@@ -230,10 +232,12 @@ describe("Plan Math graphs.", () => {
 		[
 			{
 				query: `(
-				    'S 'E 'N 'D +
-					'M 'O 'R 'E =
-				 'M 'O 'N 'E 'Y
-				):$SEND_MORE_MONEY`,
+					'a
+					'b
+					'cin
+					'sum
+					'cout
+				):$DECIMAL_ADD`,
 				results: [
 					"@(0 & 0 = 0)", 
 					"@(0 & 1 = 0)", 

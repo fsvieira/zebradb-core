@@ -22,7 +22,11 @@
           MUL,
           DIV,
           MOD,
-          FUNCTION
+          FUNCTION,
+          BELOW,
+      	  BELOW_OR_EQUAL,
+          ABOVE,
+          ABOVE_OR_EQUAL
       }
   } = require("../branch/operations/constants");
 
@@ -40,6 +44,10 @@
       case '*': return MUL;
       case '/': return DIV;
       case '%': return MOD;
+      case '<': return BELLOW;
+      case '<=': return BELLOW_OR_EQUAL;
+      case '>': return ABOVE;
+      case '>=': return ABOVE_OR_EQUAL;
     }
   }
 }
@@ -163,7 +171,11 @@ expression = a:expressionTerm _ op:operations _ b:expression {
 
 */
 
-expression = logical_and
+expression = logical_or
+
+logical_or
+  = a:logical_and _ op:('or' / ';') _ b:logical_or { return { type: CONSTRAINT, op: opCode(op), a, b }; }
+  / logical_and
 
 logical_and
   = a:equality _ op:('and' / ',') _ b:logical_and { return { type: CONSTRAINT, op: opCode(op), a, b }; }
@@ -171,8 +183,12 @@ logical_and
 
 equality
   = a:additive _ op:('=' / '!=') _ b:equality { return { type: CONSTRAINT, op: opCode(op), a, b }; }
-  / additive
+  / relational
 
+relational
+  = a:additive _ op:('>=' / '<=' / '<' / '>' ) _ b:relational { return { type: CONSTRAINT, op: opCode(op), a, b }; }
+  / additive
+  
 additive
   = a:multiplicative _ op:('+' / '-') _ b:additive { return { type: CONSTRAINT, op: opCode(op), a, b }; }
   / multiplicative
