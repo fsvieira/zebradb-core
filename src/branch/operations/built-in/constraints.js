@@ -278,6 +278,64 @@ async function checkNumberConstrain(ctx, cs) {
    return C_TRUE;
 }
 
+async function excludeFromDomain (ctx, v, d, cs) {
+    const domain = await getVariable(null, d.domain, ctx);
+
+    if (domain.type === SET) {
+        const index = domain.elements.findIndex(vID => vID === v.id);
+
+        if (index >= 0) {
+            const es = domain.elements.slice();
+            es.splice(index, 1);
+
+            if (es.length === 1) {
+                const v = await getVariable(null, es[0], ctx);
+
+                const r = await setVariableLocalVarConstant(ctx, a, v);
+
+                return r?C_TRUE:C_FALSE;
+            }
+            else {
+                // 1. create a new domain variable, 
+                const id = ctx.newVar();
+                const s = {
+                    type: SET,
+                    elements: es,
+                    id,
+                    size: es.length
+                };
+
+                ctx.variables = await ctx.variables.set(id, s);
+
+                // 2. remove a constrains,
+                const constraints = await d.constraints.remove(cs.id);
+
+                // 3. save modifications,
+                ctx.variables = await ctx.variables.set(d.id, {
+                    ...d, 
+                    constraints: constraints.size === 0?undefined:constraints,
+                    domain: id
+                });
+            }
+        }
+
+        // 4. set constraint to true,
+        /*
+            const vc = await getConstant(ctx, '1');
+            const ok = await setVariable(ctx, cs, vc);
+
+        if (ok) {
+            return C_TRUE;
+        }
+        else {
+            return C_FALSE;
+        }*/
+        return C_TRUE;
+    }
+    
+    throw 'Exclude value from domain not done for type ' + domain.type;
+}
+
 async function checkVariableConstrainsNotUnify (ctx, cs) {
     const {a, op, b, id} = cs;
     const av = await getVariable(null, a, ctx);
@@ -294,15 +352,14 @@ async function checkVariableConstrainsNotUnify (ctx, cs) {
     else if (sa !== null && sb !== null) {
         state = sa !== sb ? C_TRUE : C_FALSE;
     }
-    /*
     else if (sa !== null && bv.domain) {
-        throw 'Check DOMAIN ?? SA + BV ' + sa + " , " + bv.domain
-    } 
+        state = await excludeFromDomain(ctx, av, bv, cs);
+    }
     else if (sb !== null && av.domain) {
-        throw 'Check DOMAIN ?? SB + AV ' + sb + " , " + av.domain
-    }*/
+        state = await excludeFromDomain(ctx, bv, av, cs);
+    }
 
-    console.log(`${sa} != ${sb} => ${state}`);
+    // console.log(`${sa} != ${sb} => ${state}`);
 
 
     if (state !== C_UNKNOWN) {

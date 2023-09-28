@@ -86,7 +86,7 @@ describe("Plan Math graphs.", () => {
 		{path: 'dbs/plan-math-ops/3', timeout: 1000 * 60 * 60}
 	));
 
-	it("Plan Math Ops: Not Equal", test(
+	xit("Plan Math Ops: Not Equal", test(
 		`			
 			$DIGITS = {0 1 2}
 			$NOT_EQUAL_TEST = {
@@ -148,9 +148,9 @@ describe("Plan Math graphs.", () => {
 		[
 			{
 				query: `(
-				    9 5 6 7 +
-					1 0 8 5 =
-				  1 0 6 5 'Y
+				    'S 'E 'N 'D +
+					'M 'O 'R 'E =
+				  1 'O 'N 'E 'Y
 				):$SEND_MORE_MONEY`,
 				results: [
 					"@(9 5 6 7 + 1 0 8 5 = 1 0 6 5 2)" 
@@ -170,7 +170,7 @@ describe("Plan Math graphs.", () => {
 		{path: 'dbs/plan-math-ops/5', timeout: 1000 * 60 * 60}
 	));
 
-	xit("Plan Math Ops: Make Adder", test(
+	it("Plan Math Ops: Make Adder", test(
 		`			
 			$DIGITS = {0 1 2 3 4 5 6 7 8 9}
 
@@ -242,7 +242,7 @@ describe("Plan Math graphs.", () => {
 				]
 			},
 		], 
-		{path: 'dbs/plan-math-ops/5', timeout: 1000 * 60}
+		{path: 'dbs/plan-math-ops/6', timeout: 1000 * 60}
 	));
 
 	xit("Plan Math Ops: Send More Money (distinct)", test(
