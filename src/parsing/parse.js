@@ -19,10 +19,10 @@ function parse (text) {
 		const p = prepare(parsed[i]);
 
 
-		/*console.log(
+		console.log(
 			"\nPARSED: ", JSON.stringify(parsed[i], null, '  '), 
 			"\nPREPARED: ", JSON.stringify(p, null, '  ')
-		);*/
+		);
 
 		result.push(p);
 	}

@@ -291,7 +291,7 @@ async function excludeFromDomain (ctx, v, d, cs) {
             if (es.length === 1) {
                 const v = await getVariable(null, es[0], ctx);
 
-                const r = await setVariableLocalVarConstant(ctx, a, v);
+                const r = await setVariableLocalVarConstant(ctx, d, v);
 
                 return r?C_TRUE:C_FALSE;
             }
@@ -400,8 +400,10 @@ async function checkOrConstrain (ctx, cs) {
     const sa = getNumber(av);
     const sb = getNumber(bv);
 
+    let state = C_UNKNOWN;
+
     if (sa !== null || sb !== null) {
-        const state = sa || sb?C_TRUE:C_FALSE;
+        state = sa || sb?C_TRUE:C_FALSE;
 
         ctx.variables = await ctx.variables.set(cs.id, {
             ...cs, state, value: (state === C_TRUE?1:0).toString()
@@ -409,7 +411,7 @@ async function checkOrConstrain (ctx, cs) {
         
     }
 
-    return C_UNKNOWN;
+    return state;
 }
 
 async function checkVariableConstrainsUnify (ctx, cs) {

@@ -2385,8 +2385,8 @@ function peg$parse(input, options) {
         case '*': return MUL;
         case '/': return DIV;
         case '%': return MOD;
-        case '<': return BELLOW;
-        case '<=': return BELLOW_OR_EQUAL;
+        case '<': return BELOW;
+        case '<=': return BELOW_OR_EQUAL;
         case '>': return ABOVE;
         case '>=': return ABOVE_OR_EQUAL;
       }

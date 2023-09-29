@@ -13,11 +13,22 @@ const {
         GLOBAL_VAR // : 'gv',
     },
     operation: {
-        OR, // : "or",
-        AND, // : "and",
-        IN, // : "in",
-        UNIFY, // : "=",
-        NOT_UNIFY, // : "!="
+        OR, //: "or",
+        AND, //: "or",: "and",
+        IN, //: "or",: "in",
+        UNIFY, //: "or",: "=",
+        NOT_UNIFY, //: "or",: "!=",
+        UNION, //: "or",: "union",
+        ADD, //: "or",: '+',
+        SUB, //: "or",: '-',
+        MUL, //: "or",: '*',
+        DIV, //: "or",: '/',
+        MOD, //: "or",: '%',
+        FUNCTION, //: "or",: 'fn',
+        BELOW, //: "or",: '<',
+        BELOW_OR_EQUAL, //: "or",: '<=',
+        ABOVE, //: "or",: '>',
+        ABOVE_OR_EQUAL, //: "or",: '>='
     }
 } = branchOps.constants;
 
@@ -189,7 +200,12 @@ function termConstrains(ctx, exp) {
     const av = term(ctx, a);
     const bv = term(ctx, b);
 
-    const cid = `__${type}:${SHA256([av, bv].sort().join(op)).toString('base64')}`;
+    let vars = [av, bv];
+    if ([AND, OR, ADD, MUL, UNIFY, NOT_UNIFY, UNION].includes(op)) {
+        vars = vars.sort();
+    }
+
+    const cid = `__${type}:${SHA256(vars.join(op)).toString('base64')}`;
 
     console.log(cid, `TODO: [termConstrains] make a better variable generator`);
 

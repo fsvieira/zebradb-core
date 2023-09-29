@@ -100,20 +100,15 @@ describe("Plan Math graphs.", () => {
 		[
 			{
 				query: `('A 'B 'C):$NOT_EQUAL_TEST`,
-				results: [
-					"@(9 5 6 7 + 1 0 8 5 = 1 0 6 5 2)" 
+				results: [ 
+					'@(0 1 2)', 
+					'@(0 2 1)', 
+					'@(1 0 2)', 
+					'@(1 2 0)', 
+					'@(2 0 1)', 
+					'@(2 1 0)' 
 				]
 			},
-			/*{
-				query: `(
-				    'S 'E 'N 'D +
-					'M 'O 'R 'E =
-				  1 'O 'N 'E 'Y
-				):$SEND_MORE_MONEY`,
-				results: [
-					"@(9 5 6 7 + 1 0 8 5 = 1 0 6 5 2)" 
-				]
-			},*/
 		], 
 		{path: 'dbs/plan-math-ops/4', timeout: 1000 * 60 * 60}
 	));
@@ -174,17 +169,6 @@ describe("Plan Math graphs.", () => {
 		`			
 			$DIGITS = {0 1 2 3 4 5 6 7 8 9}
 
-			/*$DECIMAL_ADD = {
-				(
-					'a:$DIGITS
-					'b:$DIGITS
-					'cin:$DIGITS
-					'sum:$DIGITS
-					'cout:$DIGITS
-				) | 'sum = ['a + 'b + 'cin] % 10,
-					'cout = floor ['a + 'b + 'cin] / 10
-			}*/
-
 			$DECIMAL_ADD = {
 				(
 					'a:$DIGITS
@@ -205,29 +189,6 @@ describe("Plan Math graphs.", () => {
 					] 
 			}
 
-			/*
-			$DECIMAL_ADD = {
-				(
-					'a:$DIGITS
-					'b:$DIGITS
-					'cin:$DIGITS
-					'sum:$DIGITS
-					1
-				) | 
-					's = 'a + 'b + 'cin
-					's >= 10,
-					'sum = 's - 10,
-			} union {
-				(
-					'a:$DIGITS
-					'b:$DIGITS
-					'cin:$DIGITS
-					'sum:$DIGITS
-					0
-				) | 
-					's = 'a + 'b + 'cin
-					's < 10
-			}*/
         `, 
 		[
 			{
