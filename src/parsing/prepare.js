@@ -329,22 +329,22 @@ function term (ctx, t) {
     }
 }
 
-function linkDownLogicalRoots (ctx, vID, cs) {
+function linkDownLogicalRoots (ctx, vID, root) {
     const v = ctx.variables[vID];
 
-    const {type, a, op, b} = v;
+    const {type, a, op, b, cid} = v;
 
     if (type === CONSTRAINT) {
-        v.root = cs.cid;
-
-        let root = cs;
+        v.root = root;
         if (op === OR) {
             // new root
-            root = v;
+            linkDownLogicalRoots(ctx, a, {csID: cid, side: 'a'});
+            linkDownLogicalRoots(ctx, b, {csID: cid, side: 'b'});
         }
-
-        linkDownLogicalRoots(ctx, a, root);
-        linkDownLogicalRoots(ctx, b, root);
+        else {
+            linkDownLogicalRoots(ctx, a, root);
+            linkDownLogicalRoots(ctx, b, root);
+        }
     }
 } 
 
@@ -358,8 +358,8 @@ function linkLogicalRoots(ctx, id) {
         return;
     }
     else {
-        linkDownLogicalRoots(ctx, a, cs);
-        linkDownLogicalRoots(ctx, b, cs);
+        linkDownLogicalRoots(ctx, a, {csID: cs.cid, side: 'a'});
+        linkDownLogicalRoots(ctx, b, {csID: cs.cid, side: 'b'});
     }
 }
 

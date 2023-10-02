@@ -481,12 +481,12 @@ async function checkVariableConstrainsUnify (ctx, cs) {
     return state;
 }
 
-async function isAnd (ctx, v) {
-    return true;
-}
-
 async function checkVariableConstrains (ctx, v) {
     // let constraints = v.constraints;
+
+    if (v.root) {
+        throw 'CHECK ROOT BEFORE EVALUATE CONSTRAIN!!';
+    }
 
     if (v.state) {
         return v.state === C_TRUE?true:false;
@@ -497,6 +497,14 @@ async function checkVariableConstrains (ctx, v) {
 
     for await (let vcID of v.constraints.values()) {
         const cs = await getVariable(null, vcID, ctx);
+
+        if (cs.root) {
+            const r = await getVariable(null, cs.root.csID, ctx);
+
+            if (r.op === OR && r[`${r.side}Value`] === C_FALSE) {
+                return true;
+            }
+        }
 
         let r;
         switch (cs.op) {
@@ -546,8 +554,32 @@ async function checkVariableConstrains (ctx, v) {
             // constraints = await constraints.remove(vcID);
 
             // check parent constraints,
-            if (r === C_FALSE && await isAnd(ctx, cs)) {
+            if (r === C_FALSE) {
                 // there is no parent constraints, so it should fail
+
+                if (cs.root) {
+                    const {a, op, b} = await getVariable(null, cs.root, ctx);
+
+                    if (op === OR) {
+                        /*
+                            TODO:
+                                * we need to know what is the side to the root, 
+                                  where the value should be propagated!! 
+                                
+                                * if or is then defered, to the other side, how 
+                                  to handle the rest of inactive constrains that would be 
+                                  triggered.
+                                
+                                * 1. we can save the side 'a' or 'b'
+                                * 2. we can setup the value on or-node aValue or bValue.
+                                * 3. everytime we evaluate something we need to know if is a or, 
+                                     and check the branch value. 
+                        */
+
+                        throw 'HANDLE OR-FALSE!!';
+                    }
+                }
+
                 return false;
             }
             else if (cs.constraints && cs.constraints.size) {
