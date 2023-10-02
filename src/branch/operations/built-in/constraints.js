@@ -416,7 +416,7 @@ async function checkOrConstrain (ctx, cs) {
 }
 
 async function checkVariableConstrainsUnify (ctx, cs) {
-    const {a, op, b, id} = cs;
+    const {a, op, b, id, root} = cs;
     const av = await getVariable(null, a, ctx);
     const bv = await getVariable(null, b, ctx);
 
@@ -428,29 +428,34 @@ async function checkVariableConstrainsUnify (ctx, cs) {
     if (av.id === bv.id) {
         state = C_TRUE;
     }
-    else if (av.type === LOCAL_VAR && bv.type === LOCAL_VAR) {
-        const r = await setVariable(ctx, av, bv);
-        state = r?C_TRUE:C_FALSE;
-    }
-    else if (av.type === LOCAL_VAR && sb !== null) {
-        const c = bv.type === CONSTANT?bv:await getConstant(ctx, sb);
-        const r = await setVariable(ctx, av, c);
-        state = r?C_TRUE:C_FALSE;
-    }
-    else if (bv.type === LOCAL_VAR && sa !== null) {
-        const c = bv.type === CONSTANT?av:await getConstant(ctx, sa);
-        const r = await setVariable(ctx, bv, c);
-        state = r?C_TRUE:C_FALSE;
-    } 
     else if (sa !== null && sb !== null) {
         state = sa === sb? C_TRUE:C_FALSE;
+    }
+    else if (root) {
+        const r = await getVariable(null, root, ctx);
+
+        if (r.op === AND) {
+            if (av.type === LOCAL_VAR && bv.type === LOCAL_VAR) {
+                const r = await setVariable(ctx, av, bv);
+                state = r?C_TRUE:C_FALSE;
+            }
+            else if (av.type === LOCAL_VAR && sb !== null) {
+                const c = bv.type === CONSTANT?bv:await getConstant(ctx, sb);
+                const r = await setVariable(ctx, av, c);
+                state = r?C_TRUE:C_FALSE;
+            }
+            else if (bv.type === LOCAL_VAR && sa !== null) {
+                const c = bv.type === CONSTANT?av:await getConstant(ctx, sa);
+                const r = await setVariable(ctx, bv, c);
+                state = r?C_TRUE:C_FALSE;
+            } 
+        }
     }
 
     if (state !== C_UNKNOWN) {
         ctx.variables = await ctx.variables.set(cs.id, {
             ...cs, state, value: (state === C_TRUE?1:0).toString()
         });
-
     }
 
     return state;

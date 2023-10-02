@@ -38,6 +38,7 @@
       case 'and': return AND;
       case ',': return AND;
       case 'or': return OR;
+      case ';': return OR;
       case 'union': return UNION;
       case '+': return ADD;
       case '-': return SUB;

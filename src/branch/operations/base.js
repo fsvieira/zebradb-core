@@ -228,6 +228,7 @@ async function save2db (
     else if (v.type === CONSTRAINT) {
         const a = getVarname(p.variables[v.a]);
         const b = getVarname(p.variables[v.b]);
+        const root = v.root?getVarname(p.variables[v.root]):null;
 
         let constraints;
         if (v.constraints) {
@@ -242,7 +243,7 @@ async function save2db (
 
         ctx.variables = await ctx.variables.set(vn, {
             ...v,
-            a, b,
+            a, b, root,
             constraints,
             id: vn
         });

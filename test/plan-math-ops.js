@@ -208,6 +208,95 @@ describe("Plan Math graphs.", () => {
 				]
 			},
 		], 
+		{path: 'dbs/plan-math-ops/7', timeout: 1000 * 60 * 5}
+	));
+
+	xit("Plan Math Ops: Numbers", test(
+		`			
+			$DIGITS = {0 1 2 3 4 5 6 7 8 9}
+
+			$NUMBER = {
+				('min 'max 'n:$NUMBER_SEQ) |
+					{ ('i n:$DIGITS) | 'i >= 'min AND i <= 'max } 
+			}
+
+			$NUMBER_LESS = {
+				(('maxA 'minA 'a:$NUMBER) < ('maxB 'minB 'b:$NUMBER)) |
+				('maxA 'an) in 'a,
+				('maxB 'bn) in 'b,
+
+				'an < 'bn OR [
+					'an = 'bn, 
+					'mA = 'maxA - 1,
+					'mB = 'maxB - 1,
+					(('mA, 'minA 'a) < ('mB 'minB 'b))
+				]
+			}
+
+        `, 
+		[
+			{
+				query: `(
+					1
+					9
+					'cin
+					'sum
+					'cout
+				):$DECIMAL_ADD`,
+				results: [
+					"@(0 & 0 = 0)", 
+					"@(0 & 1 = 0)", 
+					"@(1 & 0 = 0)", 
+					"@(1 & 1 = 1)" 
+				]
+			},
+		], 
+		{path: 'dbs/plan-math-ops/8', timeout: 1000 * 60 * 5}
+	));
+
+	xit("Plan Math Ops: Make Adder", test(
+		`			
+			$DIGITS = {0 1 2 3 4 5 6 7 8 9}
+			$BOOL = {0 1}
+
+			$DECIMAL_ADD = {
+				(
+					'a:$DIGITS
+					'b:$DIGITS
+					'cin:$BOOL
+					'sum:$DIGITS
+					'cout:$DIGITS
+				) | 
+					's = 'a + 'b + 'cin,
+					[
+						's >= 10,
+						'sum = 's - 10,
+						'cout = 1;
+
+						's < 10,
+						'sum = 's,
+						'cout = 0
+					]
+			}
+
+        `, 
+		[
+			{
+				query: `(
+					1
+					9
+					'cin
+					'sum
+					'cout
+				):$DECIMAL_ADD`,
+				results: [
+					"@(0 & 0 = 0)", 
+					"@(0 & 1 = 0)", 
+					"@(1 & 0 = 0)", 
+					"@(1 & 1 = 1)" 
+				]
+			},
+		], 
 		{path: 'dbs/plan-math-ops/6', timeout: 1000 * 60 * 5}
 	));
 
