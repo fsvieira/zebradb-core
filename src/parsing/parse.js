@@ -16,8 +16,11 @@ function parse (text) {
 	const result = [];
 
 	for (var i=0; i<parsed.length; i++) {
-		const p = prepare(parsed[i]);
+/*		console.log(
+			"\nPARSED: ", JSON.stringify(parsed[i], null, '  ')
+		);*/
 
+		const p = prepare(parsed[i]);
 
 		console.log(
 			"\nPARSED: ", JSON.stringify(parsed[i], null, '  '), 

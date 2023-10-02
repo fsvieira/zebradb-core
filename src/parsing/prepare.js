@@ -329,6 +329,40 @@ function term (ctx, t) {
     }
 }
 
+function linkDownLogicalRoots (ctx, vID, cs) {
+    const v = ctx.variables[vID];
+
+    const {type, a, op, b} = v;
+
+    if (type === CONSTRAINT) {
+        v.root = cs.cid;
+
+        let root = cs;
+        if (op === OR) {
+            // new root
+            root = v;
+        }
+
+        linkDownLogicalRoots(ctx, a, root);
+        linkDownLogicalRoots(ctx, b, root);
+    }
+} 
+
+function linkLogicalRoots(ctx, id) {
+    const cs = ctx.variables[id];
+
+    const {a, op, b, constraints} = cs;
+
+    if (constraints && constraints.length) {
+        console.log("NOT ROOT!");
+        return;
+    }
+    else {
+        linkDownLogicalRoots(ctx, a, cs);
+        linkDownLogicalRoots(ctx, b, cs);
+    }
+}
+
 function prepare (tuple) {
 
     const {newVar} = branchOps.varGenerator(0); 
@@ -371,7 +405,13 @@ function prepare (tuple) {
                 bv.constraints = (bv.constraints || []).concat(cid);
             }
         }
+
+        for (let i=0; i<ctx.constraints.length; i++) {
+            const cid = ctx.constraints[i];
+            linkLogicalRoots(ctx, cid);
+        }
     }
+
 
     return {
         variables: ctx.variables, 

@@ -252,6 +252,7 @@ async function checkNumberConstrain(ctx, cs) {
         // Math Operators,
         case ADD:
             r = an + bn; 
+            console.log('------------------>', r, '=' , an, '+', bn, r.toString());
             break;
 
         case SUB:
@@ -463,10 +464,6 @@ async function checkVariableConstrains (ctx, v) {
     // let constraints = v.constraints;
 
     if (v.state) {
-        console.log('checkVariableConstrains (V) ', v.op, v.state, 
-            v.state === C_TRUE?true:false
-        );
-
         return v.state === C_TRUE?true:false;
         // throw 'checkVariableConstrains: Variable State : ' + v.state + ' is not handled!!';
     }
@@ -515,7 +512,6 @@ async function checkVariableConstrains (ctx, v) {
             case FUNCTION:
         }
 
-        console.log('checkVariableConstrains (CP) ', cs.op, r);
         if (r !== C_UNKNOWN) {
             // remove constraints,
             // constraints = await constraints.remove(vcID);
@@ -523,8 +519,6 @@ async function checkVariableConstrains (ctx, v) {
             // check parent constraints,
             if (r === C_FALSE && await isAnd(ctx, cs)) {
                 // there is no parent constraints, so it should fail
-                console.log('checkVariableConstrains (1) ', cs.op, r, false);
-
                 return false;
             }
             else if (cs.constraints && cs.constraints.size) {
@@ -545,13 +539,9 @@ async function checkVariableConstrains (ctx, v) {
         const r = await checkVariableConstrains(ctx, cs);
 
         if (r === false) {
-            console.log('checkVariableConstrains (2) ', v.op, r);
-
             return false;
         }
     }
-
-    console.log('checkVariableConstrains (3) ', v.op, true);
 
     return true;
 }

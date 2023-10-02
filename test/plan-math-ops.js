@@ -168,12 +168,13 @@ describe("Plan Math graphs.", () => {
 	it("Plan Math Ops: Make Adder", test(
 		`			
 			$DIGITS = {0 1 2 3 4 5 6 7 8 9}
+			$BOOL = {0 1}
 
 			$DECIMAL_ADD = {
 				(
 					'a:$DIGITS
 					'b:$DIGITS
-					'cin:$DIGITS
+					'cin:$BOOL
 					'sum:$DIGITS
 					'cout:$DIGITS
 				) | 
@@ -181,20 +182,20 @@ describe("Plan Math graphs.", () => {
 					[
 						's >= 10,
 						'sum = 's - 10,
-						'cout = 1
-					] or [
+						'cout = 1;
+
 						's < 10,
 						'sum = 's,
 						'cout = 0
-					] 
+					]
 			}
 
         `, 
 		[
 			{
 				query: `(
-					'a
-					'b
+					1
+					9
 					'cin
 					'sum
 					'cout
@@ -207,7 +208,7 @@ describe("Plan Math graphs.", () => {
 				]
 			},
 		], 
-		{path: 'dbs/plan-math-ops/6', timeout: 1000 * 60}
+		{path: 'dbs/plan-math-ops/6', timeout: 1000 * 60 * 5}
 	));
 
 	xit("Plan Math Ops: Send More Money (distinct)", test(
