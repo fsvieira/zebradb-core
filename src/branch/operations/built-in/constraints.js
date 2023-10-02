@@ -31,7 +31,11 @@ const {
         MUL, // '*'
         DIV,
         MOD,
-        FUNCTION 
+        FUNCTION,
+        BELOW, // '<',
+        BELOW_OR_EQUAL, // '<=',
+        ABOVE, // '>',
+        ABOVE_OR_EQUAL, // >= 
     }
 } = constants;
 
@@ -269,6 +273,22 @@ async function checkNumberConstrain(ctx, cs) {
 
         case MOD:
             r = an % bn;
+            break;
+        
+        case BELOW:
+            r = an < bn?1:0;
+            break;
+
+        case BELOW_OR_EQUAL:
+            r = an <= bn?1:0;
+            break;
+
+        case ABOVE:
+            r = an > bn?1:0;
+            break;
+
+        case ABOVE_OR_EQUAL:
+            r = an >= bn?1:0;
             break;
    }
 
@@ -510,6 +530,10 @@ async function checkVariableConstrains (ctx, v) {
             case MUL:
             case DIV:
             case MOD:
+            case BELOW:
+            case BELOW_OR_EQUAL:
+            case ABOVE:
+            case ABOVE_OR_EQUAL:
                 r = await checkNumberConstrain(ctx, cs);
                 break;
             
