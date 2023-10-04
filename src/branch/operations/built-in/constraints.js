@@ -196,7 +196,7 @@ async function getConstant (ctx, string) {
 }
 
 
-async function checkNumberConstrain(ctx, cs) {
+async function checkNumberConstrain(ctx, cs, env) {
     const {a, op, b, id} = cs;
     const av = await getVariable(null, a, ctx);
     const bv = await getVariable(null, b, ctx);
@@ -407,7 +407,6 @@ async function checkAndConstrain (ctx, cs) {
         ctx.variables = await ctx.variables.set(cs.id, {
             ...cs, state, value: (state === C_TRUE?1:0).toString()
         });
-        
     }
 
     return C_UNKNOWN;
@@ -435,7 +434,7 @@ async function checkOrConstrain (ctx, cs) {
     return state;
 }
 
-async function checkVariableConstrainsUnify (ctx, cs) {
+async function checkVariableConstrainsUnify (ctx, cs, env) {
     const {a, op, b, id, root} = cs;
     const av = await getVariable(null, a, ctx);
     const bv = await getVariable(null, b, ctx);
@@ -451,7 +450,24 @@ async function checkVariableConstrainsUnify (ctx, cs) {
     else if (sa !== null && sb !== null) {
         state = sa === sb? C_TRUE:C_FALSE;
     }
-    else if (root) {
+    else if (env.eval) {
+
+        if (av.type === LOCAL_VAR && bv.type === LOCAL_VAR) {
+            const r = await setVariable(ctx, av, bv);
+            state = r?C_TRUE:C_FALSE;
+        }
+        else if (av.type === LOCAL_VAR && sb !== null) {
+            const c = bv.type === CONSTANT?bv:await getConstant(ctx, sb);
+            const r = await setVariable(ctx, av, c);
+            state = r?C_TRUE:C_FALSE;
+        }
+        else if (bv.type === LOCAL_VAR && sa !== null) {
+            const c = bv.type === CONSTANT?av:await getConstant(ctx, sa);
+            const r = await setVariable(ctx, bv, c);
+            state = r?C_TRUE:C_FALSE;
+        } 
+
+        /*
         const r = await getVariable(null, root, ctx);
 
         if (r.op === AND) {
@@ -469,7 +485,7 @@ async function checkVariableConstrainsUnify (ctx, cs) {
                 const r = await setVariable(ctx, bv, c);
                 state = r?C_TRUE:C_FALSE;
             } 
-        }
+        }*/
     }
 
     if (state !== C_UNKNOWN) {
@@ -481,11 +497,42 @@ async function checkVariableConstrainsUnify (ctx, cs) {
     return state;
 }
 
+async function constraintEnv (ctx, cs) {
+    const r = {stop: true, eval: true, check: true};
+
+    if (cs.root) {
+        const root = await getVariable(null, cs.root.csID, ctx);
+
+        if (root.op === OR) {
+
+            const csValue = root[`${cs.side}Value`]
+            const oValue = root[`${cs.side === 'a' ? 'b':'a'}Value`];
+
+            if (csValue === undefined && oValue === undefined) {
+                return {stop: false, eval: false, check: true};
+            }
+            else if (csValue === false) {
+                return {stop: false, eval: false, check: false};
+            }
+            else if (oValue === false) {
+                throw 'CONSTRAIN ENV : we need to get next logical root!!';
+            }
+
+            throw `constraintEnv: ${r.op}, csValue=${csValue}, oValue=${oValue}`; 
+        }
+    }
+
+    return r;
+}
+
 async function checkVariableConstrains (ctx, v) {
     // let constraints = v.constraints;
 
-    if (v.root) {
-        throw 'CHECK ROOT BEFORE EVALUATE CONSTRAIN!!';
+
+    const env = await constraintEnv(ctx, v);
+
+    if (!env.check) {
+        return true;
     }
 
     if (v.state) {
@@ -498,12 +545,19 @@ async function checkVariableConstrains (ctx, v) {
     for await (let vcID of v.constraints.values()) {
         const cs = await getVariable(null, vcID, ctx);
 
+        /*
         if (cs.root) {
             const r = await getVariable(null, cs.root.csID, ctx);
 
             if (r.op === OR && r[`${r.side}Value`] === C_FALSE) {
                 return true;
             }
+        }*/
+
+        const env = await constraintEnv(ctx, cs);
+
+        if (!env.check) {
+            return true;
         }
 
         let r;
@@ -516,20 +570,20 @@ async function checkVariableConstrains (ctx, v) {
 
             // Identity Operators, 
             case UNIFY:
-                r = await checkVariableConstrainsUnify(ctx, cs);
+                r = await checkVariableConstrainsUnify(ctx, cs, env);
                 break;
 
             case NOT_UNIFY:
-                r = await checkVariableConstrainsNotUnify(ctx, cs);
+                r = await checkVariableConstrainsNotUnify(ctx, cs, env);
                 break;
 
             // Logical Operators,
             case OR:
-                r = await checkOrConstrain(ctx, cs);
+                r = await checkOrConstrain(ctx, cs, env);
                 break;
 
             case AND:
-                r = await checkAndConstrain(ctx, cs);
+                r = await checkAndConstrain(ctx, cs, env);
                 break;
                 
             // Math Operators,
@@ -542,45 +596,37 @@ async function checkVariableConstrains (ctx, v) {
             case BELOW_OR_EQUAL:
             case ABOVE:
             case ABOVE_OR_EQUAL:
-                r = await checkNumberConstrain(ctx, cs);
+                r = await checkNumberConstrain(ctx, cs, env);
                 break;
             
             // Function,
             case FUNCTION:
+            default:
+                throw cs.op + ' [checkVariableConstrains] NOT IMPLEMENTED!!'
         }
 
         if (r !== C_UNKNOWN) {
             // remove constraints,
             // constraints = await constraints.remove(vcID);
 
+            if (r === C_FALSE && env.stop) {
+                return false;
+
             // check parent constraints,
-            if (r === C_FALSE) {
+            /* if (r === C_FALSE) {
                 // there is no parent constraints, so it should fail
 
                 if (cs.root) {
                     const {a, op, b} = await getVariable(null, cs.root, ctx);
 
                     if (op === OR) {
-                        /*
-                            TODO:
-                                * we need to know what is the side to the root, 
-                                  where the value should be propagated!! 
-                                
-                                * if or is then defered, to the other side, how 
-                                  to handle the rest of inactive constrains that would be 
-                                  triggered.
-                                
-                                * 1. we can save the side 'a' or 'b'
-                                * 2. we can setup the value on or-node aValue or bValue.
-                                * 3. everytime we evaluate something we need to know if is a or, 
-                                     and check the branch value. 
-                        */
-
+            
                         throw 'HANDLE OR-FALSE!!';
                     }
                 }
 
                 return false;
+            }*/
             }
             else if (cs.constraints && cs.constraints.size) {
                 parentConstraints.add(cs);
