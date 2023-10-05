@@ -167,24 +167,23 @@ describe("Plan Math graphs.", () => {
 
 	it("Plan Math Ops: Make Adder", test(
 		`			
-			$DIGITS = {0 1 2 3 4 5 6 7 8 9}
 			$BOOL = {0 1}
 
 			$DECIMAL_ADD = {
 				(
-					'a:$DIGITS
-					'b:$DIGITS
+					'a:$BOOL
+					'b:$BOOL
 					'cin:$BOOL
-					'sum:$DIGITS
-					'cout:$DIGITS
+					'sum:$BOOL
+					'cout:$BOOL
 				) | 
 					's = 'a + 'b + 'cin,
 					[
-						's >= 10,
-						'sum = 's - 10,
+						's >= 2,
+						'sum = 's - 2,
 						'cout = 1;
 
-						's < 10,
+						's < 2,
 						'sum = 's,
 						'cout = 0
 					]
@@ -195,7 +194,7 @@ describe("Plan Math graphs.", () => {
 			{
 				query: `(
 					1
-					9
+					1
 					'cin
 					'sum
 					'cout

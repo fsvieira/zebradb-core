@@ -393,7 +393,7 @@ async function checkVariableConstrainsNotUnify (ctx, cs) {
 
 }
 
-async function checkAndConstrain (ctx, cs) {
+async function checkAndConstrain (ctx, cs, env) {
     const {a, op, b, id} = cs;
     const av = await getVariable(null, a, ctx);
     const bv = await getVariable(null, b, ctx);
@@ -401,15 +401,22 @@ async function checkAndConstrain (ctx, cs) {
     const sa = getNumber(av);
     const sb = getNumber(bv);
 
-    if (sa !== null || sb !== null) {
-        const state = sa && sb?C_TRUE:C_FALSE;
+    let state = C_UNKNOWN;
 
+    if (sa === 0 || sb === 0) {
+        state = C_FALSE;
+    }
+    else if (sa === 1 && sb === 1) {
+        state = C_TRUE;
+    }
+
+    if (state !== C_UNKNOWN) {
         ctx.variables = await ctx.variables.set(cs.id, {
             ...cs, state, value: (state === C_TRUE?1:0).toString()
         });
     }
 
-    return C_UNKNOWN;
+    return state;
 }
 
 async function checkOrConstrain (ctx, cs) {
@@ -422,13 +429,17 @@ async function checkOrConstrain (ctx, cs) {
 
     let state = C_UNKNOWN;
 
-    if (sa !== null || sb !== null) {
-        state = sa || sb?C_TRUE:C_FALSE;
+    if (sa === 1 || sb === 1) {
+        state = C_TRUE;
+    }
+    else if (sa === 0 && sb === 0) {
+        state = C_FALSE;
+    }
 
+    if (state !== C_UNKNOWN) {
         ctx.variables = await ctx.variables.set(cs.id, {
             ...cs, state, value: (state === C_TRUE?1:0).toString()
         });
-        
     }
 
     return state;
