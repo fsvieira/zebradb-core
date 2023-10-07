@@ -169,7 +169,7 @@ describe("Plan Math graphs.", () => {
 		`			
 			$BOOL = {0 1}
 
-			$DECIMAL_ADD = {
+			$BIN_ADD = {
 				(
 					'a:$BOOL
 					'b:$BOOL
@@ -193,12 +193,12 @@ describe("Plan Math graphs.", () => {
 		[
 			{
 				query: `(
-					1
+					0
+					0
+					0
 					1
 					0
-					'cout
-					'sum
-				):$DECIMAL_ADD`,
+				):$BIN_ADD`,
 				results: [
 					"@(0 & 0 = 0)", 
 					"@(0 & 1 = 0)", 

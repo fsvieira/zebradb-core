@@ -410,11 +410,26 @@ async function checkAndConstrain (ctx, cs, env) {
     else if (sa === 1 && sb === 1) {
         state = C_TRUE;
     }
-
+    else if (sa !== null) {
+        ctx.variables = await ctx.variables.set(cs.id, {
+            ...cs, state, aValue: sa
+        });
+    }
+    else if (sb !== null) {
+        ctx.variables = await ctx.variables.set(cs.id, {
+            ...cs, state, bValue: sb
+        });
+    }
+    
     if (state !== C_UNKNOWN) {
         ctx.variables = await ctx.variables.set(cs.id, {
-            ...cs, state, value: (state === C_TRUE?1:0).toString()
+            ...cs, state, value: (state === C_TRUE?1:0).toString(),
+            aValue: sa || 0, bValue: sb || 0
         });
+
+        if (state === C_FALSE) {
+            await setRootValue(ctx, cs.root, 0);
+        }
     }
 
     return state;
@@ -519,20 +534,25 @@ async function checkVariableConstrainsUnify (ctx, cs, env) {
     return state;
 }
 
+async function setRootValue (ctx, root, value) {
+    const cs = await getVariable(null, root.csID, ctx);
+
+    ctx.variables = await ctx.variables.set(cs.id, {
+        ...cs, [`${root.side}Value`]: value
+    });
+}
+
 async function constraintEnv (ctx, cs) {
     const r = {stop: true, eval: true, check: true};
 
     if (cs.root) {
         const root = await getVariable(null, cs.root.csID, ctx);
 
-        if (!cs.side) {
-            throw 'THERE IS NO SIDE!!';
-        }
-
         if (root.op === OR) {
 
-            const csValue = root[`${cs.side}Value`]
-            const oValue = root[`${cs.side === 'a' ? 'b':'a'}Value`];
+            const side = cs.root.side;
+            const csValue = root[`${side}Value`]
+            const oValue = root[`${side === 'a' ? 'b':'a'}Value`];
 
             if (csValue === undefined && oValue === undefined) {
                 return {stop: false, eval: false, check: true};
@@ -542,6 +562,9 @@ async function constraintEnv (ctx, cs) {
             }
             else if (oValue === 1) {
                 throw 'CONSTRAIN ENV : we need to get next logical root!!';
+            }
+            else if (oValue === 0) {
+                return constraintEnv(ctx, root);
             }
 
             throw `constraintEnv: ${r.op}, csValue=${csValue}, oValue=${oValue}`; 
@@ -570,15 +593,6 @@ async function checkVariableConstrains (ctx, v) {
 
     for await (let vcID of v.constraints.values()) {
         const cs = await getVariable(null, vcID, ctx);
-
-        /*
-        if (cs.root) {
-            const r = await getVariable(null, cs.root.csID, ctx);
-
-            if (r.op === OR && r[`${r.side}Value`] === C_FALSE) {
-                return true;
-            }
-        }*/
 
         const env = await constraintEnv(ctx, cs);
 
