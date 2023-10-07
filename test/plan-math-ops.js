@@ -196,7 +196,7 @@ describe("Plan Math graphs.", () => {
 					0
 					0
 					0
-					1
+					0
 					0
 				):$BIN_ADD`,
 				results: [

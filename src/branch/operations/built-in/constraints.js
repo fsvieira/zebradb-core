@@ -243,6 +243,7 @@ async function checkNumberConstrain(ctx, cs, env) {
     }
 
     let r;
+    state = C_TRUE;
     switch (op) {
         /*case OR:
             throw 'OR OP IS NOT DEFINED!'
@@ -276,28 +277,32 @@ async function checkNumberConstrain(ctx, cs, env) {
         
         case BELOW:
             r = an < bn?1:0;
+            state=r?C_TRUE:C_FALSE;
             break;
 
         case BELOW_OR_EQUAL:
             r = an <= bn?1:0;
+            state=r?C_TRUE:C_FALSE;
             break;
 
         case ABOVE:
             r = an > bn?1:0;
+            state=r?C_TRUE:C_FALSE;
             break;
 
         case ABOVE_OR_EQUAL:
             r = an >= bn?1:0;
+            state=r?C_TRUE:C_FALSE;
             break;
    }
 
    console.log('----- (', op,') ------------->', r, '=' , an, op, bn);
 
    ctx.variables = await ctx.variables.set(cs.id, {
-        ...cs, state: C_TRUE, value: r.toString()
+        ...cs, state, value: r.toString()
    });
 
-   return C_TRUE;
+   return state;
 }
 
 async function excludeFromDomain (ctx, v, d, cs) {
@@ -427,9 +432,9 @@ async function checkAndConstrain (ctx, cs, env) {
             aValue: sa || 0, bValue: sb || 0
         });
 
-        if (state === C_FALSE) {
+        /*if (state === C_FALSE) {
             await setRootValue(ctx, cs.root, 0);
-        }
+        }*/
     }
 
     return state;
@@ -577,7 +582,6 @@ async function constraintEnv (ctx, cs) {
 async function checkVariableConstrains (ctx, v) {
     // let constraints = v.constraints;
 
-
     const env = await constraintEnv(ctx, v);
 
     if (!env.check) {
@@ -597,7 +601,7 @@ async function checkVariableConstrains (ctx, v) {
         const env = await constraintEnv(ctx, cs);
 
         if (!env.check) {
-            return true;
+            continue;
         }
 
         let r;
@@ -651,22 +655,10 @@ async function checkVariableConstrains (ctx, v) {
 
             if (r === C_FALSE && env.stop) {
                 return false;
-
-            // check parent constraints,
-            /* if (r === C_FALSE) {
-                // there is no parent constraints, so it should fail
-
-                if (cs.root) {
-                    const {a, op, b} = await getVariable(null, cs.root, ctx);
-
-                    if (op === OR) {
-            
-                        throw 'HANDLE OR-FALSE!!';
-                    }
-                }
-
-                return false;
-            }*/
+            }
+            else if (r === C_FALSE) {
+                // setup the root value
+                await setRootValue(ctx, cs.root, 0);
             }
             else if (cs.constraints && cs.constraints.size) {
                 parentConstraints.add(cs);
