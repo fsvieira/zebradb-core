@@ -174,8 +174,8 @@ describe("Plan Math graphs.", () => {
 					'a:$BOOL
 					'b:$BOOL
 					'cin:$BOOL
-					'sum:$BOOL
 					'cout:$BOOL
+					'sum:$BOOL
 				) | 
 					's = 'a + 'b + 'cin,
 					[
@@ -195,9 +195,9 @@ describe("Plan Math graphs.", () => {
 				query: `(
 					1
 					1
-					'cin
-					'sum
+					0
 					'cout
+					'sum
 				):$DECIMAL_ADD`,
 				results: [
 					"@(0 & 0 = 0)", 

@@ -256,7 +256,6 @@ async function checkNumberConstrain(ctx, cs, env) {
         // Math Operators,
         case ADD:
             r = an + bn; 
-            console.log('------------------>', r, '=' , an, '+', bn, r.toString());
             break;
 
         case SUB:
@@ -291,6 +290,8 @@ async function checkNumberConstrain(ctx, cs, env) {
             r = an >= bn?1:0;
             break;
    }
+
+   console.log('----- (', op,') ------------->', r, '=' , an, op, bn);
 
    ctx.variables = await ctx.variables.set(cs.id, {
         ...cs, state: C_TRUE, value: r.toString()
@@ -435,6 +436,16 @@ async function checkOrConstrain (ctx, cs) {
     else if (sa === 0 && sb === 0) {
         state = C_FALSE;
     }
+    else if (sa !== null) {
+        ctx.variables = await ctx.variables.set(cs.id, {
+            ...cs, state, aValue: sa
+        });
+    }
+    else if (sb !== null) {
+        ctx.variables = await ctx.variables.set(cs.id, {
+            ...cs, state, bValue: sb
+        });
+    }
 
     if (state !== C_UNKNOWN) {
         ctx.variables = await ctx.variables.set(cs.id, {
@@ -514,6 +525,10 @@ async function constraintEnv (ctx, cs) {
     if (cs.root) {
         const root = await getVariable(null, cs.root.csID, ctx);
 
+        if (!cs.side) {
+            throw 'THERE IS NO SIDE!!';
+        }
+
         if (root.op === OR) {
 
             const csValue = root[`${cs.side}Value`]
@@ -522,10 +537,10 @@ async function constraintEnv (ctx, cs) {
             if (csValue === undefined && oValue === undefined) {
                 return {stop: false, eval: false, check: true};
             }
-            else if (csValue === false) {
+            else if (csValue === 0) {
                 return {stop: false, eval: false, check: false};
             }
-            else if (oValue === false) {
+            else if (oValue === 1) {
                 throw 'CONSTRAIN ENV : we need to get next logical root!!';
             }
 
