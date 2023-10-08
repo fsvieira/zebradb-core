@@ -178,15 +178,19 @@ describe("Plan Math graphs.", () => {
 					'sum:$BOOL
 				) | 
 					's = 'a + 'b + 'cin,
+					's < 2,
+					'sum = 's,
+					'cout = 0
+					/*
 					[
 						's >= 2,
 						'sum = 's - 2,
 						'cout = 1;
-
+						
 						's < 2,
 						'sum = 's,
 						'cout = 0
-					]
+					]*/
 			}
 
         `, 

@@ -149,6 +149,7 @@ const setVariable = async (ctx, v, p) => {
 
 function getValue (v) {
     if (v.type === CONSTANT) {
+        console.log("VALUE => ", v.data);
         return v.data;
     }
     else if (v.type === CONSTRAINT && v.state) {
@@ -156,7 +157,7 @@ function getValue (v) {
             return v.value;
         }
 
-        return v.state.C_TRUE?1:0;
+        return v.state === C_TRUE?1:0;
     }
 
     return null;
@@ -409,6 +410,8 @@ async function checkAndConstrain (ctx, cs, env) {
 
     let state = C_UNKNOWN;
 
+    console.log(sa + " AND " + sb);
+
     if (sa === 0 || sb === 0) {
         state = C_FALSE;
     }
@@ -483,6 +486,8 @@ async function checkVariableConstrainsUnify (ctx, cs, env) {
 
     const sa = getValue(av);
     const sb = getValue(bv);
+
+    console.log('UNIFY ', sa , ' = ', sb);
 
     let state = C_UNKNOWN;
 
@@ -601,8 +606,12 @@ async function checkVariableConstrains (ctx, v) {
         const env = await constraintEnv(ctx, cs);
 
         if (!env.check) {
+            console.log("OPPPPP => ", cs.op , " NO CHECK");
+
             continue;
         }
+
+        console.log("OPPPPP => ", cs.op , " CHECK");
 
         let r;
         switch (cs.op) {
