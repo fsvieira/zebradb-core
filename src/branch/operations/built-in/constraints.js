@@ -452,10 +452,6 @@ async function checkAndConstrain (ctx, cs, env) {
             ...cs, state,
             aValue: sa, bValue: sb
         });
-
-        /*if (state === C_FALSE) {
-            await setRootValue(ctx, cs.root, 0);
-        }*/
     }
 
     await debugConstraint(ctx, cs.id, state, 'AND');
@@ -682,7 +678,7 @@ async function checkVariableConstrains (ctx, v) {
             }
             else if (r === C_FALSE) {
                 // setup the root value
-                await setRootValue(ctx, cs.root, 0);
+                await setRootValue(ctx, cs.root, r);
             }
             else if (cs.constraints && cs.constraints.size) {
                 parentConstraints.add(cs);
