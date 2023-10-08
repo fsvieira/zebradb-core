@@ -532,26 +532,6 @@ async function checkVariableConstrainsUnify (ctx, cs, env) {
             const r = await setVariable(ctx, bv, c);
             state = r?C_TRUE:C_FALSE;
         } 
-
-        /*
-        const r = await getVariable(null, root, ctx);
-
-        if (r.op === AND) {
-            if (av.type === LOCAL_VAR && bv.type === LOCAL_VAR) {
-                const r = await setVariable(ctx, av, bv);
-                state = r?C_TRUE:C_FALSE;
-            }
-            else if (av.type === LOCAL_VAR && sb !== null) {
-                const c = bv.type === CONSTANT?bv:await getConstant(ctx, sb);
-                const r = await setVariable(ctx, av, c);
-                state = r?C_TRUE:C_FALSE;
-            }
-            else if (bv.type === LOCAL_VAR && sa !== null) {
-                const c = bv.type === CONSTANT?av:await getConstant(ctx, sa);
-                const r = await setVariable(ctx, bv, c);
-                state = r?C_TRUE:C_FALSE;
-            } 
-        }*/
     }
 
     if (state !== C_UNKNOWN) {
@@ -622,9 +602,9 @@ async function checkVariableConstrains (ctx, v) {
         return true;
     }
 
-    if (v.state && v.state !== C_UNKNOWN) {
+    /*if (v.state && v.state !== C_UNKNOWN) {
         return v.state === C_TRUE?true:false;
-    }
+    }*/
 
     const parentConstraints = new Set();
 
