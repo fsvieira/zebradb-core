@@ -28,12 +28,19 @@ Variables and constraints in the system maintain references to the logical tree 
 
 Each node in the logical tree represents a constraint. Constraint nodes have the following attributes:
 
-- Type: Indicates whether the constraint is logical or arithmetic.
+- Type (op): Indicates whether the constraint is logical or arithmetic.
 - Expression: Contains the specific constraint expression.
 - State: Records the state of the constraint (C_TRUE, C_FALSE, or C_UNKNOWN).
-- Logical Root-Node: Points to the logical root-node that governs this constraint.
+- Logical Root-Node: Points to the logical root-node that governs this constraint, it also stores the position on the left ('a') or right ('b') side relative to the logical root-node.
+- Intermediate Value: Stores an intermediate value if the constraint's state changes to C_TRUE during evaluation.
 
-The Logical Root-Node attribute is crucial for understanding the hierarchy and evaluation of constraints within the system. It specifies the top-level logical node that encompasses this constraint. If the constraint node is part of an OR-expression, the Logical Root-Node points to the nearest OR-parent node. If no OR-parent is found, it defaults to the root node of the entire logical tree.
+The Logical Root-Node attribute is crucial for understanding the hierarchy and evaluation of constraints within the system. It specifies the top-level logical node that encompasses this constraint.
+
+The rules to determine and store the Logical Root-Node are as follows:
+
+- The tree root node has no logical root.
+- Each child node will store a reference to its logical root along with the side it belongs to ('a' for left or 'b' for right) relative to its logical root.
+- The logical root is the first OR-parent node encountered while traversing up the logical tree. If no OR-parent node is found, it defaults to the tree root node.
 
 This hierarchical structure helps determine the context in which constraints are evaluated and facilitates efficient constraint management.
 
