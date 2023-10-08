@@ -147,20 +147,29 @@ const setVariable = async (ctx, v, p) => {
     return true; 
 }
 
+function getBoolValue (v) {
+    if (v.type === CONSTANT) {
+        return C_TRUE;
+    }
+    else if (
+        v.type === CONSTRAINT
+    ) {
+        return v.state || C_UNKNOWN;
+    }
+
+    return C_UNKNOWN;
+}
+
 function getValue (v) {
     if (v.type === CONSTANT) {
-        console.log("GET VALUE => ", v.data);
         return v.data;
     }
-    else if (v.type === CONSTRAINT && v.state && v.state !== C_UNKNOWN) {
-        if (v.value !== undefined) {
-            console.log("GET VALUE CONSTRAINT => ", v.state, v.value );
-            return v.value;
-        }
-
-        console.log("GET VALUE BY CONSTRAINT STATE => ", v.state, v.state === C_TRUE?1:0);
-
-        return v.state === C_TRUE?1:0;
+    else if (
+        v.type === CONSTRAINT && 
+        v.state === C_TRUE && 
+        v.value !== undefined
+    ) {
+        return v.value;
     }
 
     return null;
@@ -199,8 +208,7 @@ async function getConstant (ctx, string) {
     return await ctx.variables.get(vID);
 }
 
-
-async function checkNumberConstrain(ctx, cs, env) {
+async function checkNumberRelationConstrain(ctx, cs, env) {
     const {a, op, b, id} = cs;
     const av = await getVariable(null, a, ctx);
     const bv = await getVariable(null, b, ctx);
@@ -212,26 +220,61 @@ async function checkNumberConstrain(ctx, cs, env) {
     if (isNaN(an) || isNaN(bn)) {    
         state = C_FALSE;
     }
-    /*else if ([OR, AND].includes(op)) {
-        if (an !== null && bn !== null) {
-            const r = an || bn;
-        }
-        else if (an !== null) {
-            if (an === 1) {
+    else if (an === null || bn === null) {
+        state = C_UNKNOWN;
+    }
 
-            }
-            else {
-
-            }         
-
-        }
-        else if (bn !== null) {
-
+    if (state !== undefined) {
+        if (state !== C_UNKNOWN) {
+            ctx.variables = await ctx.variables.set(cs.id, {
+                ...cs, state
+            });
         }
 
-        return C_UNKNOWN;
+        return state;
+    }
 
-    }*/
+    state = C_TRUE;
+
+    switch (op) {        
+        case BELOW:
+            state = an < bn?C_TRUE:C_FALSE;
+            break;
+
+        case BELOW_OR_EQUAL:
+            state = an <= bn?C_TRUE:C_FALSE;
+            break;
+
+        case ABOVE:
+            state = an > bn?C_TRUE:C_FALSE;
+            break;
+
+        case ABOVE_OR_EQUAL:
+            state = an >= bn?C_TRUE:C_FALSE;
+            break;
+   }
+
+   console.log('----- (', op,') ------------->', state, '=' , an, op, bn);
+
+   ctx.variables = await ctx.variables.set(cs.id, {
+        ...cs, state
+   });
+
+   return state;
+}
+
+async function checkNumberOperationsConstrain(ctx, cs, env) {
+    const {a, op, b, id} = cs;
+    const av = await getVariable(null, a, ctx);
+    const bv = await getVariable(null, b, ctx);
+
+    const an = getNumber(av);
+    const bn = getNumber(bv);
+
+    let state;
+    if (isNaN(an) || isNaN(bn)) {    
+        state = C_FALSE;
+    }
     else if (an === null || bn === null) {
         state = C_UNKNOWN;
     }
@@ -249,16 +292,6 @@ async function checkNumberConstrain(ctx, cs, env) {
     let r;
     state = C_TRUE;
     switch (op) {
-        /*case OR:
-            throw 'OR OP IS NOT DEFINED!'
-            r = an || bn;
-            break;
-
-        case AND:
-            r = an && bn;
-            break;*/
-
-        // Math Operators,
         case ADD:
             r = an + bn; 
             break;
@@ -277,27 +310,7 @@ async function checkNumberConstrain(ctx, cs, env) {
 
         case MOD:
             r = an % bn;
-            break;
-        
-        case BELOW:
-            r = an < bn?1:0;
-            state=r?C_TRUE:C_FALSE;
-            break;
-
-        case BELOW_OR_EQUAL:
-            r = an <= bn?1:0;
-            state=r?C_TRUE:C_FALSE;
-            break;
-
-        case ABOVE:
-            r = an > bn?1:0;
-            state=r?C_TRUE:C_FALSE;
-            break;
-
-        case ABOVE_OR_EQUAL:
-            r = an >= bn?1:0;
-            state=r?C_TRUE:C_FALSE;
-            break;
+            break;        
    }
 
    console.log('----- (', op,') ------------->', r, '=' , an, op, bn);
@@ -395,7 +408,7 @@ async function checkVariableConstrainsNotUnify (ctx, cs) {
 
     if (state !== C_UNKNOWN) {
         ctx.variables = await ctx.variables.set(cs.id, {
-            ...cs, state, value: (state === C_TRUE?1:0).toString()
+            ...cs, state
         });
     }
 
@@ -408,25 +421,25 @@ async function checkAndConstrain (ctx, cs, env) {
     const av = await getVariable(null, a, ctx);
     const bv = await getVariable(null, b, ctx);
 
-    const sa = getNumber(av);
-    const sb = getNumber(bv);
+    const sa = getBoolValue(av);
+    const sb = getBoolValue(bv);
 
     let state = C_UNKNOWN;
 
     console.log(sa + " AND " + sb);
     
-    if (sa === 0 || sb === 0) {
+    if (sa === C_FALSE || sb === C_FALSE) {
         state = C_FALSE;
     }
-    else if (sa === 1 && sb === 1) {
+    else if (sa === C_TRUE && sb === C_TRUE) {
         state = C_TRUE;
     }
-    else if (sa !== null) {
+    else if (sa !== C_UNKNOWN) {
         ctx.variables = await ctx.variables.set(cs.id, {
             ...cs, state, aValue: sa
         });
     }
-    else if (sb !== null) {
+    else if (sb !== C_UNKNOWN) {
         ctx.variables = await ctx.variables.set(cs.id, {
             ...cs, state, bValue: sb
         });
@@ -434,8 +447,8 @@ async function checkAndConstrain (ctx, cs, env) {
     
     if (state !== C_UNKNOWN) {
         ctx.variables = await ctx.variables.set(cs.id, {
-            ...cs, state, value: (state === C_TRUE?1:0).toString(),
-            aValue: sa || 0, bValue: sb || 0
+            ...cs, state,
+            aValue: sa, bValue: sb
         });
 
         /*if (state === C_FALSE) {
@@ -453,23 +466,23 @@ async function checkOrConstrain (ctx, cs) {
     const av = await getVariable(null, a, ctx);
     const bv = await getVariable(null, b, ctx);
 
-    const sa = getNumber(av);
-    const sb = getNumber(bv);
+    const sa = getBoolValue(av);
+    const sb = getBoolValue(bv);
 
     let state = C_UNKNOWN;
 
-    if (sa === 1 || sb === 1) {
+    if (sa === C_TRUE || sb === C_TRUE) {
         state = C_TRUE;
     }
-    else if (sa === 0 && sb === 0) {
+    else if (sa === C_FALSE && sb === C_FALSE) {
         state = C_FALSE;
     }
-    else if (sa !== null) {
+    else if (sa !== C_UNKNOWN) {
         ctx.variables = await ctx.variables.set(cs.id, {
             ...cs, state, aValue: sa
         });
     }
-    else if (sb !== null) {
+    else if (sb !== C_UNKNOWN) {
         ctx.variables = await ctx.variables.set(cs.id, {
             ...cs, state, bValue: sb
         });
@@ -477,7 +490,7 @@ async function checkOrConstrain (ctx, cs) {
 
     if (state !== C_UNKNOWN) {
         ctx.variables = await ctx.variables.set(cs.id, {
-            ...cs, state, value: (state === C_TRUE?1:0).toString()
+            ...cs, state
         });
     }
 
@@ -543,7 +556,7 @@ async function checkVariableConstrainsUnify (ctx, cs, env) {
 
     if (state !== C_UNKNOWN) {
         ctx.variables = await ctx.variables.set(cs.id, {
-            ...cs, state, value: (state === C_TRUE?1:0).toString()
+            ...cs, state
         });
     }
 
@@ -609,9 +622,8 @@ async function checkVariableConstrains (ctx, v) {
         return true;
     }
 
-    if (v.state) {
+    if (v.state && v.state !== C_UNKNOWN) {
         return v.state === C_TRUE?true:false;
-        // throw 'checkVariableConstrains: Variable State : ' + v.state + ' is not handled!!';
     }
 
     const parentConstraints = new Set();
@@ -661,11 +673,14 @@ async function checkVariableConstrains (ctx, v) {
             case MUL:
             case DIV:
             case MOD:
+                r = checkNumberOperationsConstrain(ctx, cs, env);
+                break;
+
             case BELOW:
             case BELOW_OR_EQUAL:
             case ABOVE:
             case ABOVE_OR_EQUAL:
-                r = await checkNumberConstrain(ctx, cs, env);
+                r = await checkNumberRelationConstrain(ctx, cs, env);
                 break;
             
             // Function,

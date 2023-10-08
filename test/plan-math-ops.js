@@ -178,9 +178,6 @@ describe("Plan Math graphs.", () => {
 					'sum:$BOOL
 				) | 
 					's = 'a + 'b + 'cin,
-					's < 2,
-					'cout = 0
-					/*
 					[
 						's >= 2,
 						'sum = 's - 2,
@@ -189,18 +186,18 @@ describe("Plan Math graphs.", () => {
 						's < 2,
 						'sum = 's,
 						'cout = 0
-					]*/
+					]
 			}
 
         `, 
 		[
 			{
 				query: `(
+					1
+					1
 					0
-					0
-					0
-					0
-					0
+					'cout
+					'sum
 				):$BIN_ADD`,
 				results: [
 					"@(0 & 0 = 0)", 
