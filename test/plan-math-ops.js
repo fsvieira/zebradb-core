@@ -193,9 +193,9 @@ describe("Plan Math graphs.", () => {
 		[
 			{
 				query: `(
-					1
-					1
-					0
+					'a
+					'b
+					'cin
 					'cout
 					'sum
 				):$BIN_ADD`,

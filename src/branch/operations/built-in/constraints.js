@@ -279,10 +279,12 @@ async function checkNumberOperationsConstrain(ctx, cs, env) {
         state = C_UNKNOWN;
     }
 
+    debugConstraint(ctx, cs.id, state, 'MATH OP [START]');
+
     if (state !== undefined) {
         if (state !== C_UNKNOWN) {
             ctx.variables = await ctx.variables.set(cs.id, {
-                ...cs, state, value: (state === C_FALSE?0:1).toString()
+                ...cs, state
             });
         }
 
@@ -313,8 +315,8 @@ async function checkNumberOperationsConstrain(ctx, cs, env) {
             break;        
    }
 
-   console.log('----- (', op,') ------------->', r, '=' , an, op, bn);
-
+   debugConstraint(ctx, cs.id, state, 'MATH OP');
+   
    ctx.variables = await ctx.variables.set(cs.id, {
         ...cs, state, value: r.toString()
    });
@@ -653,7 +655,7 @@ async function checkVariableConstrains (ctx, v) {
             case MUL:
             case DIV:
             case MOD:
-                r = checkNumberOperationsConstrain(ctx, cs, env);
+                r = await checkNumberOperationsConstrain(ctx, cs, env);
                 break;
 
             case BELOW:
