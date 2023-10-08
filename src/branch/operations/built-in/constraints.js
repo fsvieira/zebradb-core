@@ -149,13 +149,16 @@ const setVariable = async (ctx, v, p) => {
 
 function getValue (v) {
     if (v.type === CONSTANT) {
-        console.log("VALUE => ", v.data);
+        console.log("GET VALUE => ", v.data);
         return v.data;
     }
-    else if (v.type === CONSTRAINT && v.state) {
+    else if (v.type === CONSTRAINT && v.state && v.state !== C_UNKNOWN) {
         if (v.value !== undefined) {
+            console.log("GET VALUE CONSTRAINT => ", v.state, v.value );
             return v.value;
         }
+
+        console.log("GET VALUE BY CONSTRAINT STATE => ", v.state, v.state === C_TRUE?1:0);
 
         return v.state === C_TRUE?1:0;
     }
@@ -411,7 +414,7 @@ async function checkAndConstrain (ctx, cs, env) {
     let state = C_UNKNOWN;
 
     console.log(sa + " AND " + sb);
-
+    
     if (sa === 0 || sb === 0) {
         state = C_FALSE;
     }
@@ -439,6 +442,8 @@ async function checkAndConstrain (ctx, cs, env) {
             await setRootValue(ctx, cs.root, 0);
         }*/
     }
+
+    await debugConstraint(ctx, cs.id, state, 'AND');
 
     return state;
 }
@@ -490,6 +495,7 @@ async function checkVariableConstrainsUnify (ctx, cs, env) {
     console.log('UNIFY ', sa , ' = ', sb);
 
     let state = C_UNKNOWN;
+    await debugConstraint(ctx, cs.id, state, 'UNIFY [START]');
 
     if (av.id === bv.id) {
         state = C_TRUE;
@@ -541,6 +547,8 @@ async function checkVariableConstrainsUnify (ctx, cs, env) {
         });
     }
 
+    await debugConstraint(ctx, cs.id, state, 'UNIFY');
+
     return state;
 }
 
@@ -582,6 +590,14 @@ async function constraintEnv (ctx, cs) {
     }
 
     return r;
+}
+
+async function debugConstraint (ctx, id, result, str='') {
+    
+    // DEBUG
+    const s = await toString(null, id, ctx);
+    const values = ['', 'FALSE', 'TRUE', 'UNKNOWN'];
+    console.log(`DEBUG ${str}:`, s, " ==> " , values[result]);
 }
 
 async function checkVariableConstrains (ctx, v) {
@@ -658,6 +674,8 @@ async function checkVariableConstrains (ctx, v) {
                 throw cs.op + ' [checkVariableConstrains] NOT IMPLEMENTED!!'
         }
 
+        await debugConstraint(ctx, cs.id, r);
+
         if (r !== C_UNKNOWN) {
             // remove constraints,
             // constraints = await constraints.remove(vcID);
@@ -673,6 +691,7 @@ async function checkVariableConstrains (ctx, v) {
                 parentConstraints.add(cs);
             }
         }
+
     }
 
     /*

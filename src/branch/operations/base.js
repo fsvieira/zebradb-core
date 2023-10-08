@@ -444,6 +444,7 @@ const get = async (ctx, v) => {
     return v;
 }
 
+/*
 async function toStringConstraints (branch, v, cID, ctx) {
     const constraint = await getVariable(branch, cID, ctx);
 
@@ -461,6 +462,13 @@ async function toStringConstraints (branch, v, cID, ctx) {
 
         return r.join(" OR ");
     }
+}*/
+
+async function toStringConstraints (branch, v, ctx) {
+    const a = await toString(branch, v.a, ctx);
+    const b = await toString(branch, v.b, ctx);
+
+    return `[ ${a} ${v.op} ${b} ]`; 
 }
 
 async function toString (branch, id, ctx, constraints=true) {
@@ -515,6 +523,9 @@ async function toString (branch, id, ctx, constraints=true) {
         }
         case CONSTANT: {
             return v.data;
+        }
+        case CONSTRAINT: {
+            return toStringConstraints(branch, v, ctx);
         }
         default:
             throw `Base toString: Unknow Type ${v.type}`;
