@@ -18,15 +18,16 @@ The project API is database alike, and it should be the base of other projects t
   mocha
 ```
 
+# Documentation
+  * [Architecture](documentation/architecture.md)
+
+
 ## Old Version
 
 This is old version it does work as a lib,  
 ```
   npm install zebradb-core
 ```
-
-## Documentation
-[Architecture](documentation/architecture.md)
 
 # The Zebradb Language
 Zebradb features a unified language for defining data structures and querying them, known as zlang. In the sections that follow, we will provide a detailed description of this language, covering its syntax and semantics.
