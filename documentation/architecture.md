@@ -44,5 +44,38 @@ The rules to determine and store the Logical Root-Node are as follows:
 
 This hierarchical structure helps determine the context in which constraints are evaluated and facilitates efficient constraint management.
 
+## Constraints Evaluation/Check
 
+In the system, constraints are checked when variables are unified with values or variables. The constraint-checking process is vital for ensuring the logical and arithmetic validity of expressions within the system. This section outlines how constraint evaluation and checking are carried out.
 
+### Triggering Constraint Checks
+
+1. **Variable Unification**: When a variable is unified with a value or another variable, the system triggers a constraint check for all references to that variable. These references are constraint nodes where the variable appears.
+
+2. **`checkVariableConstraints` Function**: The `checkVariableConstraints` function is responsible for checking constraints. It returns `true` if all constraints pass or `false` if any branch should fail.
+
+### Constraint Evaluation and Checking
+
+1. **Environment Flags**: Constraints do not have predefined environment flags. Instead, the environment flags (`stop`, `eval`, `check`) for a constraint are calculated dynamically using the `constraintEnv(root)` function, where `root` is the logical root of the constraint.
+
+2. **Default Environment**:
+   - If a constraint does not have a OR-logical root, its default environment is `{stop: true, eval: true, check: true}`. This means it can be evaluated, it should fail all branch if constraint returns C_FALSE, and it must checked. 
+
+3. **OR Expression Context**:
+   - If a constraint is inside an OR expression, its environment depends on the other side of the OR:
+     - If the other side of the OR is `C_FALSE`, the constraint's environment becomes `{stop: false, eval: false, check: false}` (do nothing).
+     - If the other side of the OR is not `C_FALSE`, the constraint's environment is calculated recursively using `constraintEnv(cs.root)` to determine the next logical constraint's environment.
+
+4. **Constraint Check/Evaluation Results**:
+   - Constraint checks can return one of the following states: `C_FALSE`, `C_TRUE`, or `C_UNKNOWN`.
+   - If the result is `C_FALSE`, and `stop` is `true`, the branch fails immediately.
+   - If the result is `C_FALSE`, but `stop` is `false`, the logical-root side is updated to `C_FALSE`.
+   - If the result is `C_TRUE`, the constraint is added to a list for further checking with `checkVariableConstraints`.
+
+### Dynamic Handling of Environments
+
+The dynamic handling of environment flags based on the context within the logical tree allows the system to efficiently manage constraint checks. This approach ensures that constraints are evaluated or checked as needed while considering the logical hierarchy.
+
+By dynamically adjusting the environment flags, the system optimizes the evaluation and checking of constraints, improving overall efficiency.
+
+This section provides an overview of the constraint evaluation and checking process, highlighting the role of environment flags in determining when and how constraints are assessed within the system.
