@@ -179,7 +179,6 @@ describe("Plan Math graphs.", () => {
 				) | 
 					's = 'a + 'b + 'cin,
 					's < 2,
-					'sum = 's,
 					'cout = 0
 					/*
 					[
