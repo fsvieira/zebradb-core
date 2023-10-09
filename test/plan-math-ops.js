@@ -3,7 +3,7 @@
 const test = require("../test-utils/test");
 
 describe("Plan Math graphs.", () => {
-	xit("Simple Add", test(
+	it("Simple Add", test(
 		`
 		$DIGITS = {0 1 2 3 4 5 6 7 8 9}
 			
@@ -42,7 +42,7 @@ describe("Plan Math graphs.", () => {
 		{path: 'dbs/plan-math-ops/1', timeout: 1000 * 60 * 60}
 	));
 
-	xit("Solve Add", test(
+	it("Solve Add", test(
 		`
 		$DIGITS = {0 1 2 3 4 5 6 7 8 9}
 			
@@ -64,7 +64,7 @@ describe("Plan Math graphs.", () => {
 		{path: 'dbs/plan-math-ops/2', timeout: 1000 * 60 * 60}
 	));
 
-	xit("Solve Add (precedence in operators Expressions)", test(
+	it("Solve Add (precedence in operators Expressions)", test(
 		`
 		$DIGITS = {0 1 2 3 4 5 6 7 8 9}
 			
@@ -86,7 +86,7 @@ describe("Plan Math graphs.", () => {
 		{path: 'dbs/plan-math-ops/3', timeout: 1000 * 60 * 60}
 	));
 
-	xit("Plan Math Ops: Not Equal", test(
+	it("Plan Math Ops: Not Equal", test(
 		`			
 			$DIGITS = {0 1 2}
 			$NOT_EQUAL_TEST = {
@@ -113,7 +113,7 @@ describe("Plan Math graphs.", () => {
 		{path: 'dbs/plan-math-ops/4', timeout: 1000 * 60 * 60}
 	));
 
-	xit("Plan Math Ops: Send More Money", test(
+	it("Plan Math Ops: Send More Money", test(
 		`			
 			$DIGITS = {0 1 2 3 4 5 6 7 8 9}
 			
@@ -150,22 +150,12 @@ describe("Plan Math graphs.", () => {
 				results: [
 					"@(9 5 6 7 + 1 0 8 5 = 1 0 6 5 2)" 
 				]
-			},
-			/*{
-				query: `(
-				    'S 'E 'N 'D +
-					'M 'O 'R 'E =
-				  1 'O 'N 'E 'Y
-				):$SEND_MORE_MONEY`,
-				results: [
-					"@(9 5 6 7 + 1 0 8 5 = 1 0 6 5 2)" 
-				]
-			},*/
+			}
 		], 
 		{path: 'dbs/plan-math-ops/5', timeout: 1000 * 60 * 60}
 	));
 
-	xit("Plan Math Ops: Make Bin Adder", test(
+	it("Plan Math Ops: Make Bin Adder", test(
 		`			
 			$BOOL = {0 1}
 
@@ -214,7 +204,7 @@ describe("Plan Math graphs.", () => {
 		{path: 'dbs/plan-math-ops/7', timeout: 1000 * 60 * 5}
 	));
 
-	xit("Plan Math Ops: Make DEC Adder", test(
+	it("Plan Math Ops: Make DEC Adder", test(
 		`			
 			$DIGITS = {0 1 2 3 4 5 6 7 8 9}
 			$BOOL = {0 1}
@@ -257,7 +247,7 @@ describe("Plan Math graphs.", () => {
 		{path: 'dbs/plan-math-ops/8', timeout: 1000 * 60 * 5}
 	));
 
-	xit("Plan Math Ops: Make S + M = MO Adder", test(
+	it("Plan Math Ops: Make S + M = MO Adder", test(
 		`			
 			$DIGITS = {0 1 2 3 4 5 6 7 8 9}
 			$BOOL = {0 1}
@@ -282,6 +272,10 @@ describe("Plan Math graphs.", () => {
 					]
 			}
 
+			/*
+				9 + 1 = 1 0 
+			*/
+
 			$SEND_MORE_MONEY = {
 				(
 							   'S:$DIGITS +
@@ -293,7 +287,7 @@ describe("Plan Math graphs.", () => {
 				'S != 'M, 'S != 'O,
 				'M != 'O,
 
-				('S 'M 'c2 'M  'O):$DECIMAL_ADD
+				('S 'M 0 'M  'O):$DECIMAL_ADD
 
 			}
         `, 
@@ -303,7 +297,7 @@ describe("Plan Math graphs.", () => {
 				  'S + 'M = 'M 'O
 				):$SEND_MORE_MONEY`,
 				results: [
-					"@(9 5 6 7 + 1 0 8 5 = 1 0 6 5 2)"
+					"@(9 + 1 = 1 0)"
 				]
 			},
 		], 
@@ -366,6 +360,30 @@ describe("Plan Math graphs.", () => {
 				 'M 'O 'N 'E 'Y
 				):$SEND_MORE_MONEY`,
 				results: [
+					"@(2 8 1 7 + 0 3 6 8 = 0 3 1 8 5)",
+					"@(2 8 1 9 + 0 3 6 8 = 0 3 1 8 7)",
+					"@(3 7 1 2 + 0 4 6 7 = 0 4 1 7 9)",
+					"@(3 7 1 9 + 0 4 5 7 = 0 4 1 7 6)",
+					"@(3 8 2 1 + 0 4 6 8 = 0 4 2 8 9)",
+					"@(3 8 2 9 + 0 4 5 8 = 0 4 2 8 7)",
+					"@(5 7 3 1 + 0 6 4 7 = 0 6 3 7 8)",
+					"@(5 7 3 2 + 0 6 4 7 = 0 6 3 7 9)",
+					"@(5 8 4 9 + 0 6 3 8 = 0 6 4 8 7)",
+					"@(6 4 1 5 + 0 7 3 4 = 0 7 1 4 9)",
+					"@(6 4 1 9 + 0 7 2 4 = 0 7 1 4 3)",
+					"@(6 5 2 4 + 0 7 3 5 = 0 7 2 5 9)",
+					"@(6 8 5 1 + 0 7 3 8 = 0 7 5 8 9)",
+					"@(6 8 5 3 + 0 7 2 8 = 0 7 5 8 1)",
+					"@(7 3 1 6 + 0 8 2 3 = 0 8 1 3 9)",
+					"@(7 4 2 9 + 0 8 1 4 = 0 8 2 4 3)",
+					"@(7 5 3 1 + 0 8 2 5 = 0 8 3 5 6)",
+					"@(7 5 3 4 + 0 8 2 5 = 0 8 3 5 9)",
+					"@(7 5 3 9 + 0 8 1 5 = 0 8 3 5 4)",
+					"@(7 6 4 3 + 0 8 2 6 = 0 8 4 6 9)",
+					"@(7 6 4 9 + 0 8 1 6 = 0 8 4 6 5)",
+					"@(8 3 2 4 + 0 9 1 3 = 0 9 2 3 7)",
+					"@(8 4 3 2 + 0 9 1 4 = 0 9 3 4 6)",
+					"@(8 5 4 2 + 0 9 1 5 = 0 9 4 5 7)",
 					"@(9 5 6 7 + 1 0 8 5 = 1 0 6 5 2)"
 				]
 			},
