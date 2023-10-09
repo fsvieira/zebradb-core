@@ -207,8 +207,6 @@ function termConstrains(ctx, exp) {
 
     const cid = `__${type}:${SHA256(vars.join(op)).toString('base64')}`;
 
-    console.log(cid, `TODO: [termConstrains] make a better variable generator`);
-
     if (!ctx.constraints.includes(cid)) {
         ctx.constraints.push(cid);
 
@@ -354,7 +352,6 @@ function linkLogicalRoots(ctx, id) {
     const {a, op, b, constraints} = cs;
 
     if (constraints && constraints.length) {
-        console.log("NOT ROOT!");
         return;
     }
     else {

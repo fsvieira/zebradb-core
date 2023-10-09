@@ -454,6 +454,7 @@ class DB {
 
                 switch (d.type) {
                     case TUPLE: {
+                        d.domain && stack.push(d.domain);
                         stack.push(...d.data); 
                         break;
                     }

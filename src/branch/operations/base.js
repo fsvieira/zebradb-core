@@ -501,25 +501,6 @@ async function toString (branch, id, ctx, constraints=true) {
             const ds = vd?':' + vd.id : '';
 
             return "'" + (!v.pv && v.id?v.id + "::": "") + v.varname + ds;
-/*
-            throw 'TO STRING VARIABLE NOT DEFINED!';
-            const domainArray = v.d ? (await v.d.toArray()).sort(): undefined;
-            const domain = domainArray ? (await Promise.all(domainArray.map(id => toString(branch, id, ctx)))).filter(v => v !== ''):undefined;
-            const ds = domain && domain.length?`:{${domain.join(" ")}}`:"";
-
-            let e = "";
-            if (constraints) { 
-                const es = v.e ? 
-                    (await Promise.all(
-                        (await v.e.toArray())
-                        .map(cID => toStringconstraints(branch, v, cID, ctx)))).filter(v => v !== '')
-                    : undefined;
-                // const es = v.e ? (await Promise.all(v.e.map(id => toString(branch, id, ctx, stop)))).filter(v => v !== ''):undefined;
-                e = es && es.length?`~{${[...new Set(es)].join(" ")}}`:"";
-            }
-
-            return "'" + (!v.pv && v.id?v.id + "::": "") + v.v + ds + e;
- */
         }
         case CONSTANT: {
             return v.data;

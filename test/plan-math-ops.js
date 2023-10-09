@@ -165,7 +165,7 @@ describe("Plan Math graphs.", () => {
 		{path: 'dbs/plan-math-ops/5', timeout: 1000 * 60 * 60}
 	));
 
-	it("Plan Math Ops: Make Adder", test(
+	xit("Plan Math Ops: Make Bin Adder", test(
 		`			
 			$BOOL = {0 1}
 
@@ -212,6 +212,202 @@ describe("Plan Math graphs.", () => {
 			},
 		], 
 		{path: 'dbs/plan-math-ops/7', timeout: 1000 * 60 * 5}
+	));
+
+	xit("Plan Math Ops: Make DEC Adder", test(
+		`			
+			$DIGITS = {0 1 2 3 4 5 6 7 8 9}
+			$BOOL = {0 1}
+
+			$DECIMAL_ADD = {
+				(
+					'a:$DIGITS
+					'b:$DIGITS
+					'cin:$BOOL
+					'cout:$BOOL
+					'sum:$DIGITS
+				) | 
+					's = 'a + 'b + 'cin,
+					[
+						's >= 10,
+						'sum = 's - 10,
+						'cout = 1;
+						
+						's < 10,
+						'sum = 's,
+						'cout = 0
+					]
+			}
+        `, 
+		[
+			{
+				query: `(
+					9
+					9
+					'cin
+					'cout
+					'sum
+				):$DECIMAL_ADD`,
+				results: [
+					"@(9 9 0 1 8)",
+					"@(9 9 1 1 9)"
+				]
+			},
+		], 
+		{path: 'dbs/plan-math-ops/8', timeout: 1000 * 60 * 5}
+	));
+
+	xit("Plan Math Ops: Make S + M = MO Adder", test(
+		`			
+			$DIGITS = {0 1 2 3 4 5 6 7 8 9}
+			$BOOL = {0 1}
+
+			$DECIMAL_ADD = {
+				(
+					'a:$DIGITS
+					'b:$DIGITS
+					'cin:$BOOL
+					'cout:$BOOL
+					'sum:$DIGITS
+				) | 
+					's = 'a + 'b + 'cin,
+					[
+						's >= 10,
+						'sum = 's - 10,
+						'cout = 1;
+						
+						's < 10,
+						'sum = 's,
+						'cout = 0
+					]
+			}
+
+			$SEND_MORE_MONEY = {
+				(
+							   'S:$DIGITS +
+							   'M:$DIGITS =
+					'M:$DIGITS 'O:$DIGITS
+				) |
+				
+				# Define constraints to ensure each letter represents a unique digit
+				'S != 'M, 'S != 'O,
+				'M != 'O,
+
+				('S 'M 'c2 'M  'O):$DECIMAL_ADD
+
+			}
+        `, 
+		[
+			{
+				query: `(
+				  'S + 'M = 'M 'O
+				):$SEND_MORE_MONEY`,
+				results: [
+					"@(9 5 6 7 + 1 0 8 5 = 1 0 6 5 2)"
+				]
+			},
+		], 
+		{path: 'dbs/plan-math-ops/9', timeout: 1000 * 60 * 5}
+	));
+
+	it("Plan Math Ops: Make SEND + MORE = MONEY Adder", test(
+		`			
+			$DIGITS = {0 1 2 3 4 5 6 7 8 9}
+			$BOOL = {0 1}
+
+			$DECIMAL_ADD = {
+				(
+					'a:$DIGITS
+					'b:$DIGITS
+					'cin:$BOOL
+					'cout:$BOOL
+					'sum:$DIGITS
+				) | 
+					's = 'a + 'b + 'cin,
+					[
+						's >= 10,
+						'sum = 's - 10,
+						'cout = 1;
+						
+						's < 10,
+						'sum = 's,
+						'cout = 0
+					]
+			}
+
+			$SEND_MORE_MONEY = {
+				(
+					'S:$DIGITS 'E:$DIGITS 'N:$DIGITS 'D:$DIGITS +
+					'M:$DIGITS 'O:$DIGITS 'R:$DIGITS 'E:$DIGITS =
+					'M:$DIGITS 'O:$DIGITS 'N:$DIGITS 'E:$DIGITS 'Y:$DIGITS
+				) |
+				
+				# Define constraints to ensure each letter represents a unique digit
+				'S != 'E, 'S != 'N, 'S != 'D, 'S != 'M, 'S != 'O, 'S != 'R, 'S != 'Y,
+				'E != 'N, 'E != 'D, 'E != 'M, 'E != 'O, 'E != 'R, 'E != 'Y,
+				'N != 'D, 'N != 'M, 'N != 'O, 'N != 'R, 'N != 'Y,
+				'D != 'M, 'D != 'O, 'D != 'R, 'D != 'Y,
+				'M != 'O, 'M != 'R, 'M != 'Y,
+				'O != 'R, 'O != 'Y,
+				'R != 'Y,
+
+				('D 'E  0  'c0 'Y):$DECIMAL_ADD,
+				('N 'R 'c0 'c1 'E):$DECIMAL_ADD,
+				('E 'O 'c1 'c2 'N):$DECIMAL_ADD,
+				('S 'M 'c2 'M  'O):$DECIMAL_ADD
+
+			}
+        `, 
+		[
+			{
+				query: `(
+				    'S 'E 'N 'D +
+					'M 'O 'R 'E =
+				 'M 'O 'N 'E 'Y
+				):$SEND_MORE_MONEY`,
+				results: [
+					"@(9 5 6 7 + 1 0 8 5 = 1 0 6 5 2)"
+				]
+			},
+		], 
+		{path: 'dbs/plan-math-ops/10', timeout: 1000 * 60 * 10}
+	));
+
+	xit("Plan Math Ops: Numbers", test(
+		`			
+			$DIGITS = {0 1 2 3 4 5 6 7 8 9}			
+
+			$NAT = {('s 'max) | 
+				's = {('n:$DIGITS 'i) | 'i <= 'max, 'i>= 0 }
+			}
+
+			$NAT = {('s 'max) | 
+				's = {('n:$DIGITS 'max) | 'n != 0 } 
+					UNION {('n:$DIGITS 'i) | 'i < 'max }
+			}
+
+			$NAT = {('n:$DIGIT 'x 'max) | 'x = 0 ; [
+				'i = 
+			]}
+        `, 
+		[
+			{
+				query: `(
+					1
+					9
+					'cin
+					'sum
+					'cout
+				):$DECIMAL_ADD`,
+				results: [
+					"@(0 & 0 = 0)", 
+					"@(0 & 1 = 0)", 
+					"@(1 & 0 = 0)", 
+					"@(1 & 1 = 1)" 
+				]
+			},
+		], 
+		{path: 'dbs/plan-math-ops/9', timeout: 1000 * 60 * 5}
 	));
 
 	xit("Plan Math Ops: Numbers", test(

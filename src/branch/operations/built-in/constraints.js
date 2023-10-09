@@ -53,7 +53,31 @@ async function intersectDomains(ctx, a, b) {
             return a.domain;
         }
         else {
-            throw 'Domain A x B';
+            const domainA = await getVariable(null, a.domain, ctx); 
+            const domainB = await getVariable(null, b.domain, ctx); 
+
+            if (domainA.type === SET && domainB.type === SET) {
+                const elements = domainA.elements.filter(v => domainB.elements.includes(v));
+                
+                if (elements.length === 0) {
+                    return null;
+                }
+
+                const id = ctx.newVar();
+                const s = {
+                    type: SET,
+                    elements,
+                    id,
+                    size: elements.length
+                };
+
+                ctx.variables = await ctx.variables.set(id, s);
+
+                return id;
+            }
+            else {
+                throw `Intersect domain's ${domainA.type} x ${domainA.type} not implemented`;
+            }
         }
     }
 
@@ -97,7 +121,9 @@ async function setVariableLocalVarLocalVar (ctx, v, p) {
 
     const domain = await intersectDomains(ctx, a, b);
 
-    console.log("TODO: check if domain is empty, it should fail!!");
+    if (domain === null) {
+        return false;
+    }
 
     const aDomain = (domain && a.domain !== domain)?domain:null;
 
@@ -107,7 +133,11 @@ async function setVariableLocalVarLocalVar (ctx, v, p) {
             aConstraints = b.constraints;
         }
         else {
-            throw 'A AND B has constraints!!';
+            aConstraints = a.constraints;
+
+            for await (let csID of b.constraints.values()) {
+                aConstraints = await aConstraints.add(csID);
+            }
         }
     }
 
@@ -127,11 +157,6 @@ async function setVariableLocalVarLocalVar (ctx, v, p) {
 const setVariable = async (ctx, v, p) => {
 
     if (v.id !== p.id) {
-
-        if (p.constraints || v.constraints) {
-            console.log("TODO : CHECK setVariable with constrains on both vars!!");
-        }
-
         if (v.type === LOCAL_VAR && p.type === LOCAL_VAR) {
             return await setVariableLocalVarLocalVar(ctx, v, p);
         }
@@ -254,8 +279,6 @@ async function checkNumberRelationConstrain(ctx, cs, env) {
             break;
    }
 
-   console.log('----- (', op,') ------------->', state, '=' , an, op, bn);
-
    ctx.variables = await ctx.variables.set(cs.id, {
         ...cs, state
    });
@@ -279,7 +302,7 @@ async function checkNumberOperationsConstrain(ctx, cs, env) {
         state = C_UNKNOWN;
     }
 
-    debugConstraint(ctx, cs.id, state, 'MATH OP [START]');
+    // await debugConstraint(ctx, cs.id, state, 'MATH OP [START]');
 
     if (state !== undefined) {
         if (state !== C_UNKNOWN) {
@@ -315,7 +338,7 @@ async function checkNumberOperationsConstrain(ctx, cs, env) {
             break;        
    }
 
-   debugConstraint(ctx, cs.id, state, 'MATH OP');
+   // await debugConstraint(ctx, cs.id, state, 'MATH OP');
    
    ctx.variables = await ctx.variables.set(cs.id, {
         ...cs, state, value: r.toString()
@@ -405,9 +428,6 @@ async function checkVariableConstrainsNotUnify (ctx, cs) {
         state = await excludeFromDomain(ctx, bv, av, cs);
     }
 
-    // console.log(`${sa} != ${sb} => ${state}`);
-
-
     if (state !== C_UNKNOWN) {
         ctx.variables = await ctx.variables.set(cs.id, {
             ...cs, state
@@ -427,8 +447,6 @@ async function checkAndConstrain (ctx, cs, env) {
     const sb = getBoolValue(bv);
 
     let state = C_UNKNOWN;
-
-    console.log(sa + " AND " + sb);
     
     if (sa === C_FALSE || sb === C_FALSE) {
         state = C_FALSE;
@@ -454,7 +472,7 @@ async function checkAndConstrain (ctx, cs, env) {
         });
     }
 
-    await debugConstraint(ctx, cs.id, state, 'AND');
+    // await debugConstraint(ctx, cs.id, state, 'AND');
 
     return state;
 }
@@ -503,10 +521,8 @@ async function checkVariableConstrainsUnify (ctx, cs, env) {
     const sa = getValue(av);
     const sb = getValue(bv);
 
-    console.log('UNIFY ', sa , ' = ', sb);
-
     let state = C_UNKNOWN;
-    await debugConstraint(ctx, cs.id, state, 'UNIFY [START]');
+    // await debugConstraint(ctx, cs.id, state, 'UNIFY [START]');
 
     if (av.id === bv.id) {
         state = C_TRUE;
@@ -538,7 +554,7 @@ async function checkVariableConstrainsUnify (ctx, cs, env) {
         });
     }
 
-    await debugConstraint(ctx, cs.id, state, 'UNIFY');
+    // await debugConstraint(ctx, cs.id, state, 'UNIFY');
 
     return state;
 }
@@ -566,14 +582,24 @@ async function constraintEnv (ctx, cs) {
             if (csValue === undefined && oValue === undefined) {
                 return {stop: false, eval: false, check: true};
             }
-            else if (csValue === 0) {
+            else if (csValue === C_FALSE) {
                 return {stop: false, eval: false, check: false};
             }
-            else if (oValue === 1) {
+            else if (oValue === C_TRUE) {
                 throw 'CONSTRAIN ENV : we need to get next logical root!!';
             }
-            else if (oValue === 0) {
+            else if (oValue === C_FALSE) {
                 return constraintEnv(ctx, root);
+            }
+            else if (csValue === C_TRUE) {
+                // await debugConstraint(ctx, cs.id, C_TRUE, 'CONSTRAIN_ENV');
+
+                /*
+                    This can happen if one or side has been evaluated to true, but not the other 
+                    and is still unkown.
+                 */
+
+                throw 'CONSTRAIN ENV : HOW CAN ROOT BE TRUE IF NOT ALL CONSTRAINTS AS BEEN SATISFIED!'
             }
 
             throw `constraintEnv: ${r.op}, csValue=${csValue}, oValue=${oValue}`; 
@@ -612,12 +638,8 @@ async function checkVariableConstrains (ctx, v) {
         const env = await constraintEnv(ctx, cs);
 
         if (!env.check) {
-            console.log("OPPPPP => ", cs.op , " NO CHECK");
-
             continue;
         }
-
-        console.log("OPPPPP => ", cs.op , " CHECK");
 
         let r;
         switch (cs.op) {
@@ -667,7 +689,7 @@ async function checkVariableConstrains (ctx, v) {
                 throw cs.op + ' [checkVariableConstrains] NOT IMPLEMENTED!!'
         }
 
-        await debugConstraint(ctx, cs.id, r);
+        // await debugConstraint(ctx, cs.id, r);
 
         if (r !== C_UNKNOWN) {
             // remove constraints,
