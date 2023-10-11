@@ -8,7 +8,8 @@
           SET_CS,
           SET_EXP,
           LOCAL_VAR,
-          GLOBAL_VAR
+          GLOBAL_VAR,
+          INDEX
       },
       operation: {
           OR,
@@ -26,7 +27,8 @@
           BELOW,
       	  BELOW_OR_EQUAL,
           ABOVE,
-          ABOVE_OR_EQUAL
+          ABOVE_OR_EQUAL,
+          UNIQUE
       }
   } = require("../branch/operations/constants");
 
@@ -112,7 +114,20 @@ constantExpression = "«" constant:[^»]+ "»" {
 
 element = tuple / variable
 elements = (element:element _ {return element})* 
-set_def = "{" _ element:element _ "|" _ expression:(expression:expression _ {
+
+index_ops = 'unique'
+
+index = op:index_ops _ variable:variable {return {
+	type: INDEX,
+    op,
+    variable
+}}
+
+indexes = _ index:index indexes:( _ ',' _ idx:index {return idx})* {
+	return [index].concat(indexes || [])
+}
+
+set_def = "{" _ element:element _ indexes:indexes? _ "|" _ expression:(expression:expression _ {
 return expression;
 })? "}"
      {
@@ -120,6 +135,7 @@ return expression;
          type: SET_CS,
          element,
          expression,
+         indexes,
          size: -1
        }
      }
@@ -148,29 +164,6 @@ set = a:set_def _ op:set_op _ b:set {
   }
   / set:set_def {return set} 
 
-
-/*
-Expression
-*/
-/*
-
-operations = op:('!=' / '=' / 'in' / 'and' / ',' / '+' / '-' / '*') {return opCode(op)}
-
-expressionPar = '[' _ expression:expression _ ']' {return expression}
-
-expressionTerm = set / variable / constantExpression / expressionPar
-
-DELETE ??
-expressionTerms = expressionTerm:expressionTerm terms:(wsp terms:expressionTerm {return terms})* 
-  { return [expressionTerm].concat(terms) }
-
-expression = a:expressionTerm _ op:operations _ b:expression {
-   return {type: CONSTRAINT, a, op, b};
-} 
-/ expressionPar
-/ expressionTerm
-
-*/
 
 expression = logical_or
 

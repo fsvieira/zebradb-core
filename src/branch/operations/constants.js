@@ -9,7 +9,8 @@ module.exports = {
         SET_EXP: 'se',
         LOCAL_VAR: 'lv',
         GLOBAL_VAR: 'gv',
-        DEF_REF: 'd'
+        DEF_REF: 'd',
+        INDEX: 'idx'
     },
     operation: {
         OR: "or",
@@ -27,7 +28,8 @@ module.exports = {
         BELOW: '<',
         BELOW_OR_EQUAL: '<=',
         ABOVE: '>',
-        ABOVE_OR_EQUAL: '>='
+        ABOVE_OR_EQUAL: '>=',
+        UNIQUE: 'un'
     }
 };
 
