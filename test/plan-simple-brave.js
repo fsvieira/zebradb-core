@@ -9,8 +9,7 @@ describe("Plan Simple Puzzles", () => {
 			$N = {1 2 3 4 5}
 
 			$LINE = {'s | 's = {('l:$LETTER 'n:$N) unique 'l, unique 'n |} }
-		`
-		,	 
+		`,	 
 		[
 			{
 				query: `('r = 1 + 1):$ADD`,
