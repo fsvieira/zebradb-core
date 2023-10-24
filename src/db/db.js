@@ -97,7 +97,9 @@ class DB {
                     const key = keys[i];
                     const value = v[key];
                     if (value !== undefined) {
-                        values.push([key, this.genDefinitionHashID(v[key])]);
+                        if (v[key] !== null) {
+                            values.push([key, this.genDefinitionHashID(v[key])]);
+                        }
                     }
                 }
 
@@ -545,6 +547,12 @@ class DB {
 
                 break;
             }
+
+            case LOCAL_VAR: {
+                sVariables[v.cid] = v;
+                break;
+            }
+
             default: 
                 throw 'addSet - Not implemented! ' + v.type;
         }
