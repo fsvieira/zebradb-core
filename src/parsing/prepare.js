@@ -62,10 +62,24 @@ function termSetConstrains (ctx, t) {
 
     const cid = ctx.newVar(t);
 
+    if (indexes) {
+        console.log(indexes);
+        console.log("TODO: indexes should constrain variables, and point to the created set!");
+        /*
+            1. The copy of set should have a "phisical" set to store set elements, state, and 
+               constraints.
+            2. Since indexes is global set constraint, variables should redirect to special 
+            functions that takes set state into account. 
+        */
+
+        throw 'PREPARE SET HAS INDEXES!!';
+    }
+
     const v = term(ctx, {
         ...element,
         expression
     });
+
 
     const nt = {
         type,
