@@ -70,8 +70,9 @@ function termSetConstrains (ctx, t) {
     const nt = {
         type,
         element: v,
-        variable: term(ctx, variable),
-        size
+        variable: variable ? term(ctx, variable) : cid,
+        size,
+        cid
     };
 
     ctx.variables[cid] = nt;

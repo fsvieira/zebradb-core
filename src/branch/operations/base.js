@@ -205,7 +205,8 @@ async function save2db (
     }
     else if (v.type === SET_CS) {
         const variableID = v.variable;
-        const vs = p.variables[variableID];
+
+        const vs = v.cid === v.variable ? v : p.variables[variableID];
 
         if (vs.type === GLOBAL_VAR) {
             const hasVar = await hasVariable(null, variableID, ctx); 
@@ -222,7 +223,13 @@ async function save2db (
             // else nothing to do,
         }
         else {
-            throw 'CREATE LOCAL EXP SET???';
+            const id = getVarname(vs);
+            ctx.variables = await ctx.variables.set(id, {
+                ...v,
+                // body,
+                // element: getVarname(p.variables[v.element]),
+                id
+            });
         }
     }
     else if (v.type === CONSTRAINT) {
@@ -252,19 +259,8 @@ async function save2db (
         });
 
     }
-
-    /*
-    else if (v.type === CONSTRAINT && v.op === IN) {
-        const c = {op: v.op, x: getVarname(v.x), set: getVarname(v.set)};
-        ctx.variables = await ctx.variables.set(vn, c)
-    }
-    else if (v.type === CONSTRAINT) {
-        // its a constraint:
-        const c = {op: v.op, args: v.args.map(getVarname).sort(), id: vn};
-        ctx.variables = await ctx.variables.set(vn, c);
-    }*/
     else {
-        throw 'COPY TERM CANT COPY ' + v.type;
+       throw 'COPY TERM CANT COPY ' + v.type;
     }
 }
 
