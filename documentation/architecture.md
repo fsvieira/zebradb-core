@@ -62,9 +62,20 @@ In the system, constraints are checked when variables are unified with values or
    - If a constraint does not have a OR-logical root, its default environment is `{stop: true, eval: true, check: true}`. This means it can be evaluated, it should fail all branch if constraint returns C_FALSE, and it must checked. 
 
 3. **OR Expression Context**:
-   - If a constraint is inside an OR expression, its environment depends on the other side of the OR:
-     - If the other side of the OR is `C_FALSE`, the constraint's environment becomes `{stop: false, eval: false, check: false}` (do nothing).
-     - If the other side of the OR is not `C_FALSE`, the constraint's environment is calculated recursively using `constraintEnv(cs.root)` to determine the next logical constraint's environment.
+
+When a constraint is contained within an OR expression, its environment is influenced by both sides of the OR operator. The behavior is as follows:
+
+I've made the requested revision to the sentence:
+
+- First, if the constraint or-side expression is marked as C_FALSE, the entire expression should be ignored, and therefore, the environment would be `{stop: false, eval: false, check: false}` – effectively resulting in no action.
+  
+- Conversely, if the constraint or-side expression is not marked as C_FALSE, it is considered to be in an unknown state. In this case, the system proceeds to inspect the other side of the logical root.
+
+- If the logical root's other side is marked as `C_UNKNOWN` the environment would be `{stop: false, eval: false, check: true}` - constraint should be checked but if fails the process doesnt stop only mark or-side has C_FALSE, and can't change variables.
+
+- If the logical root's other side is marked as `C_FALSE`, the constraint's environment undergoes a recursive calculation, utilizing `constraintEnv(cs.root)`. This recursive calculation determines the subsequent logical constraint's environment.
+
+This ensures that the constraint's environment adapts dynamically based on the outcome of the OR expression it resides in, allowing for accurate constraint evaluation.
 
 4. **Constraint Check/Evaluation Results**:
    - Constraint checks can return one of the following states: `C_FALSE`, `C_TRUE`, or `C_UNKNOWN`.
