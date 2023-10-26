@@ -3,7 +3,7 @@
 const test = require("../test-utils/test");
 
 describe("Plan Simple Puzzles", () => {
-	it("Line Combinatorial (1)", test(
+	xit("Line Combinatorial (1)", test(
 		`
 			$LETTER = {A B}
 			$N = {1 2}
@@ -21,7 +21,7 @@ describe("Plan Simple Puzzles", () => {
 		{path: 'dbs/plan-simple-brave/1', timeout: 1000 * 60 * 60}
 	));
 
-	xit("Line Combinatorial", test(
+	it("Line Combinatorial", test(
 		`
 			$LETTER = {B R A V E}
 			$N = {1 2 3 4 5}
