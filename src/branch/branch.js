@@ -125,6 +125,57 @@ async function expand (branch, options, selector, definitions) {
     }
 }
 
+async function createMaterializedSet (rDB, id, parentBranch, element) {
+    // get branch shared data,
+    const branchData = {
+        parent: parentBranch,
+        root: await parentBranch.data.root,
+        level: (await parentBranch.data.variableCounter + 1),
+        checked: await parentBranch.data.checked,
+        unchecked: await parentBranch.data.unchecked,
+        constraints: await parentBranch.data.constraints,
+        unsolvedVariables: await parentBranch.data.unsolvedVariables,
+        variableCounter: await parentBranch.data.variableCounter,
+        log: await parentBranch.data.log
+    }
+
+    const parentVariables = await parentBranch.data.variables;
+
+    {
+        // Set empty set branch, has success 
+        const emptyResults = {
+            id,
+            elements: rDB.iSet()
+        };
+
+        const variables = await parentVariables.set(id, emptyResults);
+
+        await rDB.tables.branches.insert({
+            ...branchData,
+            state: 'yes',
+            variables
+        }, null);
+    }
+
+    {
+        // Set empty elements branch to be evaluated.
+        const valueResults = {
+            id,
+            elements: await rDB.iSet().add(element)
+        };
+
+        const variables = await parentVariables.set(id, valueResults);
+
+        await rDB.tables.branches.insert({
+            ...branchData,
+            state: 'maybe',
+            variables
+        }, null);
+    }
+
+}
+
+/*
 async function create (
     rDB,
     root,
@@ -155,10 +206,11 @@ async function create (
         variableCounter,
         log
     }, null);
-}
+}*/
 
 module.exports = {
-    create,
+    // create,
+    createMaterializedSet,
     expand,
     toJS,
     toString,

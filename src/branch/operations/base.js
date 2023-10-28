@@ -494,7 +494,7 @@ async function toString (branch, id, ctx, constraints=true) {
             }
 
             // const ds = vd?':' + (vd.type === GLOBAL_VAR?'$':"'") + vd.varname : '';
-            const ds = vd?':' + vd.id : '';
+            const ds = vd?`:{${vd.elements.join(", ")}}` : '';
 
             return "'" + (!v.pv && v.id?v.id + "::": "") + v.varname + ds;
         }

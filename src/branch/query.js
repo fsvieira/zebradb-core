@@ -25,19 +25,28 @@ const query = async (rDB, tuple, branchID, definitionsDB) => {
 
     const root = await branchOps.copyTerm(ctx, tuple, definitionsDB, true);
 
-    return branchOps.create(
-        rDB, 
-        root,
-        varCounter(),
-        level, 
-        null, 
-        ctx.unchecked,
-        ctx.variables,
-        ctx.constraints,
-        ctx.unsolvedVariables,
-        ctx.checked,
+    // Create initial branch,
+    const queryRootBranch = await rDB.tables.branches.insert({
         branchID,
-        ctx.log
+        parent: null,
+        root,
+        level,
+        checked: ctx.checked,
+        unchecked: ctx.unchecked,
+        variables: ctx.variables,
+        constraints: ctx.constraints,
+        unsolvedVariables: ctx.unsolvedVariables,
+        children: [],
+        state: 'split',
+        variableCounter: varCounter(),
+        log: ctx.log
+    }, null);
+
+    await branchOps.createMaterializedSet(
+        rDB,
+        '__resultsSet',
+        queryRootBranch,
+        root
     );
 }
 
