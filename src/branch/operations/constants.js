@@ -10,7 +10,8 @@ module.exports = {
         LOCAL_VAR: 'lv',
         GLOBAL_VAR: 'gv',
         DEF_REF: 'd',
-        INDEX: 'idx'
+        INDEX: 'idx',
+        MATERIALIZED_SET: 'ms'
     },
     operation: {
         OR: "or",

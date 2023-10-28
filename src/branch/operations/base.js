@@ -8,7 +8,8 @@ const {
         SET_CS, // 'cs',
         LOCAL_VAR, // : 'lv',
         GLOBAL_VAR, // : 'gv',
-        DEF_REF // d
+        DEF_REF, // d,
+        MATERIALIZED_SET // 'ms'
     },
     operation: {
         OR,
@@ -467,13 +468,22 @@ async function toStringConstraints (branch, v, ctx) {
     return `[ ${a} ${v.op} ${b} ]`; 
 }
 
+async function toStringMaterializedSet(branch, v, ctx) {
+    const elements = [];
+    for await (let e of v.elements.values()) {
+        elements.push(await toString(branch, e, ctx));
+    }
+
+    return `{${elements.join(" ")}}`;
+}
+
 async function toString (branch, id, ctx, constraints=true) {
     branch = branch || ctx?.branch;
     id = id || await branch.data.root;    
 
     const d = !!ctx; 
     const v = await getVariable(branch, id, ctx);
-    
+        
     switch (v.type) {
         case TUPLE: {
             const ts = [];
@@ -503,6 +513,10 @@ async function toString (branch, id, ctx, constraints=true) {
         }
         case CONSTRAINT: {
             return toStringConstraints(branch, v, ctx);
+        }
+
+        case MATERIALIZED_SET: {
+            return toStringMaterializedSet(branch, v, ctx);
         }
         default:
             throw `Base toString: Unknow Type ${v.type}`;

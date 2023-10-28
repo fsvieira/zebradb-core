@@ -11,6 +11,8 @@ const query = async (rDB, tuple, branchID, definitionsDB) => {
     const {varCounter, newVar} = branchOps.varGenerator(0); 
     const level = 0;
 
+    const resultsID = '__resultsSet';
+    
     const ctx = {
         newVar,
         unchecked,
@@ -29,7 +31,7 @@ const query = async (rDB, tuple, branchID, definitionsDB) => {
     const queryRootBranch = await rDB.tables.branches.insert({
         branchID,
         parent: null,
-        root,
+        root: resultsID,
         level,
         checked: ctx.checked,
         unchecked: ctx.unchecked,
@@ -44,7 +46,7 @@ const query = async (rDB, tuple, branchID, definitionsDB) => {
 
     await branchOps.createMaterializedSet(
         rDB,
-        '__resultsSet',
+        resultsID,
         queryRootBranch,
         root
     );

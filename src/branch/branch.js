@@ -136,6 +136,7 @@ async function createMaterializedSet (rDB, id, parentBranch, element) {
         constraints: await parentBranch.data.constraints,
         unsolvedVariables: await parentBranch.data.unsolvedVariables,
         variableCounter: await parentBranch.data.variableCounter,
+        children: [],
         log: await parentBranch.data.log
     }
 
@@ -144,6 +145,7 @@ async function createMaterializedSet (rDB, id, parentBranch, element) {
     {
         // Set empty set branch, has success 
         const emptyResults = {
+            type: constants.type.MATERIALIZED_SET,
             id,
             elements: rDB.iSet()
         };
@@ -160,6 +162,7 @@ async function createMaterializedSet (rDB, id, parentBranch, element) {
     {
         // Set empty elements branch to be evaluated.
         const valueResults = {
+            type: constants.type.MATERIALIZED_SET,
             id,
             elements: await rDB.iSet().add(element)
         };
