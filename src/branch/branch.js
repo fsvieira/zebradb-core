@@ -155,7 +155,8 @@ async function createMaterializedSet (rDB, id, parentBranch, element) {
         await rDB.tables.branches.insert({
             ...branchData,
             state: 'yes',
-            variables
+            variables,
+            branchID: `${parentBranch.id}-empty`
         }, null);
     }
 
@@ -172,7 +173,8 @@ async function createMaterializedSet (rDB, id, parentBranch, element) {
         await rDB.tables.branches.insert({
             ...branchData,
             state: 'maybe',
-            variables
+            variables,
+            branchID: `${parentBranch.id}-element`
         }, null);
     }
 
