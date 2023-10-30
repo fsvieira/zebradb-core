@@ -115,6 +115,8 @@ class QueryEngine {
 
         const end = timeout?new Date().getTime() + timeout:Infinity;
 
+        const branches = this.rDB.tables.branches;
+
         while ((branch = await this.nextBranch()) && new Date().getTime() < end) {
             const level = await branch.data.level;
 
@@ -123,6 +125,16 @@ class QueryEngine {
             }
             else {
                 await branch.update({state: 'stop'});
+            }
+
+            let mergeBranch;
+            for await (let branch of branches.findByIndex({state: 'yes'})) {
+                if (!mergeBranch) {
+                    mergeBranch = branch;
+                }
+                else {
+                    mergeBranch = await branchOps.merge(mergeBranch, branch);
+                }
             }
         }
     }

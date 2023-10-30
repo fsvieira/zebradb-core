@@ -180,6 +180,40 @@ async function createMaterializedSet (rDB, id, parentBranch, element) {
 
 }
 
+async function merge (branchA , branchB) {
+    /*
+    const ctx = {
+        variables: await branch.data.variables,
+        constraints: await branch.data.constraints,
+        unsolvedVariables: await branch.data.unsolvedVariables,
+        unchecked: await branch.data.unchecked,
+        checked: await branch.data.checked,
+        newVar,
+        level,
+        rDB: branch.table.db,
+        branch,
+        log: await branch.data.log,
+        options  
+    };*/
+
+    let variablesA = await branchA.data.variables;
+    const variablesB = await branchB.data.variables;
+
+    for await (let [key, value] of variablesB) {
+        if (await variablesA.has(key)) {
+            console.log(key, value);
+            throw 'CONFLICT ' ;
+        }
+        else {
+            variablesA = await variablesA.set(key, value);
+        }
+    }
+
+    console.log("END")
+
+    throw 'Branch.js Merge is not defined!!';
+}
+
 /*
 async function create (
     rDB,
@@ -215,6 +249,7 @@ async function create (
 
 module.exports = {
     // create,
+    merge,
     createMaterializedSet,
     expand,
     toJS,
