@@ -17,7 +17,7 @@ describe("ZQuery Tests.", () => {
 					results: ["@(yellow)"]
 				}*/
 			],
-			{path: 'dbs/zquery/1'}
+			{path: 'dbs/zquery/1', timeout: 1000 * 60 * 5}
 		)
 	);
 

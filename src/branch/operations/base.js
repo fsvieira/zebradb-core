@@ -41,6 +41,7 @@ async function save2db (
             body = await v.body.map(getVarname);
         }*/
 
+        console.log(vn, v);
         ctx.variables = await ctx.variables.set(vn, {
             ...v,
             data: v.data.map(v => getVarname(p.variables[v])),
@@ -411,6 +412,7 @@ async function getVariable (branch, id, ctx) {
     const variables = ctx ? ctx.variables : await branch.data.variables;
 
     do {
+        console.log("------------->", id);
         v = await variables.get(id);
         
         if (id && id === v.defer) {

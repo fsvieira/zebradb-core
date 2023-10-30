@@ -97,6 +97,11 @@ async function expand (branch, options, selector, definitions) {
     else {
         const id = await selector(branch);
 
+        if (id === undefined) {
+            throw 'SELECTING A UNDEFINED ID';
+        }
+
+
         const v = await getVariable(branch, id);
 
         let r;
@@ -125,9 +130,16 @@ async function expand (branch, options, selector, definitions) {
     }
 }
 
-async function createMaterializedSet (rDB, id, parentBranch, element) {
+async function createMaterializedSet (
+    rDB, 
+    id, 
+    parentBranch, 
+    definitionElement, 
+    definitionsDB
+) {
     // get branch shared data,
-    const branchData = {
+    
+    const ctx = {
         parent: parentBranch,
         root: await parentBranch.data.root,
         level: (await parentBranch.data.variableCounter + 1),
@@ -153,7 +165,7 @@ async function createMaterializedSet (rDB, id, parentBranch, element) {
         const variables = await parentVariables.set(id, emptyResults);
 
         await rDB.tables.branches.insert({
-            ...branchData,
+            ...ctx,
             state: 'yes',
             variables,
             branchID: `${parentBranch.id}-empty`
@@ -162,16 +174,28 @@ async function createMaterializedSet (rDB, id, parentBranch, element) {
 
     {
         // Set empty elements branch to be evaluated.
+        const {varCounter, newVar} = varGenerator(0); 
+
+        let variables = parentVariables;
+
+        const element = await copyTerm(
+            {...ctx, variables, newVar}, 
+            definitionElement, 
+            definitionsDB, 
+            true
+        );
+
         const valueResults = {
             type: constants.type.MATERIALIZED_SET,
             id,
             elements: await rDB.iSet().add(element)
         };
 
-        const variables = await parentVariables.set(id, valueResults);
+        variables = await variables.set(id, valueResults);
 
         await rDB.tables.branches.insert({
-            ...branchData,
+            ...ctx,
+            varCounter: varCounter(),
             state: 'maybe',
             variables,
             branchID: `${parentBranch.id}-element`
