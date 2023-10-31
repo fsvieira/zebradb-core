@@ -133,7 +133,7 @@ class QueryEngine {
                     mergeBranch = branch;
                 }
                 else {
-                    mergeBranch = await branchOps.merge(mergeBranch, branch);
+                    mergeBranch = await branchOps.merge(this.rDB, mergeBranch, branch);
                 }
             }
         }

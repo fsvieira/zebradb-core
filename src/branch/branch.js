@@ -206,7 +206,15 @@ async function createMaterializedSet (
 
 }
 
-async function merge (branchA , branchB) {
+async function mergeMaterializedSets(variables, valueA, valueB) {
+    for await (let e of valueB.elements.values()) {
+        valueA.elements = await valueA.elements.add(e);
+    }
+
+    return variables.set(valueA.id, valueA);
+}
+
+async function merge (rDB, branchA , branchB) {
     /*
     const ctx = {
         variables: await branch.data.variables,
@@ -225,18 +233,52 @@ async function merge (branchA , branchB) {
     let variablesA = await branchA.data.variables;
     const variablesB = await branchB.data.variables;
 
-    for await (let [key, value] of variablesB) {
+    for await (let [key, valueB] of variablesB) {
         if (await variablesA.has(key)) {
-            console.log(key, value);
-            throw 'CONFLICT ' ;
+            const valueA = await variablesA.get(key);
+
+            console.log(valueA, valueB);
+
+            if (valueA.type === valueB.type) {
+                switch (valueA.type) {
+                    case constants.MATERIALIZED_SET:
+                        variables = await mergeMaterializedSets(variablesA, valueA, valueB);
+                        break;
+
+                    default:
+                        throw `MERGE TYPE : ${valueA.type}!`;
+                }
+            }
+            else {
+                throw `MERGE WITH DIFF TYPES : ${valueA.type}=${valueB.type}!`;
+            }
         }
         else {
-            variablesA = await variablesA.set(key, value);
+            variablesA = await variablesA.set(key, valueB);
         }
     }
 
-    console.log("END")
+    // 1. create new branch,
+    await rDB.tables.branches.insert({
+        parent: [branchA, branchB],
+        root: await branch.data.root,
+        level: (await branch.data.level) + 1,
+        constraints: await branch.data.constraints,
+        unsolvedVariables: await branch.data.unsolvedVariables,
+        unchecked: await branch.data.unchecked,
+        checked: await branch.data.checked,
+        children: [],
+        state: 'yes',
+        variableCounter: await branch.data.varCounter,
+        log: await branch.data.log,
+        variables: variablesA
+    }, null);
+    
+    // 2. mark both branches as solved, for now split.
+    await branchA.update({state: 'split'});
+    await branchB.update({state: 'split'});
 
+    console.log("END");
     throw 'Branch.js Merge is not defined!!';
 }
 

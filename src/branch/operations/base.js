@@ -41,7 +41,6 @@ async function save2db (
             body = await v.body.map(getVarname);
         }*/
 
-        console.log(vn, v);
         ctx.variables = await ctx.variables.set(vn, {
             ...v,
             data: v.data.map(v => getVarname(p.variables[v])),
@@ -320,7 +319,7 @@ async function copyTerm(ctx, p, definitionsDB, preserveVarname=false) {
 
     const getVarname = v => {
         const cid = v.cid || v;
-        console.log("CID", cid);
+
         let vn = mapVars[cid];
 
         if (!vn) {
@@ -413,7 +412,6 @@ async function getVariable (branch, id, ctx) {
     const variables = ctx ? ctx.variables : await branch.data.variables;
 
     do {
-        console.log("------------->", id);
         v = await variables.get(id);
         
         if (id && id === v.defer) {
