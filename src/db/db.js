@@ -407,7 +407,8 @@ class DB {
 
             sVariables[varID] = {
                 ...set,
-                elements: [...elements].sort()
+                elements: [...elements].sort(),
+                cid: varID
             };
 
             const saveSet = {

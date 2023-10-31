@@ -176,10 +176,11 @@ async function createMaterializedSet (
         // Set empty elements branch to be evaluated.
         const {varCounter, newVar} = varGenerator(0); 
 
-        let variables = parentVariables;
+        ctx.variables = parentVariables;
+        ctx.newVar = newVar;
 
         const element = await copyTerm(
-            {...ctx, variables, newVar}, 
+            ctx, 
             definitionElement, 
             definitionsDB, 
             true
@@ -191,13 +192,14 @@ async function createMaterializedSet (
             elements: await rDB.iSet().add(element)
         };
 
-        variables = await variables.set(id, valueResults);
+        ctx.variables = await ctx.variables.set(id, valueResults);
+
+        delete ctx.newVar;
 
         await rDB.tables.branches.insert({
             ...ctx,
             varCounter: varCounter(),
             state: 'maybe',
-            variables,
             branchID: `${parentBranch.id}-element`
         }, null);
     }

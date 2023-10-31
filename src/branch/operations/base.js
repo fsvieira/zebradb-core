@@ -320,6 +320,7 @@ async function copyTerm(ctx, p, definitionsDB, preserveVarname=false) {
 
     const getVarname = v => {
         const cid = v.cid || v;
+        console.log("CID", cid);
         let vn = mapVars[cid];
 
         if (!vn) {
