@@ -241,7 +241,7 @@ async function merge (rDB, branchA , branchB) {
 
             if (valueA.type === valueB.type) {
                 switch (valueA.type) {
-                    case constants.MATERIALIZED_SET:
+                    case constants.type.MATERIALIZED_SET:
                         variables = await mergeMaterializedSets(variablesA, valueA, valueB);
                         break;
 
@@ -259,18 +259,22 @@ async function merge (rDB, branchA , branchB) {
     }
 
     // 1. create new branch,
+    const aCounter = await branchA.data.variableCounter;
+    const bCounter = await branchB.data.variableCounter;
+    const variableCounter = aCounter > bCounter ? aCounter : bCounter;
+
     await rDB.tables.branches.insert({
         parent: [branchA, branchB],
-        root: await branch.data.root,
-        level: (await branch.data.level) + 1,
-        constraints: await branch.data.constraints,
-        unsolvedVariables: await branch.data.unsolvedVariables,
-        unchecked: await branch.data.unchecked,
-        checked: await branch.data.checked,
+        root: await branchA.data.root,
+        level: (await branchA.data.level) + 1,
+        constraints: await branchA.data.constraints,
+        unsolvedVariables: await branchA.data.unsolvedVariables,
+        unchecked: await branchA.data.unchecked,
+        checked: await branchA.data.checked,
         children: [],
         state: 'yes',
-        variableCounter: await branch.data.varCounter,
-        log: await branch.data.log,
+        variableCounter,
+        log: await branchA.data.log,
         variables: variablesA
     }, null);
     
@@ -278,8 +282,6 @@ async function merge (rDB, branchA , branchB) {
     await branchA.update({state: 'split'});
     await branchB.update({state: 'split'});
 
-    console.log("END");
-    throw 'Branch.js Merge is not defined!!';
 }
 
 /*
