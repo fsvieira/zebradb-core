@@ -155,7 +155,17 @@ async function save2db (
                     id: vn,
                     defer: id
                 }
-            );            
+            );
+
+            const checked = def.variables[def.root].checked;
+
+            if (checked) {
+                ctx.checked = await ctx.checked.add(vn);
+            }
+            else {
+                ctx.unchecked = await ctx.unchecked.add(vn);
+            }
+    
         }
         // else do nothing.
 

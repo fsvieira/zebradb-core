@@ -9,10 +9,9 @@ describe("ZQuery Tests.", () => {
 			"$YELLOW = {(yellow)}", [
 				{
 					query: "(yellow):$YELLOW",
-					results: ["@(yellow)"]
+					results: ["{@(yellow)}"]
 				},
-				/* 
-				{
+				/*{
 					query: "(yellow)",
 					results: ["@(yellow)"]
 				}*/

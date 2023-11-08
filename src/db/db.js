@@ -760,6 +760,10 @@ class DB {
                 return r;
             }
 
+            case TUPLE: {
+                throw `SEARCH BY TUPLE ${JSON.stringify(def)} NOT IMPLEMENTED;`;
+            }
+
             default:
                 throw `SEARCH ${JSON.stringify(def)} NOT IMPLEMENTED;`;
         }
