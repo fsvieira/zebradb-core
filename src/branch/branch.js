@@ -231,8 +231,14 @@ async function merge (rDB, branchA , branchB) {
     };*/
 
     let variablesA = await branchA.data.variables;
+    let checkedA = await branchA.data.checked;
+    let uncheckedA = await branchA.data.checked;
+
+    const uncheckedB = await branchB.data.checked;
+    const checkedB = await branchB.data.checked;
     const variablesB = await branchB.data.variables;
 
+    // 1. merge variables,
     for await (let [key, valueB] of variablesB) {
         if (await variablesA.has(key)) {
             const valueA = await variablesA.get(key);
@@ -258,7 +264,19 @@ async function merge (rDB, branchA , branchB) {
         }
     }
 
-    // 1. create new branch,
+    // 2. Merge checked and unchecked variables,
+    for await (let b of checkedB.values()) {
+        checkedA = await checkedA.add(b);
+        uncheckedA = await uncheckedA.remove(b);
+    }
+
+    for await (let b of uncheckedB.values()) {
+        if (!(await checkedA.has(b))) {
+            uncheckedA = await uncheckedA.add(b);
+        }
+    }
+
+    // 3. create new branch,
     const aCounter = await branchA.data.variableCounter;
     const bCounter = await branchB.data.variableCounter;
     const variableCounter = aCounter > bCounter ? aCounter : bCounter;
@@ -269,8 +287,8 @@ async function merge (rDB, branchA , branchB) {
         level: (await branchA.data.level) + 1,
         constraints: await branchA.data.constraints,
         unsolvedVariables: await branchA.data.unsolvedVariables,
-        unchecked: await branchA.data.unchecked,
-        checked: await branchA.data.checked,
+        unchecked: uncheckedA,
+        checked: checkedA,
         children: [],
         state: 'yes',
         variableCounter,
