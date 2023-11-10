@@ -127,6 +127,7 @@ class QueryEngine {
                 await branch.update({state: 'stop'});
             }
 
+            /*
             let mergeBranch;
             for await (let branch of branches.findByIndex({state: 'yes'})) {
                 if (!mergeBranch) {
@@ -135,8 +136,20 @@ class QueryEngine {
                 else {
                     mergeBranch = await branchOps.merge(this.rDB, mergeBranch, branch);
                 }
+            }*/
+        }
+
+        // TODO: make a new "queue" for success branches!!
+        let mergeBranch;
+        for await (let branch of branches.findByIndex({state: 'yes'})) {
+            if (!mergeBranch) {
+                mergeBranch = branch;
+            }
+            else {
+                mergeBranch = await branchOps.merge(this.rDB, mergeBranch, branch);
             }
         }
+
     }
 
     async toJS (branch) {

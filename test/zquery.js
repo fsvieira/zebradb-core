@@ -4,7 +4,7 @@ const test = require("../test-utils/test");
 
 describe("ZQuery Tests.", () => {
 
-	it("Query with single tuple constant.",
+	xit("Query with single tuple constant.",
 		test(
 			"$YELLOW = {(yellow)}", [
 				{
@@ -17,6 +17,22 @@ describe("ZQuery Tests.", () => {
 				}*/
 			],
 			{path: 'dbs/zquery/1', timeout: 1000 * 60 * 5}
+		)
+	);
+
+	it("Query with single tuple constants.",
+		test(
+			"$COLORS = {(yellow) (blue)}", [
+				{
+					query: "('x):$COLORS",
+					results: ["{@(yellow) @(blue)}"]
+				},
+				/*{
+					query: "(yellow)",
+					results: ["@(yellow)"]
+				}*/
+			],
+			{path: 'dbs/zquery/2', timeout: 1000 * 60 * 5}
 		)
 	);
 

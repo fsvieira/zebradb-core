@@ -70,7 +70,49 @@ async function unifyDomain (
 async function expand (branch, options, selector, definitions) {
     const state = await branch.data.state;
 
-    if (state === 'unsolved_variables') {
+                /*const cache = {};
+
+            const tupleVars = async (id) => {
+                let count = cache[id];
+
+                if (count !== undefined) {
+                    return count;
+                }   
+                else {
+                    const v = await branchOps.getVariable(branch, id);
+                    count = 0;
+
+                    if (v.v) {
+                        count += 1;
+                    }
+                    else if (v.t) {
+                        cache[id] = 0;
+                        for (let i=0; i<v.t.length; i++) {
+                            count += await tupleVars(v.t[i]);
+                        }
+                    }
+                }
+
+                cache[id] = count;
+                return count;
+            }
+
+
+            const unchecked = await branch.data.unchecked;
+            // let index = Math.round((unchecked.size - 1) * Math.random());
+
+
+            let t, max;
+            for await (let id of unchecked.values()) {
+                const m = tupleVars(id);
+                if (!max || m > max) {
+                    max = m;
+                    t = id;
+                }
+            }
+
+            return t;*/
+if (state === 'unsolved_variables') {
         const unsolvedVariables = await branch.data.unsolvedVariables;
         let min=Infinity, minVar, minDomain; 
         let v;
@@ -206,12 +248,40 @@ async function createMaterializedSet (
 
 }
 
-async function mergeMaterializedSets(variables, valueA, valueB) {
+async function mergeMaterializedSets(variables, valueA, valueB, mergeStack) {
     for await (let e of valueB.elements.values()) {
         valueA.elements = await valueA.elements.add(e);
+
+        const eA = await variables.has(e) ? e : null;
+        mergeStack.push([eA, e]);
     }
 
     return variables.set(valueA.id, valueA);
+}
+
+async function copyValue (variables, id, value, mergeStack) {
+    variables = await variables.set(id, value);
+
+    switch (value.type) {
+        case constants.type.TUPLE: {
+            for (let i=0; i<value.data.length; i++) {
+                const e = value.data[i];
+                const eA = await variables.has(e) ? e : null;
+                mergeStack.push([eA, e]);
+            }
+
+            break;
+        }
+
+        case constants.type.CONSTANT:
+            break;
+
+        default: {
+            throw 'COPY VALUE ' + value.type + ' IS NOT DEFINED!';
+        }
+    }
+
+    return variables;
 }
 
 async function merge (rDB, branchA , branchB) {
@@ -230,15 +300,63 @@ async function merge (rDB, branchA , branchB) {
         options  
     };*/
 
-    let variablesA = await branchA.data.variables;
+    let variables = await branchA.data.variables;
     let checkedA = await branchA.data.checked;
     let uncheckedA = await branchA.data.checked;
 
     const uncheckedB = await branchB.data.checked;
     const checkedB = await branchB.data.checked;
-    const variablesB = await branchB.data.variables;
+
+    let variablesB = await branchB.data.variables;
+
+
+    const conflictVariables = [];
+    for await (let [key, valueB] of variablesB) {
+        if (await variables.has(key)) {
+            conflictVariables.push(key);
+        }
+    }
+
+    console.log("== CONFLICT VARIABLES == ", JSON.stringify(conflictVariables));
 
     // 1. merge variables,
+
+    const rootA = await branchA.data.root;
+    const rootB = await branchB.data.root;
+
+    const mergeStack = [[rootA, rootB]];
+
+    while (mergeStack.length) {
+        const [elA, elB] = mergeStack.pop();
+
+        const valueA = elA ? await getVariable(branchA, elA) : null;
+        const valueB = await getVariable(branchB, elB);
+
+        if (valueA === null) {
+            variables = await copyValue(variables, elB, valueB, mergeStack);
+        }
+        else if (valueA.type === valueB.type) {
+            switch (valueA.type) {
+                case constants.type.MATERIALIZED_SET:
+                    variables = await mergeMaterializedSets(
+                        variables, 
+                        valueA, 
+                        valueB,
+                        mergeStack
+                    );
+                    break;
+
+                default:
+                    throw `MERGE TYPE : ${valueA.type}!`;
+            }
+        }
+        else {
+            throw `MERGE WITH DIFF TYPES : ${valueA.type}=${valueB.type}!`;
+        }
+    }
+
+    /*
+    throw "MERGE FROM THE ROOT!!";
     for await (let [key, valueB] of variablesB) {
         if (await variablesA.has(key)) {
             const valueA = await variablesA.get(key);
@@ -252,6 +370,7 @@ async function merge (rDB, branchA , branchB) {
                         break;
 
                     default:
+                        console.log("MMMMMMMMMMMMMMMM", valueA);
                         throw `MERGE TYPE : ${valueA.type}!`;
                 }
             }
@@ -262,7 +381,7 @@ async function merge (rDB, branchA , branchB) {
         else {
             variablesA = await variablesA.set(key, valueB);
         }
-    }
+    }*/
 
     // 2. Merge checked and unchecked variables,
     for await (let b of checkedB.values()) {
@@ -281,7 +400,7 @@ async function merge (rDB, branchA , branchB) {
     const bCounter = await branchB.data.variableCounter;
     const variableCounter = aCounter > bCounter ? aCounter : bCounter;
 
-    await rDB.tables.branches.insert({
+    const mergedBranch = await rDB.tables.branches.insert({
         parent: [branchA, branchB],
         root: await branchA.data.root,
         level: (await branchA.data.level) + 1,
@@ -293,13 +412,14 @@ async function merge (rDB, branchA , branchB) {
         state: 'yes',
         variableCounter,
         log: await branchA.data.log,
-        variables: variablesA
+        variables
     }, null);
     
     // 2. mark both branches as solved, for now split.
     await branchA.update({state: 'split'});
     await branchB.update({state: 'split'});
 
+    return mergedBranch;
 }
 
 /*

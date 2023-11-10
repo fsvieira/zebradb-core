@@ -77,11 +77,11 @@ const unifyFn = {
 
 const checkTuple = async (ctx, p, q) => {
     if (await ctx.checked.has(p.id)) {
-        ctx.variables = await ctx.variables.set(q.id, {v: q.id, defer: p.id});
+        ctx.variables = await ctx.variables.set(q.id, {...q, defer: p.id});
         ctx.unchecked = await ctx.unchecked.remove(q.id);
     }
     else if (await ctx.checked.has(q.id)) {
-        ctx.variables = await ctx.variables.set(p.id, {v: p.id, defer: q.id});
+        ctx.variables = await ctx.variables.set(p.id, {...p, defer: q.id});
         ctx.unchecked = await ctx.unchecked.remove(p.id);
     }
 }
