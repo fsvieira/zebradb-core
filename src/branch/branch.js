@@ -285,6 +285,106 @@ async function copyValue (variables, id, value, mergeStack) {
 }
 
 async function merge (rDB, branchA , branchB) {
+    let variables = await branchA.data.variables;
+    let checkedA = await branchA.data.checked;
+    let uncheckedA = await branchA.data.checked;
+
+    const uncheckedB = await branchB.data.checked;
+    const checkedB = await branchB.data.checked;
+
+    let variablesA = await branchA.data.variables;
+    let variablesB = await branchB.data.variables;
+
+    for await (let [idB] of variablesB) {
+        const vB = await getVariable(branchB, idB);
+        
+        if (await variablesA.has(idB)) {
+            const vA = await getVariable(branchA, idB);
+
+            if (
+                vA.type === vB.type && 
+                vA.type === constants.type.MATERIALIZED_SET
+            ) {
+                let elements = vA.elements;
+                for await (let e of vB.elements.values()) {
+                    const v = await getVariable(branchB, e);
+
+                    console.log("TODO: we need a rename variables table??");
+                    elements = await elements.add(v.id);
+                }
+            
+                variables = await variables.set(
+                    vA.id, {
+                    ...vA,
+                    elements
+                });
+            }
+            else if (vA.id === vB.id) {
+                console.log("CONFLICT 1", vA, vB);
+                // throw 'CONFLICT 1 ??'
+            }
+            else {
+                variables = await variables.set(vB.id, vB);
+            }
+    
+        }
+        else if (await variablesA.has(vB.id)) {
+            const vA = await getVariable(branchA, vB.id);
+
+            if (vA.id !== vB.id) {
+                console.log("CONFLICT 2", vA, vB);
+                throw 'CONFLICT 2 ??'
+            }
+            else if (vA.type !== constants.type.CONSTANT) {
+                console.log("CONFLICT 3", vA, vB);
+                // throw "CONFLICT 3 ?? SHOULD BE CHECKED ??";
+            }
+        }
+        else {
+            variables = await variables.set(vB.id, vB);
+        }
+    }
+
+    // 2. Merge checked and unchecked variables,
+    for await (let b of checkedB.values()) {
+        checkedA = await checkedA.add(b);
+        uncheckedA = await uncheckedA.remove(b);
+    }
+    
+    for await (let b of uncheckedB.values()) {
+        if (!(await checkedA.has(b))) {
+            uncheckedA = await uncheckedA.add(b);
+        }
+    }
+    
+    // 3. create new branch,
+    const aCounter = await branchA.data.variableCounter;
+    const bCounter = await branchB.data.variableCounter;
+    const variableCounter = aCounter > bCounter ? aCounter : bCounter;
+    
+    const mergedBranch = await rDB.tables.branches.insert({
+        parent: [branchA, branchB],
+        root: await branchA.data.root,
+        level: (await branchA.data.level) + 1,
+        constraints: await branchA.data.constraints,
+        unsolvedVariables: await branchA.data.unsolvedVariables,
+        unchecked: uncheckedA,
+        checked: checkedA,
+        children: [],
+        state: 'yes',
+        variableCounter,
+        log: await branchA.data.log,
+        variables
+    }, null);
+        
+    // 2. mark both branches as solved, for now split.
+    await branchA.update({state: 'split'});
+    await branchB.update({state: 'split'});
+    
+    return mergedBranch;    
+}
+
+async function __merge (rDB, branchA , branchB) {
     /*
     const ctx = {
         variables: await branch.data.variables,
@@ -309,11 +409,19 @@ async function merge (rDB, branchA , branchB) {
 
     let variablesB = await branchB.data.variables;
 
-
     const conflictVariables = [];
     for await (let [key, valueB] of variablesB) {
-        if (await variables.has(key)) {
-            conflictVariables.push(key);
+        console.log("VALUE B ==>", valueB);
+
+        switch (valueB.type) {
+            case constants.type.CONSTANT:
+            case constants.type.GLOBAL_VAR:
+                break;
+
+            default:
+                if (await variables.has(key)) {
+                    conflictVariables.push(key);
+                }
         }
     }
 
