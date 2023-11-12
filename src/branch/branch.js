@@ -248,6 +248,7 @@ async function createMaterializedSet (
 
 }
 
+/*
 async function mergeMaterializedSets(variables, valueA, valueB, mergeStack) {
     for await (let e of valueB.elements.values()) {
         valueA.elements = await valueA.elements.add(e);
@@ -282,9 +283,110 @@ async function copyValue (variables, id, value, mergeStack) {
     }
 
     return variables;
+}*/
+
+async function mergeMaterializedSets(ctx, valueA, valueB) {
+
+    for await (let b of valueB.elements.values()) {
+        if (valueA.size > 0) {
+            for await (let a of valueA.elements.values()) {
+                const eA = await getVariable(null, a, ctx);
+                const eB = await getVariable(null, b, ctx);
+
+                console.log("MERGE MATERIALED SET", eA, eB);
+
+                throw 'MERGE MS';
+            }
+        }
+        else {
+            throw 'A is empty';
+        }
+    }
 }
 
-async function merge (rDB, branchA , branchB) {
+async function mergeElement (ctx, branchA, branchB, id) {
+    const variablesA = await branchA.data.variables;
+    const variablesB = await branchB.data.variables;
+     
+    const vA = await variablesA.has(id) ? await getVariable(branchA, id) : null;
+    const vB = await variablesB.has(id) ? await getVariable(branchB, id) : null;
+
+    console.log("MERGE ", vA, vB);
+
+    if (vA === null) {
+        throw 'A is null';
+    }
+    else if (vB === null) {
+        throw 'B is null';
+    }
+    else if (vA.type === vB.type) {
+        switch (vA.type) {
+            case constants.type.MATERIALIZED_SET: {
+                await mergeMaterializedSets(ctx, vA, vB);
+                break;
+            }
+
+            default:
+                throw 'IMPLEMENT MERGE ELEMENT!!';
+        }
+    }
+
+}
+
+async function merge (rDB, branchA, branchB) {
+    const aCounter = await branchA.data.variableCounter;
+    const bCounter = await branchB.data.variableCounter;
+    const variableCounter = aCounter > bCounter ? aCounter : bCounter;
+ 
+    const ctx = {
+        parent: [branchA, branchB],
+        root: await branchA.data.root,
+        level: (await branchA.data.variableCounter + 1),
+        variables: await branchA.data.variables,
+        checked: await branchA.data.checked,
+        unchecked: await branchA.data.unchecked,
+        constraints: await branchA.data.constraints,
+        unsolvedVariables: await branchA.data.unsolvedVariables,
+        variableCounter,
+        state: 'yes',
+        children: [],
+        log: await branchA.data.log,
+    };
+
+    const uncheckedB = await branchB.data.checked;
+    const checkedB = await branchB.data.checked;
+
+    console.log(
+        await toString(branchA),
+        ' X ',
+        await toString(branchB)
+    );
+
+    await mergeElement(ctx, branchA, branchB, ctx.root);
+
+    // 2. Merge checked and unchecked variables,
+    for await (let b of checkedB.values()) {
+        ctx.checked = await ctx.checked.add(b);
+        ctx.unchecked = await ctx.unchecked.remove(b);
+    }
+        
+    for await (let b of uncheckedB.values()) {
+        if (!(await ctx.checked.has(b))) {
+            ctx.unchecked = await ctx.unchecked.add(b);
+        }
+    }
+
+   // 3. create new branch,   
+    const mergedBranch = await rDB.tables.branches.insert(ctx, null);
+       
+   // 2. mark both branches as solved, for now split.
+   await branchA.update({state: 'split'});
+   await branchB.update({state: 'split'});
+   
+   return mergedBranch;    
+}
+
+async function _2_merge (rDB, branchA , branchB) {
     let variables = await branchA.data.variables;
     let checkedA = await branchA.data.checked;
     let uncheckedA = await branchA.data.checked;
