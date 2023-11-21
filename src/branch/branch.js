@@ -334,6 +334,22 @@ async function mergeElement (ctx, branchA, branchB, id) {
 }
 
 async function merge (rDB, branchA, branchB) {
+    {
+        const variablesA = await branchA.data.variables;
+        const variablesB = await branchB.data.variables;
+
+        const aSize = await variablesA.size;
+        const bSize = await variablesB.size;
+
+        // choose the one with more variables, so that 
+        // we have less to copy.
+        if (aSize < bSize) {
+            const bA = branchA;
+            branchA = branchB;
+            branchB = bA;
+        }
+    }
+
     const aCounter = await branchA.data.variableCounter;
     const bCounter = await branchB.data.variableCounter;
     const variableCounter = aCounter > bCounter ? aCounter : bCounter;
