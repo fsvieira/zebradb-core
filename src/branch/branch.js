@@ -285,23 +285,43 @@ async function copyValue (variables, id, value, mergeStack) {
     return variables;
 }*/
 
-async function mergeMaterializedSets(ctx, valueA, valueB) {
+// TODO : Split 
+async function getElement (ctx, id, branch) {
+
+    if (await ctx.variables.has(id)) {
+        const a = await getVariable(null, id, ctx);
+        const b = await getVariable(branch, id);
+
+        if (
+            (a.id === b.id)
+            || (await ctx.variables.has(b.id))
+        ) {
+            return b.id;
+        }
+
+        throw 'getElement copy b.id!!'
+
+    }
+
+    throw 'GET ELEMENT MAYBE A HAS ID??';        
+}
+
+async function mergeMaterializedSets(ctx, valueA, valueB, branchB) {
+
+    let elements = valueA.elements;
 
     for await (let b of valueB.elements.values()) {
-        if (valueA.size > 0) {
-            for await (let a of valueA.elements.values()) {
-                const eA = await getVariable(null, a, ctx);
-                const eB = await getVariable(null, b, ctx);
+        const e = await getElement(ctx, b, branchB);
 
-                console.log("MERGE MATERIALED SET", eA, eB);
-
-                throw 'MERGE MS';
-            }
-        }
-        else {
-            throw 'A is empty';
-        }
+        elements = await elements.add(e);
     }
+
+    ctx.variables = await ctx.variables.set(
+        valueA.id, {
+            ...valueA, 
+            elements
+        }
+    );
 }
 
 async function mergeElement (ctx, branchA, branchB, id) {
@@ -322,7 +342,7 @@ async function mergeElement (ctx, branchA, branchB, id) {
     else if (vA.type === vB.type) {
         switch (vA.type) {
             case constants.type.MATERIALIZED_SET: {
-                await mergeMaterializedSets(ctx, vA, vB);
+                await mergeMaterializedSets(ctx, vA, vB, branchB);
                 break;
             }
 
@@ -366,7 +386,7 @@ async function merge (rDB, branchA, branchB) {
         variableCounter,
         state: 'yes',
         children: [],
-        log: await branchA.data.log,
+        log: await branchA.data.log
     };
 
     const uncheckedB = await branchB.data.checked;
