@@ -4,7 +4,7 @@ const test = require("../test-utils/test");
 
 describe("ZQuery Tests.", () => {
 
-	xit("Query with single tuple constant.",
+	it("Query with single tuple constant.",
 		test(
 			"$YELLOW = {(yellow)}", [
 				{
