@@ -62,9 +62,9 @@ function termSetConstrains (ctx, t) {
 
     const cid = ctx.newVar(t);
 
-    if (indexes) {
-        console.log(indexes);
-        console.log("TODO: indexes should constrain variables, and point to the created set!");
+    // if (indexes) {
+        // console.log(indexes);
+        // console.log("TODO: indexes should constrain variables, and point to the created set!");
         /*
             1. The copy of set should have a "phisical" set to store set elements, state, and 
                constraints.
@@ -72,11 +72,13 @@ function termSetConstrains (ctx, t) {
             functions that takes set state into account. 
         */
 
-        throw 'PREPARE SET HAS INDEXES!!';
-    }
+        // throw 'PREPARE SET HAS INDEXES!!';
+
+    // }
 
     const v = term(ctx, {
         ...element,
+        indexes,
         expression
     });
 
@@ -179,6 +181,7 @@ function termTuple(ctx, t) {
         data, 
         type, 
         domain,
+        indexes,
         expression
     } = t;
 
@@ -189,9 +192,16 @@ function termTuple(ctx, t) {
         nt.data.push(term(ctx, data[i]));
     }
 
+    if (indexes) {
+        nt.indexes = [];
+
+        for (let i=0; i<indexes.length; i++) {
+            nt.indexes.push(term(ctx, indexes[i]));
+        }    
+    }
+
     if (expression) {
         term(ctx, expression);
-        // nt.expression = term(ctx, expression);
     }
 
     if (domain) {
