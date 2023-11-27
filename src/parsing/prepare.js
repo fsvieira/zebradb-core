@@ -10,25 +10,27 @@ const {
         SET_CS, // 'sc'
         SET_EXP, // 'se'
         LOCAL_VAR, // : 'lv',
-        GLOBAL_VAR // : 'gv',
+        GLOBAL_VAR, // : 'gv',
+        INDEX // idx
     },
     operation: {
-        OR, //: "or",
-        AND, //: "or",: "and",
-        IN, //: "or",: "in",
-        UNIFY, //: "or",: "=",
-        NOT_UNIFY, //: "or",: "!=",
-        UNION, //: "or",: "union",
-        ADD, //: "or",: '+',
-        SUB, //: "or",: '-',
-        MUL, //: "or",: '*',
-        DIV, //: "or",: '/',
-        MOD, //: "or",: '%',
-        FUNCTION, //: "or",: 'fn',
-        BELOW, //: "or",: '<',
-        BELOW_OR_EQUAL, //: "or",: '<=',
-        ABOVE, //: "or",: '>',
-        ABOVE_OR_EQUAL, //: "or",: '>='
+        OR, // "or",
+        AND, // "and",
+        IN, // "in",
+        UNIFY, // "=",
+        NOT_UNIFY, // "!=",
+        UNION, // "union",
+        ADD, // '+',
+        SUB, // '-',
+        MUL, // '*',
+        DIV, // '/',
+        MOD, // '%',
+        FUNCTION, // 'fn',
+        BELOW, // '<',
+        BELOW_OR_EQUAL, // '<=',
+        ABOVE, // '>',
+        ABOVE_OR_EQUAL, // '>='
+        UNIQUE, // 'un'
     }
 } = branchOps.constants;
 
@@ -220,6 +222,19 @@ function termConstant (ctx, c) {
     return cid;
 }
 
+function termIndex(ctx, idx) {
+
+    cid = ctx.newVar(idx);
+
+    ctx.variables[cid] = {
+        ...idx, 
+        variable: term(idx.variable),
+        cid 
+    };
+
+    return cid;
+}
+
 function term (ctx, t) {
     if (t) {
         switch (t.type) {
@@ -231,6 +246,7 @@ function term (ctx, t) {
             case CONSTANT: return termConstant(ctx, t);
             case CONSTRAINT: return termConstrains(ctx, t);
             case SET_EXP: return termSetExpression(ctx, t);
+            case INDEX: return termIndex(ctx, t);
             default:
                 throw `TYPE ${t.type} IS NOT DEFINED, ${JSON.stringify(t)}`;
         }
@@ -280,13 +296,14 @@ function prepare (tuple) {
 
     ctx.newVar = v => {
         switch(v.type) {
+            case CONSTANT: return newVar(v.data);
+            case LOCAL_VAR: return v.varname || newVar();
             case SET_CS:
             case TUPLE:
             case SET_EXP:
+            case INDEX:
             case SET: return newVar();
-            case CONSTANT: return newVar(v.data);
-            case LOCAL_VAR:
-                return v.varname || newVar();
+        
             default:
                 throw 'prepare : type is not defined ' + v.type;
         }
