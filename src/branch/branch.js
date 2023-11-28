@@ -70,49 +70,7 @@ async function unifyDomain (
 async function expand (branch, options, selector, definitions) {
     const state = await branch.data.state;
 
-                /*const cache = {};
-
-            const tupleVars = async (id) => {
-                let count = cache[id];
-
-                if (count !== undefined) {
-                    return count;
-                }   
-                else {
-                    const v = await branchOps.getVariable(branch, id);
-                    count = 0;
-
-                    if (v.v) {
-                        count += 1;
-                    }
-                    else if (v.t) {
-                        cache[id] = 0;
-                        for (let i=0; i<v.t.length; i++) {
-                            count += await tupleVars(v.t[i]);
-                        }
-                    }
-                }
-
-                cache[id] = count;
-                return count;
-            }
-
-
-            const unchecked = await branch.data.unchecked;
-            // let index = Math.round((unchecked.size - 1) * Math.random());
-
-
-            let t, max;
-            for await (let id of unchecked.values()) {
-                const m = tupleVars(id);
-                if (!max || m > max) {
-                    max = m;
-                    t = id;
-                }
-            }
-
-            return t;*/
-if (state === 'unsolved_variables') {
+    if (state === 'unsolved_variables') {
         const unsolvedVariables = await branch.data.unsolvedVariables;
         let min=Infinity, minVar, minDomain; 
         let v;
@@ -216,7 +174,7 @@ async function createMaterializedSet (
 
     {
         // Set empty elements branch to be evaluated.
-        const {varCounter, newVar} = varGenerator(0); 
+        const {varCounter, newVar} = varGenerator(ctx.variableCounter + 1); 
 
         ctx.variables = parentVariables;
         ctx.newVar = newVar;

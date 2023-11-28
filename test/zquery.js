@@ -25,7 +25,7 @@ describe("ZQuery Tests.", () => {
 			"$COLORS = {(yellow) (blue)}", [
 				{
 					query: "('x):$COLORS",
-					results: ["{@(yellow) @(blue)}"]
+					results: ["{@(blue) @(yellow)}"]
 				},
 				/*{
 					query: "(yellow)",

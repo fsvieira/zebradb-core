@@ -350,16 +350,7 @@ async function copyTerm(ctx, p, definitionsDB, preserveVarname=false) {
                 vn = mapVars[cid] = ctx.newVar();
             }
         }
-        /*
-        let cid = v.cid || v;
-        let vn = mapVars[cid];
-        if (v.type === GLOBAL_VAR) {
-            vn = mapVars[cid] = cid;
-        }
-        else if (!vn) {
-            vn = mapVars[cid] = ctx.newVar(v.c);
-        }*/
-
+ 
         return vn;
     }
 
@@ -388,10 +379,6 @@ async function copyTerm(ctx, p, definitionsDB, preserveVarname=false) {
             );
         }
     }
-    /*
-    for (let i=0; i<p.constraints.length; i++) {
-        ctx.constraints = await ctx.constraints.add(getVarname(p.constraints[i]));
-    }*/
 
     return mapVars[p.root];
 }
@@ -487,7 +474,7 @@ async function toStringMaterializedSet(branch, v, ctx) {
         elements.push(await toString(branch, e, ctx));
     }
 
-    return `{${elements.join(" ")}}`;
+    return `{${elements.sort().join(" ")}}`;
 }
 
 async function toString (branch, id, ctx, constraints=true) {
