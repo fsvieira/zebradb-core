@@ -477,6 +477,17 @@ async function toStringMaterializedSet(branch, v, ctx) {
     return `{${elements.sort().join(" ")}}`;
 }
 
+async function toStringSet(branch, v, ctx) {
+    const elements = [];
+
+    for await (let e of v.elements.values()) {
+        elements.push(await toString(branch, e, ctx));
+    }
+
+    return `{${elements.sort().join(" ")}}`;
+}
+
+
 async function toString (branch, id, ctx, constraints=true) {
     branch = branch || ctx?.branch;
     id = id || await branch.data.root;    
@@ -517,6 +528,10 @@ async function toString (branch, id, ctx, constraints=true) {
 
         case MATERIALIZED_SET: {
             return toStringMaterializedSet(branch, v, ctx);
+        }
+
+        case SET: {
+            return toStringSet(branch, v, ctx);
         }
         default:
             throw `Base toString: Unknow Type ${v.type}`;

@@ -115,6 +115,27 @@ async function setVariableLocalVarConstant (ctx, v, c) {
     return true;
 }
 
+async function setVariableLocalVarTuple (ctx, v, t) {
+    if (v.domain) {
+        const d = await getVariable(null, v.domain, ctx);
+
+        console.log(await toString(null, d.id, ctx), await toString(null, t.id, ctx));
+        throw `setVariableLocalVarTuple Domain ${d.type} not defined!`;
+    }
+
+    ctx.variables = await ctx.variables.set(v.id, {...v, defer: t.id});
+
+    if (v.constraints) {
+        const r = await checkVariableConstrains(ctx, v);
+
+        if (r === false) {
+            return r;
+        }
+    }
+
+    return true;
+}
+
 async function setVariableLocalVarLocalVar (ctx, v, p) {
     let a = p.pv ? p : v;
     let b = p.pv ? v : p;
@@ -154,19 +175,23 @@ async function setVariableLocalVarLocalVar (ctx, v, p) {
     return true;
 }
 
+
 const setVariable = async (ctx, v, p) => {
 
     if (v.id !== p.id) {
-        if (v.type === LOCAL_VAR && p.type === LOCAL_VAR) {
-            return await setVariableLocalVarLocalVar(ctx, v, p);
-        }
-        else if (v.type === LOCAL_VAR && p.type === CONSTANT) {
-            return await setVariableLocalVarConstant(ctx, v, p);
-        }
-        else {
-            throw `Set Variable ${v.type} x ${p.type} not implemented`
-        }
+        switch (v.type) {
+            case LOCAL_VAR:
+                switch (p.type) {
+                    case LOCAL_VAR: return await setVariableLocalVarLocalVar(ctx, v, p);
+                    case CONSTANT: return await setVariableLocalVarConstant(ctx, v, p);
+                    case TUPLE: return await setVariableLocalVarTuple(ctx, v, p);
+                    default: 
+                        throw `Set Variable [LOCAL_VAR] x ${p.type} not implemented`;
+                }
 
+            default:
+                throw `Set Variable ${v.type} x ${p.type} not implemented`
+        }
     }
     
     return true; 
