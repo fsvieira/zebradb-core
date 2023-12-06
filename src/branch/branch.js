@@ -142,7 +142,7 @@ async function createMaterializedSet (
     const ctx = {
         parent: parentBranch,
         root: await parentBranch.data.root,
-        level: (await parentBranch.data.variableCounter + 1),
+        level: (await parentBranch.data.level + 1),
         checked: await parentBranch.data.checked,
         unchecked: await parentBranch.data.unchecked,
         constraints: await parentBranch.data.constraints,

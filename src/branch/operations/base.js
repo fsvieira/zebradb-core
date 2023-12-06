@@ -326,7 +326,7 @@ async function copySetConstrains (
     }
 }
 
-async function copyTerm(ctx, p, definitionsDB, preserveVarname=false) {
+async function copyTerm (ctx, p, definitionsDB, preserveVarname=false) {
     const mapVars = {};
 
     const getVarname = v => {
@@ -351,6 +351,7 @@ async function copyTerm(ctx, p, definitionsDB, preserveVarname=false) {
             }
         }
  
+        console.log("GET VARNAME ", vn, v);
         return vn;
     }
 
@@ -487,6 +488,15 @@ async function toStringSet(branch, v, ctx) {
     return `{${elements.sort().join(" ")}}`;
 }
 
+async function toStringSetCs(branch, v, ctx) {
+    console.log(JSON.stringify(v.element));
+    throw 'SC ????' + JSON.stringify(v.element);
+    const element = await toString(branch, v.element, ctx);
+
+    return `{${element} |}`;
+
+}
+
 
 async function toString (branch, id, ctx, constraints=true) {
     branch = branch || ctx?.branch;
@@ -533,6 +543,11 @@ async function toString (branch, id, ctx, constraints=true) {
         case SET: {
             return toStringSet(branch, v, ctx);
         }
+
+        case SET_CS: {
+            return toStringSetCs(branch, v, ctx);
+        }
+
         default:
             throw `Base toString: Unknow Type ${v.type}`;
     }

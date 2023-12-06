@@ -119,7 +119,12 @@ async function setVariableLocalVarTuple (ctx, v, t) {
     if (v.domain) {
         const d = await getVariable(null, v.domain, ctx);
 
-        console.log(await toString(null, d.id, ctx), await toString(null, t.id, ctx));
+        console.log(
+            await toString(null, d.id, ctx), 
+            await toString(null, t.id, ctx),
+            await toString(null, v.id, ctx)
+        );
+
         throw `setVariableLocalVarTuple Domain ${d.type} not defined!`;
     }
 
