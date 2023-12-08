@@ -8,6 +8,26 @@ describe("Plan Simple Puzzles", () => {
 			$LETTER = {A B}
 			$N = {1 2}
 
+			$LINE = {
+				{('l:$LETTER 'n:$N) | } |  'l is unique, 'n is unique
+			}
+		`,	 
+		[
+			{
+				query: `{'e:'s | 's in $LINE} `,
+				results: [
+					"@(2 = 1 + 1)" 
+				]
+			}
+		], 
+		{path: 'dbs/plan-simple-brave/1', timeout: 1000 * 60 * 60}
+	));
+
+	xit("Line Combinatorial (1)", test(
+		`
+			$LETTER = {A B}
+			$N = {1 2}
+
 			$LINE = {('l:$LETTER 'n:$N) unique 'l, unique 'n |}
 		`,	 
 		[
