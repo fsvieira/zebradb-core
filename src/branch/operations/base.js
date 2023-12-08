@@ -18,6 +18,7 @@ const {
     }
 } = require("./constants");
 
+const { v4: uuidv4 } = require('uuid');
 
 async function array2iset (ctx, array) {
     let iset = ctx.rDB.iSet();
@@ -351,7 +352,6 @@ async function copyTerm (ctx, p, definitionsDB, preserveVarname=false) {
             }
         }
  
-        console.log("GET VARNAME ", vn, v);
         return vn;
     }
 
@@ -389,10 +389,12 @@ function getConstantVarname (constant) {
 }
 
 function varGenerator (counter) {
+    const vID = uuidv4();
+
     return {
         varCounter: () => counter,
         newVar: v => {
-            const varname = (v?getConstantVarname(v):'v$' + (++counter));
+            const varname = (v?getConstantVarname(v):'v$' + vID + '$' + (++counter));
             return varname;
         }
     }
@@ -489,12 +491,10 @@ async function toStringSet(branch, v, ctx) {
 }
 
 async function toStringSetCs(branch, v, ctx) {
-    console.log(JSON.stringify(v.element));
-    throw 'SC ????' + JSON.stringify(v.element);
-    const element = await toString(branch, v.element, ctx);
+//     return `{${JSON.stringify(v.element)} |}`;
 
-    return `{${element} |}`;
-
+    console.log(JSON.stringify(v));
+    throw 'SC ????' + JSON.stringify(v);
 }
 
 

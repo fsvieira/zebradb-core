@@ -149,8 +149,7 @@ const doUnify = async (ctx, p, q) => {
     console.log(
         'DO UNIFY ',
         await toString(null, p.id, ctx), ' ** ', 
-        await toString(null, q.id, ctx),
-        ', LINE ', await toString(null, '$LINE', ctx)
+        await toString(null, q.id, ctx)
     );
 
     const ok =  await unifyFn[p.type][q.type](ctx, p, q);
@@ -226,7 +225,6 @@ async function unify (branch, options, tuple, definitionID, definition) {
     const level = await branch.data.level + 1;
     const rDB = branch.table.db;
 
-    console.log("======> BRANCH  VARS ", await branch.data.variableCounter);
     const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
     const ctx = {
         variables: await branch.data.variables,
