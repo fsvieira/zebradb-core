@@ -112,12 +112,12 @@ constantExpression = "«" constant:[^»]+ "»" {
   sets 
 */
 
-element = tuple / variable
+element = tuple / variable / set
 elements = (element:element _ {return element})* 
 
-index_ops = 'unique'
+index_ops = 'is' wsp 'unique'
 
-index = op:index_ops _ variable:variable {return {
+index = _ variable:variable wsp op:index_ops {return {
 	type: INDEX,
     op,
     variable
@@ -176,7 +176,7 @@ logical_and
   / equality
 
 equality
-  = a:additive _ op:('=' / '!=') _ b:equality { return { type: CONSTRAINT, op: opCode(op), a, b }; }
+  = a:relational _ op:('=' / '!=') _ b:equality { return { type: CONSTRAINT, op: opCode(op), a, b }; }
   / relational
 
 relational
@@ -189,17 +189,16 @@ additive
 
 multiplicative
   = a:expressionTerm _ op:('*' / '/' / '%') _ b:multiplicative { return { type: CONSTRAINT, op: opCode(op), a, b }; }
+  / setExpression
+
+setExpression 
+  = a:(expressionTerm / tuple / set) wsp op:('in') wsp b:(set / variable) {return {type: CONSTRAINT, op: opCode(op), a, b }; }
   / expressionTerm
 
 expressionTerm
-  = set 
-  / variable 
+  = variable 
   / constantExpression
-  / [a-zA-Z]+ args
   / '[' _ expression:expression _ ']' {return expression}
-
-func = f:('floor' / 'round' / 'ceil') '[' args:args ']' {return {type: FUNCTION, name: f, args }}
-args = a:expression _ rest:(';' _ r:expression _ {return r;})* {return [a].concat(rest)}  
 
 /* 
   Comments and Helpers,

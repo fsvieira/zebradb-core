@@ -9,12 +9,12 @@ describe("Plan Simple Puzzles", () => {
 			$N = {1 2}
 
 			$LINE = {
-				{('l:$LETTER 'n:$N) | } |  'l is unique, 'n is unique
+				{('l:$LETTER 'n:$N) | } 'l is unique, 'n is unique |
 			}
 		`,	 
 		[
 			{
-				query: `{'e:'s | 's in $LINE} `,
+				query: `{'e:'s | 's in $LINE}`,
 				results: [
 					"@(2 = 1 + 1)" 
 				]
