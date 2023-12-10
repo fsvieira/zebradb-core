@@ -49,7 +49,7 @@ class DB {
         
         await this.rDB.tables.definitions
             .key('definitionID')
-            .index('compareHash')
+            // .index('compareHash')
             .save()
         ;
 
@@ -383,7 +383,7 @@ class DB {
 
                 const v = def.variables[varID];
                 switch (v.type) {
-                    case TUPLE: {
+                    /*case TUPLE: {
                         const defRecord = await this.addElement(def, varID);
 
                         sVariables[varID] = {
@@ -394,7 +394,7 @@ class DB {
 
                         elements.add(varID);
                         break;
-                    }
+                    }*/
                     case CONSTANT: {
                         sVariables[varID] = v;
                         elements.add(varID);
@@ -526,6 +526,10 @@ class DB {
     }
 
     async addSetConstrain (def, varID) {
+    
+    }
+
+    async __addSetConstrain (def, varID) {
         const {variables, globalVariable} = def;
 
         const set = variables[varID];
@@ -537,7 +541,7 @@ class DB {
         const v = def.variables[elementID];
         
         switch (v.type) {
-            case TUPLE: {
+            /*case TUPLE: {
                 const defRecord = await this.addElement(def, elementID);
 
                 sVariables[elementID] = {
@@ -547,7 +551,7 @@ class DB {
                 };
 
                 break;
-            }
+            }*/
 
             case LOCAL_VAR: {
                 sVariables[v.cid] = v;
@@ -555,7 +559,7 @@ class DB {
             }
 
             default: 
-                throw 'addSet - Not implemented! ' + v.type;
+                throw 'addSetConstrain - Not implemented! ' + v.type;
         }
 
         sVariables[varID] = {
@@ -649,17 +653,101 @@ class DB {
         return definition;
     }
 
-    async addElement (def, varID=def.root) {
-        const type = def.variables[varID].type;
+    async genIndexesTuple (def, tuple, ref) {
+        ref = ref.concat(tuple.cid);
+        console.log("REF", ref);
+        throw 'GEN INDEXES TUPLE IS NOT IMPLEMENTED';
+    }
+
+    async genIndexesSet (def, set, ref) {
+        const {elements} = set;
+        for (let i=0; i<elements.length; i++) {
+            const eID = elements[i];
+            const e = def.variables[eID];
+
+            switch (e.type) {
+
+                case CONSTANT:
+                    // nothing to do,
+                    break;
+
+                default:
+                    throw 'UNKOWN SET INDEX TO GENERATE ' + e.type;
+            }   
+        }
+    }
+
+    async genIndexesSetCs (def, set, ref) {
+        const {element: eID} = set;
+        const e = def.variables[eID];
+
+        ref = ref.concat(set.cid);
+        switch (e.type) {
+            case SET_CS:
+                await this.genIndexesSetCs(def, e, ref);
+                break;
+
+            case TUPLE:                
+                await this.genIndexesTuple(def, e, ref);
+                break;
+
+            case CONSTANT:
+                // nothing to do,
+                break;
+
+            default:
+                throw 'UNKOWN SET INDEX TO GENERATE ' + e.type;
+        }
+    }
+
+
+    async addElement (def) {
+
+        const globalVariable = def.globalVariable;
+        
+        const defRecord = await this.rDB.tables.definitions.insert({
+            definitionID: globalVariable,
+            definition: def
+        }, null);
+
+        const root = def.variables[def.root];
+
+        const ref = [defRecord];
+
+        switch (root.type) {
+            case SET: {
+                await this.genIndexesSet(def, root, ref);
+                break;
+            }
+
+            case SET_CS: {
+                await this.genIndexesSetCs(def, root, ref);
+            }
+
+            default:
+                throw 'UNKOWN GEN INDEX ' + root.type;
+        }
+
+        return defRecord;
+
+        /*const type = def.variables[varID].type;
 
         switch (type) {
+            case SET: return this.addSet(def, varID);
+            case SET_CS: return this.addSetConstrain(def, varID);
+            case SET_EXP: return this.addSetExpression(def, varID);
+            default:
+                throw `Unkown def type ${type}`;
+        }*/
+
+        /*switch (type) {
             case SET: return this.addSet(def, varID);
             case TUPLE: return this.addTuple(def, varID);
             case SET_CS: return this.addSetConstrain(def, varID);
             case SET_EXP: return this.addSetExpression(def, varID);
             default:
                 throw `Unkown def type ${type}`;
-        }
+        }*/
     }
 
     async add(definitions) {
