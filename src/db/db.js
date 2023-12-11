@@ -526,10 +526,6 @@ class DB {
     }
 
     async addSetConstrain (def, varID) {
-    
-    }
-
-    async __addSetConstrain (def, varID) {
         const {variables, globalVariable} = def;
 
         const set = variables[varID];
