@@ -61,7 +61,7 @@ class DB {
         ;
 
         await this.rDB.tables.definitionIndexes
-            .key('definitionIndexID', ['definition', 'type', 'position', 'tupleLength'])
+            .key('definitionIndexID', ['tupleRef', 'type', 'position', 'tupleLength'])
             .index('type', 'position', 'tupleLength')
             .index('position', 'tupleLength')
             .save()
@@ -651,8 +651,17 @@ class DB {
 
     async genIndexesTuple (def, tuple, ref) {
         ref = ref.concat(tuple.cid);
-        console.log("REF", ref);
-        throw 'GEN INDEXES TUPLE IS NOT IMPLEMENTED';
+
+        for (let i=0; i<tuple.data.length; i++) {
+            const v = def.variables[tuple.data[i]];
+
+            await this.rDB.tables.definitionIndexes.insert({
+                tupleRef: ref,
+                tupleLength: tuple.data.length,
+                type: v.type,
+                position: i
+            }, null);
+        }
     }
 
     async genIndexesSet (def, set, ref) {
@@ -718,6 +727,7 @@ class DB {
 
             case SET_CS: {
                 await this.genIndexesSetCs(def, root, ref);
+                break;
             }
 
             default:
