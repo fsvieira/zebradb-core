@@ -130,6 +130,13 @@ async function expand (branch, options, selector, definitions) {
     }
 }
 
+async function createMaterializedSetCs (
+    ctx, definitionElement, v
+) {
+
+    throw 'createMaterializedSetCs is not implemented!!';
+}
+
 async function createMaterializedSet (
     rDB, 
     id, 
@@ -173,11 +180,27 @@ async function createMaterializedSet (
     }
 
     {
-        // Set empty elements branch to be evaluated.
+
+        const {root, variables} = definitionElement;
+        const v = variables[root];
+
+        // Set elements branch to be evaluated.
         const {varCounter, newVar} = varGenerator(ctx.variableCounter + 1); 
 
         ctx.variables = parentVariables;
         ctx.newVar = newVar;
+
+        switch (v.type) {
+            case constants.type.SET_CS: {
+                await createMaterializedSetCs(ctx, definitionElement, v);
+                break;
+            }
+
+            default:
+                throw `createMaterializedSet : ${v.type} not defined!`;
+        }
+
+        throw 'createMaterializedSet - SET QUERY!!';
 
         const element = await copyTerm(
             ctx, 

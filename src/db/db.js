@@ -64,6 +64,7 @@ class DB {
             .key('definitionIndexID', ['tupleRef', 'type', 'position', 'tupleLength'])
             .index('type', 'position', 'tupleLength')
             .index('position', 'tupleLength')
+            .index('variable')
             .save()
         ;
 
@@ -85,7 +86,7 @@ class DB {
         }
     }*/
 
-    genDefinitionHashID (v) {
+    __genDefinitionHashID (v) {
         const type = v.constructor.name;
         let s = v;
 
@@ -128,7 +129,7 @@ class DB {
 
     }
 
-    genCompareHashRec (tuple, id=tuple.root) {
+    __genCompareHashRec (tuple, id=tuple.root) {
         const v = tuple.variables[id];
 
         switch (v.type) {
@@ -184,7 +185,7 @@ class DB {
         }
     }
 
-    compare (tupleA, tupleB, idA=tupleA.root, idB=tupleB.root, vars={}) {
+    __compare (tupleA, tupleB, idA=tupleA.root, idB=tupleB.root, vars={}) {
         const vA = tupleA.variables[idA];
         const vB = tupleB.variables[idB];
 
@@ -350,7 +351,7 @@ class DB {
     }
 
 
-    async genCompareHash (definition) {
+    async __genCompareHash (definition) {
         const defHash = this.genCompareHashRec(definition);
         const hash = SHA256(defHash).toString("base64");
 
@@ -366,7 +367,7 @@ class DB {
         return [hash, null];
     }
 
-    async addSet (def, varID=def.root) {
+    async __addSet (def, varID=def.root) {
         const {variables, globalVariable} = def;
 
         const set = variables[varID];
@@ -444,7 +445,7 @@ class DB {
 
     }
 
-    getTuple (def, varID) {
+    __getTuple (def, varID) {
         const variables = {};
 
         const stack = [varID];
@@ -484,7 +485,7 @@ class DB {
         };
     }
 
-    async addTuple (def, varID) {
+    async __addTuple (def, varID) {
         /* 
             1. register tuple, associate tuple as globalSet variable ??
         */
@@ -525,7 +526,7 @@ class DB {
         // throw `Add Tuple ${JSON.stringify(def, null, '  ')}`;
     }
 
-    async addSetConstrain (def, varID) {
+    async __addSetConstrain (def, varID) {
         const {variables, globalVariable} = def;
 
         const set = variables[varID];
@@ -591,7 +592,7 @@ class DB {
         return definition;
     }
 
-    async addSetExpression (def, varID=def.root) {
+    async __addSetExpression (def, varID=def.root) {
         const {variables, globalVariable} = def;
 
         const set = variables[varID];
@@ -649,7 +650,7 @@ class DB {
         return definition;
     }
 
-    async genIndexesTuple (def, tuple, ref) {
+    async genIndexesTuple (globalVariable, def, tuple, ref) {
         ref = ref.concat(tuple.cid);
 
         for (let i=0; i<tuple.data.length; i++) {
@@ -659,12 +660,13 @@ class DB {
                 tupleRef: ref,
                 tupleLength: tuple.data.length,
                 type: v.type,
-                position: i
+                position: i,
+                variable: globalVariable
             }, null);
         }
     }
 
-    async genIndexesSet (def, set, ref) {
+    async genIndexesSet (globalVariable, def, set, ref) {
         const {elements} = set;
         for (let i=0; i<elements.length; i++) {
             const eID = elements[i];
@@ -682,18 +684,18 @@ class DB {
         }
     }
 
-    async genIndexesSetCs (def, set, ref) {
+    async genIndexesSetCs (globalVariable, def, set, ref) {
         const {element: eID} = set;
         const e = def.variables[eID];
 
         ref = ref.concat(set.cid);
         switch (e.type) {
             case SET_CS:
-                await this.genIndexesSetCs(def, e, ref);
+                await this.genIndexesSetCs(globalVariable, def, e, ref);
                 break;
 
             case TUPLE:                
-                await this.genIndexesTuple(def, e, ref);
+                await this.genIndexesTuple(globalVariable, def, e, ref);
                 break;
 
             case CONSTANT:
@@ -721,12 +723,12 @@ class DB {
 
         switch (root.type) {
             case SET: {
-                await this.genIndexesSet(def, root, ref);
+                await this.genIndexesSet(globalVariable, def, root, ref);
                 break;
             }
 
             case SET_CS: {
-                await this.genIndexesSetCs(def, root, ref);
+                await this.genIndexesSetCs(globalVariable, def, root, ref);
                 break;
             }
 
@@ -735,32 +737,10 @@ class DB {
         }
 
         return defRecord;
-
-        /*const type = def.variables[varID].type;
-
-        switch (type) {
-            case SET: return this.addSet(def, varID);
-            case SET_CS: return this.addSetConstrain(def, varID);
-            case SET_EXP: return this.addSetExpression(def, varID);
-            default:
-                throw `Unkown def type ${type}`;
-        }*/
-
-        /*switch (type) {
-            case SET: return this.addSet(def, varID);
-            case TUPLE: return this.addTuple(def, varID);
-            case SET_CS: return this.addSetConstrain(def, varID);
-            case SET_EXP: return this.addSetExpression(def, varID);
-            default:
-                throw `Unkown def type ${type}`;
-        }*/
     }
 
     async add(definitions) {
-        const defs = parse(definitions); /*.map(t => {
-            t.variables[t.root].checked = true;
-            return t;
-        });*/
+        const defs = parse(definitions);
 
         for (let i=0; i<defs.length; i++) {
             const def = defs[i];
@@ -768,38 +748,9 @@ class DB {
             await this.addElement(def);
         }
 
-        /*
-        for (let i=0; i<tuples.length; i++) {
-            const tuple = tuples[i];
-            const compareHash = await this.genCompareHash(tuple);
-
-            if (compareHash) {
-                const id = SHA256(JSON.stringify(tuple)).toString('base64');
-
-                const definition = await this.rDB.tables.definitions.insert({
-                    definitionID: id,
-                    tuple,
-                    compareHash
-                }, null);
-
-                // make indexes
-                const root = tuple.variables[tuple.root];
-
-                for (let i=0; i<root.t.length; i++) {
-                    const v = tuple.variables[root.t[i]];
-
-                    await this.rDB.tables.definitionIndexes.insert({
-                        definition,
-                        tupleLength: root.t.length,
-                        type: this.getType(v),
-                        position: i
-                    }, null);
-                }
-            }
-        }*/
     }
 
-    async getDefByVariable (variable) {
+    async __getDefByVariable (variable) {
         const definitionVariables = this.rDB.tables.definitionVariables;
 
         const index = {varname: variable.cid};
@@ -812,7 +763,7 @@ class DB {
         throw 'Global variable ' + variable.id + " is not defined!";
     }
 
-    async search (def) {
+    async __search (def) {
         // const definitionIndexes = this.rDB.tables.definitionIndexes;
         // let results = [];
 

@@ -1,6 +1,6 @@
 const branchOps = require('./branch');
 
-const query = async (rDB, tuple, branchID, definitionsDB) => {
+const query = async (rDB, set, branchID, definitionsDB) => {
     // 1. create root branch,
     const resultsID = '__resultsSet';
 
@@ -24,7 +24,7 @@ const query = async (rDB, tuple, branchID, definitionsDB) => {
         rDB,
         resultsID,
         queryRootBranch,
-        tuple, definitionsDB
+        set, definitionsDB
     );
 
 }

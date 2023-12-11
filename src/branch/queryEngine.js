@@ -12,11 +12,11 @@ class QueryEngine {
 
     async init (tuple) {
         try {
-            const queryTuple = parse(tuple)[0];
+            const querySet = parse(tuple)[0];
 
             const branchID = SHA256(JSON.stringify([
                 this.db.id,
-                SHA256(JSON.stringify(queryTuple)).toString("hex")
+                SHA256(JSON.stringify(querySet)).toString("hex")
             ])).toString("hex");
 
             this.rDB = await DB.open({
@@ -33,7 +33,7 @@ class QueryEngine {
                 .save()
             ;
 
-            await query(this.rDB, queryTuple, branchID, this.db);
+            await query(this.rDB, querySet, branchID, this.db);
 
             return this;
         }
