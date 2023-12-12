@@ -152,7 +152,7 @@ async function createMaterializedSetCs (
     const valueResults = {
         type: constants.type.MATERIALIZED_SET,
         id: variableID,
-        elements: await rDB.iSet().add(element)
+        elements: await ctx.rDB.iSet().add(element)
     };
 
     ctx.variables = await ctx.variables.set(variableID, valueResults);
