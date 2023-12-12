@@ -4,6 +4,7 @@ const {
     getVariable,
     toString,
     copyTerm,
+    copyPartialTerm,
     // prepareVariables,
     constants
 } = require('./operations');
@@ -131,10 +132,32 @@ async function expand (branch, options, selector, definitions) {
 }
 
 async function createMaterializedSetCs (
-    ctx, definitionElement, v
+    ctx,
+    definitionsDB,
+    definitionElement, 
+    v,
+    variableID=ctx.newVar()
 ) {
 
-    throw 'createMaterializedSetCs is not implemented!!';
+    const {element: elementID} = v;
+
+    const element = await copyPartialTerm(
+        ctx, 
+        definitionElement, 
+        elementID,
+        definitionsDB, 
+        true
+    );
+    
+    const valueResults = {
+        type: constants.type.MATERIALIZED_SET,
+        id: variableID,
+        elements: await rDB.iSet().add(element)
+    };
+
+    ctx.variables = await ctx.variables.set(variableID, valueResults);
+
+    return variableID;
 }
 
 async function createMaterializedSet (
@@ -170,7 +193,7 @@ async function createMaterializedSet (
         };
 
         const variables = await parentVariables.set(id, emptyResults);
-
+        
         await rDB.tables.branches.insert({
             ...ctx,
             state: 'yes',
@@ -189,10 +212,18 @@ async function createMaterializedSet (
 
         ctx.variables = parentVariables;
         ctx.newVar = newVar;
+        ctx.rDB = rDB;
 
         switch (v.type) {
             case constants.type.SET_CS: {
-                await createMaterializedSetCs(ctx, definitionElement, v);
+                await createMaterializedSetCs(
+                    ctx,
+                    definitionsDB, 
+                    definitionElement, 
+                    v,
+                    id
+
+                );
                 break;
             }
 
@@ -200,7 +231,7 @@ async function createMaterializedSet (
                 throw `createMaterializedSet : ${v.type} not defined!`;
         }
 
-        throw 'createMaterializedSet - SET QUERY!!';
+        /*throw 'createMaterializedSet - SET QUERY!!';
 
         const element = await copyTerm(
             ctx, 
@@ -216,13 +247,19 @@ async function createMaterializedSet (
         };
 
         ctx.variables = await ctx.variables.set(id, valueResults);
+        */
 
         delete ctx.newVar;
+        delete ctx.rDB;
+
+        const size = await ctx.unchecked.size;
+
+        const state = size === 0?'unsolved_variables':'maybe';
 
         await rDB.tables.branches.insert({
             ...ctx,
             variableCounter: varCounter(),
-            state: 'maybe',
+            state,
             branchID: `${parentBranch.id}-element`
         }, null);
     }
@@ -375,6 +412,7 @@ module.exports = {
     toString,
     varGenerator,
     copyTerm,
+    copyPartialTerm,
     // prepareVariables,
     getVariable,
     constants

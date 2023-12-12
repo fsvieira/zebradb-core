@@ -54,11 +54,11 @@ class DB {
         ;
 
         // find definitions by var name and id,
-        await this.rDB.tables.definitionVariables
+        /*await this.rDB.tables.definitionVariables
             .key('definitionsVariablesID', ["varname", "definition"])
             .index("varname")
             .save()
-        ;
+        ;*/
 
         await this.rDB.tables.definitionIndexes
             .key('definitionIndexID', ['tupleRef', 'type', 'position', 'tupleLength'])
@@ -750,22 +750,40 @@ class DB {
 
     }
 
-    async __getDefByVariable (variable) {
-        const definitionVariables = this.rDB.tables.definitionVariables;
+    async getDefByVariable (variable) {
+        const definitions = this.rDB.tables.definitions;
 
-        const index = {varname: variable.cid};
-        for await (let d of definitionVariables.findByIndex(index)) {
-            const def = await d.data.definition;
-            const definition = await def.data.definition;
+        const index = {definitionID: variable.cid};
+        for await (let d of definitions.findByIndex(index)) {
+            const definition = await d.data.definition;
             return definition;
         }
 
-        throw 'Global variable ' + variable.id + " is not defined!";
+        throw 'Global variable ' + variable.cid + " is not defined!";
     }
 
-    async __search (def) {
+    async search (def) {
         // const definitionIndexes = this.rDB.tables.definitionIndexes;
         // let results = [];
+
+        console.log("SEARCH ", JSON.stringify(def, null, '  '));
+
+        switch(def.type) {
+            case GLOBAL_VAR: {
+                return await this.getDefByVariable(def);
+            }
+
+            case TUPLE: {
+                throw 'SEARCH TUPLE NOT IMPLEMENTED';
+            }
+
+            default: 
+                throw 'SEARCH IS NOT IMPLEMENTED FOR TYPE ' + def.type
+        }
+
+
+        console.log(JSON.stringify(def, null, '  '));
+        throw 'SEARCH IS NOT DEF';
 
         switch (def.type) {
             case GLOBAL_VAR: {

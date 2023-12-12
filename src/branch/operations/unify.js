@@ -3,6 +3,7 @@ const {
     type,
     get,
     copyTerm,
+    copyPartialTerm,
     toString,
     getVariable,
     getConstantVarname

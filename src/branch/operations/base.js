@@ -327,6 +327,172 @@ async function copySetConstrains (
     }
 }
 
+async function copyPartialTermGlobalVar (
+    definitionDB, ctx, p, vn, getVarname, v, preserveVarname
+) {
+    if (!await ctx.variables.has(vn)) {
+
+        const def = await  definitionDB.search(v);
+
+        console.log(JSON.stringify(def, null, '  '));
+        throw 'copyPartialTermGlobalVar : Set GV -- setup a material empty set with def??';
+    }
+    else {
+        const v = await ctx.variables.get(vn);
+        console.log("GV ---------->", v);
+    }
+
+    throw 'copyPartialTermGlobalVar NOT IMPLEMENTED';
+}
+
+async function copyPartialTermConstraint (
+    definitionDB, ctx, p, vn, getVarname, v, preserveVarname
+) {
+
+    const a = await getVarname(p.variables[v.a]);
+    const b = await getVarname(p.variables[v.b]);
+    
+    const root = v.root?{
+        ...v.root,
+        csID: await getVarname(p.variables[v.root.csID])
+    }:null;
+    
+    let constraints;
+    if (v.constraints) {
+        constraints = ctx.rDB.iSet();
+    
+        for (let i=0; i<v.constraints.length; i++) {
+            const vc = v.constraints[i];
+            const id = await getVarname(p.variables[vc]);
+            constraints = await constraints.add(id);
+        }
+    
+        ctx.variables = await ctx.variables.set(vn, {
+            ...v,
+            a, b, root,
+            constraints,
+            id: vn
+        });
+    
+    }
+
+    // console.log(JSON.stringify(v, null, '  '));
+    // throw 'copyPartialTermConstraint Not implemented';
+}
+
+async function copyPartialTermLocalVar (
+    definitionDB, ctx, p, vn, getVarname, v, preserveVarname
+) {
+    let constraints;
+    if (v.constraints) {
+        constraints = ctx.rDB.iSet();
+
+        for (let i=0; i<v.constraints.length; i++) {
+            const vc = v.constraints[i];
+            const id = await getVarname(p.variables[vc]);
+            constraints = await constraints.add(id);
+        }
+    }
+
+    ctx.variables = await ctx.variables.set(
+        vn, {
+            ...v,
+            pv: preserveVarname,
+            domain: await getVarname(v.domain), /*v.domain ? getVarname(p.variables[v.domain]) : undefined,*/
+            constraints,
+            id: vn
+        }
+    );
+
+    if (v.constraints /* && v.domain*/ ) {
+        ctx.unsolvedVariables = await ctx.unsolvedVariables.add(vn);
+    }
+}
+
+async function copyPartialTerm (
+    ctx, p, vID, definitionDB, preserveVarname=false
+) {
+
+    const {variables} = p;
+    const mapVars = {};
+
+    /*
+    const getVarname = v => {
+        const cid = v.cid || v;
+
+        let vn = mapVars[cid];
+
+        if (!vn) {
+            if (v.type === GLOBAL_VAR) {
+                vn = mapVars[cid] = cid;
+            }
+            else if (v.type === CONSTANT) {
+                vn = mapVars[cid] = ctx.newVar(v.data);
+            }
+            else {
+                vn = mapVars[cid] = ctx.newVar();
+            }
+        }
+ 
+        return vn;
+    }
+    */
+
+    const getVarname = async v => {
+        if (!v.cid) {
+            v = variables[v];
+        }
+        
+        const cid = v.cid;
+        let vn = mapVars[cid];
+
+        if (!vn) {
+            switch (v.type) {
+                case LOCAL_VAR: {
+                    vn = mapVars[cid] = ctx.newVar();
+
+                    await copyPartialTermLocalVar(
+                        definitionDB, ctx, p, vn,
+                        getVarname, v, 
+                        preserveVarname
+                    );
+
+                    break;
+                }
+
+                case CONSTRAINT: {
+                    vn = mapVars[cid] = ctx.newVar();
+
+                    await copyPartialTermConstraint(
+                        definitionDB, ctx, p, vn,
+                        getVarname, v, 
+                        preserveVarname
+                    );
+
+                    break; 
+                }
+
+                case GLOBAL_VAR: {
+                    vn = mapVars[cid] = cid;
+
+                    await copyPartialTermGlobalVar(
+                        definitionDB, ctx, p, vn,
+                        getVarname, v, 
+                        preserveVarname
+                    );
+                }
+
+                default:
+                    throw 'copyPartialTerm type is not defined: ' + v.type;
+            }
+        }
+
+        return vn;
+    }
+
+    return getVarname(vID);
+}
+
 async function copyTerm (ctx, p, definitionsDB, preserveVarname=false) {
     const mapVars = {};
 
@@ -560,8 +726,10 @@ module.exports = {
     hasVariable,
     get,
     copyTerm,
+    copyPartialTerm,
     // copyTerms,
     toString,
-    getConstantVarname
+    getConstantVarname,
+    copyPartialTerm
     // prepareVariables
 };

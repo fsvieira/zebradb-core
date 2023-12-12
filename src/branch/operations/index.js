@@ -5,6 +5,7 @@ const {
     getVariable,
     toString,
     copyTerm,
+    copyPartialTerm
    // prepareVariables
 } = require("./base");
 
@@ -14,6 +15,7 @@ module.exports = {
     getVariable,
     toString,
     copyTerm,
+    copyPartialTerm,
     constants
    // prepareVariables
 };

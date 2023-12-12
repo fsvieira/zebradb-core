@@ -167,10 +167,17 @@ function termLocalVariable (ctx, lv) {
     const cid = ctx.newVar(lv);
     const v = ctx.variables[cid];
 
+    // create constraints, 
+    // constraints will be set on variable on constraints link phase, 
+    // if variable is directly used on any constraint. 
+    term(ctx, lv.expression);
+
     if (!v) {
         ctx.variables[cid] = {
             ...lv, 
             domain: term(ctx, lv.domain),
+            indexes: term(ctx, lv.indexes),
+            expression: undefined,
             cid
         };
     }
