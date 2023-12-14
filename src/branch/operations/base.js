@@ -422,8 +422,12 @@ async function copyPartialTermLocalVar (
         }
     );
 
-    if (v.constraints /* && v.domain*/ ) {
+    if (v.constraints && v.domain ) {
         ctx.unsolvedVariables = await ctx.unsolvedVariables.add(vn);
+    }
+    else if (v.constraints) {
+        console.log("TODO: CHECK IF THERE IS CONSTRAINTS LIKE IN ??");
+        throw 'PROCESS CONSTRAINTS??';
     }
 }
 
@@ -711,13 +715,13 @@ async function toString (branch, id, ctx, constraints=true) {
         }
         case GLOBAL_VAR:
         case LOCAL_VAR: {
-            let vd;
+            /*let vd;
             if (v.domain) {
                 vd = await getVariable(branch, v.domain, ctx);
-            }
+            }*/
 
             // const ds = vd?':' + (vd.type === GLOBAL_VAR?'$':"'") + vd.varname : '';
-            const ds = vd?`:{${vd.elements.join(", ")}}` : '';
+            const ds = v.domain?':' + await toString(branch, v.domain, ctx):''; // vd?`:{${vd.elements.join(", ")}}` : '';
 
             return "'" + (!v.pv && v.id?v.id + "::": "") + v.varname + ds;
         }

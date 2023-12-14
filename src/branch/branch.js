@@ -71,10 +71,14 @@ async function unifyDomain (
 async function expand (branch, options, selector, definitions) {
     const state = await branch.data.state;
 
-    if (state === 'unsolved_variables') {
+    if (state === 'unsolved_constraints') {
+        
+    }
+    else if (state === 'unsolved_variables') {
         const unsolvedVariables = await branch.data.unsolvedVariables;
         let min=Infinity, minVar, minDomain; 
         let v;
+
         for await (let vID of unsolvedVariables.values()) {
             v = await branch.data.variables.get(vID);
 
