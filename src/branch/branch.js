@@ -203,7 +203,6 @@ async function createMaterializedSet (
     }
 
     {
-
         const {root, variables} = definitionElement;
         const v = variables[root];
 
@@ -222,7 +221,6 @@ async function createMaterializedSet (
                     definitionElement, 
                     v,
                     id
-
                 );
                 break;
             }
@@ -256,12 +254,16 @@ async function createMaterializedSet (
 
         const state = size === 0?'unsolved_variables':'maybe';
 
-        await rDB.tables.branches.insert({
+        const branch = await rDB.tables.branches.insert({
             ...ctx,
             variableCounter: varCounter(),
             state,
             branchID: `${parentBranch.id}-element`
         }, null);
+
+        const s = await toString(branch);
+
+        console.log('QUERY ', s);
     }
 
 }

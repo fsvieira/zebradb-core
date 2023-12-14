@@ -24,7 +24,8 @@ const query = async (rDB, set, branchID, definitionsDB) => {
         rDB,
         resultsID,
         queryRootBranch,
-        set, definitionsDB
+        set, 
+        definitionsDB
     );
 
 }

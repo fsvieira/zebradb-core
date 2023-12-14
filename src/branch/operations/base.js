@@ -42,12 +42,13 @@ async function save2db (
             body = await v.body.map(getVarname);
         }*/
 
+        const domain = await getVarname(p.variables[v.domain]); 
         ctx.variables = await ctx.variables.set(vn, {
             ...v,
             data: v.data.map(v => getVarname(p.variables[v])),
             // body,
             id: vn,
-            domain: v.domain ? getVarname(p.variables[v.domain]) : undefined
+            domain
             // checked: v.checked
         });
 
@@ -382,15 +383,15 @@ async function copyPartialTermConstraint (
             const id = await getVarname(p.variables[vc]);
             constraints = await constraints.add(id);
         }
-    
-        ctx.variables = await ctx.variables.set(vn, {
-            ...v,
-            a, b, root,
-            constraints,
-            id: vn
-        });
-    
+        
     }
+
+    ctx.variables = await ctx.variables.set(vn, {
+        ...v,
+        a, b, root,
+        constraints,
+        id: vn
+    });
 
     // console.log(JSON.stringify(v, null, '  '));
     // throw 'copyPartialTermConstraint Not implemented';
@@ -410,11 +411,12 @@ async function copyPartialTermLocalVar (
         }
     }
 
+    const domain = await getVarname(v.domain);   
     ctx.variables = await ctx.variables.set(
         vn, {
             ...v,
             pv: preserveVarname,
-            domain: await getVarname(v.domain), /*v.domain ? getVarname(p.variables[v.domain]) : undefined,*/
+            domain, /*v.domain ? getVarname(p.variables[v.domain]) : undefined,*/
             constraints,
             id: vn
         }
@@ -466,7 +468,7 @@ async function copyPartialTerm (
             if (!vn) {
                 switch (v.type) {
                     case LOCAL_VAR: {
-                        vn = mapVars[cid] = ctx.newVar();
+                        vn = mapVars[cid] = v.type + '::' + ctx.newVar();
 
                         await copyPartialTermLocalVar(
                             definitionDB, ctx, p, vn,
@@ -474,11 +476,14 @@ async function copyPartialTerm (
                             preserveVarname
                         );
 
+                        const s = await ctx.variables.get(vn);
+                        console.log("===>> LOCAL VARIABLE ", s);
+
                         break;
                     }
 
                     case CONSTRAINT: {
-                        vn = mapVars[cid] = ctx.newVar();
+                        vn = mapVars[cid] = v.type + '::' + ctx.newVar();
 
                         await copyPartialTermConstraint(
                             definitionDB, ctx, p, vn,
@@ -600,6 +605,7 @@ async function getVariable (branch, id, ctx) {
     const variables = ctx ? ctx.variables : await branch.data.variables;
 
     do {
+        console.log("--> getVariable", id);
         v = await variables.get(id);
         
         if (id && id === v.defer) {
