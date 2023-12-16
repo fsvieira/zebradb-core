@@ -6,8 +6,10 @@ const {
     copyTerm,
     copyPartialTerm,
     // prepareVariables,
-    constants
+    constants,
 } = require('./operations');
+
+const {checkVariableConstrains} = require('./operations/built-in/constraints');
 
 async function toJS (branch, id) {
     id = id || await branch.data.root;
@@ -66,6 +68,25 @@ async function unifyDomain (
         default:
             throw 'unify domain unknown type ' + s.type;
     }
+}
+
+async function executeConstraints (branch, v) {
+    const ctx = {
+        parent: branch,
+        root: await branch.data.root,
+        level: (await branch.data.level + 1),
+        checked: await branch.data.checked,
+        unchecked: await branch.data.unchecked,
+        constraints: await branch.data.constraints,
+        unsolvedVariables: await branch.data.unsolvedVariables,
+        variableCounter: await branch.data.variableCounter,
+        children: await branch.data.children,
+        log: await branch.data.log
+    }
+
+    await checkVariableConstrains(ctx, v);
+
+    throw 'Create New Branch';
 }
 
 async function expand (branch, options, selector, definitions) {
@@ -128,8 +149,9 @@ async function expand (branch, options, selector, definitions) {
             r = await Promise.all(elements.map(cID => unify(branch, options, d.id, cID))); 
         }
         else {
+            await executeConstraints(branch, c);
             console.log('UNSOLVED VARS ', c);
-            // throw 'UNSOLVED VARS IS NOT IMPLMENETED!!'
+            throw 'UNSOLVED VARS IS NOT IMPLMENETED!!'
         }
         
         await branch.update({state: 'split'});
