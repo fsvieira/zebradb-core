@@ -71,30 +71,67 @@ async function unifyDomain (
 async function expand (branch, options, selector, definitions) {
     const state = await branch.data.state;
 
-    if (state === 'unsolved_constraints') {
-        
-    }
-    else if (state === 'unsolved_variables') {
+    if (state === 'unsolved_variables') {
         const unsolvedVariables = await branch.data.unsolvedVariables;
-        let min=Infinity, minVar, minDomain; 
-        let v;
+//        let min=Infinity, minVar, minDomain; 
+//        let v;
+
+        let d; 
+        let domain;
+        let dSize;
+        let c;
+        let cSize;
 
         for await (let vID of unsolvedVariables.values()) {
             v = await branch.data.variables.get(vID);
 
-            const domain = await getVariable(branch, v.domain);
+            if (v.domain) {
+                const dDomain = await getVariable(branch, v.domain);
+            
+                const size = await domain.size;
+
+                if (!d || dSize > size) {
+                    domain = dDomain;
+                    dSize = size;
+                    d = v;
+                }
+
+                c === null;
+
+            }
+            else if (c !== null) {
+                const size = await v.constraints.size;
+
+                if (!c || cSize > size) {
+                    cSize = size;
+                    c = v;
+                }
+            }
+
+            console.log("CONSTRAINS VAR ==> ", v);
+            /*const domain = await getVariable(branch, v.domain);
             
             if (domain.size < min) {
                 min = domain.size;
                 minDomain = domain;
                 minVar = v;
-            }
+            }*/
 
         }
         
-        const minVarD = minDomain.elements;
-        const r = await Promise.all(minVarD.map(cID => unify(branch, options, minVar.id, cID)));
+        // const minVarD = minDomain.elements;
+        // const r = await Promise.all(minVarD.map(cID => unify(branch, options, minVar.id, cID)));
 
+        let r;
+        if (d) {
+            const elements = domain.elements;
+            r = await Promise.all(elements.map(cID => unify(branch, options, d.id, cID))); 
+        }
+        else {
+            console.log('UNSOLVED VARS ', c);
+            // throw 'UNSOLVED VARS IS NOT IMPLMENETED!!'
+        }
+        
         await branch.update({state: 'split'});
 
         return r;
@@ -254,9 +291,10 @@ async function createMaterializedSet (
         delete ctx.newVar;
         delete ctx.rDB;
 
-        const size = await ctx.unchecked.size;
+        const uSize = await ctx.unchecked.size;
+        const cSize = await ctx.unsolvedVariables.size;
 
-        const state = size === 0?'unsolved_variables':'maybe';
+        const state = uSize === 0?(cSize?'unsolved_variables':'maybe'):'yes';
 
         const branch = await rDB.tables.branches.insert({
             ...ctx,

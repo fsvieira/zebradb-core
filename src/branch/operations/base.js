@@ -422,13 +422,13 @@ async function copyPartialTermLocalVar (
         }
     );
 
-    if (v.constraints && v.domain ) {
+    if (v.constraints /*&& v.domain*/ ) {
         ctx.unsolvedVariables = await ctx.unsolvedVariables.add(vn);
     }
-    else if (v.constraints) {
+    /*else if (v.constraints) {
         console.log("TODO: CHECK IF THERE IS CONSTRAINTS LIKE IN ??");
         throw 'PROCESS CONSTRAINTS??';
-    }
+    }*/
 }
 
 async function copyPartialTerm (
