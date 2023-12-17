@@ -9,7 +9,7 @@ const {
     constants,
 } = require('./operations');
 
-const {checkVariableConstrains} = require('./operations/built-in/constraints');
+const {checkVariableConstraints} = require('./operations/built-in/constraints');
 
 async function toJS (branch, id) {
     id = id || await branch.data.root;
@@ -75,6 +75,7 @@ async function executeConstraints (branch, v) {
         parent: branch,
         root: await branch.data.root,
         level: (await branch.data.level + 1),
+        variables: await branch.data.variables,
         checked: await branch.data.checked,
         unchecked: await branch.data.unchecked,
         constraints: await branch.data.constraints,
@@ -84,7 +85,7 @@ async function executeConstraints (branch, v) {
         log: await branch.data.log
     }
 
-    await checkVariableConstrains(ctx, v);
+    await checkVariableConstraints(ctx, v);
 
     throw 'Create New Branch';
 }
@@ -129,7 +130,7 @@ async function expand (branch, options, selector, definitions) {
                 }
             }
 
-            console.log("CONSTRAINS VAR ==> ", v);
+            console.log("CONSTRAINTS VAR ==> ", v);
             /*const domain = await getVariable(branch, v.domain);
             
             if (domain.size < min) {

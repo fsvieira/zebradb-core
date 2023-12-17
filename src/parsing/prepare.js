@@ -52,7 +52,7 @@ function termSetExpression (ctx, s) {
     return cid;
 }
 
-function termSetConstrains (ctx, t) {
+function termSetConstraints (ctx, t) {
     const {
         type, 
         element, 
@@ -98,7 +98,7 @@ function termSetConstrains (ctx, t) {
     return cid;
 }
 
-function termConstrains(ctx, exp) {
+function termConstraints (ctx, exp) {
     const {type, a, op, b} = exp;
 
     const av = term(ctx, a);
@@ -246,12 +246,12 @@ function term (ctx, t) {
     if (t) {
         switch (t.type) {
             case SET: return termSet(ctx, t);
-            case SET_CS: return termSetConstrains(ctx, t);
+            case SET_CS: return termSetConstraints(ctx, t);
             case GLOBAL_VAR: return termGlobalVariable(ctx, t);
             case LOCAL_VAR: return termLocalVariable(ctx, t);
             case TUPLE: return termTuple(ctx, t);
             case CONSTANT: return termConstant(ctx, t);
-            case CONSTRAINT: return termConstrains(ctx, t);
+            case CONSTRAINT: return termConstraints(ctx, t);
             case SET_EXP: return termSetExpression(ctx, t);
             case INDEX: return termIndex(ctx, t);
             default:

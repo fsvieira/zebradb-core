@@ -16,9 +16,11 @@ const {
         TUPLE, // : "t",
         CONSTRAINT, // : "cs",
         SET, // : "s",
+        SET_CS, // : sc
         LOCAL_VAR, // : 'lv',
         GLOBAL_VAR, // : 'gv',
-        DEF_REF // d
+        DEF_REF, // d
+        MATERIALIZED_SET // ms
     },
     operation: {
         OR, // "or",
@@ -106,7 +108,7 @@ async function setVariableLocalVarConstant (ctx, v, c) {
     ctx.variables = await ctx.variables.set(v.id, {...v, defer: c.id});
 
     if (v.constraints) {
-        const r = await checkVariableConstrains(ctx, v);
+        const r = await checkVariableConstraints(ctx, v);
 
         if (r === false) {
             return r;
@@ -132,7 +134,7 @@ async function setVariableLocalVarTuple (ctx, v, t) {
     ctx.variables = await ctx.variables.set(v.id, {...v, defer: t.id});
 
     if (v.constraints) {
-        const r = await checkVariableConstrains(ctx, v);
+        const r = await checkVariableConstraints(ctx, v);
 
         if (r === false) {
             return r;
@@ -407,7 +409,7 @@ async function excludeFromDomain (ctx, v, d, cs) {
 
                 ctx.variables = await ctx.variables.set(id, s);
 
-                // 2. remove a constrains,
+                // 2. remove a constraints,
                 const constraints = await d.constraints.remove(cs.id);
 
                 // 3. save modifications,
@@ -436,7 +438,7 @@ async function excludeFromDomain (ctx, v, d, cs) {
     throw 'Exclude value from domain not done for type ' + domain.type;
 }
 
-async function checkVariableConstrainsNotUnify (ctx, cs) {
+async function checkVariableConstraintsNotUnify (ctx, cs) {
     const {a, op, b, id} = cs;
     const av = await getVariable(null, a, ctx);
     const bv = await getVariable(null, b, ctx);
@@ -544,7 +546,50 @@ async function checkOrConstrain (ctx, cs) {
     return state;
 }
 
-async function checkVariableConstrainsUnify (ctx, cs, env) {
+async function checkVariableConstraintsIn (ctx, cs, env) {
+    const {a, op, b, id, root} = cs;
+    const av = await getVariable(null, a, ctx);
+    const bv = await getVariable(null, b, ctx);
+
+    const sa = getValue(av);
+    const sb = getValue(bv);
+
+    console.log(a, b, id, root, sa, sb);
+
+    let state = C_UNKNOWN;
+
+    //1. check if element is already on set. 
+    console.log(av, bv, JSON.stringify(bv.definition, null, '  '));
+
+    if (bv.type === MATERIALIZED_SET) {
+        const {definition: {variables, root}} = bv;
+
+        const rootEl = variables[root];
+        if (rootEl.type === SET_CS) {
+            const elementDef = variables[rootEl.element];
+
+            console.log("COPY EL", elementDef);
+            throw 'checkVariableConstraintsIn : Copy Element!! // SHOULD INDEXES BE ON TUPLE OR SET ??';
+        }
+        else {
+            throw `checkVariableConstraintsIn : Check def Type ${rootEl.type} Not implemented`;
+        }
+    }
+    else {
+        throw `checkVariableConstraintsIn : Type ${bv.type} Not implemented`;
+    }
+
+    console.log("TODO: CHECK IF ELEMENT IS ALREADY ON SET.");
+    if (env.eval) {
+        const bElement = bv.definition
+        const elementDef = bv.definition[root]
+    }
+
+    throw 'checkVariableConstraintsIn: Not implemented!!';
+    return state;
+}
+
+async function checkVariableConstraintsUnify (ctx, cs, env) {
     const {a, op, b, id, root} = cs;
     const av = await getVariable(null, a, ctx);
     const bv = await getVariable(null, b, ctx);
@@ -648,7 +693,7 @@ async function debugConstraint (ctx, id, result, str='') {
     console.log(`DEBUG ${str}:`, s, " ==> " , values[result]);
 }
 
-async function checkVariableConstrains (ctx, v) {
+async function checkVariableConstraints (ctx, v) {
     // let constraints = v.constraints;
 
     const env = await constraintEnv(ctx, v);
@@ -676,17 +721,21 @@ async function checkVariableConstrains (ctx, v) {
         switch (cs.op) {
             // Set Operators,
             case IN:
+                console.log(cs);
+                r = await checkVariableConstraintsIn(ctx, cs, env);
+                break;
+
             case UNION:
-                throw 'checkVariableConstrains: In / Union';
+                throw 'checkVariableConstraints: Union';
                 break;
 
             // Identity Operators, 
             case UNIFY:
-                r = await checkVariableConstrainsUnify(ctx, cs, env);
+                r = await checkVariableConstraintsUnify(ctx, cs, env);
                 break;
 
             case NOT_UNIFY:
-                r = await checkVariableConstrainsNotUnify(ctx, cs, env);
+                r = await checkVariableConstraintsNotUnify(ctx, cs, env);
                 break;
 
             // Logical Operators,
@@ -717,7 +766,7 @@ async function checkVariableConstrains (ctx, v) {
             // Function,
             case FUNCTION:
             default:
-                throw cs.op + ' [checkVariableConstrains] NOT IMPLEMENTED!!'
+                throw cs.op + ' [checkVariableConstraints] NOT IMPLEMENTED!!'
         }
 
         // await debugConstraint(ctx, cs.id, r);
@@ -749,7 +798,7 @@ async function checkVariableConstrains (ctx, v) {
     }*/
 
     for (let cs of parentConstraints) {
-        const r = await checkVariableConstrains(ctx, cs);
+        const r = await checkVariableConstraints(ctx, cs);
 
         if (r === false) {
             return false;
@@ -761,7 +810,7 @@ async function checkVariableConstrains (ctx, v) {
 
 
 module.exports = {
-    checkVariableConstrains,
+    checkVariableConstraints,
     setVariable
 };
 

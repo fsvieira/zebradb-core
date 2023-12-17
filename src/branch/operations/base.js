@@ -279,7 +279,7 @@ async function save2db (
     }
 }
 
-async function copySetConstrains (
+async function copySetConstraints (
     ctx, p, preserveVarname, 
     getVarname, 
     v, vn,
@@ -386,6 +386,7 @@ async function copyPartialTermConstraint (
         
     }
 
+    console.log("SET CS VN", vn);
     ctx.variables = await ctx.variables.set(vn, {
         ...v,
         a, b, root,
@@ -555,7 +556,7 @@ async function copyTerm (ctx, p, definitionsDB, preserveVarname=false) {
 
     if (v.type === SET_CS) {
         const vn = getVarname(v);
-        await copySetConstrains(
+        await copySetConstraints(
             ctx, p, preserveVarname, 
             getVarname, 
             v, vn,
