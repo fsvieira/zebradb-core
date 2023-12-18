@@ -566,9 +566,15 @@ async function checkVariableConstraintsIn (ctx, cs, env) {
 
         const rootEl = variables[root];
         if (rootEl.type === SET_CS) {
-            const elementDef = variables[rootEl.element];
 
-            console.log("COPY EL", elementDef);
+            const id = await copyPartialTerm(
+                ctx, 
+                bv.definition, 
+                rootEl.element,
+                null, // definitionDB,
+                true
+            );
+
             throw 'checkVariableConstraintsIn : Copy Element!! // SHOULD INDEXES BE ON TUPLE OR SET ??';
         }
         else {

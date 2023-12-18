@@ -511,6 +511,12 @@ async function copyPartialTerm (
                         break;
                     }
 
+                    case SET_CS: {
+                        console.log(v);
+                        throw 'copyPartialTerm SET_CS NOT IMPLEMENTED';
+                        break;
+                    }
+
                     default:
                         throw 'copyPartialTerm type is not defined: ' + v.type;
                 }
