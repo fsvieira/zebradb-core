@@ -371,12 +371,25 @@ async function copyPartialTermGlobalVar (
             case SET_CS: {
                 value = {
                     type: MATERIALIZED_SET,
+                    setType: root.type, 
                     id: vn,
                     elements: await ctx.rDB.iSet(),
                     definition: def
                 };
                 break;
             }
+
+            case SET: {
+                value = {
+                    type: MATERIALIZED_SET,
+                    setType: root.type, 
+                    id: vn,
+                    elements: await ctx.rDB.iSet(),
+                    definition: def
+                };
+                break;
+            }
+
             default:
                 throw 'copyPartialTermGlobalVar not implemented type ' + root.type;
         }
@@ -426,6 +439,20 @@ async function copyPartialTermConstraint (
     // throw 'copyPartialTermConstraint Not implemented';
 }
 
+async function copyPartialTermTuple (
+    definitionDB, ctx, p, vn, getVarname, v, preserveVarname
+) {
+    console.log(p, vn, v);
+
+    const data = [];
+    for (let i=0; v.data.length; i++) {
+        data.push(await getVarname(p.variables[v.data[i]]));
+    }
+
+    console.log(data);
+
+    throw 'copyPartialTermTuple NOT IMPLEMENTED!';
+}
 async function copyPartialTermLocalVar (
     definitionDB, ctx, p, vn, getVarname, v, preserveVarname
 ) {
@@ -547,7 +574,15 @@ async function copyPartialTerm (
                     }
 
                     case TUPLE: {
-                        throw 'copyPartialTerm TUPLE IS NOT IMPLEMENTED!!'
+                        vn = mapVars[cid] = v.type + '::' + ctx.newVar();
+
+                        await copyPartialTermTuple(
+                            definitionDB, ctx, p, vn,
+                            getVarname, v, 
+                            preserveVarname
+                        );
+
+                        break;
                     }
 
                     default:

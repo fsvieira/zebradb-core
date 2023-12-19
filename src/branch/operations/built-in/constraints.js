@@ -88,7 +88,7 @@ async function intersectDomains(ctx, a, b) {
     
 }
 
-async function setVariableLocalVarConstant (ctx, v, c) {
+async function setVariableLocalVarConstant (definitionDB, ctx, v, c) {
     if (v.domain) {
         const d = await getVariable(null, v.domain, ctx);
         
@@ -108,7 +108,7 @@ async function setVariableLocalVarConstant (ctx, v, c) {
     ctx.variables = await ctx.variables.set(v.id, {...v, defer: c.id});
 
     if (v.constraints) {
-        const r = await checkVariableConstraints(ctx, v);
+        const r = await checkVariableConstraints(definitionDB, ctx, v);
 
         if (r === false) {
             return r;
@@ -184,15 +184,15 @@ async function setVariableLocalVarLocalVar (ctx, v, p) {
 }
 
 
-const setVariable = async (ctx, v, p) => {
+const setVariable = async (definitionDB, ctx, v, p) => {
 
     if (v.id !== p.id) {
         switch (v.type) {
             case LOCAL_VAR:
                 switch (p.type) {
-                    case LOCAL_VAR: return await setVariableLocalVarLocalVar(ctx, v, p);
-                    case CONSTANT: return await setVariableLocalVarConstant(ctx, v, p);
-                    case TUPLE: return await setVariableLocalVarTuple(ctx, v, p);
+                    case LOCAL_VAR: return await setVariableLocalVarLocalVar(definitionDB, ctx, v, p);
+                    case CONSTANT: return await setVariableLocalVarConstant(definitionDB, ctx, v, p);
+                    case TUPLE: return await setVariableLocalVarTuple(definitionDB, ctx, v, p);
                     default: 
                         throw `Set Variable [LOCAL_VAR] x ${p.type} not implemented`;
                 }
@@ -546,7 +546,7 @@ async function checkOrConstrain (ctx, cs) {
     return state;
 }
 
-async function checkVariableConstraintsIn (ctx, cs, env) {
+async function checkVariableConstraintsIn (definitionDB, ctx, cs, env) {
     const {a, op, b, id, root} = cs;
     const av = await getVariable(null, a, ctx);
     const bv = await getVariable(null, b, ctx);
@@ -571,7 +571,7 @@ async function checkVariableConstraintsIn (ctx, cs, env) {
                 ctx, 
                 bv.definition, 
                 rootEl.element,
-                null, // definitionDB,
+                definitionDB,
                 true
             );
 
@@ -699,7 +699,7 @@ async function debugConstraint (ctx, id, result, str='') {
     console.log(`DEBUG ${str}:`, s, " ==> " , values[result]);
 }
 
-async function checkVariableConstraints (ctx, v) {
+async function checkVariableConstraints (definitionDB, ctx, v) {
     // let constraints = v.constraints;
 
     const env = await constraintEnv(ctx, v);
@@ -728,7 +728,7 @@ async function checkVariableConstraints (ctx, v) {
             // Set Operators,
             case IN:
                 console.log(cs);
-                r = await checkVariableConstraintsIn(ctx, cs, env);
+                r = await checkVariableConstraintsIn(definitionDB, ctx, cs, env);
                 break;
 
             case UNION:

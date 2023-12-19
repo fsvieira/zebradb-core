@@ -121,7 +121,13 @@ class QueryEngine {
             const level = await branch.data.level;
 
             if (!depth || (depth > level)) {
-                await branchOps.expand(branch, this.options, selector, definitions);
+                await branchOps.expand(
+                    this.db,
+                    branch, 
+                    this.options, 
+                    selector, 
+                    definitions
+                );
             }
             else {
                 await branch.update({state: 'stop'});

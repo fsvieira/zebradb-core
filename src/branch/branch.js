@@ -71,7 +71,7 @@ async function unifyDomain (
     }
 }
 
-async function executeConstraints (branch, v) {
+async function executeConstraints (definitionDB, branch, v) {
 
     const ctx = {
         parent: branch,
@@ -84,19 +84,26 @@ async function executeConstraints (branch, v) {
         unsolvedVariables: await branch.data.unsolvedVariables,
         variableCounter: await branch.data.variableCounter,
         children: await branch.data.children,
-        log: await branch.data.log
-    }
+        log: await branch.data.log,
+        rDB: branch.table.db
+    };
 
     const {varCounter, newVar} = varGenerator(ctx.variableCounter + 1); 
 
     ctx.newVar = newVar;
 
-    await checkVariableConstraints(ctx, v);
+    await checkVariableConstraints(definitionDB, ctx, v);
 
     throw 'Create New Branch';
 }
 
-async function expand (branch, options, selector, definitions) {
+async function expand (
+    definitionDB, 
+    branch, 
+    options, 
+    selector, 
+    definitions
+) {
     const state = await branch.data.state;
 
     if (state === 'unsolved_variables') {
@@ -156,7 +163,7 @@ async function expand (branch, options, selector, definitions) {
             r = await Promise.all(elements.map(cID => unify(branch, options, d.id, cID))); 
         }
         else {
-            await executeConstraints(branch, c);
+            await executeConstraints(definitionDB, branch, c);
             console.log('UNSOLVED VARS ', c);
             throw 'UNSOLVED VARS IS NOT IMPLMENETED!!'
         }
