@@ -328,6 +328,35 @@ async function copySetConstraints (
     }
 }
 
+async function createMaterializedSetCs (
+    ctx,
+    definitionsDB,
+    definitionElement, 
+    v,
+    variableID=ctx.newVar()
+) {
+
+    const {element: elementID} = v;
+
+    const element = await copyPartialTerm(
+        ctx, 
+        definitionElement, 
+        elementID,
+        definitionsDB, 
+        true
+    );
+    
+    const valueResults = {
+        type: MATERIALIZED_SET,
+        id: variableID,
+        elements: await ctx.rDB.iSet().add(element)
+    };
+
+    ctx.variables = await ctx.variables.set(variableID, valueResults);
+
+    return variableID;
+}
+
 
 async function copyPartialTermGlobalVar (
     definitionDB, ctx, p, vn, getVarname, v, preserveVarname
@@ -386,7 +415,6 @@ async function copyPartialTermConstraint (
         
     }
 
-    console.log("SET CS VN", vn);
     ctx.variables = await ctx.variables.set(vn, {
         ...v,
         a, b, root,
@@ -512,9 +540,14 @@ async function copyPartialTerm (
                     }
 
                     case SET_CS: {
-                        console.log(v);
-                        throw 'copyPartialTerm SET_CS NOT IMPLEMENTED';
+                        vn = mapVars[cid] = v.type + '::' + ctx.newVar();
+
+                        await createMaterializedSetCs(ctx, definitionDB, p, v, vn);
                         break;
+                    }
+
+                    case TUPLE: {
+                        throw 'copyPartialTerm TUPLE IS NOT IMPLEMENTED!!'
                     }
 
                     default:
@@ -767,6 +800,7 @@ module.exports = {
     // copyTerms,
     toString,
     getConstantVarname,
-    copyPartialTerm
+    copyPartialTerm,
+    createMaterializedSetCs
     // prepareVariables
 };

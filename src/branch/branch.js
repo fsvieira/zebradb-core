@@ -5,6 +5,7 @@ const {
     toString,
     copyTerm,
     copyPartialTerm,
+    createMaterializedSetCs,
     // prepareVariables,
     constants,
 } = require('./operations');
@@ -71,6 +72,7 @@ async function unifyDomain (
 }
 
 async function executeConstraints (branch, v) {
+
     const ctx = {
         parent: branch,
         root: await branch.data.root,
@@ -84,6 +86,10 @@ async function executeConstraints (branch, v) {
         children: await branch.data.children,
         log: await branch.data.log
     }
+
+    const {varCounter, newVar} = varGenerator(ctx.variableCounter + 1); 
+
+    ctx.newVar = newVar;
 
     await checkVariableConstraints(ctx, v);
 
@@ -195,6 +201,7 @@ async function expand (branch, options, selector, definitions) {
     }
 }
 
+/*
 async function createMaterializedSetCs (
     ctx,
     definitionsDB,
@@ -222,7 +229,7 @@ async function createMaterializedSetCs (
     ctx.variables = await ctx.variables.set(variableID, valueResults);
 
     return variableID;
-}
+}*/
 
 async function createMaterializedSet (
     rDB, 
