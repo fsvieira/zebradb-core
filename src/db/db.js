@@ -766,8 +766,6 @@ class DB {
         // const definitionIndexes = this.rDB.tables.definitionIndexes;
         // let results = [];
 
-        console.log("SEARCH ", JSON.stringify(def, null, '  '));
-
         switch(def.type) {
             case GLOBAL_VAR: {
                 return await this.getDefByVariable(def);

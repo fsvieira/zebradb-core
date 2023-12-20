@@ -143,7 +143,6 @@ async function expand (
                 }
             }
 
-            console.log("CONSTRAINTS VAR ==> ", v);
             /*const domain = await getVariable(branch, v.domain);
             
             if (domain.size < min) {

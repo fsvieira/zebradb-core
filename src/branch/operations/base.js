@@ -442,17 +442,21 @@ async function copyPartialTermConstraint (
 async function copyPartialTermTuple (
     definitionDB, ctx, p, vn, getVarname, v, preserveVarname
 ) {
-    console.log(p, vn, v);
-
     const data = [];
-    for (let i=0; v.data.length; i++) {
+    for (let i=0; i<v.data.length; i++) {
         data.push(await getVarname(p.variables[v.data[i]]));
     }
 
-    console.log(data);
-
-    throw 'copyPartialTermTuple NOT IMPLEMENTED!';
+    ctx.variables = await ctx.variables.set(
+        vn, {
+            ...v,
+            data,
+            pv: preserveVarname,
+            id: vn
+        }
+    );
 }
+
 async function copyPartialTermLocalVar (
     definitionDB, ctx, p, vn, getVarname, v, preserveVarname
 ) {
@@ -535,9 +539,6 @@ async function copyPartialTerm (
                             getVarname, v, 
                             preserveVarname
                         );
-
-                        const s = await ctx.variables.get(vn);
-                        console.log("===>> LOCAL VARIABLE ", s);
 
                         break;
                     }
@@ -684,7 +685,6 @@ async function getVariable (branch, id, ctx) {
     const variables = ctx ? ctx.variables : await branch.data.variables;
 
     do {
-        console.log("--> getVariable", id);
         v = await variables.get(id);
         
         if (id && id === v.defer) {

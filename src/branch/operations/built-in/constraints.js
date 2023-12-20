@@ -554,13 +554,9 @@ async function checkVariableConstraintsIn (definitionDB, ctx, cs, env) {
     const sa = getValue(av);
     const sb = getValue(bv);
 
-    console.log(a, b, id, root, sa, sb);
-
     let state = C_UNKNOWN;
 
     //1. check if element is already on set. 
-    console.log(av, bv, JSON.stringify(bv.definition, null, '  '));
-
     if (bv.type === MATERIALIZED_SET) {
         const {definition: {variables, root}} = bv;
 
