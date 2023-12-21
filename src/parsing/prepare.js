@@ -78,9 +78,19 @@ function termSetConstraints (ctx, t) {
 
     // }
 
+
+    let varIndexes;
+
+    if (indexes) {
+        varIndexes = indexes.map(v => ({
+            ...v,
+            setID: cid
+        }));
+    }
+
     const v = term(ctx, {
         ...element,
-        indexes,
+        indexes: varIndexes,
         expression
     });
 
@@ -89,6 +99,7 @@ function termSetConstraints (ctx, t) {
         type,
         element: v,
         variable: variable ? term(ctx, variable) : cid,
+        indexes: varIndexes,
         size,
         cid
     };
@@ -172,6 +183,12 @@ function termLocalVariable (ctx, lv) {
     // if variable is directly used on any constraint. 
     term(ctx, lv.expression);
 
+
+    if (lv.indexes) {
+        console.log("LOCAL VAR INDEXES ", lv.indexes);    
+        throw 'LOCAL VAR INDEXES';
+    }
+
     if (!v) {
         ctx.variables[cid] = {
             ...lv, 
@@ -235,7 +252,7 @@ function termIndex(ctx, idx) {
 
     ctx.variables[cid] = {
         ...idx, 
-        variable: term(idx.variable),
+        variable: term(ctx, idx.variable),
         cid 
     };
 
