@@ -127,15 +127,15 @@ indexes = _ index:index indexes:( _ ',' _ idx:index {return idx})* {
 	return [index].concat(indexes || [])
 }
 
-set_def = "{" _ element:element _ indexes:indexes? _ "|" _ expression:(expression:expression _ {
+set_def = "{" _ element:element _ "|" _ expression:(expression:expression _ {
 return expression;
-})? "}"
+})? "}" _ indexes:indexes? _
      {
        return {
          type: SET_CS,
          element,
-         expression,
          indexes,
+         expression,
          size: -1
        }
      }

@@ -82,18 +82,26 @@ function termSetConstraints (ctx, t) {
     let varIndexes;
 
     if (indexes) {
-        varIndexes = indexes.map(v => ({
-            ...v,
-            setID: cid
-        }));
+        varIndexes = indexes.map(v => {
+            const idx = {
+                ...v,
+                setID: cid
+            };
+
+            // create constraint:
+            return term(ctx, idx);
+        });
+
+
+        // indexes.forEach(v => term(ctx, {...v, setID: cid}));
+
+        console.log("INDEXES!!");
     }
 
     const v = term(ctx, {
         ...element,
-        indexes: varIndexes,
         expression
     });
-
 
     const nt = {
         type,
@@ -248,13 +256,24 @@ function termConstant (ctx, c) {
 
 function termIndex(ctx, idx) {
 
-    cid = ctx.newVar(idx);
+    const {type, variable, op, setID} = idx;
+    const av = term(ctx, variable);
 
-    ctx.variables[cid] = {
-        ...idx, 
-        variable: term(ctx, idx.variable),
-        cid 
-    };
+    let vars = [av, setID].sort();
+
+    const cid = `__${type}:${SHA256(vars.join(op)).toString('base64')}`;
+
+    if (!ctx.constraints.includes(cid)) {
+        ctx.constraints.push(cid);
+
+        ctx.variables[cid] = {
+            type,
+            variable: av,
+            op,
+            setID,
+            cid
+        };
+    }
 
     return cid;
 }
@@ -299,14 +318,16 @@ function linkDownLogicalRoots (ctx, vID, root) {
 function linkLogicalRoots(ctx, id) {
     const cs = ctx.variables[id];
 
-    const {a, op, b, constraints} = cs;
+    const {type, a, op, b, constraints} = cs;
 
-    if (constraints && constraints.length) {
-        return;
-    }
-    else {
-        linkDownLogicalRoots(ctx, a, {csID: cs.cid, side: 'a'});
-        linkDownLogicalRoots(ctx, b, {csID: cs.cid, side: 'b'});
+    if (type === CONSTRAINT) {
+        if (constraints && constraints.length) {
+            return;
+        }
+        else {
+            linkDownLogicalRoots(ctx, a, {csID: cs.cid, side: 'a'});
+            linkDownLogicalRoots(ctx, b, {csID: cs.cid, side: 'b'});
+        }
     }
 }
 
@@ -340,17 +361,30 @@ function prepare (tuple) {
     if (ctx.constraints.length) {
         for (let i=0; i<ctx.constraints.length; i++) {
             const cid = ctx.constraints[i];
-            const {a, b} = ctx.variables[cid];
+            const {type} = ctx.variables[cid];
 
-            const av = ctx.variables[a];
-            const bv = ctx.variables[b];
+            if (type === CONSTRAINT) {
+                const {a, b} = ctx.variables[cid];
 
-            if ([GLOBAL_VAR, LOCAL_VAR, CONSTRAINT].includes(av.type)) {
-                av.constraints = (av.constraints || []).concat(cid);
+                const av = ctx.variables[a];
+                const bv = ctx.variables[b];
+
+                if ([GLOBAL_VAR, LOCAL_VAR, CONSTRAINT].includes(av.type)) {
+                    av.constraints = (av.constraints || []).concat(cid);
+                }
+
+                if ([GLOBAL_VAR, LOCAL_VAR, CONSTRAINT].includes(bv.type)) {
+                    bv.constraints = (bv.constraints || []).concat(cid);
+                }
             }
+            else if (type === INDEX) {
+                const {variable} = ctx.variables[cid];
 
-            if ([GLOBAL_VAR, LOCAL_VAR, CONSTRAINT].includes(bv.type)) {
-                bv.constraints = (bv.constraints || []).concat(cid);
+                const av = ctx.variables[variable];
+
+                if ([GLOBAL_VAR, LOCAL_VAR, CONSTRAINT].includes(av.type)) {
+                    av.constraints = (av.constraints || []).concat(cid);
+                }
             }
         }
 
