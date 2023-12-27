@@ -492,6 +492,20 @@ async function copyPartialTermLocalVar (
     }*/
 }
 
+async function copyPartialIndex (
+    definitionDB, ctx, p, vn, getVarname, v, preserveVarname
+) {
+
+    const variable = await getVarname(p.variables[v.variable]);
+    const setID = await getVarname(p.variables[v.setID]);
+
+    ctx.variables = await ctx.variables.set(vn, {
+        ...v,
+        variable,
+        setID
+    });
+}
+
 async function copyPartialTerm (
     ctx, p, vID, definitionDB, preserveVarname=false
 ) {
@@ -588,10 +602,15 @@ async function copyPartialTerm (
                     }
 
                     case INDEX: {
+                        vn = mapVars[cid] = v.type + '::' + ctx.newVar();
 
-                        // ITS COPY LOCAL VARIABLE 
-                        console.log(p, vn, v);
-                        throw 'COPY WHAT INDEX ???'
+                        await copyPartialIndex(
+                            definitionDB, ctx, p, vn,
+                            getVarname, v, 
+                            preserveVarname
+                        );
+
+                        break;
                     }
 
 
