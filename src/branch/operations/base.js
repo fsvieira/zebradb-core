@@ -9,7 +9,8 @@ const {
         LOCAL_VAR, // : 'lv',
         GLOBAL_VAR, // : 'gv',
         DEF_REF, // d,
-        MATERIALIZED_SET // 'ms'
+        MATERIALIZED_SET, // 'ms',
+        INDEX // idx
     },
     operation: {
         OR,
@@ -585,6 +586,14 @@ async function copyPartialTerm (
 
                         break;
                     }
+
+                    case INDEX: {
+
+                        // ITS COPY LOCAL VARIABLE 
+                        console.log(p, vn, v);
+                        throw 'COPY WHAT INDEX ???'
+                    }
+
 
                     default:
                         throw 'copyPartialTerm type is not defined: ' + v.type;
