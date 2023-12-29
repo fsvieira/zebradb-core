@@ -329,6 +329,20 @@ async function copySetConstraints (
     }
 }
 
+async function copySetCs (
+    definitionDB, ctx, p, vn, getVarname, v, preserveVarname
+) {
+    const element = await getVarname(p.variables[v.element]);
+
+    const valueResults = {
+        type: MATERIALIZED_SET,
+        id: vn,
+        elements: await ctx.rDB.iSet().add(element)
+    };
+
+    ctx.variables = await ctx.variables.set(vn, valueResults);
+}
+
 async function createMaterializedSetCs (
     ctx,
     definitionsDB,
@@ -354,6 +368,8 @@ async function createMaterializedSetCs (
     };
 
     ctx.variables = await ctx.variables.set(variableID, valueResults);
+
+    console.log("SHOULD createMaterializedSet be replace with copy term??? copySetCs");
 
     return variableID;
 }
@@ -585,7 +601,12 @@ async function copyPartialTerm (
                     case SET_CS: {
                         vn = mapVars[cid] = v.type + '::' + ctx.newVar();
 
-                        await createMaterializedSetCs(ctx, definitionDB, p, v, vn);
+                        // await createMaterializedSetCs(ctx, definitionDB, p, v, vn);
+                        await copySetCs(
+                            definitionDB, ctx, p, vn,
+                            getVarname, v, 
+                            preserveVarname
+                        )
                         break;
                     }
 

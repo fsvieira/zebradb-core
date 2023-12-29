@@ -571,7 +571,7 @@ async function checkVariableConstraintsIn (definitionDB, ctx, cs, env) {
                 true
             );
 
-            throw 'checkVariableConstraintsIn : Copy Element!! // SHOULD INDEXES BE ON TUPLE OR SET ??';
+            // throw 'checkVariableConstraintsIn : Copy Element!! // SHOULD INDEXES BE ON TUPLE OR SET ??';
         }
         else {
             throw `checkVariableConstraintsIn : Check def Type ${rootEl.type} Not implemented`;
@@ -582,12 +582,22 @@ async function checkVariableConstraintsIn (definitionDB, ctx, cs, env) {
     }
 
     console.log("TODO: CHECK IF ELEMENT IS ALREADY ON SET.");
-    if (env.eval) {
-        const bElement = bv.definition
-        const elementDef = bv.definition[root]
+
+    if (!(await bv.elements.has(id))) {
+        if (env.eval) {
+            const elements = await bv.elements.add(id);
+    
+            ctx.variables = await ctx.variables.set(bv.id, {
+                ...bv,
+                elements
+            });
+        }     
+    }
+    else {
+        throw 'checkVariableConstraintsIn : element is already added!';
     }
 
-    throw 'checkVariableConstraintsIn: Not implemented!!';
+    // throw 'checkVariableConstraintsIn: Not implemented!!';
     return state;
 }
 
