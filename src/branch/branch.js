@@ -177,8 +177,8 @@ async function expand (
         }
         else {
             await executeConstraints(definitionDB, branch, c);
-            console.log('UNSOLVED VARS ', c);
-            throw 'UNSOLVED VARS IS NOT IMPLMENETED!!'
+            // console.log('UNSOLVED VARS ', c);
+            // throw 'UNSOLVED VARS IS NOT IMPLMENETED!!'
         }
         
         await branch.update({state: 'split'});
