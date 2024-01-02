@@ -1,4 +1,4 @@
-const {unify, constants} = require("./unify");
+const {unify, constants, createBranch} = require("./unify");
 
 const {
     varGenerator, 
@@ -12,6 +12,7 @@ const {
 
 module.exports = {
     unify,
+    createBranch,
     varGenerator,
     getVariable,
     toString,

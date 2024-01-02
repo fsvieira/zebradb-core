@@ -271,4 +271,4 @@ async function unify (branch, options, tuple, definitionID, definition) {
     return branch;
 }
 
-module.exports = {unify, constants};
+module.exports = {unify, constants, createBranch};

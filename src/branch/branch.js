@@ -8,6 +8,7 @@ const {
     createMaterializedSetCs,
     // prepareVariables,
     constants,
+    createBranch,
 } = require('./operations');
 
 const {checkVariableConstraints} = require('./operations/built-in/constraints');
@@ -92,9 +93,22 @@ async function executeConstraints (definitionDB, branch, v) {
 
     ctx.newVar = newVar;
 
-    await checkVariableConstraints(definitionDB, ctx, v);
+    const fail = await checkVariableConstraints(definitionDB, ctx, v);
 
-    throw 'Create New Branch';
+    await createBranch(
+        fail,
+        branch,
+        varCounter,
+        ctx.level,
+        ctx.checked,
+        ctx.unchecked,
+        ctx.variables,
+        ctx.constraints,
+        ctx.unsolvedVariables,
+        ctx.log        
+    );
+
+    // throw 'Create New Branch';
 }
 
 async function expand (
