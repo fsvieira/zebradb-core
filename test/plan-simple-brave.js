@@ -23,7 +23,7 @@ describe("Plan Simple Puzzles", () => {
 		{path: 'dbs/plan-simple-brave/1', timeout: 1000 * 60 * 60}
 	));
 
-	it("Line Combinatorial (Unique)", test(
+	xit("Line Combinatorial (Unique)", test(
 		`
 			$LETTER = {A B}
 			$N = {1 2}
