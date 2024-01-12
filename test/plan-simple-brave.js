@@ -20,7 +20,11 @@ describe("Plan Simple Puzzles", () => {
 				]
 			}
 		], 
-		{path: 'dbs/plan-simple-brave/1', timeout: 1000 * 60 * 60}
+		{
+			path: 'dbs/plan-simple-brave/1', 
+			timeout: 1000 * 60 * 60,
+			log: true
+		}
 	));
 
 	xit("Line Combinatorial (Unique)", test(

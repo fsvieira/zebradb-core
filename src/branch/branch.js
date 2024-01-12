@@ -9,6 +9,7 @@ const {
     // prepareVariables,
     constants,
     createBranch,
+    logger
 } = require('./operations');
 
 const {checkVariableConstraints} = require('./operations/built-in/constraints');
@@ -74,6 +75,8 @@ async function unifyDomain (
 
 async function executeConstraints (definitionDB, branch, v) {
 
+    console.log("executeConstraints");
+
     const ctx = {
         parent: branch,
         root: await branch.data.root,
@@ -95,6 +98,7 @@ async function executeConstraints (definitionDB, branch, v) {
 
     const fail = await checkVariableConstraints(definitionDB, ctx, v);
 
+    console.log("executeConstraints FAIL", fail);
     await createBranch(
         fail,
         branch,
@@ -120,6 +124,7 @@ async function expand (
 ) {
     const state = await branch.data.state;
 
+    console.log("STATE", state);
     if (state === 'unsolved_variables') {
         const unsolvedVariables = await branch.data.unsolvedVariables;
 //        let min=Infinity, minVar, minDomain; 
@@ -252,6 +257,7 @@ async function createMaterializedSetCs (
 }*/
 
 async function createMaterializedSet (
+    options,
     rDB, 
     id, 
     parentBranch, 
@@ -284,11 +290,14 @@ async function createMaterializedSet (
         };
 
         const variables = await parentVariables.set(id, emptyResults);
-        
+     
+        const log = await logger(options, {log: ctx.log}, "Create Empty Set Results");
+
         await rDB.tables.branches.insert({
             ...ctx,
             state: 'yes',
             variables,
+            log,
             branchID: `${parentBranch.id}-empty`
         }, null);
     }
@@ -346,10 +355,14 @@ async function createMaterializedSet (
 
         const state = uSize === 0?(cSize?'unsolved_variables':'maybe'):'yes';
 
+        const message = `state=${state}, root=${await toString(null, ctx.root, ctx, true)}`; 
+        const log = await logger(options, {log: ctx.log}, message);
+
         const branch = await rDB.tables.branches.insert({
             ...ctx,
             variableCounter: varCounter(),
             state,
+            log,
             branchID: `${parentBranch.id}-element`
         }, null);
 
@@ -509,6 +522,7 @@ module.exports = {
     copyPartialTerm,
     // prepareVariables,
     getVariable,
-    constants
+    constants,
+    logger
 }
 

@@ -21,6 +21,15 @@ const {
 
 const { v4: uuidv4 } = require('uuid');
 
+
+async function logger(options, ctx, message) {
+    if (options.log) {
+        ctx.log = await ctx.log.push(message);
+    }
+
+    return ctx.log;
+}
+
 async function array2iset (ctx, array) {
     let iset = ctx.rDB.iSet();
     for (let i=0; i<array.length; i++) {
@@ -885,6 +894,7 @@ module.exports = {
     toString,
     getConstantVarname,
     copyPartialTerm,
-    createMaterializedSetCs
+    createMaterializedSetCs,
+    logger
     // prepareVariables
 };

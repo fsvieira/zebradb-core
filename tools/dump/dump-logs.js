@@ -16,10 +16,12 @@ async function dumpLogs (db, dest, state) {
     for await (let branch of branches.findByIndex({state})) {
         const logs = await branch.data.log;
         await logs.size;
+
         console.log("TODO: toArray Must Load Array!!");
+        console.log(`\tDump branch : ${branch.id} , log size=${await logs.size}`);
+
         const messages = await logs.toArray();
 
-        console.log(`\tDump branch : ${branch.id} , log size=${await logs.size}`);
         console.log(messages.join("\n"));
 
     }
