@@ -73,7 +73,7 @@ async function unifyDomain (
     }
 }
 
-async function executeConstraints (definitionDB, branch, v) {
+async function executeConstraints (options, definitionDB, branch, v) {
 
     console.log("executeConstraints");
 
@@ -100,6 +100,7 @@ async function executeConstraints (definitionDB, branch, v) {
 
     console.log("executeConstraints FAIL", fail);
     await createBranch(
+        options,
         fail,
         branch,
         varCounter,
@@ -181,7 +182,7 @@ async function expand (
             r = await Promise.all(elements.map(cID => unify(branch, options, d.id, cID))); 
         }
         else {
-            await executeConstraints(definitionDB, branch, c);
+            await executeConstraints(options, definitionDB, branch, c);
             // console.log('UNSOLVED VARS ', c);
             // throw 'UNSOLVED VARS IS NOT IMPLMENETED!!'
         }
@@ -441,7 +442,7 @@ async function mergeElement (ctx, branchA, branchB, id) {
 
 }
 
-async function merge (rDB, branchA, branchB) {
+async function merge (options, rDB, branchA, branchB) {
     {
         const variablesA = await branchA.data.variables;
         const variablesB = await branchB.data.variables;
@@ -501,6 +502,9 @@ async function merge (rDB, branchA, branchB) {
     }
 
    // 3. create new branch,   
+   const message = `state=${ctx.state}, root=${await toString(null, ctx.root, ctx, true)}`; 
+   await logger(options, ctx, message);
+
     const mergedBranch = await rDB.tables.branches.insert(ctx, null);
        
    // 2. mark both branches as solved, for now split.

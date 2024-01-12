@@ -6,7 +6,8 @@ const {
     copyPartialTerm,
     toString,
     getVariable,
-    getConstantVarname
+    getConstantVarname,
+    logger
 } = require("./base");
 
 const constants = require("./constants");
@@ -172,6 +173,7 @@ const doUnify = async (ctx, p, q) => {
 }
 
 async function createBranch (
+    options,
     fail,
     branch,
     varCounter,
@@ -200,9 +202,10 @@ async function createBranch (
         }
     }
 
-    const newBranch = await rDB.tables.branches.insert({
+    const root = await branch.data.root;
+    const ctx = {
         parent: branch,
-        root: await branch.data.root,
+        root,
         variableCounter: varCounter(),
         level,
         checked,
@@ -213,8 +216,12 @@ async function createBranch (
         children: [],
         state,
         log
-    }, null);
+    };
 
+    const message = `state=${state}, root=${await toString(null, root, ctx, true)}`; 
+    await logger(options, ctx, message);
+
+    const newBranch = await rDB.tables.branches.insert(ctx, null);
     const children = (await branch.data.children).concat([newBranch]);
     branch.update({children});
 

@@ -22,7 +22,7 @@ async function dumpLogs (db, dest, state) {
 
         const messages = await logs.toArray();
 
-        console.log(messages.join("\n"));
+        console.log(messages.join("\n\n"));
 
     }
 

@@ -24,7 +24,8 @@ const { v4: uuidv4 } = require('uuid');
 
 async function logger(options, ctx, message) {
     if (options.log) {
-        ctx.log = await ctx.log.push(message);
+        const stack = new Error().stack;
+        ctx.log = await ctx.log.push(message + "\nSTACK=" + stack);
     }
 
     return ctx.log;
