@@ -96,8 +96,10 @@ async function executeConstraints (options, definitionDB, branch, v) {
 
     ctx.newVar = newVar;
 
-    const fail = await checkVariableConstraints(definitionDB, ctx, v);
+    const fail = await checkVariableConstraints(options, definitionDB, ctx, v);
 
+    throw 'SHOULD CONSTRAINTS RETURN TRUE OR FALSE ON FAIL CHECK THE OTHERS'; 
+    
     console.log("executeConstraints FAIL", fail);
     await createBranch(
         options,

@@ -7,7 +7,8 @@ const {
     copyPartialTerm,
     toString,
     getVariable,
-    getConstantVarname
+    getConstantVarname,
+    logger
 } = require("../base");
 
 const {
@@ -705,7 +706,7 @@ async function debugConstraint (ctx, id, result, str='') {
     console.log(`DEBUG ${str}:`, s, " ==> " , values[result]);
 }
 
-async function checkVariableConstraints (definitionDB, ctx, v) {
+async function checkVariableConstraints (options, definitionDB, ctx, v) {
     // let constraints = v.constraints;
 
     const env = await constraintEnv(ctx, v);
@@ -788,6 +789,8 @@ async function checkVariableConstraints (definitionDB, ctx, v) {
             // constraints = await constraints.remove(vcID);
 
             if (r === C_FALSE && env.stop) {
+                await logger(options, ctx, `C_FALSE && STOP ${JSON.stringify(cs)}`);
+
                 return false;
             }
             else if (r === C_FALSE) {
@@ -799,6 +802,7 @@ async function checkVariableConstraints (definitionDB, ctx, v) {
             }
         }
 
+        await logger(options, ctx, `constraints are OK - ${JSON.stringify(cs)}`);
     }
 
     /*
@@ -810,9 +814,11 @@ async function checkVariableConstraints (definitionDB, ctx, v) {
     }*/
 
     for (let cs of parentConstraints) {
-        const r = await checkVariableConstraints(ctx, cs);
+        const r = await checkVariableConstraints(options, definitionDB, ctx, cs);
 
         if (r === false) {
+            await logger(options, ctx, `Parent Constraints - Fail - ${JSON.stringify(cs)}`);
+
             return false;
         }
     }
