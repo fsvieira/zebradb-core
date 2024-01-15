@@ -818,7 +818,6 @@ async function checkVariableConstraints (options, definitionDB, ctx, v) {
 
         if (r === false) {
             await logger(options, ctx, `Parent Constraints - Fail - ${JSON.stringify(cs)}`);
-
             return false;
         }
     }
