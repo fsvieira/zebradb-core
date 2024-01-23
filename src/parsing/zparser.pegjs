@@ -117,10 +117,16 @@ elements = (element:element _ {return element})*
 
 index_ops = 'is' wsp 'unique' {return 'unique'}
 
-index = _ variable:variable wsp op:index_ops {return {
+index_vars = 
+	variable {return [variable]}
+    / '[' _
+    	 variables:(variable:variable (_ ',')? _ {return variable})+  
+     ']' {return variables}
+     
+index = _ variables:index_vars wsp op:index_ops {return {
 	type: INDEX,
     op,
-    variable
+    variables
 }}
 
 indexes = _ index:index indexes:( _ ',' _ idx:index {return idx})* {

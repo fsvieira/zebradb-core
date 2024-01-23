@@ -42,10 +42,13 @@ async function main () {
         }
         else {
             const db = await getDB(dbPath);
-            await mkdirp.sync(dest);
+            console.log("TODO: mkdir " + dest);
+            // await mkdirp.sync(dest);
 
             await dumpLogs(db, dest, 'yes');
             await dumpLogs(db, dest, 'no');
+            await dumpLogs(db, dest, 'maybe');
+            await dumpLogs(db, dest, 'unsolved_variables');
         }
     }
     catch (e) {

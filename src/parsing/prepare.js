@@ -256,10 +256,10 @@ function termConstant (ctx, c) {
 
 function termIndex(ctx, idx) {
 
-    const {type, variable, op, setID} = idx;
-    const av = term(ctx, variable);
+    const {type, variables, op, setID} = idx;
+    const avs = variables.map(variable => term(ctx, variable));
 
-    let vars = [av, setID].sort();
+    let vars = [...avs, setID].sort();
 
     const cid = `__${type}:${SHA256(vars.join(op)).toString('base64')}`;
 
@@ -268,7 +268,7 @@ function termIndex(ctx, idx) {
 
         ctx.variables[cid] = {
             type,
-            variable: av,
+            variables: avs,
             op,
             setID,
             cid
@@ -378,12 +378,15 @@ function prepare (tuple) {
                 }
             }
             else if (type === INDEX) {
-                const {variable} = ctx.variables[cid];
+                const {variables} = ctx.variables[cid];
 
-                const av = ctx.variables[variable];
+                for (let i=0; i<variables.length; i++) {
+                    const variable = variables[i];
+                    const av = ctx.variables[variable];
 
-                if ([GLOBAL_VAR, LOCAL_VAR, CONSTRAINT].includes(av.type)) {
-                    av.constraints = (av.constraints || []).concat(cid);
+                    if ([GLOBAL_VAR, LOCAL_VAR, CONSTRAINT].includes(av.type)) {
+                        av.constraints = (av.constraints || []).concat(cid);
+                    }
                 }
             }
         }

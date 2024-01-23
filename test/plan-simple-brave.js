@@ -3,7 +3,47 @@
 const test = require("../test-utils/test");
 
 describe("Plan Simple Puzzles", () => {
-	it("Line Simple (Unique)", test(
+
+	it("Simple Brave", test(
+		`
+			$LETTER = {B R A V E}
+			$N = {1 2 3 4 5}
+
+			/*$BRAVE = {
+				{('l:$LETTER 'x:$N 'y:$N) | 
+					['x = 'y and 'd = «D1»] or 
+					[['y = 6 - 'x] and 'd = «D2» ] or
+					['x != 'y and ['y != 6 - 'x] and ['d = 'y * 5 + 'x]]				
+				} 
+				['l, 'x] is unique, 
+				['l, 'y] is unique,
+				['l, 'd] is unique
+			|}*/
+
+			$BRAVE = {
+				{('l:$LETTER 'x:$N 'y:$N) | 
+					['x = 'y and 'd = «D1»] or 
+					[['y = 6 - 'x] and 'd = «D2» ] or
+					['x != 'y and ['y != 6 - 'x] and ['d = 'y * 5 + 'x]]				
+				} 
+				['l, 'x] is unique, 
+				['l, 'y] is unique,
+				['l, 'd] is unique
+			|}
+		`,	 
+		[
+			{
+				query: `{ {(B 1 1) (R 2 1) (A 3 2) ... }:$BRAVE ... }`,
+				results: [
+					"@(2 = 1 + 1)" 
+				]
+			}
+		], 
+		{path: 'dbs/plan-simple-brave/1', timeout: 1000 * 60 * 60}
+	));
+
+	// ---- 
+	xit("Line Simple (Unique)", test(
 		`
 			$LETTER = {A B}
 			$N = {1 2}

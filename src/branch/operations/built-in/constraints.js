@@ -552,19 +552,20 @@ async function checkVariableConstraintsIn (definitionDB, ctx, cs, env) {
     const av = await getVariable(null, a, ctx);
     const bv = await getVariable(null, b, ctx);
 
-    const sa = getValue(av);
-    const sb = getValue(bv);
+    // const sa = getValue(av);
+    // const sb = getValue(bv);
 
     let state = C_UNKNOWN;
 
-    //1. check if element is already on set. 
+    //1. check if element is already on set.
+    let termID;
     if (bv.type === MATERIALIZED_SET) {
         const {definition: {variables, root}} = bv;
 
         const rootEl = variables[root];
         if (rootEl.type === SET_CS) {
 
-            const id = await copyPartialTerm(
+            termID = await copyPartialTerm(
                 ctx, 
                 bv.definition, 
                 rootEl.element,
@@ -583,19 +584,36 @@ async function checkVariableConstraintsIn (definitionDB, ctx, cs, env) {
     }
 
     console.log("TODO: CHECK IF ELEMENT IS ALREADY ON SET.");
+    throw "TODO: unify av with termID ??";
 
-    if (!(await bv.elements.has(id))) {
+    ctx.variables = await ctx.variables.set(av.id, {
+        ...av, defer: termID
+    });
+
+    if (!(await bv.elements.has(termID))) {
         if (env.eval) {
-            const elements = await bv.elements.add(id);
+            const elements = await bv.elements.add(termID);
     
             ctx.variables = await ctx.variables.set(bv.id, {
                 ...bv,
                 elements
             });
+
+            state = C_TRUE;
         }     
     }
     else {
-        throw 'checkVariableConstraintsIn : element is already added!';
+        state = C_TRUE;
+
+        // console.log("TODO: constraint is evaluated to true!!!!!!!!")
+        // throw 'checkVariableConstraintsIn : element is already added!';
+    }
+
+
+    if (state !== C_UNKNOWN) {
+        ctx.variables = await ctx.variables.set(cs.id, {
+            ...cs, state
+        });
     }
 
     // throw 'checkVariableConstraintsIn: Not implemented!!';
