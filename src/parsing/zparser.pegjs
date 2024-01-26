@@ -89,7 +89,7 @@ localVariable = "'" varname:[_a-zA-Z0-9]* domain:(":" variable:variable {return 
 
 // constants,
 constant = constantExpression / 
-	!("«" / "/*" / [0-9]) constant:[^ {}\n\t\(\)'|]+ {
+	!("«" / "/*" / [0-9] / "...") constant:[^ {}\n\t\(\)'|]+ {
     	return {
         	type: CONSTANT,
             data: constant.join("")
@@ -133,15 +133,25 @@ indexes = _ index:index indexes:( _ ',' _ idx:index {return idx})* {
 	return [index].concat(indexes || [])
 }
 
-set_def = "{" _ element:element _ "|" _ expression:(expression:expression _ {
-return expression;
-})? "}" _ indexes:indexes? _
+set_def = "{" _ element:element _ 
+  expression:( "|" _ expression:expression {return expression;} 
+  / "..." {return null}) _ "}" domain:(":" variable:variable {return variable})? _ indexes:indexes? _
      {
        return {
          type: SET_CS,
          element,
          indexes,
+         domain,
          expression,
+         size: -1
+       }
+     }
+     / "{" _ elements:tupleTerms _ "..." _ "}" domain:(":" variable:variable {return variable})?
+     {
+       return {
+         type: SET,
+         elements,
+         domain,
          size: -1
        }
      }

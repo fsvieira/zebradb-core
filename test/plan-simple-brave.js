@@ -6,9 +6,6 @@ describe("Plan Simple Puzzles", () => {
 
 	it("Simple Brave", test(
 		`
-			$LETTER = {B R A V E}
-			$N = {1 2 3 4 5}
-
 			/*$BRAVE = {
 				{('l:$LETTER 'x:$N 'y:$N) | 
 					['x = 'y and 'd = «D1»] or 
@@ -20,6 +17,9 @@ describe("Plan Simple Puzzles", () => {
 				['l, 'd] is unique
 			|}*/
 
+			$LETTER = {B R A V E}
+			$N = {1 2 3 4 5}
+
 			$BRAVE = {
 				{('l:$LETTER 'x:$N 'y:$N) | 
 					['x = 'y and 'd = «D1»] or 
@@ -29,7 +29,7 @@ describe("Plan Simple Puzzles", () => {
 				['l, 'x] is unique, 
 				['l, 'y] is unique,
 				['l, 'd] is unique
-			|}
+			...}
 		`,	 
 		[
 			{
