@@ -7,7 +7,6 @@ const {
         TUPLE, // : "t",
         CONSTRAINT, // : "cs",
         SET, // : "s",
-        SET_CS, // 'sc'
         SET_EXP, // 'se'
         LOCAL_VAR, // : 'lv',
         GLOBAL_VAR, // : 'gv',
@@ -52,7 +51,36 @@ function termSetExpression (ctx, s) {
     return cid;
 }
 
-function termSetConstraints (ctx, t) {
+
+function termConstraints (ctx, exp) {
+    const {type, a, op, b} = exp;
+
+    const av = term(ctx, a);
+    const bv = term(ctx, b);
+
+    let vars = [av, bv];
+    if ([AND, OR, ADD, MUL, UNIFY, NOT_UNIFY, UNION].includes(op)) {
+        vars = vars.sort();
+    }
+
+    const cid = `__${type}:${SHA256(vars.join(op)).toString('base64')}`;
+
+    if (!ctx.constraints.includes(cid)) {
+        ctx.constraints.push(cid);
+
+        ctx.variables[cid] = {
+            type,
+            a: av,
+            op,
+            b: bv,
+            cid
+        };
+    }
+
+    return cid;
+}
+
+function __termSetConstraints (ctx, t) {
     const {
         type, 
         element, 
@@ -117,40 +145,63 @@ function termSetConstraints (ctx, t) {
     return cid;
 }
 
-function termConstraints (ctx, exp) {
-    const {type, a, op, b} = exp;
-
-    const av = term(ctx, a);
-    const bv = term(ctx, b);
-
-    let vars = [av, bv];
-    if ([AND, OR, ADD, MUL, UNIFY, NOT_UNIFY, UNION].includes(op)) {
-        vars = vars.sort();
-    }
-
-    const cid = `__${type}:${SHA256(vars.join(op)).toString('base64')}`;
-
-    if (!ctx.constraints.includes(cid)) {
-        ctx.constraints.push(cid);
-
-        ctx.variables[cid] = {
-            type,
-            a: av,
-            op,
-            b: bv,
-            cid
-        };
-    }
-
-    return cid;
-}
-
 function termSet (ctx, t) {
-    const {type, elements, variable, size} = t;
+    // const {type, elements, variable, size} = t;
+    const {
+        type,
+        elements,
+        element,
+        expression,
+        indexes,
+        variable,
+        size
+    } = t;
 
     const cid = ctx.newVar(t);
 
+    let varIndexes;
+
+    if (indexes) {
+        varIndexes = indexes.map(v => {
+            const idx = {
+                ...v,
+                setID: cid
+            };
+
+            // create constraint:
+            return term(ctx, idx);
+        });
+
+
+        // indexes.forEach(v => term(ctx, {...v, setID: cid}));
+
+        console.log("INDEXES!!");
+    }
+
+    // == CS ==  
+    const termElement = element?term(ctx, {
+        ...element,
+        expression
+    }):undefined;
+
+    const termVariable = variable ? term(ctx, variable) : cid; 
+
     const nt = {
+        type,
+        element: termElement,
+        elements: elements?[]:undefined,
+        variable: termVariable,
+        indexes: varIndexes,
+        size,
+        cid
+    };
+
+    ctx.variables[cid] = nt;
+
+    // == CS ==  
+
+
+    /*const nt = {
         type,
         elements: [],
         variable: term(ctx, variable),
@@ -158,12 +209,14 @@ function termSet (ctx, t) {
         cid
     };
 
-    ctx.variables[cid] = nt;
+    ctx.variables[cid] = nt;*/
 
-    for (let i=0; i<elements.length; i++) {
-        const e = elements[i];
-        const id = term(ctx, e);
-        nt.elements.push(id);
+    if (elements) {
+        for (let i=0; i<elements.length; i++) {
+            const e = elements[i];
+            const id = term(ctx, e);
+            nt.elements.push(id);
+        }
     }
 
     return cid;
@@ -283,7 +336,7 @@ function term (ctx, t) {
     if (t) {
         switch (t.type) {
             case SET: return termSet(ctx, t);
-            case SET_CS: return termSetConstraints(ctx, t);
+            // case SET_CS: return termSetConstraints(ctx, t);
             case GLOBAL_VAR: return termGlobalVariable(ctx, t);
             case LOCAL_VAR: return termLocalVariable(ctx, t);
             case TUPLE: return termTuple(ctx, t);
@@ -344,7 +397,6 @@ function prepare (tuple) {
         switch(v.type) {
             case CONSTANT: return newVar(v.data);
             case LOCAL_VAR: return v.varname || newVar();
-            case SET_CS:
             case TUPLE:
             case SET_EXP:
             case INDEX:

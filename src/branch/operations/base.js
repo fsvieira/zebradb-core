@@ -5,7 +5,6 @@ const {
         CONSTRAINT, // : "cs",
         SET, // : "s",
         SET_EXP, // 'se',
-        SET_CS, // 'cs',
         LOCAL_VAR, // : 'lv',
         GLOBAL_VAR, // : 'gv',
         DEF_REF, // d,
@@ -229,7 +228,7 @@ async function save2db (
             throw 'CREATE LOCAL EXP SET???';
         }
     }
-    else if (v.type === SET_CS) {
+    else if (v.type === SET) {
         const variableID = v.variable;
 
         const vs = v.cid === v.variable ? v : p.variables[variableID];
@@ -395,7 +394,7 @@ async function copyPartialTermGlobalVar (
 
         let value;
         switch (root.type) {
-            case SET_CS: {
+            case SET: {
                 value = {
                     type: MATERIALIZED_SET,
                     setType: root.type, 
@@ -608,7 +607,7 @@ async function copyPartialTerm (
                         break;
                     }
 
-                    case SET_CS: {
+                    case SET: {
                         vn = mapVars[cid] = v.type + '::' + ctx.newVar();
 
                         // await createMaterializedSetCs(ctx, definitionDB, p, v, vn);
@@ -691,7 +690,7 @@ async function copyTerm (ctx, p, definitionsDB, preserveVarname=false) {
     const {root, variables} = p;
     const v = variables[root];
 
-    if (v.type === SET_CS) {
+    if (v.type === SET) {
         const vn = getVarname(v);
         await copySetConstraints(
             ctx, p, preserveVarname, 
@@ -877,9 +876,9 @@ async function toString (branch, id, ctx, constraints=true) {
             return toStringSet(branch, v, ctx);
         }
 
-        case SET_CS: {
+        /*case SET_CS: {
             return toStringSetCs(branch, v, ctx);
-        }
+        }*/
 
         default:
             throw `Base toString: Unknow Type ${v.type}`;

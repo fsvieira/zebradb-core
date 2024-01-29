@@ -64,7 +64,7 @@ async function unifyDomain (
 
         }
 
-        case constants.type.SET_CS: {
+        case constants.type.SET: {
             return [await unify(branch, options, id, null, s.element)];
         }
 
@@ -315,7 +315,7 @@ async function createMaterializedSet (
         ctx.rDB = rDB;
 
         switch (v.type) {
-            case constants.type.SET_CS: {
+            case constants.type.SET: {
                 await createMaterializedSetCs(
                     ctx,
                     definitionsDB, 

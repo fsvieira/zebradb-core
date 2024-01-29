@@ -5,7 +5,6 @@
           TUPLE,
           CONSTRAINT,
           SET,
-          SET_CS,
           SET_EXP,
           LOCAL_VAR,
           GLOBAL_VAR,
@@ -138,7 +137,7 @@ set_def = "{" _ element:element _
   / "..." {return null}) _ "}" domain:(":" variable:variable {return variable})? _ indexes:indexes? _
      {
        return {
-         type: SET_CS,
+         type: SET,
          element,
          indexes,
          domain,

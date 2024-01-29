@@ -17,7 +17,6 @@ const {
         TUPLE, // : "t",
         CONSTRAINT, // : "cs",
         SET, // : "s",
-        SET_CS, // : sc
         LOCAL_VAR, // : 'lv',
         GLOBAL_VAR, // : 'gv',
         DEF_REF, // d
@@ -563,7 +562,7 @@ async function checkVariableConstraintsIn (definitionDB, ctx, cs, env) {
         const {definition: {variables, root}} = bv;
 
         const rootEl = variables[root];
-        if (rootEl.type === SET_CS) {
+        if (rootEl.type === SET) {
 
             termID = await copyPartialTerm(
                 ctx, 

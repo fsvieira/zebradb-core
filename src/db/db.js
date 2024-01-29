@@ -169,9 +169,9 @@ class DB {
                 return `DR${v.data.id}`;
             }
 
-            case SET_CS: {
+            /*case SET_CS: {
                 return `SC::${this.genCompareHashRec(tuple, v.element)}`
-            }
+            }*/
 
             case SET_EXP: {
                 const a = this.genCompareHashRec(tuple, v.a);
@@ -262,6 +262,7 @@ class DB {
                     return true;
                 }
 
+                /*
                 case SET_CS: {
                     return this.compare(
                         tupleA, 
@@ -270,7 +271,7 @@ class DB {
                         vB.element,
                         vars
                     ) 
-                }
+                }*/
 
                 case GLOBAL_VAR: {
                     return vA.cid === vB.cid;
@@ -690,7 +691,7 @@ class DB {
 
         ref = ref.concat(set.cid);
         switch (e.type) {
-            case SET_CS:
+            case SET:
                 await this.genIndexesSetCs(globalVariable, def, e, ref);
                 break;
 
@@ -727,10 +728,11 @@ class DB {
                 break;
             }
 
+            /*
             case SET_CS: {
                 await this.genIndexesSetCs(globalVariable, def, root, ref);
                 break;
-            }
+            }*/
 
             default:
                 throw 'UNKOWN GEN INDEX ' + root.type;

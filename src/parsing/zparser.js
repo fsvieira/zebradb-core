@@ -328,7 +328,7 @@ function peg$parse(input, options) {
   var peg$f26 = function(element, expression, variable) {return variable};
   var peg$f27 = function(element, expression, domain, indexes) {
        return {
-         type: SET_CS,
+         type: SET,
          element,
          indexes,
          domain,
@@ -2415,7 +2415,6 @@ function peg$parse(input, options) {
           TUPLE,
           CONSTRAINT,
           SET,
-          SET_CS,
           SET_EXP,
           LOCAL_VAR,
           GLOBAL_VAR,
