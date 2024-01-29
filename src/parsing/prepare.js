@@ -154,7 +154,8 @@ function termSet (ctx, t) {
         type,
         elements: [],
         variable: term(ctx, variable),
-        size
+        size,
+        cid
     };
 
     ctx.variables[cid] = nt;

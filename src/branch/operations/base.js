@@ -644,6 +644,9 @@ async function copyPartialTerm (
                         break;
                     }
 
+                    case SET:
+                        console.log(v);
+                        throw 'COPY TERM SET getVarname!!';
 
                     default:
                         throw 'copyPartialTerm type is not defined: ' + v.type;
