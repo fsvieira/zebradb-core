@@ -668,46 +668,36 @@ class DB {
     }
 
     async genIndexesSet (globalVariable, def, set, ref) {
-        const {elements} = set;
+        let {elements, element} = set;
+
+        if (element) {
+            elements = [element];
+        }
+
         for (let i=0; i<elements.length; i++) {
             const eID = elements[i];
             const e = def.variables[eID];
 
-            switch (e.type) {
+            ref = ref.concat(set.cid);
 
+            switch (e.type) {
                 case CONSTANT:
                     // nothing to do,
                     break;
 
+                case SET:
+                    await this.genIndexesSet(globalVariable, def, e, ref);
+                    break;
+        
+                case TUPLE:                
+                    await this.genIndexesTuple(globalVariable, def, e, ref);
+                    break;
+                            
                 default:
                     throw 'UNKOWN SET INDEX TO GENERATE ' + e.type;
             }   
         }
     }
-
-    async genIndexesSetCs (globalVariable, def, set, ref) {
-        const {element: eID} = set;
-        const e = def.variables[eID];
-
-        ref = ref.concat(set.cid);
-        switch (e.type) {
-            case SET:
-                await this.genIndexesSetCs(globalVariable, def, e, ref);
-                break;
-
-            case TUPLE:                
-                await this.genIndexesTuple(globalVariable, def, e, ref);
-                break;
-
-            case CONSTANT:
-                // nothing to do,
-                break;
-
-            default:
-                throw 'UNKOWN SET INDEX TO GENERATE ' + e.type;
-        }
-    }
-
 
     async addElement (def) {
 
@@ -727,12 +717,6 @@ class DB {
                 await this.genIndexesSet(globalVariable, def, root, ref);
                 break;
             }
-
-            /*
-            case SET_CS: {
-                await this.genIndexesSetCs(globalVariable, def, root, ref);
-                break;
-            }*/
 
             default:
                 throw 'UNKOWN GEN INDEX ' + root.type;
