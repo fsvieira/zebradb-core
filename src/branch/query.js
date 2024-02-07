@@ -28,7 +28,7 @@ const query = async (options, rDB, set, branchID, definitionsDB) => {
         log
     }, null);
 
-    await branchOps.createMaterializedSet(
+    await branchOps.createBranchMaterializedSet(
         options,
         rDB,
         resultsID,

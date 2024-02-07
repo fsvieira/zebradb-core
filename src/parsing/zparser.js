@@ -329,7 +329,7 @@ function peg$parse(input, options) {
   var peg$f27 = function(element, expression, domain, indexes) {
        return {
          type: SET,
-         element,
+         elements: [element],
          indexes,
          domain,
          expression,

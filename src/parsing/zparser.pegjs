@@ -138,7 +138,7 @@ set_def = "{" _ element:element _
      {
        return {
          type: SET,
-         element,
+         elements: [element],
          indexes,
          domain,
          expression,

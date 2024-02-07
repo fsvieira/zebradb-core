@@ -668,11 +668,11 @@ class DB {
     }
 
     async genIndexesSet (globalVariable, def, set, ref) {
-        let {elements, element} = set;
+        let {elements} = set;
 
-        if (element) {
+        /*if (element) {
             elements = [element];
-        }
+        }*/
 
         for (let i=0; i<elements.length; i++) {
             const eID = elements[i];

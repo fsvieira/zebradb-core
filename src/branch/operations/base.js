@@ -338,6 +338,7 @@ async function copySetConstraints (
     }
 }
 
+/*
 async function copySetCs (
     definitionDB, ctx, p, vn, getVarname, v, preserveVarname
 ) {
@@ -350,9 +351,9 @@ async function copySetCs (
     };
 
     ctx.variables = await ctx.variables.set(vn, valueResults);
-}
+}*/
 
-async function createMaterializedSetCs (
+async function createMaterializedSet (
     ctx,
     definitionsDB,
     definitionElement, 
@@ -360,25 +361,39 @@ async function createMaterializedSetCs (
     variableID=ctx.newVar()
 ) {
 
-    const {element: elementID} = v;
+    // const {element: elementID} = v;
+    const { elements : setElements, size } = v;
 
-    const element = await copyPartialTerm(
+    /*const element = await copyPartialTerm(
         ctx, 
         definitionElement, 
         elementID,
         definitionsDB, 
         true
-    );
+    );*/
+    
+    let elements = ctx.rDB.iSet();
+    for (let i=0; i<setElements.length; i++) {
+        const elementID = setElements[i];
+        const element = await copyPartialTerm(
+            ctx, 
+            definitionElement, 
+            elementID,
+            definitionsDB, 
+            true
+        );
+
+        elements = await elements.add(element);
+    } 
     
     const valueResults = {
         type: MATERIALIZED_SET,
         id: variableID,
-        elements: await ctx.rDB.iSet().add(element)
+        elements,
+        size
     };
 
     ctx.variables = await ctx.variables.set(variableID, valueResults);
-
-    console.log("SHOULD createMaterializedSet be replace with copy term??? copySetCs");
 
     return variableID;
 }
@@ -463,6 +478,17 @@ async function copyPartialTermConstraint (
 
     // console.log(JSON.stringify(v, null, '  '));
     // throw 'copyPartialTermConstraint Not implemented';
+}
+
+async function copyPartialTermConstant (
+    definitionDB, ctx, p, vn, getVarname, v, preserveVarname
+) {
+    ctx.variables = await ctx.variables.set(
+        vn, {
+            ...v,
+            id: vn
+        }
+    );
 }
 
 async function copyPartialTermTuple (
@@ -610,12 +636,14 @@ async function copyPartialTerm (
                     case SET: {
                         vn = mapVars[cid] = v.type + '::' + ctx.newVar();
 
+                        await createMaterializedSet(ctx, definitionDB, p, v, vn);
+
                         // await createMaterializedSetCs(ctx, definitionDB, p, v, vn);
-                        await copySetCs(
+                        /*await copySetCs(
                             definitionDB, ctx, p, vn,
                             getVarname, v, 
                             preserveVarname
-                        )
+                        )*/
                         break;
                     }
 
@@ -643,9 +671,21 @@ async function copyPartialTerm (
                         break;
                     }
 
-                    case SET:
+                    /*case SET:
                         console.log(v);
-                        throw 'COPY TERM SET getVarname!!';
+                        throw 'COPY TERM SET getVarname!!';*/
+
+                    case CONSTANT: {
+                        vn = cid;
+
+                        await copyPartialTermConstant(
+                            definitionDB, ctx, p, vn,
+                            getVarname, v, 
+                            preserveVarname
+                        );
+
+                        break;
+                    }
 
                     default:
                         throw 'copyPartialTerm type is not defined: ' + v.type;
@@ -897,7 +937,7 @@ module.exports = {
     toString,
     getConstantVarname,
     copyPartialTerm,
-    createMaterializedSetCs,
+    createMaterializedSet,
     logger
     // prepareVariables
 };

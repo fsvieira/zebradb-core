@@ -6,7 +6,7 @@ const {
     toString,
     copyTerm,
     copyPartialTerm,
-    createMaterializedSetCs,
+    createMaterializedSet,
    // prepareVariables,
    logger
 } = require("./base");
@@ -20,7 +20,7 @@ module.exports = {
     copyTerm,
     copyPartialTerm,
     constants,
-    createMaterializedSetCs,
+    createMaterializedSet,
     logger
    // prepareVariables
 };

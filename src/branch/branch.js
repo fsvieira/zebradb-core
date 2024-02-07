@@ -5,7 +5,7 @@ const {
     toString,
     copyTerm,
     copyPartialTerm,
-    createMaterializedSetCs,
+    createMaterializedSet,
     // prepareVariables,
     constants,
     createBranch,
@@ -257,7 +257,7 @@ async function createMaterializedSetCs (
     return variableID;
 }*/
 
-async function createMaterializedSet (
+async function createBranchMaterializedSet (
     options,
     rDB, 
     id, 
@@ -316,7 +316,7 @@ async function createMaterializedSet (
 
         switch (v.type) {
             case constants.type.SET: {
-                await createMaterializedSetCs(
+                await createMaterializedSet(
                     ctx,
                     definitionsDB, 
                     definitionElement, 
@@ -517,7 +517,7 @@ async function merge (options, rDB, branchA, branchB) {
 module.exports = {
     // create,
     merge,
-    createMaterializedSet,
+    createBranchMaterializedSet,
     expand,
     toJS,
     toString,
