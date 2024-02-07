@@ -150,8 +150,8 @@ function termSet (ctx, t) {
     const {
         type,
         elements,
-        element,
         expression,
+        domain,
         indexes,
         variable,
         size
@@ -178,21 +178,30 @@ function termSet (ctx, t) {
         console.log("INDEXES!!");
     }
 
-    // == CS ==  
+    /*if (expression) {
+        console.log(" == EXPRESSION ==> ", JSON.stringify(expression, null, '  '));
+        throw 'termSet: EXPRESSION NOT IMPLEMENTED';
+    }*/
+
+    // == CS ==
+    /*  
     const termElement = element?term(ctx, {
         ...element,
         expression
     }):undefined;
+    */
 
     const termVariable = variable ? term(ctx, variable) : cid; 
 
     const nt = {
         type,
-        element: termElement,
-        elements: elements?[]:undefined,
+        // element: termElement,
+        elements: [],
         variable: termVariable,
         indexes: varIndexes,
         size,
+        expression: expression ? term(ctx, expression) : undefined,
+        domain: domain ? term(ctx, domain) : undefined,
         cid
     };
 
