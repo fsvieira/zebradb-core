@@ -304,7 +304,7 @@ async function createBranchMaterializedSet (
     }
 
     {
-        const {root, variables} = definitionElement;
+        const {root} = definitionElement;
         // const v = variables[root];
 
         // Set elements branch to be evaluated.
@@ -314,7 +314,14 @@ async function createBranchMaterializedSet (
         ctx.newVar = newVar;
         ctx.rDB = rDB;
 
-        const setID = await copyPartialTerm(ctx, definitionElement, root, definitionsDB, true);
+        const setID = await copyPartialTerm(
+            ctx, 
+            definitionElement, 
+            root, 
+            definitionsDB, 
+            true
+        );
+
         ctx.variables = await ctx.variables.set(
             id, {
                 type: constants.type.LOCAL_VAR, 

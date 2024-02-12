@@ -39,7 +39,7 @@ async function array2iset (ctx, array) {
     return iset;
 }
 
-async function save2db (
+async function __del_save2db (
     ctx, p, preserveVarname, 
     getVarname,
     v, vn,
@@ -289,7 +289,7 @@ async function save2db (
     }
 }
 
-async function copySetConstraints (
+async function __del_copySetConstraints (
     ctx, p, preserveVarname, 
     getVarname, 
     v, vn,
@@ -417,6 +417,11 @@ async function createMaterializedSet (
         domain: domainID,
         size
     };
+
+    const isChecked = await ctx.checked.has(vn);
+    if (!isChecked && domainID) {
+        ctx.unchecked = await ctx.unchecked.add(vn);
+    }
 
     // ctx.variables = await ctx.variables.set(variableID, valueResults);
     ctx.variables = await ctx.variables.set(vn, valueResults);
@@ -877,12 +882,18 @@ async function toStringConstraints (branch, v, ctx) {
 }
 
 async function toStringMaterializedSet(branch, v, ctx) {
+    const {size, domain} = v;
+
     const elements = [];
     for await (let e of v.elements.values()) {
         elements.push(await toString(branch, e, ctx));
     }
 
-    return `{${elements.sort().join(" ")}}`;
+    const expand = size < 0? ' ...':'';
+    // const domainStr = domain ? `:${await toString(branch, domain, ctx)}`:'';
+    const domainStr = domain ? `:${domain}` : '';
+
+    return `{${elements.sort().join(" ")}${expand}}${domainStr}`;
 }
 
 async function toStringSet(branch, v, ctx) {
@@ -942,7 +953,11 @@ async function toString (branch, id, ctx, constraints=true) {
         }
 
         case MATERIALIZED_SET: {
-            return toStringMaterializedSet(branch, v, ctx);
+            const checked = await (ctx?.checked || (await branch.data.checked)).has(v.id);
+            const ms = await toStringMaterializedSet(branch, v, ctx); 
+            return (checked?'@' :"") + ms;
+
+            // return toStringMaterializedSet(branch, v, ctx);
         }
 
         case SET: {

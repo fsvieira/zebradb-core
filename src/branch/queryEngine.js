@@ -167,7 +167,7 @@ class QueryEngine {
     async toString (branch) {
         let logString = '';
 
-        if (this.options.log) {
+        /*if (this.options.log) {
             const log = await branch.data.log;
             if (log.length > 0) {
                 let s = [];
@@ -180,7 +180,8 @@ class QueryEngine {
             }
         }
 
-        return logString + (await branchOps.toString(branch));
+        return logString + (await branchOps.toString(branch));*/
+        return await branchOps.toString(branch);
     }
 
     async getSolutions () {
