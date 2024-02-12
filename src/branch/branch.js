@@ -305,7 +305,7 @@ async function createBranchMaterializedSet (
 
     {
         const {root, variables} = definitionElement;
-        const v = variables[root];
+        // const v = variables[root];
 
         // Set elements branch to be evaluated.
         const {varCounter, newVar} = varGenerator(ctx.variableCounter + 1); 
@@ -314,6 +314,18 @@ async function createBranchMaterializedSet (
         ctx.newVar = newVar;
         ctx.rDB = rDB;
 
+        const setID = await copyPartialTerm(ctx, definitionElement, root, definitionsDB, true);
+        ctx.variables = await ctx.variables.set(
+            id, {
+                type: constants.type.LOCAL_VAR, 
+                cid: id, 
+                id, 
+                defer: 
+                setID
+            }
+        );
+
+        /*
         switch (v.type) {
             case constants.type.SET: {
                 await createMaterializedSet(
@@ -329,6 +341,7 @@ async function createBranchMaterializedSet (
             default:
                 throw `createMaterializedSet : ${v.type} not defined!`;
         }
+        */
 
         /*throw 'createMaterializedSet - SET QUERY!!';
 

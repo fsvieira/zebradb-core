@@ -354,15 +354,24 @@ async function copySetCs (
 }*/
 
 async function createMaterializedSet (
-    ctx,
+    /*ctx,
     definitionsDB,
     definitionElement, 
     v,
-    variableID=ctx.newVar()
+    variableID=ctx.newVar()*/
+    definitionDB, ctx, definitionElement, vn,
+    getVarname, v, 
+    preserveVarname
 ) {
 
     // const {element: elementID} = v;
-    const { elements : setElements, size } = v;
+    const { 
+        elements : setElements, 
+        size,
+        expression,
+        indexes,
+        domain 
+    } = v;
 
     /*const element = await copyPartialTerm(
         ctx, 
@@ -372,6 +381,19 @@ async function createMaterializedSet (
         true
     );*/
     
+    if (expression) {
+        throw 'createMaterializedSet : TODO HANDLE EXP!!'
+    }
+
+    if (indexes) {
+        throw 'createMaterializedSet : TODO HANDLE INDEXES!!'
+    }
+
+    /*if (domain) {
+        console.log("========> DOMAIN!!");
+        throw 'createMaterializedSet : TODO HANDLE DOMAIN!!'
+    }*/
+
     let elements = ctx.rDB.iSet();
     for (let i=0; i<setElements.length; i++) {
         const elementID = setElements[i];
@@ -379,23 +401,28 @@ async function createMaterializedSet (
             ctx, 
             definitionElement, 
             elementID,
-            definitionsDB, 
+            definitionDB,
             true
         );
 
         elements = await elements.add(element);
     } 
-    
+
+    const domainID = await getVarname(domain);
+
     const valueResults = {
         type: MATERIALIZED_SET,
-        id: variableID,
+        id: vn,
         elements,
+        domain: domainID,
         size
     };
 
-    ctx.variables = await ctx.variables.set(variableID, valueResults);
+    // ctx.variables = await ctx.variables.set(variableID, valueResults);
+    ctx.variables = await ctx.variables.set(vn, valueResults);
 
-    return variableID;
+    // return variableID;
+    return vn;
 }
 
 
@@ -586,7 +613,7 @@ async function copyPartialTerm (
     }
     */
 
-    const getVarname = async v => {
+    const getVarname = async (v) => {
         if (v) {
             if (!v.cid) {
                 v = variables[v];
@@ -636,7 +663,13 @@ async function copyPartialTerm (
                     case SET: {
                         vn = mapVars[cid] = v.type + '::' + ctx.newVar();
 
-                        await createMaterializedSet(ctx, definitionDB, p, v, vn);
+                        // await createMaterializedSet(ctx, definitionDB, p, v, vn);
+
+                        await createMaterializedSet(
+                            definitionDB, ctx, p, vn,
+                            getVarname, v, 
+                            preserveVarname
+                        );
 
                         // await createMaterializedSetCs(ctx, definitionDB, p, v, vn);
                         /*await copySetCs(
