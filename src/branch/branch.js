@@ -36,10 +36,11 @@ async function unifyDomain (
     id,
     domainID
 ) {
-    const s = await getVariable(branch, domainID);
+    const d = await getVariable(branch, domainID);
+    const e = await getVariable(branch, id);
 
-    switch (s.type) {
-        case constants.type.SET: {
+    switch (e.type) {
+        /*case constants.type.SET: {
             return await Promise.all(s.elements.map(
                 definitionID => unify(branch, options, id, definitionID)
             ));        
@@ -66,6 +67,15 @@ async function unifyDomain (
 
         case constants.type.SET: {
             return [await unify(branch, options, id, null, s.element)];
+        }*/
+
+        case constants.type.MATERIALIZED_SET: {
+            console.log("=====>", e, d);
+            /*for await (let e of s.elements) {
+                await unify(branch, options, e, definitionID)
+            }*/
+
+            throw 'unifyDomain Material Set';
         }
 
         default:
@@ -374,8 +384,9 @@ async function createBranchMaterializedSet (
         const uSize = await ctx.unchecked.size;
         const cSize = await ctx.unsolvedVariables.size;
 
-        const state = uSize === 0?(cSize?'unsolved_variables':'maybe'):'yes';
-
+        // const state = cSize === 0cSize === 0?'yes':(cSize?'unsolved_variables':'maybe'):'yes';
+        const state = uSize === 0?(cSize === 0?'yes':'unsolved_variables'):'maybe';
+        
         const message = `state=${state}, root=${await toString(null, ctx.root, ctx, true)}`; 
         const log = await logger(options, {log: ctx.log}, message);
 
