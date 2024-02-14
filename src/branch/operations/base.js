@@ -382,11 +382,16 @@ async function createMaterializedSet (
     );*/
     
     if (expression) {
-        throw 'createMaterializedSet : TODO HANDLE EXP!!'
+        const exp = await getVarname(expression);
+
+        ctx.constraints = await ctx.constraints.add(exp);
+        // throw 'createMaterializedSet : TODO HANDLE EXP!!'
     }
 
+    
     if (indexes) {
-        throw 'createMaterializedSet : TODO HANDLE INDEXES!!'
+        await logger(ctx.options, ctx, `Create Indexes : ${JSON.stringify(indexes)}`);
+        // throw 'createMaterializedSet : TODO HANDLE INDEXES!!'
     }
 
     /*if (domain) {
@@ -397,6 +402,7 @@ async function createMaterializedSet (
     let elements = ctx.rDB.iSet();
     for (let i=0; i<setElements.length; i++) {
         const elementID = setElements[i];
+        throw 'CANT COPY PARTIAL TERM??'
         const element = await copyPartialTerm(
             ctx, 
             definitionElement, 
@@ -498,7 +504,6 @@ async function copyPartialTermConstraint (
             const id = await getVarname(p.variables[vc]);
             constraints = await constraints.add(id);
         }
-        
     }
 
     ctx.variables = await ctx.variables.set(vn, {

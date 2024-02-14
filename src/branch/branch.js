@@ -1,3 +1,4 @@
+const { definitions } = require('../..');
 const {
     unify,
     varGenerator,
@@ -28,6 +29,47 @@ async function toJS (branch, id) {
     }
     
     return v;
+}
+
+async function addSetElement (branch, options, set, element) {
+    console.log(set, element);
+
+    for await (let e of set.elements) {
+        throw 'addSetElement SET IS NOT EMPTY!!'
+    }
+
+    const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
+    const ctx = {
+        variables: await branch.data.variables,
+        constraints: await branch.data.constraints,
+        unsolvedVariables: await branch.data.unsolvedVariables,
+        unchecked: await branch.data.unchecked,
+        checked: await branch.data.checked,
+        newVar,
+        level: await branch.data.level + 1,
+        rDB: branch.table.db,
+        branch,
+        log: await branch.data.log,
+        options  
+    };
+
+    const elements = [];
+    const {
+        definition
+    } = set;
+
+    const {variables, root} = definition;
+    const s = variables[root];
+
+    for (let i=0; i<s.elements.length; i++) {
+        const id = s.elements[i];
+        const eID = await copyPartialTerm(ctx, definition, id, null, true);
+        elements.push(eID);
+    }
+
+    console.log(elements);
+    
+    throw 'addSetElement set element';
 }
 
 async function unifyDomain (
@@ -70,12 +112,11 @@ async function unifyDomain (
         }*/
 
         case constants.type.MATERIALIZED_SET: {
-            console.log("=====>", e, d);
-            /*for await (let e of s.elements) {
-                await unify(branch, options, e, definitionID)
-            }*/
-
-            throw 'unifyDomain Material Set';
+            return await addSetElement(
+                branch, 
+                options, 
+                d, e
+            );
         }
 
         default:
