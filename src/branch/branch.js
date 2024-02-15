@@ -39,7 +39,10 @@ async function addSetElement (branch, options, set, element) {
     }
 
     const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
+    
     const ctx = {
+        parent: branch,
+        root: await branch.data.root,
         variables: await branch.data.variables,
         constraints: await branch.data.constraints,
         unsolvedVariables: await branch.data.unsolvedVariables,
@@ -48,9 +51,10 @@ async function addSetElement (branch, options, set, element) {
         newVar,
         level: await branch.data.level + 1,
         rDB: branch.table.db,
-        branch,
+        // branch,
         log: await branch.data.log,
-        options  
+        options,
+        children: []  
     };
 
     const elements = [];
@@ -64,12 +68,61 @@ async function addSetElement (branch, options, set, element) {
     for (let i=0; i<s.elements.length; i++) {
         const id = s.elements[i];
         const eID = await copyPartialTerm(ctx, definition, id, null, true);
+        set.elements = await set.elements.add(eID);
         elements.push(eID);
     }
 
-    console.log(elements);
-    
-    throw 'addSetElement set element';
+    ctx.variableCounter = varCounter();
+    ctx.state = 'split';
+    const rDB = ctx.rDB;
+    delete ctx.newVar;
+    delete ctx.options;
+    delete ctx.rDB;
+
+    const message = `state=${ctx.state}, root=${await toString(null, ctx.root, ctx, true)}`; 
+    await logger(options, ctx, message);
+
+    const newBranch = await rDB.tables.branches.insert(ctx, null);
+    const children = (await branch.data.children).concat([newBranch]);
+    branch.update({children});
+
+    const branches = [];
+    for (let i=0; i<elements.length; i++) {
+        const eID = elements[i];
+
+        branches.push(await unify(newBranch, options, eID, element));
+    }
+
+    return branches;
+    // console.log(elements);
+
+    /*
+    const {
+        variables, constraints, 
+        unsolvedVariables, unchecked, 
+        checked, fail, log
+    } = await deepUnify(
+        ctx,
+        tuple, 
+        definitionID
+    );
+
+    await createBranch(
+        fail,
+        branch,
+        varCounter,
+        ctx.level,
+        checked,
+        unchecked,
+        variables,
+        constraints,
+        unsolvedVariables,
+        log        
+    );
+
+    return branch;*/
+
+    // throw 'addSetElement set element';
 }
 
 async function unifyDomain (

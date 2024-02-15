@@ -402,14 +402,16 @@ async function createMaterializedSet (
     let elements = ctx.rDB.iSet();
     for (let i=0; i<setElements.length; i++) {
         const elementID = setElements[i];
-        throw 'CANT COPY PARTIAL TERM??'
+        const element = await getVarname(elementID);
+        /*throw 'CANT COPY PARTIAL TERM??';
+
         const element = await copyPartialTerm(
             ctx, 
             definitionElement, 
             elementID,
             definitionDB,
             true
-        );
+        );*/
 
         elements = await elements.add(element);
     } 
