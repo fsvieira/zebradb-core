@@ -34,7 +34,7 @@ async function toJS (branch, id) {
 async function addSetElement (branch, options, set, element) {
     console.log(set, element);
 
-    for await (let e of set.elements) {
+    for await (let e of set.elements.values()) {
         throw 'addSetElement SET IS NOT EMPTY!!'
     }
 
