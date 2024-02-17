@@ -44,6 +44,7 @@ async function addSetElement (branch, options, set, element) {
         parent: branch,
         root: await branch.data.root,
         variables: await branch.data.variables,
+        setsInDomains: await branch.data.setsInDomains,
         constraints: await branch.data.constraints,
         unsolvedVariables: await branch.data.unsolvedVariables,
         unchecked: await branch.data.unchecked,
@@ -56,6 +57,8 @@ async function addSetElement (branch, options, set, element) {
         options,
         children: []  
     };
+
+    ctx.setsInDomains = await ctx.setsInDomains.remove(set.id);
 
     const elements = [];
     const {
@@ -229,6 +232,34 @@ async function expand (
 ) {
     const state = await branch.data.state;
 
+    let r;
+    if (await branch.data.setsInDomains.size) {
+        const setsInDomains = await branch.data.setsInDomains;
+
+        let id;
+        for await (let e of setsInDomains.values()) {
+            id = e;
+            break;
+        } 
+
+        const v = await getVariable(branch, id);
+
+        r = await unifyDomain(
+            branch,
+            options,
+            id,
+            v.domain,
+        );
+
+        await branch.update({state: 'split'});
+
+    }
+    else {
+        throw 'expand : what to solve ??';
+    }
+    
+    return r;
+
     console.log("STATE", state);
     if (state === 'unsolved_variables') {
         const unsolvedVariables = await branch.data.unsolvedVariables;
@@ -375,6 +406,7 @@ async function createBranchMaterializedSet (
         parent: parentBranch,
         root: await parentBranch.data.root,
         level: (await parentBranch.data.level + 1),
+        setsInDomains: await parentBranch.data.setsInDomains,
         checked: await parentBranch.data.checked,
         unchecked: await parentBranch.data.unchecked,
         constraints: await parentBranch.data.constraints,
@@ -431,8 +463,7 @@ async function createBranchMaterializedSet (
                 type: constants.type.LOCAL_VAR, 
                 cid: id, 
                 id, 
-                defer: 
-                setID
+                defer: setID
             }
         );
 
@@ -475,12 +506,20 @@ async function createBranchMaterializedSet (
         delete ctx.newVar;
         delete ctx.rDB;
 
+        const state = (
+            await ctx.setsInDomains.size ||
+            await ctx.unchecked.size ||
+            await ctx.unsolvedVariables.size
+        ) ? 'maybe' : 'yes';
+
+        /*
         const uSize = await ctx.unchecked.size;
         const cSize = await ctx.unsolvedVariables.size;
 
         // const state = cSize === 0cSize === 0?'yes':(cSize?'unsolved_variables':'maybe'):'yes';
         const state = uSize === 0?(cSize === 0?'yes':'unsolved_variables'):'maybe';
-        
+        */
+
         const message = `state=${state}, root=${await toString(null, ctx.root, ctx, true)}`; 
         const log = await logger(options, {log: ctx.log}, message);
 

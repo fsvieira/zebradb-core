@@ -354,11 +354,6 @@ async function copySetCs (
 }*/
 
 async function createMaterializedSet (
-    /*ctx,
-    definitionsDB,
-    definitionElement, 
-    v,
-    variableID=ctx.newVar()*/
     definitionDB, ctx, definitionElement, vn,
     getVarname, v, 
     preserveVarname
@@ -372,50 +367,26 @@ async function createMaterializedSet (
         indexes,
         domain 
     } = v;
-
-    /*const element = await copyPartialTerm(
-        ctx, 
-        definitionElement, 
-        elementID,
-        definitionsDB, 
-        true
-    );*/
     
     if (expression) {
         const exp = await getVarname(expression);
-
         ctx.constraints = await ctx.constraints.add(exp);
-        // throw 'createMaterializedSet : TODO HANDLE EXP!!'
     }
-
     
     if (indexes) {
         await logger(ctx.options, ctx, `Create Indexes : ${JSON.stringify(indexes)}`);
         // throw 'createMaterializedSet : TODO HANDLE INDEXES!!'
     }
 
-    /*if (domain) {
-        console.log("========> DOMAIN!!");
-        throw 'createMaterializedSet : TODO HANDLE DOMAIN!!'
-    }*/
-
     let elements = ctx.rDB.iSet();
-    for (let i=0; i<setElements.length; i++) {
-        const elementID = setElements[i];
-        const element = await getVarname(elementID);
-        /*throw 'CANT COPY PARTIAL TERM??';
-
-        const element = await copyPartialTerm(
-            ctx, 
-            definitionElement, 
-            elementID,
-            definitionDB,
-            true
-        );*/
-
-        elements = await elements.add(element);
-    } 
-
+    if (!expression) {
+        for (let i=0; i<setElements.length; i++) {
+            const elementID = setElements[i];
+            const element = await getVarname(elementID);
+            elements = await elements.add(element);
+        } 
+    }
+    
     const domainID = await getVarname(domain);
 
     const valueResults = {
@@ -426,10 +397,15 @@ async function createMaterializedSet (
         size
     };
 
-    const isChecked = await ctx.checked.has(vn);
+    /*const isChecked = await ctx.checked.has(vn);
     if (!isChecked && domainID) {
         ctx.unchecked = await ctx.unchecked.add(vn);
+    }*/
+
+    if (domain) {
+        ctx.setsInDomains = await ctx.setsInDomains.add(vn);
     }
+
 
     // ctx.variables = await ctx.variables.set(variableID, valueResults);
     ctx.variables = await ctx.variables.set(vn, valueResults);

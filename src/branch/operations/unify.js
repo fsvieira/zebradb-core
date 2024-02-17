@@ -22,6 +22,7 @@ const {
         TUPLE, // : "t",
         CONSTRAINT, // : "cs",
         SET, // : "s",
+        MATERIALIZED_SET, // : "ms"
         LOCAL_VAR, // : 'lv',
         GLOBAL_VAR, // : 'gv',
         DEF_REF // d
@@ -39,11 +40,40 @@ const {
     }
 } = constants;
 
+const FN_FALSE = async () => false;
+
+async function unifyMsMs (ctx, p, q) {
+
+    const pSize = await p.elements.size;
+    const qSize = await q.elements.size;
+
+    const a = pSize < qSize ? q : p;
+    const b = pSize < qSize ? p : q;
+
+    if (qSize === 0 || pSize === 0) {
+        ctx.variables = await ctx.variables.set(b.id, {
+            ...b,
+            defer: a.id
+        });
+
+        ctx.unchecked = await ctx.unchecked.remove(q.id);
+        ctx.unchecked = await ctx.unchecked.remove(p.id);
+
+        ctx.checked = await ctx.unchecked.add(q.id);
+        ctx.checked = await ctx.unchecked.add(p.id);
+
+    }
+
+    return true;
+    // throw 'Unify Ms Ms is not defined!!';
+}
+
 const unifyFn = {
     [LOCAL_VAR]: {
         [LOCAL_VAR]: setVariable,
         [TUPLE]: setVariable, // !p.d && await unifyVariable(ctx, p, q),
         [CONSTANT]: setVariable, // async (ctx, p, q) => (!p.d || (p.d && p.d.includes(q.id))) && await unifyVariable(ctx, p, q)
+        [MATERIALIZED_SET]: setVariable
     },
     [TUPLE]: {
         [LOCAL_VAR]: async (ctx, p, q) => unifyFn[LOCAL_VAR][TUPLE](ctx, q, p),
@@ -68,12 +98,20 @@ const unifyFn = {
 
             return true;
         },
-        [CONSTANT]: async () => false
+        [CONSTANT]: FN_FALSE,
+        [MATERIALIZED_SET]: FN_FALSE
     },
     [CONSTANT]: {
         [LOCAL_VAR]: async (ctx, p, q) => unifyFn[LOCAL_VAR][CONSTANT](ctx, q, p),
         [TUPLE]: async () => false,
-        [CONSTANT]: async (ctx, p, q) => p.data === q.data
+        [CONSTANT]: async (ctx, p, q) => p.data === q.data,
+        [MATERIALIZED_SET]: FN_FALSE
+    },
+    [MATERIALIZED_SET]: {
+        [LOCAL_VAR]: FN_FALSE,
+        [TUPLE]: FN_FALSE,
+        [CONSTANT]: FN_FALSE,
+        [MATERIALIZED_SET]: unifyMsMs
     }
 }
 
@@ -263,6 +301,7 @@ async function unify (branch, options, tuple, definitionID, definition) {
     );
 
     await createBranch(
+        options,
         fail,
         branch,
         varCounter,

@@ -17,6 +17,7 @@ const query = async (options, rDB, set, branchID, definitionsDB) => {
         parent: null,
         root: resultsID,
         level: 0,
+        setsInDomains: rDB.iSet(),
         checked: rDB.iSet(),
         unchecked: rDB.iSet(),
         variables: rDB.iMap(),
