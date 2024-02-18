@@ -32,15 +32,6 @@ async function toJS (branch, id) {
 }
 
 async function setIn (branch, options, set, element) {
-    console.log(set, element);
-
-    const e = await getVariable(branch, element);
-
-    if (e.type === constants.type.MATERIALIZED_SET) {
-        if (await set.elements.size === 0) {
-            throw 'Set In : Set x SetElement!';
-        }
-    }
 
     for await (let e of set.elements.values()) {
         throw 'setIn SET IS NOT EMPTY!!'
@@ -100,6 +91,7 @@ async function setIn (branch, options, set, element) {
     for (let i=0; i<elements.length; i++) {
         const eID = elements[i];
 
+        throw 'Set In : need to check unify';
         branches.push(await unify(newBranch, options, eID, element));
     }
 
