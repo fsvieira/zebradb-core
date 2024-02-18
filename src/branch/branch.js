@@ -31,11 +31,19 @@ async function toJS (branch, id) {
     return v;
 }
 
-async function addSetElement (branch, options, set, element) {
+async function setIn (branch, options, set, element) {
     console.log(set, element);
 
+    const e = await getVariable(branch, element);
+
+    if (e.type === constants.type.MATERIALIZED_SET) {
+        if (await set.elements.size === 0) {
+            throw 'Set In : Set x SetElement!';
+        }
+    }
+
     for await (let e of set.elements.values()) {
-        throw 'addSetElement SET IS NOT EMPTY!!'
+        throw 'setIn SET IS NOT EMPTY!!'
     }
 
     const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
@@ -71,7 +79,6 @@ async function addSetElement (branch, options, set, element) {
     for (let i=0; i<s.elements.length; i++) {
         const id = s.elements[i];
         const eID = await copyPartialTerm(ctx, definition, id, null, true);
-        set.elements = await set.elements.add(eID);
         elements.push(eID);
     }
 
@@ -97,38 +104,9 @@ async function addSetElement (branch, options, set, element) {
     }
 
     return branches;
-    // console.log(elements);
-
-    /*
-    const {
-        variables, constraints, 
-        unsolvedVariables, unchecked, 
-        checked, fail, log
-    } = await deepUnify(
-        ctx,
-        tuple, 
-        definitionID
-    );
-
-    await createBranch(
-        fail,
-        branch,
-        varCounter,
-        ctx.level,
-        checked,
-        unchecked,
-        variables,
-        constraints,
-        unsolvedVariables,
-        log        
-    );
-
-    return branch;*/
-
-    // throw 'addSetElement set element';
 }
 
-async function unifyDomain (
+async function __unifyDomain (
     branch,
     options,
     id,
@@ -168,7 +146,7 @@ async function unifyDomain (
         }*/
 
         case constants.type.MATERIALIZED_SET: {
-            return await addSetElement(
+            return await setIn(
                 branch, 
                 options, 
                 d, e
@@ -230,19 +208,45 @@ async function expand (
     selector, 
     definitions
 ) {
-    const state = await branch.data.state;
+    // const state = await branch.data.state;
 
-    let r;
+    const setsInDomains = await branch.data.setsInDomains;
+    for await (let e of setsInDomains.values()) {
+        const v = await getVariable(branch, e);
+        const d = await getVariable(branch, v.domain);
+
+        if (await d.elements.size === 0) {
+            /*r = await unifyDomain(
+                branch,
+                options,
+                id,
+                v.domain,
+            );*/
+            const r = await setIn(
+                branch, 
+                options, 
+                d, e
+            );
+
+            await branch.update({state: 'split'});
+
+            return r;
+        }
+    }
+
+    // else 
+    throw 'expand : next steps!!';
+
+    /*let r;
     if (await branch.data.setsInDomains.size) {
         const setsInDomains = await branch.data.setsInDomains;
 
-        let id;
+        let id, domain;
         for await (let e of setsInDomains.values()) {
             id = e;
-            break;
-        } 
+            const v = await getVariable(branch, id);
 
-        const v = await getVariable(branch, id);
+        }
 
         r = await unifyDomain(
             branch,
@@ -256,7 +260,7 @@ async function expand (
     }
     else {
         throw 'expand : what to solve ??';
-    }
+    }*/
     
     return r;
 
