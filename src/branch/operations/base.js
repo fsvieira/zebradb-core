@@ -393,6 +393,8 @@ async function createMaterializedSet (
         type: MATERIALIZED_SET,
         id: vn,
         elements,
+        defID: v.cid,
+        definition: definitionElement,
         domain: domainID,
         size
     };
@@ -464,7 +466,6 @@ async function copyPartialTermGlobalVar (
 async function copyPartialTermConstraint (
     definitionDB, ctx, p, vn, getVarname, v, preserveVarname
 ) {
-
     const a = await getVarname(p.variables[v.a]);
     const b = await getVarname(p.variables[v.b]);
     
@@ -565,9 +566,16 @@ async function copyPartialIndex (
     const variable = await getVarname(p.variables[v.variable]);
     const setID = await getVarname(p.variables[v.setID]);
 
+    const values = [];
+    for (let i=0; i<v.variables.length; i++) {
+        varID = v.variables[i];
+        values.push(await getVarname(p.variables[varID]));
+    }
+    
     ctx.variables = await ctx.variables.set(vn, {
         ...v,
         variable,
+        values,
         setID
     });
 }
@@ -601,7 +609,7 @@ async function copyPartialTerm (
     }
     */
 
-    const getVarname = async (v) => {
+    const getVarname = async v => {
         if (v) {
             if (!v.cid) {
                 v = variables[v];

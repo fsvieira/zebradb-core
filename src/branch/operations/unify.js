@@ -44,24 +44,52 @@ const FN_FALSE = async () => false;
 
 async function unifyMsMs (ctx, p, q) {
 
-    const pSize = await p.elements.size;
-    const qSize = await q.elements.size;
+    let aSize = await p.elements.size;
+    let bSize = await q.elements.size;
 
-    const a = pSize < qSize ? q : p;
-    const b = pSize < qSize ? p : q;
+    let a=p;
+    let b=q;
+    if (aSize < bSize) {
+        a = q;
+        b = p;
+        const aTmpSize = aSize;
+        aSize = bSize;
+        bSize = aTmpSize;
+    }
 
-    if (qSize === 0 || pSize === 0) {
+    if (bSize === 0) {
+        let {
+            defID,
+            definition
+        } = b;
+    
+        const {variables, root} = definition;
+        defID = defID || root;
+        const s = variables[defID];    
+
+        if (s.elements.length === 1) {
+            const copyID = s.elements[0];
+            for await (let id of a.elements.values()) {
+                const eID = await copyPartialTerm(ctx, definition, copyID, null, true);
+                await doUnify(ctx, id, eID);
+            }
+        }
+        else {
+            throw 'UnifyMsMs : TODO handle sets with more than one element def!';
+        }
+        
         ctx.variables = await ctx.variables.set(b.id, {
             ...b,
             defer: a.id
         });
 
+        /*
         ctx.unchecked = await ctx.unchecked.remove(q.id);
         ctx.unchecked = await ctx.unchecked.remove(p.id);
 
         ctx.checked = await ctx.unchecked.add(q.id);
         ctx.checked = await ctx.unchecked.add(p.id);
-
+        */
     }
 
     return true;

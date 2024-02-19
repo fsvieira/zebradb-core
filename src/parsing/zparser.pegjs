@@ -114,7 +114,7 @@ constantExpression = "«" constant:[^»]+ "»" {
 element = tuple / variable / set
 elements = (element:element _ {return element})* 
 
-index_ops = 'is' wsp 'unique' {return 'unique'}
+index_ops = 'is' wsp 'unique' {return UNIQUE}
 
 index_vars = 
 	variable {return [variable]}

@@ -91,7 +91,7 @@ async function setIn (branch, options, set, element) {
     for (let i=0; i<elements.length; i++) {
         const eID = elements[i];
 
-        throw 'Set In : need to check unify';
+        // throw 'Set In : need to check unify';
         branches.push(await unify(newBranch, options, eID, element));
     }
 
@@ -173,7 +173,7 @@ async function executeConstraints (options, definitionDB, branch, v) {
 
     ctx.newVar = newVar;
 
-    const fail = !(await checkVariableConstraints(options, definitionDB, ctx, v));
+    const fail = !(await checkVariableConstraints(ctx, v));
     
     console.log("executeConstraints FAIL", fail);
     await createBranch(

@@ -310,7 +310,7 @@ function peg$parse(input, options) {
    }
 };
   var peg$f16 = function(element) {return element};
-  var peg$f17 = function() {return 'unique'};
+  var peg$f17 = function() {return UNIQUE};
   var peg$f18 = function() {return [variable]};
   var peg$f19 = function(variable) {return variable};
   var peg$f20 = function(variables) {return variables};

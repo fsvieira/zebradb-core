@@ -39,6 +39,7 @@ const {
         BELOW_OR_EQUAL, // '<=',
         ABOVE, // '>',
         ABOVE_OR_EQUAL, // >= 
+        UNIQUE
     }
 } = constants;
 
@@ -88,7 +89,7 @@ async function intersectDomains(ctx, a, b) {
     
 }
 
-async function setVariableLocalVarConstant (definitionDB, ctx, v, c) {
+async function setVariableLocalVarConstant (ctx, v, c) {
     if (v.domain) {
         const d = await getVariable(null, v.domain, ctx);
         
@@ -108,7 +109,7 @@ async function setVariableLocalVarConstant (definitionDB, ctx, v, c) {
     ctx.variables = await ctx.variables.set(v.id, {...v, defer: c.id});
 
     if (v.constraints) {
-        const r = await checkVariableConstraints(definitionDB, ctx, v);
+        const r = await checkVariableConstraints(ctx, v);
 
         if (r === false) {
             return r;
@@ -184,15 +185,15 @@ async function setVariableLocalVarLocalVar (ctx, v, p) {
 }
 
 
-const setVariable = async (definitionDB, ctx, v, p) => {
+const setVariable = async (ctx, v, p) => {
 
     if (v.id !== p.id) {
         switch (v.type) {
             case LOCAL_VAR:
                 switch (p.type) {
-                    case LOCAL_VAR: return await setVariableLocalVarLocalVar(definitionDB, ctx, v, p);
-                    case CONSTANT: return await setVariableLocalVarConstant(definitionDB, ctx, v, p);
-                    case TUPLE: return await setVariableLocalVarTuple(definitionDB, ctx, v, p);
+                    case LOCAL_VAR: return await setVariableLocalVarLocalVar(ctx, v, p);
+                    case CONSTANT: return await setVariableLocalVarConstant(ctx, v, p);
+                    case TUPLE: return await setVariableLocalVarTuple(ctx, v, p);
                     default: 
                         throw `Set Variable [LOCAL_VAR] x ${p.type} not implemented`;
                 }
@@ -264,6 +265,33 @@ async function getConstant (ctx, string) {
     }
 
     return await ctx.variables.get(vID);
+}
+
+async function checkUniqueIndexConstrain (ctx, cs, env) {
+    const {variables, values, setID} = cs;
+
+    const set = await getVariable(null, setID, ctx);
+
+    let indexValues = [];
+    for (let i=0; i<values.length; i++) {
+        const v = await getVariable(null, values[i], ctx);
+        const varName = variables[i];
+
+        if (v.type === CONSTANT) {
+            indexValues.push(`${varName}:${v.id}`);
+        }
+        else {
+            console.log("TODO: checkUniqueIndexConstrain INDEX type " + v.type);
+            return C_UNKNOWN;
+        }
+    }
+
+    const indexKey = indexValues.join("-");
+
+    console.log("TODO [checkUniqueIndexConstrain]: check if key exits if not add it!", indexKey);
+    // console.log("CONSTRAINTS", cs, set);
+
+    throw 'checkUniqueIndexConstrain : Not Implemented';
 }
 
 async function checkNumberRelationConstrain(ctx, cs, env) {
@@ -723,8 +751,10 @@ async function debugConstraint (ctx, id, result, str='') {
     console.log(`DEBUG ${str}:`, s, " ==> " , values[result]);
 }
 
-async function checkVariableConstraints (options, definitionDB, ctx, v) {
+async function checkVariableConstraints (ctx, v) {
     // let constraints = v.constraints;
+
+    const options = ctx.options || {};
 
     const env = await constraintEnv(ctx, v);
 
@@ -795,6 +825,10 @@ async function checkVariableConstraints (options, definitionDB, ctx, v) {
             
             // Function,
             case FUNCTION:
+            case UNIQUE:
+                r = await checkUniqueIndexConstrain(ctx, cs, env);
+                break;
+
             default:
                 throw cs.op + ' [checkVariableConstraints] NOT IMPLEMENTED!!'
         }
@@ -831,7 +865,7 @@ async function checkVariableConstraints (options, definitionDB, ctx, v) {
     }*/
 
     for (let cs of parentConstraints) {
-        const r = await checkVariableConstraints(options, definitionDB, ctx, cs);
+        const r = await checkVariableConstraints(ctx, cs);
 
         if (r === false) {
             await logger(options, ctx, `Parent Constraints - Fail - ${JSON.stringify(cs)}`);
