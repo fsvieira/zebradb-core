@@ -21,19 +21,20 @@ describe("Plan Simple Puzzles", () => {
 			$N = {1 2 3 4 5}
 
 			$BRAVE = {
-				{('l:$LETTER 'x:$N 'y:$N) | 
-					['x = 'y and 'd = «D1»] or 
-					[['y = 6 - 'x] and 'd = «D2» ] or
-					['x != 'y and ['y != 6 - 'x] and ['d = 'y * 5 + 'x]]				
+				{('l:$LETTER 'x:$N 'y:$N 'd1 'd2) |
+					[ ['x = 'y and 'd1 = 101] or ['x != 'y and ['d1 = 'y * 5 + 'x]] ] 
+					and 
+					[ [['y = 6 - 'x] and 'd2 = 102] or [['y != 6 - 'x] and ['d2 = 'y * 5 + 'x]]]
 				} 
 				['l, 'x] is unique, 
 				['l, 'y] is unique,
-				['l, 'd] is unique
+				['l, 'd1] is unique,
+				['l, 'd2] is unique
 			...}
 		`,	 
 		[
 			{
-				query: `{ {(B 1 1) (R 2 1) (A 3 2) ... }:$BRAVE ... }`,
+				query: `{ {(B 1 1 ' ') (R 2 1 ' ') (A 3 2 ' ') ... }:$BRAVE ... }`,
 				results: [
 					"@(2 = 1 + 1)" 
 				]

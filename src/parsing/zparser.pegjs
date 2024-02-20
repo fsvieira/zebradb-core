@@ -163,7 +163,6 @@ set_def = "{" _ element:element _
          size: elements.length
        }
      }
-     / tuple 
      / variable
      / '[' _ set:set _ ']' {return set}
 

@@ -853,7 +853,7 @@ async function checkVariableConstraints (ctx, v) {
             // constraints = await constraints.remove(vcID);
 
             if (r === C_FALSE && env.stop) {
-                await logger(options, ctx, `C_FALSE && STOP ${JSON.stringify(cs)}`);
+                await logger(options, ctx, `C_FALSE && STOP ${cs}`);
 
                 return false;
             }
