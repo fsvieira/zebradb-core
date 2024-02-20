@@ -565,6 +565,7 @@ async function copyPartialIndex (
 
     const variable = await getVarname(p.variables[v.variable]);
     const setID = await getVarname(p.variables[v.setID]);
+    const eID = await getVarname(p.variables[v.eID]);
 
     const values = [];
     for (let i=0; i<v.variables.length; i++) {
@@ -576,7 +577,8 @@ async function copyPartialIndex (
         ...v,
         variable,
         values,
-        setID
+        setID,
+        eID
     });
 }
 

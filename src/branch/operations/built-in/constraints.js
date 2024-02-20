@@ -268,7 +268,12 @@ async function getConstant (ctx, string) {
 }
 
 async function checkUniqueIndexConstrain (ctx, cs, env) {
-    const {variables, values, setID} = cs;
+    const {
+        variables, 
+        values, 
+        setID,
+        eID
+    } = cs;
 
     const set = await getVariable(null, setID, ctx);
 
@@ -288,10 +293,18 @@ async function checkUniqueIndexConstrain (ctx, cs, env) {
 
     const indexKey = indexValues.join("-");
 
-    console.log("TODO [checkUniqueIndexConstrain]: check if key exits if not add it!", indexKey);
-    // console.log("CONSTRAINTS", cs, set);
+    const uniqueMap = set.uniqueMap = set.uniqueMap || ctx.rDB.iMap();
 
-    throw 'checkUniqueIndexConstrain : Not Implemented';
+    console.log("--------- INDEX --> ", indexKey);
+    if (await uniqueMap.has(indexKey)) {
+        throw '[checkUniqueIndexConstrain]: key exists';
+    }
+    else {
+        await uniqueMap.set(indexKey, eID);
+        return C_TRUE;
+    }
+
+    return C_UNKNOWN;
 }
 
 async function checkNumberRelationConstrain(ctx, cs, env) {
@@ -853,7 +866,7 @@ async function checkVariableConstraints (ctx, v) {
             }
         }
 
-        await logger(options, ctx, `constraints are OK - ${JSON.stringify(cs)}`);
+        await logger(options, ctx, `constraints are OK - ${cs}`);
     }
 
     /*

@@ -159,7 +159,7 @@ function termSet (ctx, t) {
 
     const cid = ctx.newVar(t);
 
-    let varIndexes;
+    let varIndexes, varIndexesEl = [];
 
     if (indexes) {
         varIndexes = indexes.map(v => {
@@ -168,14 +168,10 @@ function termSet (ctx, t) {
                 setID: cid
             };
 
+            varIndexesEl.push(idx);
             // create constraint:
             return term(ctx, idx);
         });
-
-
-        // indexes.forEach(v => term(ctx, {...v, setID: cid}));
-
-        console.log("INDEXES!!");
     }
 
     /*if (expression) {
@@ -225,6 +221,13 @@ function termSet (ctx, t) {
             const e = elements[i];
             const id = term(ctx, e);
             nt.elements.push(id);
+        }
+
+        if (varIndexes) {
+            const eID = nt.elements[0];
+            for (let i=0; i<varIndexesEl.length; i++) {
+                varIndexesEl[i].eID = eID;
+            }
         }
     }
 
@@ -440,7 +443,11 @@ function prepare (tuple) {
                 }
             }
             else if (type === INDEX) {
-                const {variables} = ctx.variables[cid];
+                const idx = ctx.variables[cid];
+                const {variables} = idx;
+                const set = ctx.variables[idx.setID];
+
+                idx.eID = set.elements[0];
 
                 for (let i=0; i<variables.length; i++) {
                     const variable = variables[i];
