@@ -30,6 +30,11 @@ module.exports = {
         ABOVE: '>',
         ABOVE_OR_EQUAL: '>=',
         UNIQUE: 'un'
+    },
+    values: {
+        C_FALSE: 1,
+        C_TRUE: 2,
+        C_UNKNOWN: 3
     }
 };
 

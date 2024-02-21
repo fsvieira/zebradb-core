@@ -23,9 +23,9 @@ const { v4: uuidv4 } = require('uuid');
 async function getContextState(ctx) {
     return (
         await ctx.setsInDomains.size ||
-        await ctx.unchecked.size ||
-        await ctx.unsolvedConstraints.size || 
-        await ctx.unsolvedVariables.size
+        // await ctx.unchecked.size ||
+        await ctx.unsolvedConstraints.size // || 
+        // await ctx.unsolvedVariables.size
     ) ? 'maybe' : 'yes';
 
 }
@@ -871,7 +871,8 @@ async function toStringConstraints (branch, v, ctx) {
     const a = await toString(branch, v.a, ctx);
     const b = await toString(branch, v.b, ctx);
 
-    return `[ ${a} ${v.op} ${b} ]`; 
+    const s = ['', 'FALSE', 'TRUE', 'UNK'];
+    return `[ ${a} ${v.op} ${b} ] (${s[v.state || 0]})`; 
 }
 
 async function toStringMaterializedSet(branch, v, ctx) {

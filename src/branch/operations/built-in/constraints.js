@@ -40,12 +40,13 @@ const {
         ABOVE, // '>',
         ABOVE_OR_EQUAL, // >= 
         UNIQUE
+    },
+    values: {
+        C_FALSE,
+        C_TRUE,
+        C_UNKNOWN
     }
 } = constants;
-
-const C_FALSE = 1;
-const C_TRUE = 2;
-const C_UNKNOWN = 3;
 
 /*
     Set Variable
@@ -289,7 +290,6 @@ async function checkUniqueIndexConstrain (ctx, cs, env) {
 
     const uniqueMap = set.uniqueMap = set.uniqueMap || ctx.rDB.iMap();
 
-    console.log("--------- INDEX --> ", indexKey);
     if (await uniqueMap.has(indexKey)) {
         throw '[checkUniqueIndexConstrain]: key exists';
     }
@@ -659,9 +659,6 @@ async function checkVariableConstraintsUnify (ctx, cs, env) {
     const sa = getValue(av);
     const sb = getValue(bv);
 
-    console.log('==> CS ==> ' , await toString(null, cs.id, ctx));
-    console.log("checkVariableConstraintsUnify", sa, sb, env);
-
     let state = C_UNKNOWN;
     // await debugConstraint(ctx, cs.id, state, 'UNIFY [START]');
 
@@ -703,8 +700,10 @@ async function checkVariableConstraintsUnify (ctx, cs, env) {
 async function setRootValue (ctx, root, value) {
     const cs = await getVariable(null, root.csID, ctx);
 
+
     ctx.variables = await ctx.variables.set(cs.id, {
-        ...cs, [`${root.side}Value`]: value
+        ...cs, [`${root.side}Value`]: value, 
+        state: cs.op === AND && value === C_FALSE ? C_FALSE : cs.state 
     });
 }
 
@@ -784,13 +783,10 @@ async function checkVariableConstraints (ctx, v) {
             continue;
         }
 
-        await debugConstraint(ctx, cs.id, 0, '==> CS [1] ==> ');
-
         let r;
         switch (cs.op) {
             // Set Operators,
             case IN:
-                console.log(cs);
                 r = await checkVariableConstraintsIn(definitionDB, ctx, cs, env);
                 break;
 
@@ -857,12 +853,11 @@ async function checkVariableConstraints (ctx, v) {
                 // setup the root value
                 await setRootValue(ctx, cs.root, r);
             }
-            else if (cs.constraints && await cs.constraints.size) {
+            
+            if (cs.constraints && await cs.constraints.size) {
                 parentConstraints.add(cs);
             }
         }
-
-        await debugConstraint(ctx, cs.id, r, '==> CS [2] ==> ');
 
         await logger(options, ctx, `constraints are OK - ${cs}`);
     }

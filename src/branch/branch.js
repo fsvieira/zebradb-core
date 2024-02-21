@@ -14,7 +14,18 @@ const {
     getContextState
 } = require('./operations');
 
-const {checkVariableConstraints} = require('./operations/built-in/constraints');
+const {
+    checkVariableConstraints
+} = require('./operations/built-in/constraints');
+
+
+const {
+    values: {
+        C_FALSE,
+        C_TRUE,
+        C_UNKNOWN
+    }
+} = constants;
 
 async function toJS (branch, id) {
     id = id || await branch.data.root;
@@ -152,6 +163,95 @@ async function __unifyDomain (
     }
 }
 
+function rootValue () {
+
+}
+
+async function solveConstraints (branch, options) {
+    const ctx = {
+        parent: branch,
+        root: await branch.data.root,
+        level: (await branch.data.level + 1),
+        variables: await branch.data.variables,
+        checked: await branch.data.checked,
+        unchecked: await branch.data.unchecked,
+        constraints: await branch.data.constraints,
+        unsolvedConstraints: await branch.data.unsolvedConstraints,
+        unsolvedVariables: await branch.data.unsolvedVariables,
+        variableCounter: await branch.data.variableCounter,
+        setsInDomains: await branch.data.setsInDomains,
+        children: await branch.data.children,
+        log: await branch.data.log,
+        rDB: branch.table.db
+    };
+
+    const {varCounter, newVar} = varGenerator(ctx.variableCounter + 1); 
+
+    ctx.newVar = newVar;
+
+
+    // let size = await ctx.unsolvedConstraints.size;
+    // let resultSize = 0;
+
+    let size, resultSize, fail;
+    let changes = 0;
+    do {
+        let unsolvedConstraints = ctx.unsolvedConstraints;
+        
+        size = await ctx.unsolvedConstraints.size;
+        for await (let csID of ctx.unsolvedConstraints.values()) {
+            const cs = await getVariable(null, csID, ctx);
+
+            if ([C_TRUE, C_FALSE].includes(cs.state)) {
+                unsolvedConstraints = await unsolvedConstraints.remove(cs.id);
+            }
+            else {
+                // check parent, 
+                console.log("CS ["+ cs.id +"] ==>", await toString(null, cs.id, ctx));
+
+                if (cs.root) {
+                    const root = await getVariable(null, cs.root.csID, ctx);
+
+                    fail = !(await checkVariableConstraints(ctx, cs));
+                    console.log(" ==> [2] ["+ cs.id +"] CS ==>", await toString(null, cs.id, ctx));
+
+                    if (fail) {
+                        break;
+                    }
+                }
+            }
+
+        }
+
+        resultSize = await unsolvedConstraints.size;
+
+        changes += size - resultSize;
+
+        ctx.unsolvedConstraints = unsolvedConstraints;
+    }
+    while (size !== resultSize);
+
+    if (changes > 0) {
+        await createBranch(
+            options,
+            fail,
+            branch,
+            varCounter,
+            ctx.level,
+            ctx.checked,
+            ctx.unchecked,
+            ctx.variables,
+            ctx.constraints,
+            ctx.unsolvedConstraints,
+            ctx.unsolvedVariables,
+            ctx.setsInDomains,
+            ctx.log        
+        );
+
+        await branch.update({state: 'split'});
+    }
+}
+
 async function executeConstraints (options, definitionDB, branch, v) {
 
     const ctx = {
@@ -228,9 +328,14 @@ async function expand (
         }
     }
 
+    console.log("TODO: [expand] first solve unsolvedVariables!!");
+
     const unsolvedConstraints = await branch.data.unsolvedConstraints;
-    for await (let csID of unsolvedConstraints.values()) {
-        console.log(csID);
+    if (await unsolvedConstraints.size) {
+        const r = await solveConstraints(branch, options);
+        if (r) {
+            return r;
+        }
     }
 
     // else 
