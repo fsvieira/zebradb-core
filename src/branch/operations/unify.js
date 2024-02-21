@@ -7,7 +7,8 @@ const {
     toString,
     getVariable,
     getConstantVarname,
-    logger
+    logger,
+    getContextState
 } = require("./base");
 
 const constants = require("./constants");
@@ -195,7 +196,9 @@ async function deepUnify(
     return {
         variables: ctx.variables,
         constraints: ctx.constraints,
+        unsolvedConstraints: ctx.unsolvedConstraints,
         unsolvedVariables: unsolvedVariablesClean,
+        setsInDomains: ctx.setsInDomains,
         unchecked: ctx.unchecked, 
         checked: ctx.checked, 
         fail: !ok, 
@@ -249,7 +252,9 @@ async function createBranch (
     unchecked,
     variables,
     constraints,
+    unsolvedConstraints,
     unsolvedVariables,
+    setsInDomains,
     log
 ) {
     const rDB = branch.table.db;
@@ -259,15 +264,31 @@ async function createBranch (
     if (fail) {
         state='no'
     }
-    else if (await unchecked.size === 0) {
-        if (await unsolvedVariables.size === 0) {
+    else {
+        state = await getContextState({
+            checked,
+            unchecked,
+            variables,
+            constraints,
+            unsolvedConstraints,
+            unsolvedVariables,
+            setsInDomains
+        });
+    }
+
+    /*(await unchecked.size === 0) {
+        if (
+            await unsolvedVariables.size === 0 ||
+        
+        ) {
             state='yes';
         }
         else {
-            state='unsolved_variables';
+            state='maybe';
+            // state='unsolved_variables';
             // state='yes';
         }
-    }
+    }*/
 
     const root = await branch.data.root;
     const ctx = {
@@ -279,7 +300,9 @@ async function createBranch (
         unchecked,
         variables,
         constraints,
+        unsolvedConstraints,
         unsolvedVariables,
+        setsInDomains,
         children: [],
         state,
         log
@@ -304,9 +327,11 @@ async function unify (branch, options, tuple, definitionID, definition) {
     const ctx = {
         variables: await branch.data.variables,
         constraints: await branch.data.constraints,
+        unsolvedConstraints: await branch.data.unsolvedConstraints,
         unsolvedVariables: await branch.data.unsolvedVariables,
         unchecked: await branch.data.unchecked,
         checked: await branch.data.checked,
+        setsInDomains: await branch.data.setsInDomains,
         newVar,
         level,
         rDB: branch.table.db,
@@ -321,7 +346,9 @@ async function unify (branch, options, tuple, definitionID, definition) {
 
     const {
         variables, constraints, 
-        unsolvedVariables, unchecked, 
+        unsolvedVariables, unchecked,
+        unsolvedConstraints,
+        setsInDomains,
         checked, fail, log
     } = await deepUnify(
         ctx,
@@ -339,7 +366,9 @@ async function unify (branch, options, tuple, definitionID, definition) {
         unchecked,
         variables,
         constraints,
+        unsolvedConstraints,
         unsolvedVariables,
+        setsInDomains,
         log        
     );
 

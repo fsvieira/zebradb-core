@@ -8,7 +8,8 @@ const {
     copyPartialTerm,
     createMaterializedSet,
    // prepareVariables,
-   logger
+   logger,
+   getContextState
 } = require("./base");
 
 module.exports = {
@@ -21,6 +22,7 @@ module.exports = {
     copyPartialTerm,
     constants,
     createMaterializedSet,
-    logger
+    logger,
+    getContextState
    // prepareVariables
 };

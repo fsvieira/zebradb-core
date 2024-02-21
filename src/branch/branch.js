@@ -10,7 +10,8 @@ const {
     // prepareVariables,
     constants,
     createBranch,
-    logger
+    logger,
+    getContextState
 } = require('./operations');
 
 const {checkVariableConstraints} = require('./operations/built-in/constraints');
@@ -45,6 +46,7 @@ async function setIn (branch, options, set, element) {
         variables: await branch.data.variables,
         setsInDomains: await branch.data.setsInDomains,
         constraints: await branch.data.constraints,
+        unsolvedConstraints: await branch.data.unsolvedConstraints,
         unsolvedVariables: await branch.data.unsolvedVariables,
         unchecked: await branch.data.unchecked,
         checked: await branch.data.checked,
@@ -57,7 +59,7 @@ async function setIn (branch, options, set, element) {
         children: []  
     };
 
-    ctx.setsInDomains = await ctx.setsInDomains.remove(set.id);
+    ctx.setsInDomains = await ctx.setsInDomains.remove(element);
 
     const elements = [];
     const {
@@ -160,6 +162,7 @@ async function executeConstraints (options, definitionDB, branch, v) {
         checked: await branch.data.checked,
         unchecked: await branch.data.unchecked,
         constraints: await branch.data.constraints,
+        unsolvedConstraints: await branch.data.unsolvedConstraints,
         unsolvedVariables: await branch.data.unsolvedVariables,
         variableCounter: await branch.data.variableCounter,
         children: await branch.data.children,
@@ -183,7 +186,9 @@ async function executeConstraints (options, definitionDB, branch, v) {
         ctx.unchecked,
         ctx.variables,
         ctx.constraints,
+        ctx.unsolvedConstraints,
         ctx.unsolvedVariables,
+        ctx.setsInDomains,
         ctx.log        
     );
 
@@ -221,6 +226,11 @@ async function expand (
 
             return r;
         }
+    }
+
+    const unsolvedConstraints = await branch.data.unsolvedConstraints;
+    for await (let csID of unsolvedConstraints.values()) {
+        console.log(csID);
     }
 
     // else 
@@ -352,36 +362,6 @@ async function expand (
     }
 }
 
-/*
-async function createMaterializedSetCs (
-    ctx,
-    definitionsDB,
-    definitionElement, 
-    v,
-    variableID=ctx.newVar()
-) {
-
-    const {element: elementID} = v;
-
-    const element = await copyPartialTerm(
-        ctx, 
-        definitionElement, 
-        elementID,
-        definitionsDB, 
-        true
-    );
-    
-    const valueResults = {
-        type: constants.type.MATERIALIZED_SET,
-        id: variableID,
-        elements: await ctx.rDB.iSet().add(element)
-    };
-
-    ctx.variables = await ctx.variables.set(variableID, valueResults);
-
-    return variableID;
-}*/
-
 async function createBranchMaterializedSet (
     options,
     rDB, 
@@ -400,6 +380,7 @@ async function createBranchMaterializedSet (
         checked: await parentBranch.data.checked,
         unchecked: await parentBranch.data.unchecked,
         constraints: await parentBranch.data.constraints,
+        unsolvedConstraints: await parentBranch.data.unsolvedConstraints,
         unsolvedVariables: await parentBranch.data.unsolvedVariables,
         variableCounter: await parentBranch.data.variableCounter,
         children: [],
@@ -496,19 +477,12 @@ async function createBranchMaterializedSet (
         delete ctx.newVar;
         delete ctx.rDB;
 
-        const state = (
+        const state = await getContextState(ctx); /*(
             await ctx.setsInDomains.size ||
             await ctx.unchecked.size ||
+            await ctx.unsolvedConstraints.size || 
             await ctx.unsolvedVariables.size
-        ) ? 'maybe' : 'yes';
-
-        /*
-        const uSize = await ctx.unchecked.size;
-        const cSize = await ctx.unsolvedVariables.size;
-
-        // const state = cSize === 0cSize === 0?'yes':(cSize?'unsolved_variables':'maybe'):'yes';
-        const state = uSize === 0?(cSize === 0?'yes':'unsolved_variables'):'maybe';
-        */
+        ) ? 'maybe' : 'yes';*/
 
         const message = `state=${state}, root=${await toString(null, ctx.root, ctx, true)}`; 
         const log = await logger(options, {log: ctx.log}, message);
@@ -621,6 +595,7 @@ async function merge (options, rDB, branchA, branchB) {
         checked: await branchA.data.checked,
         unchecked: await branchA.data.unchecked,
         constraints: await branchA.data.constraints,
+        unsolvedConstraints: await branchA.data.unsolvedConstraints,
         unsolvedVariables: await branchA.data.unsolvedVariables,
         variableCounter,
         state: 'yes',

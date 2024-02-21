@@ -875,9 +875,6 @@ async function checkVariableConstraints (ctx, v) {
         });
     }*/
 
-
-    throw 'd1 = 101 ; is not triggered because no variable will trigger constraints. TODO: we need to track variables with constrains so that we can trigger them!'; 
-
     for (let cs of parentConstraints) {
         const r = await checkVariableConstraints(ctx, cs);
 

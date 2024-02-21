@@ -20,6 +20,16 @@ const {
 
 const { v4: uuidv4 } = require('uuid');
 
+async function getContextState(ctx) {
+    return (
+        await ctx.setsInDomains.size ||
+        await ctx.unchecked.size ||
+        await ctx.unsolvedConstraints.size || 
+        await ctx.unsolvedVariables.size
+    ) ? 'maybe' : 'yes';
+
+}
+
 
 async function logger(options, ctx, message) {
     if (options.log) {
@@ -490,6 +500,8 @@ async function copyPartialTermConstraint (
         constraints,
         id: vn
     });
+
+    ctx.unsolvedConstraints = await ctx.unsolvedConstraints.add(vn);
 }
 
 async function copyPartialTermConstant (
@@ -546,7 +558,7 @@ async function copyPartialTermLocalVar (
         }
     );
 
-    if (v.constraints /*&& v.domain*/ ) {
+    if (v.constraints && v.domain ) {
         ctx.unsolvedVariables = await ctx.unsolvedVariables.add(vn);
     }
 }
@@ -966,6 +978,7 @@ module.exports = {
     getConstantVarname,
     copyPartialTerm,
     createMaterializedSet,
-    logger
+    logger,
+    getContextState
     // prepareVariables
 };
