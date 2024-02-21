@@ -246,7 +246,6 @@ function termGlobalVariable (ctx, t) {
 }
 
 function termLocalVariable (ctx, lv) {
-    console.log("TODO: When local variables come from sets we may need a new scope!!");
     // this can be done using a scope stack ? 
 
     const cid = ctx.newVar(lv);

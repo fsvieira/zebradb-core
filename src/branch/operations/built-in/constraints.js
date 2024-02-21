@@ -123,12 +123,6 @@ async function setVariableLocalVarTuple (ctx, v, t) {
     if (v.domain) {
         const d = await getVariable(null, v.domain, ctx);
 
-        console.log(
-            await toString(null, d.id, ctx), 
-            await toString(null, t.id, ctx),
-            await toString(null, v.id, ctx)
-        );
-
         throw `setVariableLocalVarTuple Domain ${d.type} not defined!`;
     }
 
@@ -644,9 +638,6 @@ async function checkVariableConstraintsIn (definitionDB, ctx, cs, env) {
     }
     else {
         state = C_TRUE;
-
-        // console.log("TODO: constraint is evaluated to true!!!!!!!!")
-        // throw 'checkVariableConstraintsIn : element is already added!';
     }
 
 
@@ -667,6 +658,9 @@ async function checkVariableConstraintsUnify (ctx, cs, env) {
 
     const sa = getValue(av);
     const sb = getValue(bv);
+
+    console.log('==> CS ==> ' , await toString(null, cs.id, ctx));
+    console.log("checkVariableConstraintsUnify", sa, sb, env);
 
     let state = C_UNKNOWN;
     // await debugConstraint(ctx, cs.id, state, 'UNIFY [START]');
@@ -790,6 +784,8 @@ async function checkVariableConstraints (ctx, v) {
             continue;
         }
 
+        await debugConstraint(ctx, cs.id, 0, '==> CS [1] ==> ');
+
         let r;
         switch (cs.op) {
             // Set Operators,
@@ -861,10 +857,12 @@ async function checkVariableConstraints (ctx, v) {
                 // setup the root value
                 await setRootValue(ctx, cs.root, r);
             }
-            else if (cs.constraints && cs.constraints.size) {
+            else if (cs.constraints && await cs.constraints.size) {
                 parentConstraints.add(cs);
             }
         }
+
+        await debugConstraint(ctx, cs.id, r, '==> CS [2] ==> ');
 
         await logger(options, ctx, `constraints are OK - ${cs}`);
     }
@@ -876,6 +874,9 @@ async function checkVariableConstraints (ctx, v) {
             constraints: constraints.size ? constraints : null
         });
     }*/
+
+
+    throw 'd1 = 101 ; is not triggered because no variable will trigger constraints. TODO: we need to track variables with constrains so that we can trigger them!'; 
 
     for (let cs of parentConstraints) {
         const r = await checkVariableConstraints(ctx, cs);

@@ -152,8 +152,6 @@ async function __unifyDomain (
 
 async function executeConstraints (options, definitionDB, branch, v) {
 
-    console.log("executeConstraints");
-
     const ctx = {
         parent: branch,
         root: await branch.data.root,
@@ -175,7 +173,6 @@ async function executeConstraints (options, definitionDB, branch, v) {
 
     const fail = !(await checkVariableConstraints(ctx, v));
     
-    console.log("executeConstraints FAIL", fail);
     await createBranch(
         options,
         fail,
@@ -256,7 +253,6 @@ async function expand (
     
     return r;
 
-    console.log("STATE", state);
     if (state === 'unsolved_variables') {
         const unsolvedVariables = await branch.data.unsolvedVariables;
 //        let min=Infinity, minVar, minDomain; 
@@ -314,8 +310,6 @@ async function expand (
         }
         else {
             await executeConstraints(options, definitionDB, branch, c);
-            // console.log('UNSOLVED VARS ', c);
-            // throw 'UNSOLVED VARS IS NOT IMPLMENETED!!'
         }
         
         await branch.update({state: 'split'});
@@ -527,9 +521,7 @@ async function createBranchMaterializedSet (
             branchID: `${parentBranch.id}-element`
         }, null);
 
-        const s = await toString(branch);
-
-        console.log('QUERY ', s);
+        return branch;
     }
 
 }
@@ -579,8 +571,6 @@ async function mergeElement (ctx, branchA, branchB, id) {
      
     const vA = await variablesA.has(id) ? await getVariable(branchA, id) : null;
     const vB = await variablesB.has(id) ? await getVariable(branchB, id) : null;
-
-    console.log("MERGE ", vA, vB);
 
     if (vA === null) {
         throw 'A is null';
@@ -640,12 +630,6 @@ async function merge (options, rDB, branchA, branchB) {
 
     const uncheckedB = await branchB.data.checked;
     const checkedB = await branchB.data.checked;
-
-    console.log(
-        await toString(branchA),
-        ' X ',
-        await toString(branchB)
-    );
 
     await mergeElement(ctx, branchA, branchB, ctx.root);
 

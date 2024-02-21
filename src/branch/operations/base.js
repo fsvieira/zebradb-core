@@ -457,7 +457,6 @@ async function copyPartialTermGlobalVar (
     }
     else {
         const v = await ctx.variables.get(vn);
-        console.log("GV ---------->", v);
         throw 'copyPartialTermGlobalVar IS DONE ??';
     }
 
@@ -491,9 +490,6 @@ async function copyPartialTermConstraint (
         constraints,
         id: vn
     });
-
-    // console.log(JSON.stringify(v, null, '  '));
-    // throw 'copyPartialTermConstraint Not implemented';
 }
 
 async function copyPartialTermConstant (
@@ -553,10 +549,6 @@ async function copyPartialTermLocalVar (
     if (v.constraints /*&& v.domain*/ ) {
         ctx.unsolvedVariables = await ctx.unsolvedVariables.add(vn);
     }
-    /*else if (v.constraints) {
-        console.log("TODO: CHECK IF THERE IS CONSTRAINTS LIKE IN ??");
-        throw 'PROCESS CONSTRAINTS??';
-    }*/
 }
 
 async function copyPartialIndex (
@@ -701,10 +693,6 @@ async function copyPartialTerm (
 
                         break;
                     }
-
-                    /*case SET:
-                        console.log(v);
-                        throw 'COPY TERM SET getVarname!!';*/
 
                     case CONSTANT: {
                         vn = cid;
@@ -902,7 +890,6 @@ async function toStringSet(branch, v, ctx) {
 async function toStringSetCs(branch, v, ctx) {
 //     return `{${JSON.stringify(v.element)} |}`;
 
-    console.log(JSON.stringify(v));
     throw 'SC ????' + JSON.stringify(v);
 }
 

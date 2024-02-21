@@ -14,8 +14,6 @@ class QueryEngine {
         try {
             const querySet = parse(tuple)[0];
 
-            console.log("QUERY => ", JSON.stringify(querySet, null, '  '));
-
             const branchID = SHA256(JSON.stringify([
                 this.db.id,
                 SHA256(JSON.stringify(querySet)).toString("hex")

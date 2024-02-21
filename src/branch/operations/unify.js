@@ -214,11 +214,12 @@ const doUnify = async (ctx, p, q) => {
         s = `${await toString(undefined, p.id, ctx)} ** ${await toString(undefined, q.id, ctx)}`;
     }
 
+    /*
     console.log(
         'DO UNIFY ',
         await toString(null, p.id, ctx), ' ** ', 
         await toString(null, q.id, ctx)
-    );
+    );*/
 
     const ok =  await unifyFn[p.type][q.type](ctx, p, q);
 

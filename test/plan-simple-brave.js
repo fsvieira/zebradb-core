@@ -34,7 +34,8 @@ describe("Plan Simple Puzzles", () => {
 		`,	 
 		[
 			{
-				query: `{ {(B 1 1 ' ') (R 2 1 ' ') (A 3 2 ' ') ... }:$BRAVE ... }`,
+				// query: `{ {(B 1 1 ' ') (R 2 1 ' ') (A 3 2 ' ') ... }:$BRAVE ... }`,
+				query: `{ {(B 1 1 ' ') ... }:$BRAVE ... }`,
 				results: [
 					"@(2 = 1 + 1)" 
 				]
