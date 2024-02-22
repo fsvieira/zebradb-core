@@ -22,9 +22,9 @@ describe("Plan Simple Puzzles", () => {
 
 			$BRAVE = {
 				{('l:$LETTER 'x:$N 'y:$N 'd1 'd2) |
-					[ ['x = 'y and 'd1 = 101] or ['x != 'y and ['d1 = 'y * 5 + 'x]] ] 
+					[ ['x = 'y and 'd1 = 101 ] or ['x != 'y and ['d1 = 'y * 5 + 'x]] ] 
 					and 
-					[ [['y = 6 - 'x] and 'd2 = 102] or [['y != 6 - 'x] and ['d2 = 'y * 5 + 'x]]]
+					[ [['y = 6 - 'x] and 'd2 = 102 ] or [['y != 6 - 'x] and ['d2 = 'y * 5 + 'x]]]
 				} 
 				['l, 'x] is unique, 
 				['l, 'y] is unique,

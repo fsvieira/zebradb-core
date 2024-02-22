@@ -710,14 +710,23 @@ async function setRootValue (ctx, root, value) {
 async function constraintEnv (ctx, cs) {
     const r = {stop: true, eval: true, check: true};
 
+    console.log(
+        `==> CS ===> ${await toString(null, cs.id, ctx)}\n` 
+    );
+
     if (cs.root) {
         const root = await getVariable(null, cs.root.csID, ctx);
 
-        if (root.op === OR) {
+        const side = cs.root.side;
+        const csValue = root[`${side}Value`]
+        const oValue = root[`${side === 'a' ? 'b':'a'}Value`];
 
-            const side = cs.root.side;
-            const csValue = root[`${side}Value`]
-            const oValue = root[`${side === 'a' ? 'b':'a'}Value`];
+        console.log(
+            `==> ROOT ==> ${await toString(null, root.id, ctx)}\n` 
+        );
+
+
+        if (root.op === OR) {
 
             if (csValue === undefined && oValue === undefined) {
                 return {stop: false, eval: false, check: true};
@@ -746,6 +755,7 @@ async function constraintEnv (ctx, cs) {
         }
     }
 
+    console.log(r);
     return r;
 }
 
@@ -756,6 +766,98 @@ async function debugConstraint (ctx, id, result, str='') {
     const values = ['', 'FALSE', 'TRUE', 'UNKNOWN'];
     console.log(`DEBUG ${str}:`, s, " ==> " , values[result]);
 }
+
+async function evalConstraint (ctx, cs, env, parentConstraints) {
+    if (!env.check) {
+        return true;
+    }
+
+    let r;
+    switch (cs.op) {
+        // Set Operators,
+        case IN:
+            r = await checkVariableConstraintsIn(definitionDB, ctx, cs, env);
+            break;
+
+        case UNION:
+            throw 'checkVariableConstraints: Union';
+            break;
+
+        // Identity Operators, 
+        case UNIFY:
+            r = await checkVariableConstraintsUnify(ctx, cs, env);
+            break;
+
+        case NOT_UNIFY:
+            r = await checkVariableConstraintsNotUnify(ctx, cs, env);
+            break;
+
+        // Logical Operators,
+        case OR:
+            r = await checkOrConstrain(ctx, cs, env);
+            break;
+
+        case AND:
+            r = await checkAndConstrain(ctx, cs, env);
+            break;
+            
+        // Math Operators,
+        case ADD:
+        case SUB:
+        case MUL:
+        case DIV:
+        case MOD:
+            r = await checkNumberOperationsConstrain(ctx, cs, env);
+            break;
+
+        case BELOW:
+        case BELOW_OR_EQUAL:
+        case ABOVE:
+        case ABOVE_OR_EQUAL:
+            r = await checkNumberRelationConstrain(ctx, cs, env);
+            break;
+        
+        // Function,
+        case FUNCTION:
+        case UNIQUE:
+            r = await checkUniqueIndexConstrain(ctx, cs, env);
+            break;
+
+        default:
+            throw cs.op + ' [checkVariableConstraints] NOT IMPLEMENTED!!'
+    }
+
+    // await debugConstraint(ctx, cs.id, r);
+
+    if (r !== C_UNKNOWN) {
+        // remove constraints,
+        // constraints = await constraints.remove(vcID);
+
+        if (r === C_FALSE && env.stop) {
+            await logger(ctx.options || {}, ctx, `C_FALSE && STOP ${cs}`);
+
+            return false;
+        }
+        else if (r === C_FALSE) {
+            // setup the root value
+            await setRootValue(ctx, cs.root, r);
+        }
+        
+        if (cs.constraints && await cs.constraints.size) {
+            console.log("== SON CS ==>", await toString(null, cs.id, ctx));
+            for await (let csID of cs.constraints.values()) {
+                console.log("\t== PARENT CS ==>", await toString(null, csID, ctx));
+            }
+            console.log("== END OF PARENTS!!");
+
+            parentConstraints.add(cs);
+        }
+    }
+
+    await logger(ctx.options || {}, ctx, `constraints are OK - ${cs}`);
+
+    return true;
+} 
 
 async function checkVariableConstraints (ctx, v) {
     // let constraints = v.constraints;
@@ -776,90 +878,9 @@ async function checkVariableConstraints (ctx, v) {
 
     for await (let vcID of v.constraints.values()) {
         const cs = await getVariable(null, vcID, ctx);
-
         const env = await constraintEnv(ctx, cs);
 
-        if (!env.check) {
-            continue;
-        }
-
-        let r;
-        switch (cs.op) {
-            // Set Operators,
-            case IN:
-                r = await checkVariableConstraintsIn(definitionDB, ctx, cs, env);
-                break;
-
-            case UNION:
-                throw 'checkVariableConstraints: Union';
-                break;
-
-            // Identity Operators, 
-            case UNIFY:
-                r = await checkVariableConstraintsUnify(ctx, cs, env);
-                break;
-
-            case NOT_UNIFY:
-                r = await checkVariableConstraintsNotUnify(ctx, cs, env);
-                break;
-
-            // Logical Operators,
-            case OR:
-                r = await checkOrConstrain(ctx, cs, env);
-                break;
-
-            case AND:
-                r = await checkAndConstrain(ctx, cs, env);
-                break;
-                
-            // Math Operators,
-            case ADD:
-            case SUB:
-            case MUL:
-            case DIV:
-            case MOD:
-                r = await checkNumberOperationsConstrain(ctx, cs, env);
-                break;
-
-            case BELOW:
-            case BELOW_OR_EQUAL:
-            case ABOVE:
-            case ABOVE_OR_EQUAL:
-                r = await checkNumberRelationConstrain(ctx, cs, env);
-                break;
-            
-            // Function,
-            case FUNCTION:
-            case UNIQUE:
-                r = await checkUniqueIndexConstrain(ctx, cs, env);
-                break;
-
-            default:
-                throw cs.op + ' [checkVariableConstraints] NOT IMPLEMENTED!!'
-        }
-
-        // await debugConstraint(ctx, cs.id, r);
-
-        if (r !== C_UNKNOWN) {
-            // remove constraints,
-            // constraints = await constraints.remove(vcID);
-
-            if (r === C_FALSE && env.stop) {
-                await logger(options, ctx, `C_FALSE && STOP ${cs}`);
-
-                return false;
-            }
-            else if (r === C_FALSE) {
-                // setup the root value
-                await setRootValue(ctx, cs.root, r);
-            }
-            
-            if (cs.constraints && await cs.constraints.size) {
-                parentConstraints.add(cs);
-            }
-        }
-
-        await logger(options, ctx, `constraints are OK - ${cs}`);
+        await evalConstraint(ctx, cs, env, parentConstraints);
     }
 
     /*
@@ -874,7 +895,7 @@ async function checkVariableConstraints (ctx, v) {
         const r = await checkVariableConstraints(ctx, cs);
 
         if (r === false) {
-            await logger(options, ctx, `Parent Constraints - Fail - ${JSON.stringify(cs)}`);
+            await logger(options, ctx, `Parent Constraints - Fail - ${cs}`);
             return false;
         }
     }
@@ -885,6 +906,8 @@ async function checkVariableConstraints (ctx, v) {
 
 module.exports = {
     checkVariableConstraints,
-    setVariable
+    setVariable,
+    constraintEnv,
+    evalConstraint
 };
 

@@ -15,7 +15,9 @@ const {
 } = require('./operations');
 
 const {
-    checkVariableConstraints
+    checkVariableConstraints,
+    constraintEnv,
+    evalConstraint
 } = require('./operations/built-in/constraints');
 
 
@@ -163,13 +165,10 @@ async function __unifyDomain (
     }
 }
 
-function rootValue () {
-
-}
-
 async function solveConstraints (branch, options) {
     const ctx = {
         parent: branch,
+        branch: branch, // TODO user parent branch, no need to send this,
         root: await branch.data.root,
         level: (await branch.data.level + 1),
         variables: await branch.data.variables,
@@ -206,18 +205,18 @@ async function solveConstraints (branch, options) {
                 unsolvedConstraints = await unsolvedConstraints.remove(cs.id);
             }
             else {
-                // check parent, 
-                console.log("CS ["+ cs.id +"] ==>", await toString(null, cs.id, ctx));
+                const env = await constraintEnv(ctx, cs);
 
-                if (cs.root) {
-                    const root = await getVariable(null, cs.root.csID, ctx);
+                if (env.check) {
+                    fail = !(await evalConstraint(ctx, cs, env, new Set()));
+                }
+                else {
+                    console.log("THIS WILL NEVER BE CHECKED!!");
+                    unsolvedConstraints = await unsolvedConstraints.remove(cs.id);
+                }
 
-                    fail = !(await checkVariableConstraints(ctx, cs));
-                    console.log(" ==> [2] ["+ cs.id +"] CS ==>", await toString(null, cs.id, ctx));
-
-                    if (fail) {
-                        break;
-                    }
+                if (fail) {
+                    break;
                 }
             }
 
@@ -230,6 +229,10 @@ async function solveConstraints (branch, options) {
         ctx.unsolvedConstraints = unsolvedConstraints;
     }
     while (size !== resultSize);
+
+    for await (let csID of ctx.unsolvedConstraints.values()) {
+        console.log(" RR => ", await toString(null, csID, ctx)); 
+    }
 
     if (changes > 0) {
         await createBranch(
@@ -330,6 +333,7 @@ async function expand (
 
     console.log("TODO: [expand] first solve unsolvedVariables!!");
 
+    throw 'EVERYTHING SHOULD BE UNSOLVED VARS; HAS LONG THEY HAVE CONSTRAINTS!'; 
     const unsolvedConstraints = await branch.data.unsolvedConstraints;
     if (await unsolvedConstraints.size) {
         const r = await solveConstraints(branch, options);
