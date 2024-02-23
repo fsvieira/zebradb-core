@@ -344,20 +344,12 @@ async function expand (
     selector, 
     definitions
 ) {
-    // const state = await branch.data.state;
-
     const setsInDomains = await branch.data.setsInDomains;
     for await (let e of setsInDomains.values()) {
         const v = await getVariable(branch, e);
         const d = await getVariable(branch, v.domain);
 
         if (await d.elements.size === 0) {
-            /*r = await unifyDomain(
-                branch,
-                options,
-                id,
-                v.domain,
-            );*/
             const r = await setIn(
                 branch, 
                 options, 
@@ -371,7 +363,11 @@ async function expand (
         }
     }
 
-    console.log("TODO: [expand] first solve unsolvedVariables!!");
+    console.log(
+        "TODO: [expand] first solve unsolvedVariables!!" +
+        " --> unsolvedVariables are only domains + constraints!"
+    );
+
 
     // throw 'EVERYTHING SHOULD BE UNSOLVED VARS; HAS LONG THEY HAVE CONSTRAINTS!'; 
     const unsolvedConstraints = await branch.data.unsolvedConstraints;
