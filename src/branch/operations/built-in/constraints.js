@@ -604,6 +604,7 @@ async function checkVariableConstraintsIn (definitionDB, ctx, cs, env) {
                 bv.definition, 
                 rootEl.element,
                 definitionDB,
+                true,
                 true
             );
 

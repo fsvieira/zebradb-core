@@ -23,6 +23,7 @@ const query = async (options, rDB, set, branchID, definitionsDB) => {
         variables: rDB.iMap(),
         constraints: rDB.iSet(),
         unsolvedConstraints: rDB.iSet(),
+        extendSets: rDB.iSet(),
         unsolvedVariables: rDB.iSet(),
         children: [],
         state: 'split',
@@ -36,7 +37,8 @@ const query = async (options, rDB, set, branchID, definitionsDB) => {
         resultsID,
         queryRootBranch,
         set, 
-        definitionsDB
+        definitionsDB,
+        true
     );
 
 }

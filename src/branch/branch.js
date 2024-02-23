@@ -60,6 +60,7 @@ async function setIn (branch, options, set, element) {
         setsInDomains: await branch.data.setsInDomains,
         constraints: await branch.data.constraints,
         unsolvedConstraints: await branch.data.unsolvedConstraints,
+        extendSets: await branch.data.extendSets,
         unsolvedVariables: await branch.data.unsolvedVariables,
         unchecked: await branch.data.unchecked,
         checked: await branch.data.checked,
@@ -84,7 +85,7 @@ async function setIn (branch, options, set, element) {
 
     for (let i=0; i<s.elements.length; i++) {
         const id = s.elements[i];
-        const eID = await copyPartialTerm(ctx, definition, id, null, true);
+        const eID = await copyPartialTerm(ctx, definition, id, null, false, true);
         elements.push(eID);
     }
 
@@ -215,6 +216,7 @@ async function solveConstraints (branch, options) {
         unchecked: await branch.data.unchecked,
         constraints: await branch.data.constraints,
         unsolvedConstraints: await branch.data.unsolvedConstraints,
+        extendSets: await branch.data.extendSets,
         unsolvedVariables: await branch.data.unsolvedVariables,
         variableCounter: await branch.data.variableCounter,
         setsInDomains: await branch.data.setsInDomains,
@@ -280,6 +282,7 @@ async function solveConstraints (branch, options) {
             ctx.variables,
             ctx.constraints,
             ctx.unsolvedConstraints,
+            ctx.extendSets,
             ctx.unsolvedVariables,
             ctx.setsInDomains,
             ctx.log        
@@ -304,6 +307,7 @@ async function executeConstraints (options, definitionDB, branch, v) {
         unchecked: await branch.data.unchecked,
         constraints: await branch.data.constraints,
         unsolvedConstraints: await branch.data.unsolvedConstraints,
+        extendSets: await branch.data.extendSets,
         unsolvedVariables: await branch.data.unsolvedVariables,
         variableCounter: await branch.data.variableCounter,
         children: await branch.data.children,
@@ -328,6 +332,7 @@ async function executeConstraints (options, definitionDB, branch, v) {
         ctx.variables,
         ctx.constraints,
         ctx.unsolvedConstraints,
+        ctx.extendSets,
         ctx.unsolvedVariables,
         ctx.setsInDomains,
         ctx.log        
@@ -335,6 +340,54 @@ async function executeConstraints (options, definitionDB, branch, v) {
 
     return changes;
     // throw 'Create New Branch';
+}
+
+async function extendSet (branch, setID) {
+    const ctx = {
+        parent: branch,
+        branch: branch, // TODO user parent branch, no need to send this,
+        root: await branch.data.root,
+        level: (await branch.data.level + 1),
+        variables: await branch.data.variables,
+        checked: await branch.data.checked,
+        unchecked: await branch.data.unchecked,
+        constraints: await branch.data.constraints,
+        unsolvedConstraints: await branch.data.unsolvedConstraints,
+        extendSets: await branch.data.extendSets,
+        unsolvedVariables: await branch.data.unsolvedVariables,
+        variableCounter: await branch.data.variableCounter,
+        setsInDomains: await branch.data.setsInDomains,
+        children: await branch.data.children,
+        log: await branch.data.log,
+        rDB: branch.table.db
+    };
+
+    const {varCounter, newVar} = varGenerator(ctx.variableCounter + 1); 
+
+    ctx.newVar = newVar;
+
+    // TODO: DO STUFF HERE,
+
+    await createBranch(
+        options,
+        fail,
+        branch,
+        varCounter,
+        ctx.level,
+        ctx.checked,
+        ctx.unchecked,
+        ctx.variables,
+        ctx.constraints,
+        ctx.unsolvedConstraints,
+        ctx.extendSets,
+        ctx.unsolvedVariables,
+        ctx.setsInDomains,
+        ctx.log        
+    );
+
+    await branch.update({state: 'split'});
+
+    return true;
 }
 
 async function expand (
@@ -377,6 +430,16 @@ async function expand (
         if (r) {
             return r;
         }
+    }
+
+    console.log("Extandable Set!!");
+    const extendSets = await branch.data.extendSets;
+    for await (let sID of extendSets.values()) {
+        /*const set = await getVariable(branch, sID);
+        console.log(set);
+        
+        console.log("EXTEND SET ", await toString(branch, sID));*/
+        const r = await extendSet(branch, sID);
     }
 
     // else 
@@ -514,7 +577,8 @@ async function createBranchMaterializedSet (
     id, 
     parentBranch, 
     definitionElement, 
-    definitionsDB
+    definitionsDB,
+    extendSets=false
 ) {
     // get branch shared data,
     
@@ -527,6 +591,7 @@ async function createBranchMaterializedSet (
         unchecked: await parentBranch.data.unchecked,
         constraints: await parentBranch.data.constraints,
         unsolvedConstraints: await parentBranch.data.unsolvedConstraints,
+        extendSets: await parentBranch.data.extendSets,
         unsolvedVariables: await parentBranch.data.unsolvedVariables,
         variableCounter: await parentBranch.data.variableCounter,
         children: [],
@@ -576,7 +641,8 @@ async function createBranchMaterializedSet (
             ctx, 
             definitionElement, 
             root, 
-            definitionsDB, 
+            definitionsDB,
+            extendSets,
             true
         );
 
@@ -711,6 +777,7 @@ async function merge (options, rDB, branchA, branchB) {
         unchecked: await branchA.data.unchecked,
         constraints: await branchA.data.constraints,
         unsolvedConstraints: await branchA.data.unsolvedConstraints,
+        extendSets: await branchA.data.extendSets,
         unsolvedVariables: await branchA.data.unsolvedVariables,
         variableCounter,
         state: 'yes',

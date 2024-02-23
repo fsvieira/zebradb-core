@@ -71,14 +71,19 @@ async function unifyMsMs (ctx, p, q) {
         if (s.elements.length === 1) {
             const copyID = s.elements[0];
             for await (let id of a.elements.values()) {
-                const eID = await copyPartialTerm(ctx, definition, copyID, null, true);
+                const eID = await copyPartialTerm(ctx, definition, copyID, null, true, true);
                 await doUnify(ctx, id, eID);
             }
+
+            ctx.extendSets = await ctx.extendSets.add(b.id);
+            console.log("TODO: rules to add extended set: it must be able to create elements, and set is not full!");
+
         }
         else {
             throw 'UnifyMsMs : TODO handle sets with more than one element def!';
         }
-        
+
+
         ctx.variables = await ctx.variables.set(b.id, {
             ...b,
             defer: a.id
@@ -197,6 +202,7 @@ async function deepUnify(
         variables: ctx.variables,
         constraints: ctx.constraints,
         unsolvedConstraints: ctx.unsolvedConstraints,
+        extendSets: ctx.extendSets,
         unsolvedVariables: unsolvedVariablesClean,
         setsInDomains: ctx.setsInDomains,
         unchecked: ctx.unchecked, 
@@ -253,6 +259,7 @@ async function createBranch (
     variables,
     constraints,
     unsolvedConstraints,
+    extendSets,
     unsolvedVariables,
     setsInDomains,
     log
@@ -271,6 +278,7 @@ async function createBranch (
             variables,
             constraints,
             unsolvedConstraints,
+            extendSets,
             unsolvedVariables,
             setsInDomains
         });
@@ -301,6 +309,7 @@ async function createBranch (
         variables,
         constraints,
         unsolvedConstraints,
+        extendSets,
         unsolvedVariables,
         setsInDomains,
         children: [],
@@ -328,6 +337,7 @@ async function unify (branch, options, tuple, definitionID, definition) {
         variables: await branch.data.variables,
         constraints: await branch.data.constraints,
         unsolvedConstraints: await branch.data.unsolvedConstraints,
+        extendSets: await branch.data.extendSets,
         unsolvedVariables: await branch.data.unsolvedVariables,
         unchecked: await branch.data.unchecked,
         checked: await branch.data.checked,
@@ -348,6 +358,7 @@ async function unify (branch, options, tuple, definitionID, definition) {
         variables, constraints, 
         unsolvedVariables, unchecked,
         unsolvedConstraints,
+        extendSets,
         setsInDomains,
         checked, fail, log
     } = await deepUnify(
@@ -372,6 +383,7 @@ async function unify (branch, options, tuple, definitionID, definition) {
         variables,
         constraints,
         unsolvedConstraints,
+        extendSets,
         unsolvedVariables,
         setsInDomains,
         log        
