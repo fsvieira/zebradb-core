@@ -710,24 +710,14 @@ async function setRootValue (ctx, root, value) {
 async function constraintEnv (ctx, cs) {
     const r = {stop: true, eval: true, check: true};
 
-    console.log(
-        `==> CS ===> ${await toString(null, cs.id, ctx)}\n` 
-    );
-
     if (cs.root) {
         const root = await getVariable(null, cs.root.csID, ctx);
 
-        const side = cs.root.side;
-        const csValue = root[`${side}Value`]
-        const oValue = root[`${side === 'a' ? 'b':'a'}Value`];
-
-        console.log(
-            `==> ROOT ==> ${await toString(null, root.id, ctx)}\n` 
-        );
-
-
         if (root.op === OR) {
-
+            const side = cs.root.side;
+            const csValue = root[`${side}Value`] || root.state;
+            const oValue = root[`${side === 'a' ? 'b':'a'}Value`] || root.state;
+    
             if (csValue === undefined && oValue === undefined) {
                 return {stop: false, eval: false, check: true};
             }
@@ -755,7 +745,6 @@ async function constraintEnv (ctx, cs) {
         }
     }
 
-    console.log(r);
     return r;
 }
 

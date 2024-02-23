@@ -165,6 +165,51 @@ async function __unifyDomain (
     }
 }
 
+const hasValue = v => [C_TRUE, C_FALSE].includes(v);
+
+async function isSolved (ctx, id) {
+
+    const cs = await getVariable(null, id, ctx);
+
+    console.log("==> SOLVED ?? ==>" , await toString(null, id, ctx));
+
+    if (hasValue(cs.state)) {
+        return true;
+    }
+
+    let root = cs.root;
+
+    while (root) {
+        const {csID, side} = root;
+        const rootCs = await getVariable(null, csID, ctx);
+        const csValue = rootCs[`${side}Value`] || rootCs.state;
+        const oValue = rootCs[`${side === 'a' ? 'b':'a'}Value`] || rootCs.state;
+
+        if (hasValue(csValue)) {
+            return true;
+        }
+        else if (hasValue(oValue)) {
+            // return isSolved(ctx, csID);
+            root = rootCs.root;
+        }
+        else {
+            root = null;
+        }
+    }
+        /*
+        console.log(root, csValue, oValue);
+
+        if (hasValue(root.state)) {
+            return true;
+        }
+        else if (csValue === C_FALSE || hasValue(oValue)) {
+            throw 'CHECK VALUES';
+        }*/
+        // return hasValue(csValue);
+
+    return false;
+}
+
 async function solveConstraints (branch, options) {
     const ctx = {
         parent: branch,
@@ -201,10 +246,26 @@ async function solveConstraints (branch, options) {
         for await (let csID of ctx.unsolvedConstraints.values()) {
             const cs = await getVariable(null, csID, ctx);
 
-            if ([C_TRUE, C_FALSE].includes(cs.state)) {
+            console.log("== solve " + branch.id +"=== ")
+            const solved = await isSolved(ctx, cs.id);
+            console.log(" SOLVED => ", solved, await toString(null, csID, ctx)); 
+
+            console.log("== solve end " + branch.id + " === ")
+
+            if (solved) {
                 unsolvedConstraints = await unsolvedConstraints.remove(cs.id);
             }
             else {
+                const env = await constraintEnv(ctx, cs);
+                fail = !(await evalConstraint(ctx, cs, env, new Set()));
+
+                if (fail) {
+                    break;
+                }
+
+                // throw 'NOT SOLVED!';
+
+                /*
                 const env = await constraintEnv(ctx, cs);
 
                 if (env.check) {
@@ -217,7 +278,7 @@ async function solveConstraints (branch, options) {
 
                 if (fail) {
                     break;
-                }
+                }*/
             }
 
         }
@@ -227,15 +288,20 @@ async function solveConstraints (branch, options) {
         changes += size - resultSize;
 
         ctx.unsolvedConstraints = unsolvedConstraints;
+
+        if (fail) {
+            break;
+        }
     }
     while (size !== resultSize);
 
+    console.log("SS ==> ", size, resultSize);
     for await (let csID of ctx.unsolvedConstraints.values()) {
         console.log(" RR => ", await toString(null, csID, ctx)); 
     }
 
     if (changes > 0) {
-        await createBranch(
+        const newBranch = await createBranch(
             options,
             fail,
             branch,
@@ -252,6 +318,9 @@ async function solveConstraints (branch, options) {
         );
 
         await branch.update({state: 'split'});
+
+        console.log("NEW BRANCH ", await toString(newBranch, await branch.data.root));
+
     }
 }
 
@@ -279,7 +348,7 @@ async function executeConstraints (options, definitionDB, branch, v) {
 
     const fail = !(await checkVariableConstraints(ctx, v));
     
-    await createBranch(
+    const newBranch = await createBranch(
         options,
         fail,
         branch,
@@ -295,6 +364,8 @@ async function executeConstraints (options, definitionDB, branch, v) {
         ctx.log        
     );
 
+    console.log("New Branch => ", await toString(newBranch, ctx.root));
+    return changes;
     // throw 'Create New Branch';
 }
 
@@ -327,14 +398,22 @@ async function expand (
 
             await branch.update({state: 'split'});
 
+            console.log("TODO: why not make all domains ??")
             return r;
         }
     }
 
     console.log("TODO: [expand] first solve unsolvedVariables!!");
 
-    throw 'EVERYTHING SHOULD BE UNSOLVED VARS; HAS LONG THEY HAVE CONSTRAINTS!'; 
+    console.log("START ", await toString(branch, await branch.data.root));
+
+    // throw 'EVERYTHING SHOULD BE UNSOLVED VARS; HAS LONG THEY HAVE CONSTRAINTS!'; 
     const unsolvedConstraints = await branch.data.unsolvedConstraints;
+
+    for await (let csID of unsolvedConstraints.values()) {
+        console.log("START RR => ", await toString(branch, csID)); 
+    }
+
     if (await unsolvedConstraints.size) {
         const r = await solveConstraints(branch, options);
         if (r) {
