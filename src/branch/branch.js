@@ -366,6 +366,16 @@ async function extendSet (branch, setID) {
 
     ctx.newVar = newVar;
 
+    const set = await getVariable(null, setID, ctx);
+
+    const {definition: {variables, root}} = set;
+
+    const setDef = variables[root];
+    const elementID = setDef.elements[0];
+    const element = variables[elementID];
+
+    throw 'DEF IS BRAVE DEF; NOT ELEMENT SET!!';
+
     // TODO: DO STUFF HERE,
 
     await createBranch(
