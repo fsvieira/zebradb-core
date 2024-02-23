@@ -378,10 +378,11 @@ async function createMaterializedSet (
         domain 
     } = v;
     
+    /*
     if (expression) {
         const exp = await getVarname(expression);
         ctx.constraints = await ctx.constraints.add(exp);
-    }
+    }*/
     
     if (indexes) {
         await logger(ctx.options, ctx, `Create Indexes : ${JSON.stringify(indexes)}`);

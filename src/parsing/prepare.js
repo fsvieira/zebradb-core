@@ -119,11 +119,6 @@ function __termSetConstraints (ctx, t) {
             // create constraint:
             return term(ctx, idx);
         });
-
-
-        // indexes.forEach(v => term(ctx, {...v, setID: cid}));
-
-        console.log("INDEXES!!");
     }
 
     const v = term(ctx, {

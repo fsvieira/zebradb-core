@@ -833,12 +833,6 @@ async function evalConstraint (ctx, cs, env, parentConstraints) {
         }
         
         if (cs.constraints && await cs.constraints.size) {
-            console.log("== SON CS ==>", await toString(null, cs.id, ctx));
-            for await (let csID of cs.constraints.values()) {
-                console.log("\t== PARENT CS ==>", await toString(null, csID, ctx));
-            }
-            console.log("== END OF PARENTS!!");
-
             parentConstraints.add(cs);
         }
     }

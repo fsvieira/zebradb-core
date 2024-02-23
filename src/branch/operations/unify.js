@@ -356,6 +356,11 @@ async function unify (branch, options, tuple, definitionID, definition) {
         definitionID
     );
 
+    console.log("DEEP UNIFY - START DUMP UNSOLVED CONSTRAINTS!!");
+    for await (let csID of unsolvedConstraints.values()) {
+        console.log("DEEP UNIFY RR => ", await toString(null, csID, ctx)); 
+    }
+
     await createBranch(
         options,
         fail,

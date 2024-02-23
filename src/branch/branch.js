@@ -102,6 +102,12 @@ async function setIn (branch, options, set, element) {
     const children = (await branch.data.children).concat([newBranch]);
     branch.update({children});
 
+    console.log("SET IN NEW-BRANCH - START DUMP UNSOLVED CONSTRAINTS!!");
+    for await (let csID of ctx.unsolvedConstraints.values()) {
+        console.log("SET IN NEW-BRANCH RR => ", await toString(null, csID, ctx)); 
+    }
+
+
     const branches = [];
     for (let i=0; i<elements.length; i++) {
         const eID = elements[i];
@@ -171,8 +177,6 @@ async function isSolved (ctx, id) {
 
     const cs = await getVariable(null, id, ctx);
 
-    console.log("==> SOLVED ?? ==>" , await toString(null, id, ctx));
-
     if (hasValue(cs.state)) {
         return true;
     }
@@ -196,16 +200,6 @@ async function isSolved (ctx, id) {
             root = null;
         }
     }
-        /*
-        console.log(root, csValue, oValue);
-
-        if (hasValue(root.state)) {
-            return true;
-        }
-        else if (csValue === C_FALSE || hasValue(oValue)) {
-            throw 'CHECK VALUES';
-        }*/
-        // return hasValue(csValue);
 
     return false;
 }
@@ -246,11 +240,7 @@ async function solveConstraints (branch, options) {
         for await (let csID of ctx.unsolvedConstraints.values()) {
             const cs = await getVariable(null, csID, ctx);
 
-            console.log("== solve " + branch.id +"=== ")
             const solved = await isSolved(ctx, cs.id);
-            console.log(" SOLVED => ", solved, await toString(null, csID, ctx)); 
-
-            console.log("== solve end " + branch.id + " === ")
 
             if (solved) {
                 unsolvedConstraints = await unsolvedConstraints.remove(cs.id);
@@ -262,23 +252,6 @@ async function solveConstraints (branch, options) {
                 if (fail) {
                     break;
                 }
-
-                // throw 'NOT SOLVED!';
-
-                /*
-                const env = await constraintEnv(ctx, cs);
-
-                if (env.check) {
-                    fail = !(await evalConstraint(ctx, cs, env, new Set()));
-                }
-                else {
-                    console.log("THIS WILL NEVER BE CHECKED!!");
-                    unsolvedConstraints = await unsolvedConstraints.remove(cs.id);
-                }
-
-                if (fail) {
-                    break;
-                }*/
             }
 
         }
@@ -294,11 +267,6 @@ async function solveConstraints (branch, options) {
         }
     }
     while (size !== resultSize);
-
-    console.log("SS ==> ", size, resultSize);
-    for await (let csID of ctx.unsolvedConstraints.values()) {
-        console.log(" RR => ", await toString(null, csID, ctx)); 
-    }
 
     if (changes > 0) {
         const newBranch = await createBranch(
@@ -319,9 +287,10 @@ async function solveConstraints (branch, options) {
 
         await branch.update({state: 'split'});
 
-        console.log("NEW BRANCH ", await toString(newBranch, await branch.data.root));
-
+        return true;
     }
+
+    return false;
 }
 
 async function executeConstraints (options, definitionDB, branch, v) {
@@ -364,7 +333,6 @@ async function executeConstraints (options, definitionDB, branch, v) {
         ctx.log        
     );
 
-    console.log("New Branch => ", await toString(newBranch, ctx.root));
     return changes;
     // throw 'Create New Branch';
 }
@@ -405,14 +373,8 @@ async function expand (
 
     console.log("TODO: [expand] first solve unsolvedVariables!!");
 
-    console.log("START ", await toString(branch, await branch.data.root));
-
     // throw 'EVERYTHING SHOULD BE UNSOLVED VARS; HAS LONG THEY HAVE CONSTRAINTS!'; 
     const unsolvedConstraints = await branch.data.unsolvedConstraints;
-
-    for await (let csID of unsolvedConstraints.values()) {
-        console.log("START RR => ", await toString(branch, csID)); 
-    }
 
     if (await unsolvedConstraints.size) {
         const r = await solveConstraints(branch, options);
@@ -596,6 +558,11 @@ async function createBranchMaterializedSet (
             log,
             branchID: `${parentBranch.id}-empty`
         }, null);
+
+        console.log("EMPTY BRANCH - START DUMP UNSOLVED CONSTRAINTS!!");
+        for await (let csID of ctx.unsolvedConstraints.values()) {
+            console.log("EMPTY BRANCH RR => ", await toString(null, csID, ctx)); 
+        }    
     }
 
     {
@@ -626,51 +593,10 @@ async function createBranchMaterializedSet (
             }
         );
 
-        /*
-        switch (v.type) {
-            case constants.type.SET: {
-                await createMaterializedSet(
-                    ctx,
-                    definitionsDB, 
-                    definitionElement, 
-                    v,
-                    id
-                );
-                break;
-            }
-
-            default:
-                throw `createMaterializedSet : ${v.type} not defined!`;
-        }
-        */
-
-        /*throw 'createMaterializedSet - SET QUERY!!';
-
-        const element = await copyTerm(
-            ctx, 
-            definitionElement, 
-            definitionsDB, 
-            true
-        );
-
-        const valueResults = {
-            type: constants.type.MATERIALIZED_SET,
-            id,
-            elements: await rDB.iSet().add(element)
-        };
-
-        ctx.variables = await ctx.variables.set(id, valueResults);
-        */
-
         delete ctx.newVar;
         delete ctx.rDB;
 
-        const state = await getContextState(ctx); /*(
-            await ctx.setsInDomains.size ||
-            await ctx.unchecked.size ||
-            await ctx.unsolvedConstraints.size || 
-            await ctx.unsolvedVariables.size
-        ) ? 'maybe' : 'yes';*/
+        const state = await getContextState(ctx);
 
         const message = `state=${state}, root=${await toString(null, ctx.root, ctx, true)}`; 
         const log = await logger(options, {log: ctx.log}, message);
@@ -682,6 +608,11 @@ async function createBranchMaterializedSet (
             log,
             branchID: `${parentBranch.id}-element`
         }, null);
+
+        console.log("ELEMENT BRANCH - START DUMP UNSOLVED CONSTRAINTS!!");
+        for await (let csID of ctx.unsolvedConstraints.values()) {
+            console.log("ELEMENT BRANCH RR => ", await toString(null, csID, ctx)); 
+        }
 
         return branch;
     }
