@@ -21,19 +21,26 @@ const {
 const { v4: uuidv4 } = require('uuid');
 
 async function getContextState(ctx) {
+    console.log("getContextState", {
+        setsInDomains: await ctx.setsInDomains.size,
+        unsolvedConstraints: await ctx.unsolvedConstraints.size,
+        extendSets: await ctx.extendSets.size,
+        unsolvedVariables: await ctx.unsolvedVariables.size
+    });
+
     return (
         await ctx.setsInDomains.size ||
         // await ctx.unchecked.size ||
         await ctx.unsolvedConstraints.size ||
-        await ctx.extendSets.size
-        // await ctx.unsolvedVariables.size
+        await ctx.extendSets.size ||
+        await ctx.unsolvedVariables.size
     ) ? 'maybe' : 'yes';
 
 }
 
 
 async function logger(options, ctx, message) {
-    if (options.log) {
+    if (options && options.log) {
         const stack = new Error().stack;
         ctx.log = await ctx.log.push(message + "\nSTACK=" + stack);
     }
@@ -377,7 +384,7 @@ async function createMaterializedSet (
         size,
         expression,
         indexes,
-        domain 
+        domain
     } = v;
     
     /*
@@ -410,7 +417,7 @@ async function createMaterializedSet (
         id: vn,
         elements,
         defID: v.cid,
-        definition: definitionElement,
+        definition: expression ? definitionElement : null,
         domain: domainID,
         size
     };
@@ -420,7 +427,7 @@ async function createMaterializedSet (
         ctx.unchecked = await ctx.unchecked.add(vn);
     }*/
 
-    if (domain) {
+    if (domain && v.type === SET) {
         ctx.setsInDomains = await ctx.setsInDomains.add(vn);
     }
 
@@ -441,9 +448,14 @@ async function copyPartialTermGlobalVar (
         const def = await definitionDB.search(v);
         const root = def.variables[def.root];
 
-        let value;
+        // let value;
+        let vID;
         switch (root.type) {
             case SET: {
+                vID = await copyPartialTerm(ctx, def, def.root, definitionDB, false, true);
+                break;
+            }
+            /*case SET: {
                 value = {
                     type: MATERIALIZED_SET,
                     setType: root.type, 
@@ -463,27 +475,41 @@ async function copyPartialTermGlobalVar (
                     definition: def
                 };
                 break;
-            }
+            }*/
 
             default:
                 throw 'copyPartialTermGlobalVar not implemented type ' + root.type;
         }
 
-        ctx.variables = await ctx.variables.set(vn, value);
-    }
+        // ctx.variables = await ctx.variables.set(vn, value);
+        ctx.variables = await ctx.variables.set(vn, {
+            ...v,
+            defer: vID
+        });
+    }/*
     else {
         const v = await ctx.variables.get(vn);
         throw 'copyPartialTermGlobalVar IS DONE ??';
-    }
+    }*/
 
 }
 
 async function copyPartialTermConstraint (
     definitionDB, ctx, p, vn, getVarname, v, extendSets, preserveVarname
 ) {
-    const a = await getVarname(p.variables[v.a], extendSets);
-    const b = await getVarname(p.variables[v.b], extendSets);
+    const av = p.variables[v.a];
+    const bv = p.variables[v.b];
+    const a = await getVarname(av, extendSets);
+    const b = await getVarname(bv, extendSets);
     
+    if (av.type === LOCAL_VAR) {
+        ctx.unsolvedVariables = await ctx.unsolvedVariables.add(a);
+    }
+
+    if (bv.type === LOCAL_VAR) {
+        ctx.unsolvedVariables = await ctx.unsolvedVariables.add(b);
+    }
+
     const root = v.root?{
         ...v.root,
         csID: await getVarname(p.variables[v.root.csID], extendSets)
@@ -506,6 +532,7 @@ async function copyPartialTermConstraint (
         constraints,
         id: vn
     });
+
 
     ctx.unsolvedConstraints = await ctx.unsolvedConstraints.add(vn);
 }

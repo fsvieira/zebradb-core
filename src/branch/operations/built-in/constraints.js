@@ -95,12 +95,14 @@ async function setVariableLocalVarConstant (ctx, v, c) {
         const d = await getVariable(null, v.domain, ctx);
         
         switch (d.type) {
-            case SET:
-                if (!d.elements.includes(c.id)) {
+            case MATERIALIZED_SET:
+            // case SET:
+                if (!await d.elements.has(c.id)) {
                     return false;
                 }
 
                 break;
+            
 
             default:
                 throw `setVariableLocalVarConstant Domain ${d.type} not defined!`;
@@ -489,12 +491,16 @@ async function checkVariableConstraintsNotUnify (ctx, cs) {
     else if (sa !== null && sb !== null) {
         state = sa !== sb ? C_TRUE : C_FALSE;
     }
+
+    console.log("TODO: exclude from domain!!");
+    
+    /*
     else if (sa !== null && bv.domain) {
         state = await excludeFromDomain(ctx, av, bv, cs);
     }
     else if (sb !== null && av.domain) {
         state = await excludeFromDomain(ctx, bv, av, cs);
-    }
+    }*/
 
     if (state !== C_UNKNOWN) {
         ctx.variables = await ctx.variables.set(cs.id, {

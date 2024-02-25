@@ -244,8 +244,10 @@ function termLocalVariable (ctx, lv) {
     // this can be done using a scope stack ? 
 
     const cid = ctx.newVar(lv);
-    const v = ctx.variables[cid];
+    const v = ctx.variables[cid] || {...lv, cid};
 
+    ctx.variables[cid] = v;
+    
     // create constraints, 
     // constraints will be set on variable on constraints link phase, 
     // if variable is directly used on any constraint. 
@@ -257,6 +259,15 @@ function termLocalVariable (ctx, lv) {
         throw 'LOCAL VAR INDEXES';
     }
 
+    if (lv.domain) {
+        v.domain = term(ctx, lv.domain);
+    }
+
+    if (lv.indexes) {
+        v.indexes = term(ctx, lv.indexes)
+    }
+
+    /*
     if (!v) {
         ctx.variables[cid] = {
             ...lv, 
@@ -265,7 +276,7 @@ function termLocalVariable (ctx, lv) {
             expression: undefined,
             cid
         };
-    }
+    }*/
 
     return cid;
 }

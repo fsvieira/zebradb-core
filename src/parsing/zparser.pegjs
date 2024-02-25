@@ -81,8 +81,8 @@ localVariable = "'" varname:[_a-zA-Z0-9]* domain:(":" variable:variable {return 
   {
   	return { 
     	type: LOCAL_VAR, 
-		varname: varname.length ? varname.join(""):undefined,
-        domain
+  		varname: varname.length ? varname.join(""):undefined,
+      domain
     } 
   }
 

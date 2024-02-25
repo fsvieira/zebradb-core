@@ -47,12 +47,12 @@ async function toJS (branch, id) {
 
 async function setIn (branch, options, set, element) {
 
-    for await (let e of set.elements.values()) {
-        throw 'setIn SET IS NOT EMPTY!!'
-    }
+    const branches = [];
 
     const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
     
+    const rDB = branch.table.db;
+
     const ctx = {
         parent: branch,
         root: await branch.data.root,
@@ -64,16 +64,28 @@ async function setIn (branch, options, set, element) {
         unsolvedVariables: await branch.data.unsolvedVariables,
         unchecked: await branch.data.unchecked,
         checked: await branch.data.checked,
-        newVar,
         level: await branch.data.level + 1,
-        rDB: branch.table.db,
         // branch,
         log: await branch.data.log,
-        options,
         children: []  
     };
 
     ctx.setsInDomains = await ctx.setsInDomains.remove(element);
+
+    const newBranch1 = await rDB.tables.branches.insert(ctx, null);
+
+    ctx.rDB = rDB;
+    ctx.newVar = newVar;
+    ctx.options = options;
+
+    for await (let eID of set.elements.values()) {
+        branches.push(await unify(newBranch1, options, eID, element));
+    }
+        
+    if (branches.length) {
+        return branches;
+    }
+        
 
     const elements = [];
     const {
@@ -91,7 +103,6 @@ async function setIn (branch, options, set, element) {
 
     ctx.variableCounter = varCounter();
     ctx.state = 'split';
-    const rDB = ctx.rDB;
     delete ctx.newVar;
     delete ctx.options;
     delete ctx.rDB;
@@ -108,8 +119,6 @@ async function setIn (branch, options, set, element) {
         console.log("SET IN NEW-BRANCH RR => ", await toString(null, csID, ctx)); 
     }
 
-
-    const branches = [];
     for (let i=0; i<elements.length; i++) {
         const eID = elements[i];
 
@@ -368,17 +377,30 @@ async function extendSet (branch, setID) {
 
     const set = await getVariable(null, setID, ctx);
 
-    const {definition: {variables, root}} = set;
+    ctx.extendSets = ctx.extendSets.remove(setID);
 
-    const setDef = variables[root];
-    const elementID = setDef.elements[0];
-    const element = variables[elementID];
+    if (set.definition) {
+        const {definition: {variables, root}, defID=root} = set;
 
-    throw 'DEF IS BRAVE DEF; NOT ELEMENT SET!!';
+        const setDef = variables[defID];
+        const copyID = setDef.elements[0];
 
-    // TODO: DO STUFF HERE,
+        const eID = await copyPartialTerm(ctx, set.definition, copyID, null, true, true);
 
-    await createBranch(
+        set.elements = await set.elements.add(eID);
+
+        ctx.variables = await ctx.variables.set(set.id, set);
+
+    }
+    else {
+        console.log("TODO: ONLY VALID SETS SHOULD BE HERE!!");
+        return false;
+    }
+    
+    const options = {};
+    const fail = false;
+
+    const newBranch = await createBranch(
         options,
         fail,
         branch,
@@ -396,7 +418,9 @@ async function extendSet (branch, setID) {
     );
 
     await branch.update({state: 'split'});
+        
 
+    console.log(await toString(newBranch, ctx.root));
     return true;
 }
 
@@ -407,12 +431,14 @@ async function expand (
     selector, 
     definitions
 ) {
+    options.definitionDB = definitionDB;
+    
     const setsInDomains = await branch.data.setsInDomains;
     for await (let e of setsInDomains.values()) {
         const v = await getVariable(branch, e);
         const d = await getVariable(branch, v.domain);
 
-        if (await d.elements.size === 0) {
+        // if (await d.elements.size === 0) {
             const r = await setIn(
                 branch, 
                 options, 
@@ -423,7 +449,17 @@ async function expand (
 
             console.log("TODO: why not make all domains ??")
             return r;
-        }
+        /*}
+        else {
+        }*/
+    }
+
+    const unsolvedVariables = await branch.data.unsolvedVariables;
+    for await (let vID of unsolvedVariables.values()) {
+        const v = await getVariable(branch, vID);
+
+        console.log("SOLVE UNSOLVED VARIABLES " , v);
+        throw 'SOLVE UNSOLVED VARIABLES';
     }
 
     console.log(
@@ -450,10 +486,15 @@ async function expand (
         
         console.log("EXTEND SET ", await toString(branch, sID));*/
         const r = await extendSet(branch, sID);
+        if (!r) {
+            return r; 
+        }
     }
 
     // else 
-    throw 'expand : next steps!!';
+    /// throw 'expand : next steps!!';
+
+    return false;
 
     /*let r;
     if (await branch.data.setsInDomains.size) {

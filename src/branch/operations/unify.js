@@ -45,6 +45,7 @@ const FN_FALSE = async () => false;
 
 async function unifyMsMs (ctx, p, q) {
 
+    const {definitionDB} = ctx.options;
     let aSize = await p.elements.size;
     let bSize = await q.elements.size;
 
@@ -71,9 +72,15 @@ async function unifyMsMs (ctx, p, q) {
         if (s.elements.length === 1) {
             const copyID = s.elements[0];
             for await (let id of a.elements.values()) {
-                const eID = await copyPartialTerm(ctx, definition, copyID, null, true, true);
+                const eID = await copyPartialTerm(ctx, definition, copyID, definitionDB, true, true);
                 await doUnify(ctx, id, eID);
             }
+
+            ctx.variables = await ctx.variables.set(a.id, {
+                ...a,
+                defID,
+                definition
+            });
 
             ctx.extendSets = await ctx.extendSets.add(b.id);
             console.log("TODO: rules to add extended set: it must be able to create elements, and set is not full!");
