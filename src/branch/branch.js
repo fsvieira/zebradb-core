@@ -433,6 +433,7 @@ async function expand (
 ) {
     options.definitionDB = definitionDB;
     
+    console.log("Sets In Domains ", await toString(branch, await branch.data.root));
     const setsInDomains = await branch.data.setsInDomains;
     for await (let e of setsInDomains.values()) {
         const v = await getVariable(branch, e);
@@ -454,12 +455,24 @@ async function expand (
         }*/
     }
 
-    const unsolvedVariables = await branch.data.unsolvedVariables;
-    for await (let vID of unsolvedVariables.values()) {
-        const v = await getVariable(branch, vID);
+    console.log("Unsolved Vars ", await toString(branch, await branch.data.root));
 
+    const unsolvedVariables = await branch.data.unsolvedVariables;
+    for await (let e of unsolvedVariables.values()) {
+        const v = await getVariable(branch, e);
+        const d = await getVariable(branch, v.domain);
+
+        const r = await setIn(
+            branch, 
+            options, 
+            d, e
+        );
+
+        await branch.update({state: 'split'});
+
+        return r;
         console.log("SOLVE UNSOLVED VARIABLES " , v);
-        throw 'SOLVE UNSOLVED VARIABLES';
+//        throw 'SOLVE UNSOLVED VARIABLES';
     }
 
     console.log(
@@ -491,10 +504,10 @@ async function expand (
         }
     }
 
-    // else 
-    /// throw 'expand : next steps!!';
+    console.log("END!!", await toString(branch, await branch.data.root));
 
-    return false;
+    // else 
+    throw 'expand : next steps!!';
 
     /*let r;
     if (await branch.data.setsInDomains.size) {
