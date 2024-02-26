@@ -714,12 +714,15 @@ async function createBranchMaterializedSet (
         // const v = variables[root];
 
         // Set elements branch to be evaluated.
-        const {varCounter, newVar} = varGenerator(ctx.variableCounter + 1); 
+        // const {varCounter, newVar} = varGenerator(ctx.variableCounter + 1); 
 
+        /*
         ctx.variables = parentVariables;
         ctx.newVar = newVar;
         ctx.rDB = rDB;
+        */
 
+        throw 'SEND BranchContext to copyPartialTerm ...';
         const setID = await copyPartialTerm(
             ctx, 
             definitionElement, 
