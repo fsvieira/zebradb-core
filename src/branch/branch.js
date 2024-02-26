@@ -688,20 +688,25 @@ async function createBranchMaterializedSet (
 
         // const variables = await parentVariables.set(id, emptyResults);
      
-        const log = await logger(options, {log: ctx.log}, "Create Empty Set Results");
+        // const log = await logger(options, {log: ctx.log}, "Create Empty Set Results");
 
-        await rDB.tables.branches.insert({
+        await ctxEmpty.logger("Create Empty Set Results");
+        ctxEmpty.state = 'yes';
+        ctxEmpty.branchID = `${parentBranch.id}-empty`;
+
+        await ctxEmpty.saveBranch();
+        /*await rDB.tables.branches.insert({
             ...ctx,
             state: 'yes',
             variables,
             log,
             branchID: `${parentBranch.id}-empty`
-        }, null);
+        }, null);*/
 
-        console.log("EMPTY BRANCH - START DUMP UNSOLVED CONSTRAINTS!!");
+        /*console.log("EMPTY BRANCH - START DUMP UNSOLVED CONSTRAINTS!!");
         for await (let csID of ctx.unsolvedConstraints.values()) {
             console.log("EMPTY BRANCH RR => ", await toString(null, csID, ctx)); 
-        }    
+        }*/   
     }
 
     {
