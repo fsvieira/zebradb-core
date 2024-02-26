@@ -62,49 +62,6 @@ class QueryEngine {
             for await (let id of unchecked.values()) {
                 return id;
             }
-
-            /*const cache = {};
-
-            const tupleVars = async (id) => {
-                let count = cache[id];
-
-                if (count !== undefined) {
-                    return count;
-                }   
-                else {
-                    const v = await branchOps.getVariable(branch, id);
-                    count = 0;
-
-                    if (v.v) {
-                        count += 1;
-                    }
-                    else if (v.t) {
-                        cache[id] = 0;
-                        for (let i=0; i<v.t.length; i++) {
-                            count += await tupleVars(v.t[i]);
-                        }
-                    }
-                }
-
-                cache[id] = count;
-                return count;
-            }
-
-
-            const unchecked = await branch.data.unchecked;
-            // let index = Math.round((unchecked.size - 1) * Math.random());
-
-
-            let t, max;
-            for await (let id of unchecked.values()) {
-                const m = tupleVars(id);
-                if (!max || m > max) {
-                    max = m;
-                    t = id;
-                }
-            }
-
-            return t;*/
         }
 
         const definitions = async tuple => this.db.search(tuple);
@@ -132,17 +89,6 @@ class QueryEngine {
             else {
                 await branch.update({state: 'stop'});
             }
-
-            /*
-            let mergeBranch;
-            for await (let branch of branches.findByIndex({state: 'yes'})) {
-                if (!mergeBranch) {
-                    mergeBranch = branch;
-                }
-                else {
-                    mergeBranch = await branchOps.merge(this.rDB, mergeBranch, branch);
-                }
-            }*/
         }
 
         // TODO: make a new "queue" for success branches!!

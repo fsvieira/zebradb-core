@@ -21,6 +21,8 @@ const {
 } = require('./operations/built-in/constraints');
 
 
+const BranchContext = require("./branchContext");
+
 const {
     values: {
         C_FALSE,
@@ -646,6 +648,16 @@ async function createBranchMaterializedSet (
 ) {
     // get branch shared data,
     
+    const ctxEmpty = await BranchContext.create(
+        parentBranch,
+        options,
+        definitionsDB,
+        rDB
+    );
+
+    const ctxElement = ctxEmpty.snapshot();
+
+    /*
     const ctx = {
         parent: parentBranch,
         root: await parentBranch.data.root,
@@ -660,9 +672,9 @@ async function createBranchMaterializedSet (
         variableCounter: await parentBranch.data.variableCounter,
         children: [],
         log: await parentBranch.data.log
-    }
+    }*/
 
-    const parentVariables = await parentBranch.data.variables;
+    // const parentVariables = await parentBranch.data.variables;
 
     {
         // Set empty set branch, has success 
@@ -672,7 +684,9 @@ async function createBranchMaterializedSet (
             elements: rDB.iSet()
         };
 
-        const variables = await parentVariables.set(id, emptyResults);
+        await ctxEmpty.setVariableValue(id, emptyResults);
+
+        // const variables = await parentVariables.set(id, emptyResults);
      
         const log = await logger(options, {log: ctx.log}, "Create Empty Set Results");
 
@@ -892,6 +906,7 @@ module.exports = {
     // prepareVariables,
     getVariable,
     constants,
-    logger
+    logger,
+    BranchContext
 }
 
