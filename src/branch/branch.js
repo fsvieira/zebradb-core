@@ -695,10 +695,13 @@ async function createBranchMaterializedSet (
 
         // const state = await getContextState(ctx);
 
-        const message = `state=${await ctxElement.currentState()}, root=${await toString(null, ctxElement.root, ctxElement, true)}`; 
-        // const log = await logger(options, {log: ctx.log}, message);
+        const eStr = await ctxElement.toString(); // TODO: make specilized to string ctx. 
+        throw 'CtxElement!!';
         
-        await ctxElement.logger(message);
+        const message = `state=${await ctxElement.currentState()}, root=${await toString(null, ctxElement.root, ctxElement, true)}`; 
+        const log = await logger(options, {log: ctx.log}, message);
+        
+        // TODO: await ctxElement.logger(message);
 
         /*const branch = await rDB.tables.branches.insert({
             ...ctx,
@@ -708,12 +711,12 @@ async function createBranchMaterializedSet (
             branchID: `${parentBranch.id}-element`
         }, null);*/
 
-        const branch = await ctx.saveBranch();
+        const branch = await ctxElement.saveBranch();
 
-        console.log("ELEMENT BRANCH - START DUMP UNSOLVED CONSTRAINTS!!");
+        /*console.log("ELEMENT BRANCH - START DUMP UNSOLVED CONSTRAINTS!!");
         for await (let csID of ctx.unsolvedConstraints.values()) {
             console.log("ELEMENT BRANCH RR => ", await toString(null, csID, ctx)); 
-        }
+        }*/
 
         return branch;
     }
@@ -787,6 +790,8 @@ async function mergeElement (ctx, branchA, branchB, id) {
 }
 
 async function merge (options, rDB, branchA, branchB) {
+    throw 'MERGE ??';
+
     {
         const variablesA = await branchA.data.variables;
         const variablesB = await branchB.data.variables;

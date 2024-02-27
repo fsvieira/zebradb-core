@@ -832,7 +832,7 @@ async function hasVariable (branch, id, ctx) {
 
 async function getVariable (branch, id, ctx) {
     let v;
-    const variables = ctx ? ctx.variables : await branch.data.variables;
+    const variables = ctx ? ctx._ctx.variables : await branch.data.variables;
 
     do {
         v = await variables.get(id);
