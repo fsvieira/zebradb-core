@@ -356,23 +356,8 @@ async function __del_copySetConstraints (
     }
 }
 
-/*
-async function copySetCs (
-    definitionDB, ctx, p, vn, getVarname, v, preserveVarname
-) {
-    const element = await getVarname(p.variables[v.element]);
-
-    const valueResults = {
-        type: MATERIALIZED_SET,
-        id: vn,
-        elements: await ctx.rDB.iSet().add(element)
-    };
-
-    ctx.variables = await ctx.variables.set(vn, valueResults);
-}*/
-
 async function createMaterializedSet (
-    definitionDB, ctx, definitionElement, vn,
+    ctx, definitionElement, vn,
     getVarname, v,
     extendSets,
     preserveVarname
@@ -394,8 +379,7 @@ async function createMaterializedSet (
     }*/
     
     if (indexes) {
-        await logger(ctx.options, ctx, `Create Indexes : ${JSON.stringify(indexes)}`);
-        // throw 'createMaterializedSet : TODO HANDLE INDEXES!!'
+        await ctx.logger(`Create Indexes : ${JSON.stringify(indexes)}`);
     }
 
     let elements = ctx.rDB.iSet();
@@ -422,37 +406,31 @@ async function createMaterializedSet (
         size
     };
 
-    /*const isChecked = await ctx.checked.has(vn);
-    if (!isChecked && domainID) {
-        ctx.unchecked = await ctx.unchecked.add(vn);
-    }*/
-
     if (domain && v.type === SET) {
-        ctx.setsInDomains = await ctx.setsInDomains.add(vn);
+        // ctx.setsInDomains = await ctx.setsInDomains.add(vn);
+        ctx.addSetInDomain(vn);
     }
 
+    await ctx.setVariableValue(vn , valueResults);
 
-    // ctx.variables = await ctx.variables.set(variableID, valueResults);
-    ctx.variables = await ctx.variables.set(vn, valueResults);
-
-    // return variableID;
     return vn;
 }
 
 
 async function copyPartialTermGlobalVar (
-    definitionDB, ctx, p, vn, getVarname, v, extendSets, preserveVarname
+    ctx, p, vn, getVarname, v, extendSets, preserveVarname
 ) {
-    if (!await ctx.variables.has(vn)) {
+    if (!await ctx.hasVariable(vn)) {
 
-        const def = await definitionDB.search(v);
+        // const def = await definitionDB.search(v);
+        const def = await ctx.search(v);
         const root = def.variables[def.root];
 
         // let value;
         let vID;
         switch (root.type) {
             case SET: {
-                vID = await copyPartialTerm(ctx, def, def.root, definitionDB, false, true);
+                vID = await copyPartialTerm(ctx, def, def.root, false, true);
                 break;
             }
             /*case SET: {
@@ -482,7 +460,11 @@ async function copyPartialTermGlobalVar (
         }
 
         // ctx.variables = await ctx.variables.set(vn, value);
-        ctx.variables = await ctx.variables.set(vn, {
+        /*ctx.variables = await ctx.variables.set(vn, {
+            ...v,
+            defer: vID
+        });*/
+        await ctx.setVariableValue(vn, {
             ...v,
             defer: vID
         });
@@ -495,7 +477,7 @@ async function copyPartialTermGlobalVar (
 }
 
 async function copyPartialTermConstraint (
-    definitionDB, ctx, p, vn, getVarname, v, extendSets, preserveVarname
+    ctx, p, vn, getVarname, v, extendSets, preserveVarname
 ) {
     const av = p.variables[v.a];
     const bv = p.variables[v.b];
@@ -538,25 +520,40 @@ async function copyPartialTermConstraint (
 }
 
 async function copyPartialTermConstant (
-    definitionDB, ctx, p, vn, getVarname, v, extendSets, preserveVarname
+    ctx, p, vn, getVarname, v, extendSets, preserveVarname
 ) {
-    ctx.variables = await ctx.variables.set(
+    await ctx.setVariableValue(vn, {
+        ...v,
+        id: vn
+    });
+
+    /*ctx.variables = await ctx.variables.set(
         vn, {
             ...v,
             id: vn
         }
-    );
+    );*/
 }
 
 async function copyPartialTermTuple (
-    definitionDB, ctx, p, vn, getVarname, v, extendSets, preserveVarname
+    ctx, p, vn, getVarname, v, extendSets, preserveVarname
 ) {
     const data = [];
     for (let i=0; i<v.data.length; i++) {
         data.push(await getVarname(p.variables[v.data[i]], extendSets));
     }
 
+    /*
     ctx.variables = await ctx.variables.set(
+        vn, {
+            ...v,
+            data,
+            pv: preserveVarname,
+            id: vn
+        }
+    );*/
+
+    ctx.setVariableValue(
         vn, {
             ...v,
             data,
@@ -567,7 +564,7 @@ async function copyPartialTermTuple (
 }
 
 async function copyPartialTermLocalVar (
-    definitionDB, ctx, p, vn, getVarname, v, extendSets, preserveVarname
+    ctx, p, vn, getVarname, v, extendSets, preserveVarname
 ) {
     let constraints;
     if (v.constraints) {
@@ -581,11 +578,20 @@ async function copyPartialTermLocalVar (
     }
 
     const domain = await getVarname(v.domain, false);   
-    ctx.variables = await ctx.variables.set(
+    /*ctx.variables = await ctx.variables.set(
         vn, {
             ...v,
             pv: preserveVarname,
-            domain, /*v.domain ? getVarname(p.variables[v.domain]) : undefined,*/
+            domain,
+            constraints,
+            id: vn
+        }
+    );*/
+    ctx.setVariableValue(
+        vn, {
+            ...v,
+            pv: preserveVarname,
+            domain,
             constraints,
             id: vn
         }
@@ -597,7 +603,7 @@ async function copyPartialTermLocalVar (
 }
 
 async function copyPartialIndex (
-    definitionDB, ctx, p, vn, getVarname, v, extendSets, preserveVarname
+    ctx, p, vn, getVarname, v, extendSets, preserveVarname
 ) {
 
     const variable = await getVarname(p.variables[v.variable], false);
@@ -620,7 +626,7 @@ async function copyPartialIndex (
 }
 
 async function copyPartialTerm (
-    ctx, p, vID, definitionDB, 
+    ctx, p, vID, 
     extendSets=false,
     preserveVarname=false
 ) {
@@ -643,7 +649,7 @@ async function copyPartialTerm (
                         vn = mapVars[cid] = v.type + '::' + ctx.newVar();
 
                         await copyPartialTermLocalVar(
-                            definitionDB, ctx, p, vn,
+                            ctx, p, vn,
                             getVarname, v,
                             extendSets,
                             preserveVarname
@@ -656,7 +662,7 @@ async function copyPartialTerm (
                         vn = mapVars[cid] = v.type + '::' + ctx.newVar();
 
                         await copyPartialTermConstraint(
-                            definitionDB, ctx, p, vn,
+                            ctx, p, vn,
                             getVarname, v, 
                             extendSets,
                             preserveVarname
@@ -669,7 +675,7 @@ async function copyPartialTerm (
                         vn = mapVars[cid] = cid;
 
                         await copyPartialTermGlobalVar(
-                            definitionDB, ctx, p, vn,
+                            ctx, p, vn,
                             getVarname, v,
                             extendSets,
                             preserveVarname
@@ -681,21 +687,13 @@ async function copyPartialTerm (
                     case SET: {
                         vn = mapVars[cid] = v.type + '::' + ctx.newVar();
 
-                        // await createMaterializedSet(ctx, definitionDB, p, v, vn);
-
                         await createMaterializedSet(
-                            definitionDB, ctx, p, vn,
+                            ctx, p, vn,
                             getVarname, v,
                             extendSets,
                             preserveVarname
                         );
 
-                        // await createMaterializedSetCs(ctx, definitionDB, p, v, vn);
-                        /*await copySetCs(
-                            definitionDB, ctx, p, vn,
-                            getVarname, v, 
-                            preserveVarname
-                        )*/
                         break;
                     }
 
@@ -703,7 +701,7 @@ async function copyPartialTerm (
                         vn = mapVars[cid] = v.type + '::' + ctx.newVar();
 
                         await copyPartialTermTuple(
-                            definitionDB, ctx, p, vn,
+                            ctx, p, vn,
                             getVarname, v,
                             extendSets,
                             preserveVarname
@@ -716,7 +714,7 @@ async function copyPartialTerm (
                         vn = mapVars[cid] = v.type + '::' + ctx.newVar();
 
                         await copyPartialIndex(
-                            definitionDB, ctx, p, vn,
+                            ctx, p, vn,
                             getVarname, v, 
                             extendSets,
                             preserveVarname
@@ -729,7 +727,7 @@ async function copyPartialTerm (
                         vn = cid;
 
                         await copyPartialTermConstant(
-                            definitionDB, ctx, p, vn,
+                            ctx, p, vn,
                             getVarname, v,
                             extendSets,
                             preserveVarname

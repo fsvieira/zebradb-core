@@ -657,25 +657,6 @@ async function createBranchMaterializedSet (
 
     const ctxElement = ctxEmpty.snapshot();
 
-    /*
-    const ctx = {
-        parent: parentBranch,
-        root: await parentBranch.data.root,
-        level: (await parentBranch.data.level + 1),
-        setsInDomains: await parentBranch.data.setsInDomains,
-        checked: await parentBranch.data.checked,
-        unchecked: await parentBranch.data.unchecked,
-        constraints: await parentBranch.data.constraints,
-        unsolvedConstraints: await parentBranch.data.unsolvedConstraints,
-        extendSets: await parentBranch.data.extendSets,
-        unsolvedVariables: await parentBranch.data.unsolvedVariables,
-        variableCounter: await parentBranch.data.variableCounter,
-        children: [],
-        log: await parentBranch.data.log
-    }*/
-
-    // const parentVariables = await parentBranch.data.variables;
-
     {
         // Set empty set branch, has success 
         const emptyResults = {
@@ -685,54 +666,25 @@ async function createBranchMaterializedSet (
         };
 
         await ctxEmpty.setVariableValue(id, emptyResults);
-
-        // const variables = await parentVariables.set(id, emptyResults);
-     
-        // const log = await logger(options, {log: ctx.log}, "Create Empty Set Results");
-
         await ctxEmpty.logger("Create Empty Set Results");
+
         ctxEmpty.state = 'yes';
         ctxEmpty.branchID = `${parentBranch.id}-empty`;
 
-        await ctxEmpty.saveBranch();
-        /*await rDB.tables.branches.insert({
-            ...ctx,
-            state: 'yes',
-            variables,
-            log,
-            branchID: `${parentBranch.id}-empty`
-        }, null);*/
-
-        /*console.log("EMPTY BRANCH - START DUMP UNSOLVED CONSTRAINTS!!");
-        for await (let csID of ctx.unsolvedConstraints.values()) {
-            console.log("EMPTY BRANCH RR => ", await toString(null, csID, ctx)); 
-        }*/   
+        await ctxEmpty.saveBranch(); 
     }
 
     {
         const {root} = definitionElement;
-        // const v = variables[root];
-
-        // Set elements branch to be evaluated.
-        // const {varCounter, newVar} = varGenerator(ctx.variableCounter + 1); 
-
-        /*
-        ctx.variables = parentVariables;
-        ctx.newVar = newVar;
-        ctx.rDB = rDB;
-        */
-
-        throw 'SEND BranchContext to copyPartialTerm ...';
         const setID = await copyPartialTerm(
-            ctx, 
+            ctxElement, 
             definitionElement, 
-            root, 
-            definitionsDB,
+            root,
             extendSets,
             true
         );
 
-        ctx.variables = await ctx.variables.set(
+        await ctxElement.setVariableValue(
             id, {
                 type: constants.type.LOCAL_VAR, 
                 cid: id, 
@@ -741,21 +693,22 @@ async function createBranchMaterializedSet (
             }
         );
 
-        delete ctx.newVar;
-        delete ctx.rDB;
+        // const state = await getContextState(ctx);
 
-        const state = await getContextState(ctx);
+        const message = `state=${await ctxElement.currentState()}, root=${await toString(null, ctxElement.root, ctxElement, true)}`; 
+        // const log = await logger(options, {log: ctx.log}, message);
+        
+        await ctxElement.logger(message);
 
-        const message = `state=${state}, root=${await toString(null, ctx.root, ctx, true)}`; 
-        const log = await logger(options, {log: ctx.log}, message);
-
-        const branch = await rDB.tables.branches.insert({
+        /*const branch = await rDB.tables.branches.insert({
             ...ctx,
             variableCounter: varCounter(),
             state,
             log,
             branchID: `${parentBranch.id}-element`
-        }, null);
+        }, null);*/
+
+        const branch = await ctx.saveBranch();
 
         console.log("ELEMENT BRANCH - START DUMP UNSOLVED CONSTRAINTS!!");
         for await (let csID of ctx.unsolvedConstraints.values()) {
