@@ -553,7 +553,7 @@ async function copyPartialTermTuple (
         }
     );*/
 
-    ctx.setVariableValue(
+    await ctx.setVariableValue(
         vn, {
             ...v,
             data,
@@ -587,7 +587,7 @@ async function copyPartialTermLocalVar (
             id: vn
         }
     );*/
-    ctx.setVariableValue(
+    await ctx.setVariableValue(
         vn, {
             ...v,
             pv: preserveVarname,

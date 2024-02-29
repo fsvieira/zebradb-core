@@ -671,7 +671,8 @@ async function createBranchMaterializedSet (
         ctxEmpty.state = 'yes';
         ctxEmpty.branchID = `${parentBranch.id}-empty`;
 
-        await ctxEmpty.saveBranch(); 
+        console.log('empty query set', await ctxEmpty.toString());
+        await ctxEmpty.saveBranch();
     }
 
     {
@@ -696,11 +697,12 @@ async function createBranchMaterializedSet (
         // const state = await getContextState(ctx);
 
         const eStr = await ctxElement.toString(); // TODO: make specilized to string ctx. 
-        throw 'CtxElement!!';
         
-        const message = `state=${await ctxElement.currentState()}, root=${await toString(null, ctxElement.root, ctxElement, true)}`; 
-        const log = await logger(options, {log: ctx.log}, message);
+        const message = `state=${await ctxElement.currentState()}, root=${eStr}`; 
+        // const log = await logger(options, {log: ctx.log}, message);
         
+        await ctx.logger(message);
+
         // TODO: await ctxElement.logger(message);
 
         /*const branch = await rDB.tables.branches.insert({
