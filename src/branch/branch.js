@@ -436,22 +436,23 @@ async function expand (
     definitions
 ) {
 
-    const ctx = new BranchContext(branch, options, definitionDB);
+    const ctx = await BranchContext.create(branch, options, definitionDB);
 
     // options.definitionDB = definitionDB;
     
     console.log("Sets In Domains ", await toString(branch, await branch.data.root));
     const setsInDomains = await branch.data.setsInDomains;
-    for await (let e of setsInDomains.values()) {
+    for await (let eID of setsInDomains.values()) {
         // const v = await getVariable(branch, e);
         // const d = await getVariable(branch, v.domain);
 
-        const d = await ctx.getVariable(d);
+        const v = await ctx.getVariable(eID);
+        const d = await ctx.getVariable(v.domain);
 
         // if (await d.elements.size === 0) {
             const r = await setIn(
                 ctx,
-                d, e
+                d, eID
             );
 
             await branch.update({state: 'split'});
