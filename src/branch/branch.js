@@ -47,15 +47,15 @@ async function toJS (branch, id) {
     return v;
 }
 
-async function setIn (branch, options, set, element) {
+async function setIn (ctx, set, element) {
 
     const branches = [];
 
-    const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
+    // const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
     
-    const rDB = branch.table.db;
+    // const rDB = branch.table.db;
 
-    const ctx = {
+    /*const ctx = {
         parent: branch,
         root: await branch.data.root,
         variables: await branch.data.variables,
@@ -70,7 +70,9 @@ async function setIn (branch, options, set, element) {
         // branch,
         log: await branch.data.log,
         children: []  
-    };
+    };*/
+
+    throw 'DO SETIN BRANCH CONTEX!'
 
     ctx.setsInDomains = await ctx.setsInDomains.remove(element);
 
@@ -433,18 +435,22 @@ async function expand (
     selector, 
     definitions
 ) {
-    options.definitionDB = definitionDB;
+
+    const ctx = new BranchContext(branch, options, definitionDB);
+
+    // options.definitionDB = definitionDB;
     
     console.log("Sets In Domains ", await toString(branch, await branch.data.root));
     const setsInDomains = await branch.data.setsInDomains;
     for await (let e of setsInDomains.values()) {
-        const v = await getVariable(branch, e);
-        const d = await getVariable(branch, v.domain);
+        // const v = await getVariable(branch, e);
+        // const d = await getVariable(branch, v.domain);
+
+        const d = await ctx.getVariable(d);
 
         // if (await d.elements.size === 0) {
             const r = await setIn(
-                branch, 
-                options, 
+                ctx,
                 d, e
             );
 
@@ -701,7 +707,7 @@ async function createBranchMaterializedSet (
         const message = `state=${await ctxElement.currentState()}, root=${eStr}`; 
         // const log = await logger(options, {log: ctx.log}, message);
         
-        await ctx.logger(message);
+        await ctxElement.logger(message);
 
         // TODO: await ctxElement.logger(message);
 
