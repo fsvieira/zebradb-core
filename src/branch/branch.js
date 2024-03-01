@@ -72,16 +72,17 @@ async function setIn (ctx, set, element) {
         children: []  
     };*/
 
-    throw 'DO SETIN BRANCH CONTEX!'
+    await ctx.removeSetsInDomains(element);
+    await ctx.saveBranch();
 
-    ctx.setsInDomains = await ctx.setsInDomains.remove(element);
-
-    const newBranch1 = await rDB.tables.branches.insert(ctx, null);
+    /*const newBranch1 = await rDB.tables.branches.insert(ctx, null);
 
     ctx.rDB = rDB;
     ctx.newVar = newVar;
     ctx.options = options;
+    */
 
+    throw 'CTX SET ELEMENTS!';
     for await (let eID of set.elements.values()) {
         branches.push(await unify(newBranch1, options, eID, element));
     }
@@ -440,7 +441,8 @@ async function expand (
 
     // options.definitionDB = definitionDB;
     
-    console.log("Sets In Domains ", await toString(branch, await branch.data.root));
+    // console.log("Sets In Domains ", await toString(branch, await branch.data.root));
+    console.log("Sets In Domains ", await ctx.toString());
     const setsInDomains = await branch.data.setsInDomains;
     for await (let eID of setsInDomains.values()) {
         // const v = await getVariable(branch, e);
