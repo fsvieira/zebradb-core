@@ -485,11 +485,13 @@ async function copyPartialTermConstraint (
     const b = await getVarname(bv, extendSets);
     
     if (av.type === LOCAL_VAR) {
-        ctx.unsolvedVariables = await ctx.unsolvedVariables.add(a);
+        // ctx.unsolvedVariables = await ctx.unsolvedVariables.add(a);
+        await ctx.addUnsolvedVariable(a);
     }
 
     if (bv.type === LOCAL_VAR) {
-        ctx.unsolvedVariables = await ctx.unsolvedVariables.add(b);
+        await ctx.addUnsolvedVariable(b);
+        // ctx.unsolvedVariables = await ctx.unsolvedVariables.add(b);
     }
 
     const root = v.root?{
@@ -508,15 +510,23 @@ async function copyPartialTermConstraint (
         }
     }
 
+    await ctx.setVariableValue(vn, {
+        ...v,
+        a, b, root,
+        constraints,
+        id: vn
+    }); 
+
+    /*
     ctx.variables = await ctx.variables.set(vn, {
         ...v,
         a, b, root,
         constraints,
         id: vn
-    });
+    });*/
 
-
-    ctx.unsolvedConstraints = await ctx.unsolvedConstraints.add(vn);
+    // ctx.unsolvedConstraints = await ctx.unsolvedConstraints.add(vn);
+    await ctx.addUnsolvedConstraint(vn);
 }
 
 async function copyPartialTermConstant (
@@ -598,7 +608,8 @@ async function copyPartialTermLocalVar (
     );
 
     if (v.constraints && v.domain ) {
-        ctx.unsolvedVariables = await ctx.unsolvedVariables.add(vn);
+        // ctx.unsolvedVariables = await ctx.unsolvedVariables.add(vn);
+        ctx.addUnsolvedVariable(vn);
     }
 }
 
@@ -616,13 +627,22 @@ async function copyPartialIndex (
         values.push(await getVarname(p.variables[varID], extendSets));
     }
     
-    ctx.variables = await ctx.variables.set(vn, {
+    /*ctx.variables = await ctx.variables.set(vn, {
+        ...v,
+        variable,
+        values,
+        setID,
+        eID
+    });*/
+
+    await ctx.setVariableValue(vn, {
         ...v,
         variable,
         values,
         setID,
         eID
     });
+
 }
 
 async function copyPartialTerm (
@@ -851,6 +871,7 @@ async function getVariable (branch, id, ctx) {
 // const type = v => v.t ? "t" : v.c?"c": v.v ? "v" : "";
 
 const get = async (ctx, v) => {
+    throw 'get : depreate this or make it specialized!'
     if (typeof v === 'string' || v.id) {
         v = await getVariable(null, v.id || v, ctx);
     }

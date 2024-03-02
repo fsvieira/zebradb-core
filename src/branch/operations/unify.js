@@ -45,7 +45,9 @@ const FN_FALSE = async () => false;
 
 async function unifyMsMs (ctx, p, q) {
 
-    const {definitionDB} = ctx.options;
+    // const {definitionDB} = ctx.options;
+    const definitionDB = ctx.definitionDB;
+
     let aSize = await p.elements.size;
     let bSize = await q.elements.size;
 
@@ -76,13 +78,20 @@ async function unifyMsMs (ctx, p, q) {
                 await doUnify(ctx, id, eID);
             }
 
-            ctx.variables = await ctx.variables.set(a.id, {
+            /*ctx.variables = await ctx.variables.set(a.id, {
+                ...a,
+                defID,
+                definition
+            });*/
+
+            await ctx.setVariableValue(a.id, {
                 ...a,
                 defID,
                 definition
             });
 
-            ctx.extendSets = await ctx.extendSets.add(b.id);
+            await ctx.addExtendSet(b.id);
+            // ctx.extendSets = await ctx.extendSets.add(b.id);
             console.log("TODO: rules to add extended set: it must be able to create elements, and set is not full!");
 
         }
@@ -91,7 +100,12 @@ async function unifyMsMs (ctx, p, q) {
         }
 
 
-        ctx.variables = await ctx.variables.set(b.id, {
+        /*ctx.variables = await ctx.variables.set(b.id, {
+            ...b,
+            defer: a.id
+        });*/
+
+        await ctx.setVariableValue(b.id, {
             ...b,
             defer: a.id
         });
@@ -157,6 +171,7 @@ const unifyFn = {
 }
 
 const checkTuple = async (ctx, p, q) => {
+    /*
     if (await ctx.checked.has(p.id)) {
         ctx.variables = await ctx.variables.set(q.id, {...q, defer: p.id});
         ctx.unchecked = await ctx.unchecked.remove(q.id);
@@ -164,6 +179,19 @@ const checkTuple = async (ctx, p, q) => {
     else if (await ctx.checked.has(q.id)) {
         ctx.variables = await ctx.variables.set(p.id, {...p, defer: q.id});
         ctx.unchecked = await ctx.unchecked.remove(p.id);
+    }*/
+
+    // TODO: this function and checked unchecked will probably stop being needed
+    if (await ctx.hasChecked(p.id)) {
+        await ctx.setVariableValue(q.id, {...q, defer: p.id});
+        // ctx.unchecked = await ctx.unchecked.remove(q.id);
+        await ctx.removeUnchecked(q.id);
+    }
+    else if (await ctx.hasChecked(q.id)) {
+        await ctx.setVariableValue(p.id, {...p, defer: q.id});
+        // ctx.variables = await ctx.variables.set(p.id, {...p, defer: q.id});
+        // ctx.unchecked = await ctx.unchecked.remove(p.id);
+        await ctx.removeUnchecked(p.id);
     }
 }
 
@@ -179,7 +207,7 @@ async function deepUnify(
         definitionID
     );
 
-    let unsolvedVariablesClean = ctx.unsolvedVariables;
+    // let unsolvedVariablesClean = ctx.unsolvedVariables;
 
     /*for await (let vid of ctx.unsolvedVariables.values()) {
         const v = await get(ctx, vid);
@@ -194,7 +222,8 @@ async function deepUnify(
         }
     }*/
 
-    if (await ctx.unchecked.size === 0 && await ctx.unsolvedVariables.size > 0) {
+    // throw 'WE PROBABLY DONT NEED THIS CHECKS AND DONT NEED TO RETURN NOTHING, because everything is on the context.'
+    /*if (await ctx.unchecked.size === 0 && await ctx.unsolvedVariables.size > 0) {
         // Check if unsolved variables are solved.
         for await (let vid of ctx.unsolvedVariables.values()) {
             const v = await get(ctx, vid);
@@ -217,17 +246,20 @@ async function deepUnify(
         fail: !ok, 
         // variableCounter: varCounter(),
         log: ctx.log
-    };
+    };*/
 }
 
 const doUnify = async (ctx, p, q) => {
-    p = await get(ctx, p);
-    q = await get(ctx, q);
+    // p = await get(ctx, p);
+    // q = await get(ctx, q);
+    p = await ctx.getVariable(p);
+    q = await ctx.getVariable(q);
 
     let s;
     
     if (ctx.options.log) {
-        s = `${await toString(undefined, p.id, ctx)} ** ${await toString(undefined, q.id, ctx)}`;
+        // s = `${await toString(undefined, p.id, ctx)} ** ${await toString(undefined, q.id, ctx)}`;
+        s = `${await ctx.toString(p.id)} ** ${await ctx.toString(q.id)}`;
     }
 
     /*
@@ -245,10 +277,12 @@ const doUnify = async (ctx, p, q) => {
 
         s += `; p=${ps}, q=${qs}`;
         if (!ok) {
-            ctx.log = await ctx.log.push(`FAIL: ${s}`);
+            // ctx.log = await ctx.log.push(`FAIL: ${s}`);
+            await ctx.logger(`FAIL: ${s}`);
         }
         else {
-            ctx.log = await ctx.log.push(`SUCC: ${s}`);
+            await ctx.logger(`SUCC: ${s}`);
+            // ctx.log = await ctx.log.push(`SUCC: ${s}`);
         }
     }
 
@@ -334,8 +368,9 @@ async function createBranch (
     return newBranch;
 }
 
-async function unify (branch, options, tuple, definitionID, definition) {
+async function unify (ctx, tuple, definitionID, definition) {
 
+    /*
     const level = await branch.data.level + 1;
     const rDB = branch.table.db;
 
@@ -355,12 +390,22 @@ async function unify (branch, options, tuple, definitionID, definition) {
         branch,
         log: await branch.data.log,
         options  
-    };
+    };*/
 
     if (definition) {
+        throw 'unify definition provided, deprecated!!'
         definitionID = await copyTerm(ctx, definition);
     }
 
+    const ok = await doUnify(
+        ctx,
+        tuple, 
+        definitionID
+    );
+
+    ctx.state = !ok ? 'no': ctx.state;
+    // await ctx.saveBranch();
+    /*
     const {
         variables, constraints, 
         unsolvedVariables, unchecked,
@@ -396,7 +441,7 @@ async function unify (branch, options, tuple, definitionID, definition) {
         log        
     );
 
-    return branch;
+    return branch;*/
 }
 
 module.exports = {unify, constants, createBranch};

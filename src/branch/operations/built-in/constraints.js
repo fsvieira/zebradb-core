@@ -109,7 +109,8 @@ async function setVariableLocalVarConstant (ctx, v, c) {
         }
     }
 
-    ctx.variables = await ctx.variables.set(v.id, {...v, defer: c.id});
+    // ctx.variables = await ctx.variables.set(v.id, {...v, defer: c.id});
+    await ctx.setVariableValue(v.id, {...v, defer: c.id});
 
     if (v.constraints) {
         const r = await checkVariableConstraints(ctx, v);
@@ -169,14 +170,21 @@ async function setVariableLocalVarLocalVar (ctx, v, p) {
     }
 
     if (aDomain || aConstraints) {
+        /*
         ctx.variables = await ctx.variables.set(a.id, {
+            ...a,
+            domain: aDomain || a.domain,
+            constraints: aConstraints || a.constraints
+        });*/
+        await ctx.setVariableValue(a.id, {
             ...a,
             domain: aDomain || a.domain,
             constraints: aConstraints || a.constraints
         });
     }
 
-    ctx.variables = await ctx.variables.set(b.id, {...b, defer: a.id});
+    // ctx.variables = await ctx.variables.set(b.id, {...b, defer: a.id});
+    await ctx.setVariableValue(b.id, {...b, defer: a.id});
 
     return true;
 }
@@ -249,19 +257,21 @@ function getNumber (v) {
 async function getConstant (ctx, string) {
     const vID = getConstantVarname(string);
 
-    if (!(await ctx.variables.has(vID))) {
+    // if (!(await ctx.variables.has(vID))) {
+    if (!(await ctx.hasVariable(vID))) {
         const c = {
             type: CONSTANT,
             data: string,
             id: vID
         };
 
-        ctx.variables = await ctx.variables.set(vID, c);
+        // ctx.variables = await ctx.variables.set(vID, c);
+        await ctx.setVariableValue(vID, c);
 
         return c;
     }
 
-    return await ctx.variables.get(vID);
+    return ctx.getVariable(vID);//await ctx.variables.get(vID);
 }
 
 async function checkUniqueIndexConstrain (ctx, cs, env) {
@@ -410,9 +420,11 @@ async function checkNumberOperationsConstrain(ctx, cs, env) {
 
    // await debugConstraint(ctx, cs.id, state, 'MATH OP');
    
-   ctx.variables = await ctx.variables.set(cs.id, {
+   /*ctx.variables = await ctx.variables.set(cs.id, {
         ...cs, state, value: r.toString()
-   });
+   });*/
+
+   await ctx.setVariableValue(cs.id, {...cs, state, value: r.toString()});
 
    return state;
 }
@@ -503,9 +515,14 @@ async function checkVariableConstraintsNotUnify (ctx, cs) {
     }*/
 
     if (state !== C_UNKNOWN) {
-        ctx.variables = await ctx.variables.set(cs.id, {
+        await ctx.setVariableValue(cs.id, {
             ...cs, state
         });
+
+        /*
+        ctx.variables = await ctx.variables.set(cs.id, {
+            ...cs, state
+        });*/
     }
 
     return state;
@@ -514,8 +531,10 @@ async function checkVariableConstraintsNotUnify (ctx, cs) {
 
 async function checkAndConstrain (ctx, cs, env) {
     const {a, op, b, id} = cs;
-    const av = await getVariable(null, a, ctx);
-    const bv = await getVariable(null, b, ctx);
+    // const av = await getVariable(null, a, ctx);
+    // const bv = await getVariable(null, b, ctx);
+    const av = await ctx.getVariable(a);
+    const bv = await ctx.getVariable(b);
 
     const sa = getBoolValue(av);
     const sb = getBoolValue(bv);
@@ -529,21 +548,34 @@ async function checkAndConstrain (ctx, cs, env) {
         state = C_TRUE;
     }
     else if (sa !== C_UNKNOWN) {
-        ctx.variables = await ctx.variables.set(cs.id, {
+        await ctx.setVariableValue(cs.id, {
             ...cs, state, aValue: sa
         });
+
+        /*ctx.variables = await ctx.variables.set(cs.id, {
+            ...cs, state, aValue: sa
+        });*/
     }
     else if (sb !== C_UNKNOWN) {
-        ctx.variables = await ctx.variables.set(cs.id, {
+        await ctx.setVariableValue(cs.id, {
             ...cs, state, bValue: sb
         });
+
+        /*ctx.variables = await ctx.variables.set(cs.id, {
+            ...cs, state, bValue: sb
+        });*/
     }
     
     if (state !== C_UNKNOWN) {
-        ctx.variables = await ctx.variables.set(cs.id, {
+        await ctx.setVariableValue(cs.id, {
             ...cs, state,
             aValue: sa, bValue: sb
         });
+
+/*        ctx.variables = await ctx.variables.set(cs.id, {
+            ...cs, state,
+            aValue: sa, bValue: sb
+        });*/
     }
 
     // await debugConstraint(ctx, cs.id, state, 'AND');
@@ -553,8 +585,10 @@ async function checkAndConstrain (ctx, cs, env) {
 
 async function checkOrConstrain (ctx, cs) {
     const {a, op, b, id} = cs;
-    const av = await getVariable(null, a, ctx);
-    const bv = await getVariable(null, b, ctx);
+    // const av = await getVariable(null, a, ctx);
+    // const bv = await getVariable(null, b, ctx);
+    const av = await ctx.getVariable(a);
+    const bv = await ctx.getVariable(b);
 
     const sa = getBoolValue(av);
     const sb = getBoolValue(bv);
@@ -568,18 +602,18 @@ async function checkOrConstrain (ctx, cs) {
         state = C_FALSE;
     }
     else if (sa !== C_UNKNOWN) {
-        ctx.variables = await ctx.variables.set(cs.id, {
+        await ctx.setVariableValue(cs.id, {
             ...cs, state, aValue: sa
         });
     }
     else if (sb !== C_UNKNOWN) {
-        ctx.variables = await ctx.variables.set(cs.id, {
+        await ctx.setVariableValue(cs.id, {
             ...cs, state, bValue: sb
         });
     }
 
     if (state !== C_UNKNOWN) {
-        ctx.variables = await ctx.variables.set(cs.id, {
+        await ctx.setVariableValue(cs.id, {
             ...cs, state
         });
     }
@@ -589,8 +623,8 @@ async function checkOrConstrain (ctx, cs) {
 
 async function checkVariableConstraintsIn (definitionDB, ctx, cs, env) {
     const {a, op, b, id, root} = cs;
-    const av = await getVariable(null, a, ctx);
-    const bv = await getVariable(null, b, ctx);
+    const av = await ctx.getVariable(a);
+    const bv = await ctx.getVariable(b);
 
     // const sa = getValue(av);
     // const sb = getValue(bv);
@@ -694,9 +728,13 @@ async function checkVariableConstraintsUnify (ctx, cs, env) {
     }
 
     if (state !== C_UNKNOWN) {
-        ctx.variables = await ctx.variables.set(cs.id, {
+        await ctx.setVariableValue(cs.id, {
             ...cs, state
         });
+        /*
+        ctx.variables = await ctx.variables.set(cs.id, {
+            ...cs, state
+        });*/
     }
 
     // await debugConstraint(ctx, cs.id, state, 'UNIFY');
@@ -707,11 +745,16 @@ async function checkVariableConstraintsUnify (ctx, cs, env) {
 async function setRootValue (ctx, root, value) {
     const cs = await getVariable(null, root.csID, ctx);
 
-
-    ctx.variables = await ctx.variables.set(cs.id, {
+    await ctx.setVariableValue(cs.id, {
         ...cs, [`${root.side}Value`]: value, 
         state: cs.op === AND && value === C_FALSE ? C_FALSE : cs.state 
     });
+
+    /*
+    ctx.variables = await ctx.variables.set(cs.id, {
+        ...cs, [`${root.side}Value`]: value, 
+        state: cs.op === AND && value === C_FALSE ? C_FALSE : cs.state 
+    });*/
 }
 
 async function constraintEnv (ctx, cs) {
@@ -844,7 +887,10 @@ async function evalConstraint (ctx, cs, env, parentConstraints) {
         }
     }
 
-    await logger(ctx.options || {}, ctx, `constraints are OK - ${cs}`);
+    // await logger(ctx.options || {}, ctx, `constraints are OK - ${cs}`);
+
+    await ctx.logger(`constraints are OK - ${cs}`);
+
 
     return true;
 } 

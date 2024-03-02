@@ -72,8 +72,8 @@ async function setIn (ctx, set, element) {
         children: []  
     };*/
 
-    await ctx.removeSetsInDomains(element);
-    await ctx.saveBranch();
+    // await ctx.removeSetsInDomains(element);
+    // const domainBranch = await ctx.saveBranch();
 
     /*const newBranch1 = await rDB.tables.branches.insert(ctx, null);
 
@@ -82,15 +82,25 @@ async function setIn (ctx, set, element) {
     ctx.options = options;
     */
 
-    throw 'CTX SET ELEMENTS!';
+    /*const unifyCtx = await BranchContext.create(
+        domainBranch,
+        ctx.options,
+        ctx.definitionDB
+    );*/
+
     for await (let eID of set.elements.values()) {
-        branches.push(await unify(newBranch1, options, eID, element));
+        const unifyCtx = await ctx.snapshot();
+        await unify(unifyCtx, eID, element);
+        await unifyCtx.removeSetsInDomains(element);
+        const unifiedBranch = unifyCtx.saveBranch();
+
+        console.log("setIn - unify : ", await unifyCtx.toString())
+        branches.push(unifiedBranch);
     }
         
     if (branches.length) {
         return branches;
     }
-        
 
     const elements = [];
     const {
