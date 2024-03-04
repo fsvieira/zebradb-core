@@ -94,7 +94,6 @@ async function setIn (ctx, set, element) {
         await unifyCtx.removeSetsInDomains(element);
         const unifiedBranch = unifyCtx.saveBranch();
 
-        console.log("setIn - unify : ", await unifyCtx.toString())
         branches.push(unifiedBranch);
     }
         
@@ -128,11 +127,6 @@ async function setIn (ctx, set, element) {
     const newBranch = await rDB.tables.branches.insert(ctx, null);
     const children = (await branch.data.children).concat([newBranch]);
     branch.update({children});
-
-    console.log("SET IN NEW-BRANCH - START DUMP UNSOLVED CONSTRAINTS!!");
-    for await (let csID of ctx.unsolvedConstraints.values()) {
-        console.log("SET IN NEW-BRANCH RR => ", await toString(null, csID, ctx)); 
-    }
 
     for (let i=0; i<elements.length; i++) {
         const eID = elements[i];
@@ -433,9 +427,7 @@ async function extendSet (branch, setID) {
     );
 
     await branch.update({state: 'split'});
-        
 
-    console.log(await toString(newBranch, ctx.root));
     return true;
 }
 
@@ -462,19 +454,24 @@ async function expand (
         const d = await ctx.getVariable(v.domain);
 
         // if (await d.elements.size === 0) {
-            const r = await setIn(
-                ctx,
-                d, eID
-            );
+        const r = await setIn(
+            ctx,
+            d, eID
+        );
 
-            await branch.update({state: 'split'});
+        console.log("====> SETS IN DOMAINS : ", await ctx.toString());
 
-            console.log("TODO: why not make all domains ??")
-            return r;
+        throw 'SET HAS NOT EXTENDED DOMAIN ??';
+
+        await branch.update({state: 'split'});
+
+        return r;
         /*}
         else {
         }*/
     }
+
+    throw 'SOLVING SETS IN DOMAINS ??';
 
     console.log("Unsolved Vars ", await toString(branch, await branch.data.root));
 
@@ -722,6 +719,8 @@ async function createBranchMaterializedSet (
         
         await ctxElement.logger(message);
 
+
+        console.log("===> ELEMENT ===> ", await ctxElement.toString());
         // TODO: await ctxElement.logger(message);
 
         /*const branch = await rDB.tables.branches.insert({

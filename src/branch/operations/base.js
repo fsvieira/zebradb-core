@@ -386,12 +386,13 @@ async function createMaterializedSet (
     if (!expression) {
         for (let i=0; i<setElements.length; i++) {
             const elementID = setElements[i];
-            const element = await getVarname(elementID);
+            const element = await getVarname(elementID, extendSets);
             elements = await elements.add(element);
-        } 
+        }
     }
-    else if (extendSets) {
-        ctx.extendSets = await ctx.extendSets.add(vn);
+    else if (extendSets && size === -1) {
+        // ctx.extendSets = await ctx.extendSets.add(vn);
+        await ctx.addExtendSet(vn);
     }
     
     const domainID = await getVarname(domain);
@@ -406,9 +407,9 @@ async function createMaterializedSet (
         size
     };
 
-    if (domain && v.type === SET) {
+    if (v.domain && v.type === SET) {
         // ctx.setsInDomains = await ctx.setsInDomains.add(vn);
-        ctx.addSetInDomain(vn);
+        await ctx.addSetInDomain(vn);
     }
 
     await ctx.setVariableValue(vn , valueResults);
