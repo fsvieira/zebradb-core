@@ -118,8 +118,6 @@ class BranchContext {
         return this;
     }
 
-
-
     // variables,
     async setVariableValue (id, value) {
         this._ctx.variables = await this._ctx.variables.set(id, value);
@@ -210,28 +208,64 @@ class BranchContext {
     }
 
     // TO STRING 
-    async toStringMaterializedSet(v) {
+    async toStringMaterializedSet(v, vars) {
         let el = [];
         for await (let eID of v.elements.values()) {
-            el.push(await this.toString(eID));
+            el.push(await this.toStringRec(eID, vars));
         }
 
         const size = v.size; 
         const domain = v.domain ? ':' + v.domain : '';
 
+        v.domain && vars.add(v.domain);
+
         return `{${el.join(" ")} ${size === -1 ? '...': ''}}${domain}`;        
     }
 
-    async toString (id=this._ctx.root) {
+    async toStringRec (id, vars) {
         const v = await this.getVariable(id);
 
-        let str = '';
         switch (v.type) {
             case constants.type.MATERIALIZED_SET: {
-                str += await this.toStringMaterializedSet(v);
+                return await this.toStringMaterializedSet(v, vars);
             }
+
+            case constants.type.TUPLE: {
+                const el = [];
+                for (let i=0; i<v.data.length; i++) {
+                    const eID = v.data[i];
+                    el.push(await this.toStringRec(eID, vars))
+                }
+
+                return `(${el.join(" ")})`;
+            }
+
+            case constants.type.CONSTANT: {
+                return v.data;
+            }
+
+            case constants.type.LOCAL_VAR: {
+                
+                const domain = v.domain ? ':' + v.domain : '';
+                v.domain && vars.add(v.domain);
+
+                return "'" + (!v.pv && v.id?v.id + "::": "") + v.varname + domain;
+            }
+
+            default:
+                console.log(v);
+
+                throw 'toString ' + v.type + ' is not defined!';
         }
-        console.log(str);
+    }
+
+    async toString (id=this._ctx.root) {
+        const vars = new Set();
+        const str = this.toStringRec(id, vars);
+
+        for (let v of vars) {
+            console.log("print variables", v);
+        }
 
         return str;
     }

@@ -272,8 +272,8 @@ const doUnify = async (ctx, p, q) => {
     const ok =  await unifyFn[p.type][q.type](ctx, p, q);
 
     if (ctx.options.log) {
-        const ps = await toString(undefined, p.id, ctx);
-        const qs = await toString(undefined, q.id, ctx);
+        const ps = await ctx.toString(p.id);
+        const qs = await ctx.toString(q.id);
 
         s += `; p=${ps}, q=${qs}`;
         if (!ok) {

@@ -440,35 +440,21 @@ async function expand (
 ) {
 
     const ctx = await BranchContext.create(branch, options, definitionDB);
-
-    // options.definitionDB = definitionDB;
     
-    // console.log("Sets In Domains ", await toString(branch, await branch.data.root));
     console.log("Sets In Domains ", await ctx.toString());
     const setsInDomains = await branch.data.setsInDomains;
     for await (let eID of setsInDomains.values()) {
-        // const v = await getVariable(branch, e);
-        // const d = await getVariable(branch, v.domain);
-
         const v = await ctx.getVariable(eID);
         const d = await ctx.getVariable(v.domain);
 
-        // if (await d.elements.size === 0) {
         const r = await setIn(
             ctx,
             d, eID
         );
 
-        console.log("====> SETS IN DOMAINS : ", await ctx.toString());
-
-        throw 'SET HAS NOT EXTENDED DOMAIN ??';
-
         await branch.update({state: 'split'});
 
         return r;
-        /*}
-        else {
-        }*/
     }
 
     throw 'SOLVING SETS IN DOMAINS ??';
@@ -687,7 +673,6 @@ async function createBranchMaterializedSet (
         ctxEmpty.state = 'yes';
         ctxEmpty.branchID = `${parentBranch.id}-empty`;
 
-        console.log('empty query set', await ctxEmpty.toString());
         await ctxEmpty.saveBranch();
     }
 

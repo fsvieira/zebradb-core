@@ -2,6 +2,7 @@ const {branchOps, query} = require('./query');
 const {parse} = require('../parsing');
 const {DB} = require('beastdb');
 const {SHA256} = require("sha2");
+const BranchContext = require('./branchContext');
 
 class QueryEngine {
 
@@ -125,7 +126,10 @@ class QueryEngine {
         }
 
         return logString + (await branchOps.toString(branch));*/
-        return await branchOps.toString(branch);
+        // return await branchOps.toString(branch);
+
+        const ctx = await BranchContext.create(branch, this.options, this.db);
+        return ctx.toString();
     }
 
     async getSolutions () {

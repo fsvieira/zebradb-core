@@ -92,7 +92,8 @@ async function intersectDomains(ctx, a, b) {
 
 async function setVariableLocalVarConstant (ctx, v, c) {
     if (v.domain) {
-        const d = await getVariable(null, v.domain, ctx);
+        // const d = await getVariable(null, v.domain, ctx);
+        const d = await ctx.getVariable(v.domain);
         
         switch (d.type) {
             case MATERIALIZED_SET:
@@ -125,12 +126,13 @@ async function setVariableLocalVarConstant (ctx, v, c) {
 
 async function setVariableLocalVarTuple (ctx, v, t) {
     if (v.domain) {
-        const d = await getVariable(null, v.domain, ctx);
+        const d = await ctx.getVariable(v.domain);
 
         throw `setVariableLocalVarTuple Domain ${d.type} not defined!`;
     }
 
-    ctx.variables = await ctx.variables.set(v.id, {...v, defer: t.id});
+    // ctx.variables = await ctx.variables.set(v.id, {...v, defer: t.id});
+    await ctx.variablesValue(v.id, {...v, defer: t.id});
 
     if (v.constraints) {
         const r = await checkVariableConstraints(ctx, v);
@@ -282,11 +284,11 @@ async function checkUniqueIndexConstrain (ctx, cs, env) {
         eID
     } = cs;
 
-    const set = await getVariable(null, setID, ctx);
+    const set = await ctx.getVariable(setID);
 
     let indexValues = [];
     for (let i=0; i<values.length; i++) {
-        const v = await getVariable(null, values[i], ctx);
+        const v = await ctx.getVariable(values[i]);
         const varName = variables[i];
 
         if (v.type === CONSTANT) {
@@ -368,8 +370,8 @@ async function checkNumberRelationConstrain(ctx, cs, env) {
 
 async function checkNumberOperationsConstrain(ctx, cs, env) {
     const {a, op, b, id} = cs;
-    const av = await getVariable(null, a, ctx);
-    const bv = await getVariable(null, b, ctx);
+    const av = await ctx.getVariable(a);
+    const bv = await ctx.getVariable(b);
 
     const an = getNumber(av);
     const bn = getNumber(bv);
@@ -489,8 +491,8 @@ async function excludeFromDomain (ctx, v, d, cs) {
 
 async function checkVariableConstraintsNotUnify (ctx, cs) {
     const {a, op, b, id} = cs;
-    const av = await getVariable(null, a, ctx);
-    const bv = await getVariable(null, b, ctx);
+    const av = await ctx.getVariable(a);
+    const bv = await ctx.getVariable(b);
 
     const sa = getValue(av);
     const sb = getValue(bv);
@@ -694,8 +696,8 @@ async function checkVariableConstraintsIn (definitionDB, ctx, cs, env) {
 
 async function checkVariableConstraintsUnify (ctx, cs, env) {
     const {a, op, b, id, root} = cs;
-    const av = await getVariable(null, a, ctx);
-    const bv = await getVariable(null, b, ctx);
+    const av = await ctx.getVariable(a);
+    const bv = await ctx.getVariable(b);
 
     const sa = getValue(av);
     const sb = getValue(bv);
@@ -743,7 +745,7 @@ async function checkVariableConstraintsUnify (ctx, cs, env) {
 }
 
 async function setRootValue (ctx, root, value) {
-    const cs = await getVariable(null, root.csID, ctx);
+    const cs = await ctx.getVariable(root.csID);
 
     await ctx.setVariableValue(cs.id, {
         ...cs, [`${root.side}Value`]: value, 
@@ -761,7 +763,7 @@ async function constraintEnv (ctx, cs) {
     const r = {stop: true, eval: true, check: true};
 
     if (cs.root) {
-        const root = await getVariable(null, cs.root.csID, ctx);
+        const root = await ctx.getVariable(cs.root.csID);
 
         if (root.op === OR) {
             const side = cs.root.side;
@@ -913,7 +915,7 @@ async function checkVariableConstraints (ctx, v) {
     const parentConstraints = new Set();
 
     for await (let vcID of v.constraints.values()) {
-        const cs = await getVariable(null, vcID, ctx);
+        const cs = await ctx.getVariable(vcID);
         const env = await constraintEnv(ctx, cs);
 
         await evalConstraint(ctx, cs, env, parentConstraints);

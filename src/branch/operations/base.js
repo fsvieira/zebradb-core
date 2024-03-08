@@ -371,13 +371,7 @@ async function createMaterializedSet (
         indexes,
         domain
     } = v;
-    
-    /*
-    if (expression) {
-        const exp = await getVarname(expression);
-        ctx.constraints = await ctx.constraints.add(exp);
-    }*/
-    
+        
     if (indexes) {
         await ctx.logger(`Create Indexes : ${JSON.stringify(indexes)}`);
     }
@@ -851,7 +845,7 @@ async function hasVariable (branch, id, ctx) {
     return !!v;
 }
 
-async function getVariable (branch, id, ctx) {
+async function __getVariable (branch, id, ctx) {
     let v;
     const variables = ctx ? ctx._ctx.variables : await branch.data.variables;
 
@@ -946,8 +940,7 @@ async function toStringSetCs(branch, v, ctx) {
     throw 'SC ????' + JSON.stringify(v);
 }
 
-
-async function toString (branch, id, ctx, constraints=true) {
+async function __toString (branch, id, ctx, constraints=true) {
     branch = branch || ctx?.branch;
     id = id || await branch.data.root;    
 
@@ -1008,14 +1001,14 @@ async function toString (branch, id, ctx, constraints=true) {
 
 module.exports = {
     varGenerator, 
-//     type,
-    getVariable,
+    // type,
+    // getVariable,
     hasVariable,
     get,
     copyTerm,
     copyPartialTerm,
     // copyTerms,
-    toString,
+    // toString,
     getConstantVarname,
     copyPartialTerm,
     createMaterializedSet,
