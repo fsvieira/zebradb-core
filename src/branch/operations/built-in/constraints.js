@@ -388,7 +388,10 @@ async function checkNumberOperationsConstrain(ctx, cs, env) {
 
     if (state !== undefined) {
         if (state !== C_UNKNOWN) {
-            ctx.variables = await ctx.variables.set(cs.id, {
+            /*ctx.variables = await ctx.variables.set(cs.id, {
+                ...cs, state
+            });*/
+            await ctx.setVariableValue(cs.id, {
                 ...cs, state
             });
         }
@@ -812,6 +815,10 @@ async function evalConstraint (ctx, cs, env, parentConstraints) {
     if (!env.check) {
         return true;
     }
+
+    const strCs = await ctx.toString(cs.id);
+
+    console.log(" ===============> " , strCs);
 
     let r;
     switch (cs.op) {

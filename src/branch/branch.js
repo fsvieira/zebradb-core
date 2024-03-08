@@ -92,7 +92,7 @@ async function setIn (ctx, set, element) {
         const unifyCtx = await ctx.snapshot();
         await unify(unifyCtx, eID, element);
         await unifyCtx.removeSetsInDomains(element);
-        const unifiedBranch = unifyCtx.saveBranch();
+        const unifiedBranch = await unifyCtx.saveBranch();
 
         branches.push(unifiedBranch);
     }
@@ -223,8 +223,12 @@ async function isSolved (ctx, id) {
     return false;
 }
 
-async function solveConstraints (branch, options) {
-    const ctx = {
+async function solveConstraints (ctx) {// (branch, options) {
+
+    console.log("---------------------------> solveConstraints ++ set ctx");
+    throw 'solveConstraints ++ set ctx';
+
+/*    const ctx = {
         parent: branch,
         branch: branch, // TODO user parent branch, no need to send this,
         root: await branch.data.root,
@@ -246,7 +250,7 @@ async function solveConstraints (branch, options) {
     const {varCounter, newVar} = varGenerator(ctx.variableCounter + 1); 
 
     ctx.newVar = newVar;
-
+*/
 
     // let size = await ctx.unsolvedConstraints.size;
     // let resultSize = 0;
@@ -457,27 +461,25 @@ async function expand (
         return r;
     }
 
-    throw 'SOLVING SETS IN DOMAINS ??';
+    // console.log("Unsolved Vars ", await toString(branch, await branch.data.root));
 
-    console.log("Unsolved Vars ", await toString(branch, await branch.data.root));
+    /*
+    TODO THERE IS CONTANTS ON VARIBLES,
 
     const unsolvedVariables = await branch.data.unsolvedVariables;
     for await (let e of unsolvedVariables.values()) {
-        const v = await getVariable(branch, e);
-        const d = await getVariable(branch, v.domain);
+        const v = await ctx.getVariable(e);
+        const d = await ctx.getVariable(v.domain);
 
         const r = await setIn(
-            branch, 
-            options, 
+            ctx,
             d, e
         );
 
         await branch.update({state: 'split'});
 
         return r;
-        console.log("SOLVE UNSOLVED VARIABLES " , v);
-//        throw 'SOLVE UNSOLVED VARIABLES';
-    }
+    }*/
 
     console.log(
         "TODO: [expand] first solve unsolvedVariables!!" +
@@ -487,7 +489,6 @@ async function expand (
 
     // throw 'EVERYTHING SHOULD BE UNSOLVED VARS; HAS LONG THEY HAVE CONSTRAINTS!'; 
     const unsolvedConstraints = await branch.data.unsolvedConstraints;
-
     if (await unsolvedConstraints.size) {
         const r = await solveConstraints(branch, options);
         if (r) {
@@ -704,8 +705,6 @@ async function createBranchMaterializedSet (
         
         await ctxElement.logger(message);
 
-
-        console.log("===> ELEMENT ===> ", await ctxElement.toString());
         // TODO: await ctxElement.logger(message);
 
         /*const branch = await rDB.tables.branches.insert({

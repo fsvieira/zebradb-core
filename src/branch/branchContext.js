@@ -18,21 +18,6 @@ class BranchContext {
         this.variableID = uuidv4();
     }
 
-    /*
-    function varGenerator (counter) {
-        const vID = uuidv4();
-
-        return {
-            varCounter: () => counter,
-            newVar: v => {
-                const varname = (v?getConstantVarname(v):'v$' + vID + '$' + (++counter));
-                return varname;
-            }
-        }
-    }
-    */
-
-
     static async create (
         branch, 
         options, 
@@ -222,6 +207,14 @@ class BranchContext {
         return `{${el.join(" ")} ${size === -1 ? '...': ''}}${domain}`;        
     }
 
+    async toStringConstraint (v, vars) {
+        const {a, op, b} = v;
+        const av = await this.toStringRec(a, vars);
+        const bv = await this.toStringRec(b, vars);
+
+        return `${av} ${op} ${bv}`;
+    }
+
     async toStringRec (id, vars) {
         const v = await this.getVariable(id);
 
@@ -249,12 +242,16 @@ class BranchContext {
                 const domain = v.domain ? ':' + v.domain : '';
                 v.domain && vars.add(v.domain);
 
-                return "'" + (!v.pv && v.id?v.id + "::": "") + v.varname + domain;
+                const varname = v.varname || v.id;
+                return "'" + (!v.pv && v.id?v.id + "::": "") + varname + domain;
+            }
+
+            case constants.type.CONSTRAINT: {
+                return this.toStringConstraint(v, vars);
             }
 
             default:
                 console.log(v);
-
                 throw 'toString ' + v.type + ' is not defined!';
         }
     }
