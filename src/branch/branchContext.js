@@ -146,6 +146,18 @@ class BranchContext {
         return this._ctx.root;
     }
 
+    set unsolvedConstraints (value) {
+        this._ctx.unsolvedConstraints = value;
+    }
+
+    get unsolvedConstraints () {
+        return this._ctx.unsolvedConstraints;
+    }
+
+    get extendSets () {
+        return this._ctx.extendSets;
+    }
+
     async currentState () {
         if (!this._ctx.state) {
             return await this.getContextState()

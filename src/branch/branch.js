@@ -194,7 +194,7 @@ const hasValue = v => [C_TRUE, C_FALSE].includes(v);
 
 async function isSolved (ctx, id) {
 
-    const cs = await getVariable(null, id, ctx);
+    const cs = await ctx.getVariable(id);
 
     if (hasValue(cs.state)) {
         return true;
@@ -204,7 +204,7 @@ async function isSolved (ctx, id) {
 
     while (root) {
         const {csID, side} = root;
-        const rootCs = await getVariable(null, csID, ctx);
+        const rootCs = await ctx.getVariable(csID);
         const csValue = rootCs[`${side}Value`] || rootCs.state;
         const oValue = rootCs[`${side === 'a' ? 'b':'a'}Value`] || rootCs.state;
 
@@ -224,9 +224,6 @@ async function isSolved (ctx, id) {
 }
 
 async function solveConstraints (ctx) {// (branch, options) {
-
-    console.log("---------------------------> solveConstraints ++ set ctx");
-    throw 'solveConstraints ++ set ctx';
 
 /*    const ctx = {
         parent: branch,
@@ -262,7 +259,7 @@ async function solveConstraints (ctx) {// (branch, options) {
         
         size = await ctx.unsolvedConstraints.size;
         for await (let csID of ctx.unsolvedConstraints.values()) {
-            const cs = await getVariable(null, csID, ctx);
+            const cs = await ctx.getVariable(csID);
 
             const solved = await isSolved(ctx, cs.id);
 
@@ -293,7 +290,7 @@ async function solveConstraints (ctx) {// (branch, options) {
     while (size !== resultSize);
 
     if (changes > 0) {
-        const newBranch = await createBranch(
+        /*const newBranch = await createBranch(
             options,
             fail,
             branch,
@@ -308,9 +305,9 @@ async function solveConstraints (ctx) {// (branch, options) {
             ctx.unsolvedVariables,
             ctx.setsInDomains,
             ctx.log        
-        );
+        );*/
 
-        await branch.update({state: 'split'});
+        await ctx.saveBranch();
 
         return true;
     }
@@ -457,7 +454,6 @@ async function expand (
         );
 
         await branch.update({state: 'split'});
-
         return r;
     }
 
@@ -488,28 +484,33 @@ async function expand (
 
 
     // throw 'EVERYTHING SHOULD BE UNSOLVED VARS; HAS LONG THEY HAVE CONSTRAINTS!'; 
-    const unsolvedConstraints = await branch.data.unsolvedConstraints;
-    if (await unsolvedConstraints.size) {
-        const r = await solveConstraints(branch, options);
+    // const unsolvedConstraints = await branch.data.unsolvedConstraints;
+    if (await ctx.unsolvedConstraints.size) {
+        const r = await solveConstraints(ctx); //branch, options);
+
         if (r) {
+            await branch.update({state: 'split'});
             return r;
         }
+        
     }
 
     console.log("Extandable Set!!");
-    const extendSets = await branch.data.extendSets;
-    for await (let sID of extendSets.values()) {
+    throw 'Extandable Set!!';
+
+    // const extendSets = await branch.data.extendSets;
+    for await (let sID of ctx.extendSets.values()) {
         /*const set = await getVariable(branch, sID);
         console.log(set);
         
         console.log("EXTEND SET ", await toString(branch, sID));*/
-        const r = await extendSet(branch, sID);
+        const r = await extendSet(ctx, sID)// branch, sID);
         if (!r) {
             return r; 
         }
     }
 
-    console.log("END!!", await toString(branch, await branch.data.root));
+    // console.log("END!!", await toString(branch, await branch.data.root));
 
     // else 
     throw 'expand : next steps!!';
