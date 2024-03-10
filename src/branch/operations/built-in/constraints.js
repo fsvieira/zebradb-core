@@ -112,6 +112,7 @@ async function setVariableLocalVarConstant (ctx, v, c) {
 
     // ctx.variables = await ctx.variables.set(v.id, {...v, defer: c.id});
     await ctx.setVariableValue(v.id, {...v, defer: c.id});
+    await ctx.removeUnsolvedVariable(v.id);
 
     if (v.constraints) {
         const r = await checkVariableConstraints(ctx, v);

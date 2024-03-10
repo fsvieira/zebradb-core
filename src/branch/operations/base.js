@@ -479,7 +479,7 @@ async function copyPartialTermConstraint (
     const a = await getVarname(av, extendSets);
     const b = await getVarname(bv, extendSets);
     
-    if (av.type === LOCAL_VAR) {
+    /*if (av.type === LOCAL_VAR) {
         // ctx.unsolvedVariables = await ctx.unsolvedVariables.add(a);
         await ctx.addUnsolvedVariable(a);
     }
@@ -487,7 +487,7 @@ async function copyPartialTermConstraint (
     if (bv.type === LOCAL_VAR) {
         await ctx.addUnsolvedVariable(b);
         // ctx.unsolvedVariables = await ctx.unsolvedVariables.add(b);
-    }
+    }*/
 
     const root = v.root?{
         ...v.root,
@@ -604,7 +604,7 @@ async function copyPartialTermLocalVar (
 
     if (v.constraints && v.domain ) {
         // ctx.unsolvedVariables = await ctx.unsolvedVariables.add(vn);
-        ctx.addUnsolvedVariable(vn);
+        await ctx.addUnsolvedVariable(vn);
     }
 }
 

@@ -108,6 +108,11 @@ class BranchContext {
         return this;
     }
 
+    async removeUnsolvedVariable (id) {
+        this._ctx.unsolvedVariables = await this._ctx.unsolvedVariables.remove(id);
+        return this;
+    }
+
     // variables,
     async setVariableValue (id, value) {
         this._ctx.variables = await this._ctx.variables.set(id, value);
@@ -157,6 +162,14 @@ class BranchContext {
 
     get unsolvedConstraints () {
         return this._ctx.unsolvedConstraints;
+    }
+
+    get setsInDomains () {
+        return this._ctx.setsInDomains;
+    }
+
+    get unsolvedVariables () {
+        return this._ctx.unsolvedVariables;
     }
 
     get extendSets () {

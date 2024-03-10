@@ -387,7 +387,7 @@ async function extendSet (ctx, setID) {
 */
     const set = await ctx.getVariable(setID);
 
-    ctx.removeExtendSet(setID);
+    await ctx.removeExtendSet(setID);
 
     if (set.definition) {
         const {definition: {variables, root}, defID=root} = set;
@@ -434,6 +434,12 @@ async function extendSet (ctx, setID) {
     return true;
 }
 
+async function debugUnsolvedVariables (ctx) {
+    for await (let e of ctx.unsolvedVariables.values()) {
+        console.log(" == DEBUG ===> Unsolved Variables", await ctx.getVariable(e));
+    }
+}
+
 async function expand (
     definitionDB, 
     branch, 
@@ -444,9 +450,11 @@ async function expand (
 
     const ctx = await BranchContext.create(branch, options, definitionDB);
     
+    await debugUnsolvedVariables(ctx);
+
     console.log("Sets In Domains ", await ctx.toString());
-    const setsInDomains = await branch.data.setsInDomains;
-    for await (let eID of setsInDomains.values()) {
+    // const setsInDomains = await branch.data.setsInDomains;
+    for await (let eID of ctx.setsInDomains.values()) {
         const v = await ctx.getVariable(eID);
         const d = await ctx.getVariable(v.domain);
 
@@ -459,13 +467,9 @@ async function expand (
         return r;
     }
 
-    // console.log("Unsolved Vars ", await toString(branch, await branch.data.root));
+    await debugUnsolvedVariables(ctx);
 
-    /*
-    TODO THERE IS CONTANTS ON VARIBLES,
-
-    const unsolvedVariables = await branch.data.unsolvedVariables;
-    for await (let e of unsolvedVariables.values()) {
+    for await (let e of ctx.unsolvedVariables.values()) {
         const v = await ctx.getVariable(e);
         const d = await ctx.getVariable(v.domain);
 
@@ -477,13 +481,14 @@ async function expand (
         await branch.update({state: 'split'});
 
         return r;
-    }*/
+    }
 
     console.log(
         "TODO: [expand] first solve unsolvedVariables!!" +
         " --> unsolvedVariables are only domains + constraints!"
     );
 
+    await debugUnsolvedVariables(ctx);
 
     // throw 'EVERYTHING SHOULD BE UNSOLVED VARS; HAS LONG THEY HAVE CONSTRAINTS!'; 
     // const unsolvedConstraints = await branch.data.unsolvedConstraints;
@@ -494,8 +499,9 @@ async function expand (
             await branch.update({state: 'split'});
             return r;
         }
-        
     }
+
+    await debugUnsolvedVariables(ctx);
 
     // const extendSets = await branch.data.extendSets;
     for await (let sID of ctx.extendSets.values()) {
@@ -504,11 +510,13 @@ async function expand (
         
         console.log("EXTEND SET ", await toString(branch, sID));*/
         const r = await extendSet(ctx, sID)// branch, sID);
-        if (!r) {
+        if (r) {
             await branch.update({state: 'split'});
             return r; 
         }
     }
+
+    await debugUnsolvedVariables(ctx);
 
     console.log("EXPAND DUMP BRANCH ", await ctx.toString());
     // console.log("END!!", await toString(branch, await branch.data.root));
