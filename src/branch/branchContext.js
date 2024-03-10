@@ -103,6 +103,11 @@ class BranchContext {
         return this;
     }
 
+    async removeExtendSet (setID) {
+        this._ctx.extendSets = await this._ctx.extendSets.remove(setID);
+        return this;
+    }
+
     // variables,
     async setVariableValue (id, value) {
         this._ctx.variables = await this._ctx.variables.set(id, value);

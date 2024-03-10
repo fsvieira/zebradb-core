@@ -361,8 +361,8 @@ async function executeConstraints (options, definitionDB, branch, v) {
     // throw 'Create New Branch';
 }
 
-async function extendSet (branch, setID) {
-    const ctx = {
+async function extendSet (ctx, setID) {
+/*    const ctx = {
         parent: branch,
         branch: branch, // TODO user parent branch, no need to send this,
         root: await branch.data.root,
@@ -384,10 +384,10 @@ async function extendSet (branch, setID) {
     const {varCounter, newVar} = varGenerator(ctx.variableCounter + 1); 
 
     ctx.newVar = newVar;
+*/
+    const set = await ctx.getVariable(setID);
 
-    const set = await getVariable(null, setID, ctx);
-
-    ctx.extendSets = ctx.extendSets.remove(setID);
+    ctx.removeExtendSet(setID);
 
     if (set.definition) {
         const {definition: {variables, root}, defID=root} = set;
@@ -395,21 +395,23 @@ async function extendSet (branch, setID) {
         const setDef = variables[defID];
         const copyID = setDef.elements[0];
 
-        const eID = await copyPartialTerm(ctx, set.definition, copyID, null, true, true);
+        const eID = await copyPartialTerm(ctx, set.definition, copyID, true, true);
 
         set.elements = await set.elements.add(eID);
 
-        ctx.variables = await ctx.variables.set(set.id, set);
-
+        // ctx.variables = await ctx.variables.set(set.id, set);
+        await ctx.setVariableValue(set.id, set);
     }
     else {
         console.log("TODO: ONLY VALID SETS SHOULD BE HERE!!");
         return false;
     }
     
-    const options = {};
-    const fail = false;
+    /*const options = ctx.options;
+    const fail = false;*/
 
+    await ctx.saveBranch();
+    /*
     const newBranch = await createBranch(
         options,
         fail,
@@ -425,9 +427,9 @@ async function extendSet (branch, setID) {
         ctx.unsolvedVariables,
         ctx.setsInDomains,
         ctx.log        
-    );
+    );*/
 
-    await branch.update({state: 'split'});
+    // await branch.update({state: 'split'});
 
     return true;
 }
@@ -495,9 +497,6 @@ async function expand (
         
     }
 
-    console.log("Extandable Set!!");
-    throw 'Extandable Set!!';
-
     // const extendSets = await branch.data.extendSets;
     for await (let sID of ctx.extendSets.values()) {
         /*const set = await getVariable(branch, sID);
@@ -506,11 +505,15 @@ async function expand (
         console.log("EXTEND SET ", await toString(branch, sID));*/
         const r = await extendSet(ctx, sID)// branch, sID);
         if (!r) {
+            await branch.update({state: 'split'});
             return r; 
         }
     }
 
+    console.log("EXPAND DUMP BRANCH ", await ctx.toString());
     // console.log("END!!", await toString(branch, await branch.data.root));
+
+
 
     // else 
     throw 'expand : next steps!!';
