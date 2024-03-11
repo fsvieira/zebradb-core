@@ -169,19 +169,6 @@ function termSet (ctx, t) {
         });
     }
 
-    /*if (expression) {
-        console.log(" == EXPRESSION ==> ", JSON.stringify(expression, null, '  '));
-        throw 'termSet: EXPRESSION NOT IMPLEMENTED';
-    }*/
-
-    // == CS ==
-    /*  
-    const termElement = element?term(ctx, {
-        ...element,
-        expression
-    }):undefined;
-    */
-
     const termVariable = variable ? term(ctx, variable) : cid; 
 
     const nt = {
@@ -197,19 +184,6 @@ function termSet (ctx, t) {
     };
 
     ctx.variables[cid] = nt;
-
-    // == CS ==  
-
-
-    /*const nt = {
-        type,
-        elements: [],
-        variable: term(ctx, variable),
-        size,
-        cid
-    };
-
-    ctx.variables[cid] = nt;*/
 
     if (elements) {
         for (let i=0; i<elements.length; i++) {

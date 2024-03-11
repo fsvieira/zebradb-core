@@ -362,29 +362,6 @@ async function executeConstraints (options, definitionDB, branch, v) {
 }
 
 async function extendSet (ctx, setID) {
-/*    const ctx = {
-        parent: branch,
-        branch: branch, // TODO user parent branch, no need to send this,
-        root: await branch.data.root,
-        level: (await branch.data.level + 1),
-        variables: await branch.data.variables,
-        checked: await branch.data.checked,
-        unchecked: await branch.data.unchecked,
-        constraints: await branch.data.constraints,
-        unsolvedConstraints: await branch.data.unsolvedConstraints,
-        extendSets: await branch.data.extendSets,
-        unsolvedVariables: await branch.data.unsolvedVariables,
-        variableCounter: await branch.data.variableCounter,
-        setsInDomains: await branch.data.setsInDomains,
-        children: await branch.data.children,
-        log: await branch.data.log,
-        rDB: branch.table.db
-    };
-
-    const {varCounter, newVar} = varGenerator(ctx.variableCounter + 1); 
-
-    ctx.newVar = newVar;
-*/
     const set = await ctx.getVariable(setID);
 
     await ctx.removeExtendSet(setID);
@@ -395,11 +372,16 @@ async function extendSet (ctx, setID) {
         const setDef = variables[defID];
         const copyID = setDef.elements[0];
 
-        const eID = await copyPartialTerm(ctx, set.definition, copyID, true, true);
+        const mapVars = {[defID]: set.id};
+
+        const eID = await copyPartialTerm(
+            ctx, set.definition, 
+            copyID, true, true,
+            mapVars
+        );
 
         set.elements = await set.elements.add(eID);
 
-        // ctx.variables = await ctx.variables.set(set.id, set);
         await ctx.setVariableValue(set.id, set);
     }
     else {
@@ -407,29 +389,7 @@ async function extendSet (ctx, setID) {
         return false;
     }
     
-    /*const options = ctx.options;
-    const fail = false;*/
-
     await ctx.saveBranch();
-    /*
-    const newBranch = await createBranch(
-        options,
-        fail,
-        branch,
-        varCounter,
-        ctx.level,
-        ctx.checked,
-        ctx.unchecked,
-        ctx.variables,
-        ctx.constraints,
-        ctx.unsolvedConstraints,
-        ctx.extendSets,
-        ctx.unsolvedVariables,
-        ctx.setsInDomains,
-        ctx.log        
-    );*/
-
-    // await branch.update({state: 'split'});
 
     return true;
 }
@@ -450,10 +410,7 @@ async function expand (
 
     const ctx = await BranchContext.create(branch, options, definitionDB);
     
-    await debugUnsolvedVariables(ctx);
-
     console.log("Sets In Domains ", await ctx.toString());
-    // const setsInDomains = await branch.data.setsInDomains;
     for await (let eID of ctx.setsInDomains.values()) {
         const v = await ctx.getVariable(eID);
         const d = await ctx.getVariable(v.domain);
@@ -466,8 +423,6 @@ async function expand (
         await branch.update({state: 'split'});
         return r;
     }
-
-    await debugUnsolvedVariables(ctx);
 
     for await (let e of ctx.unsolvedVariables.values()) {
         const v = await ctx.getVariable(e);
@@ -483,15 +438,6 @@ async function expand (
         return r;
     }
 
-    console.log(
-        "TODO: [expand] first solve unsolvedVariables!!" +
-        " --> unsolvedVariables are only domains + constraints!"
-    );
-
-    await debugUnsolvedVariables(ctx);
-
-    // throw 'EVERYTHING SHOULD BE UNSOLVED VARS; HAS LONG THEY HAVE CONSTRAINTS!'; 
-    // const unsolvedConstraints = await branch.data.unsolvedConstraints;
     if (await ctx.unsolvedConstraints.size) {
         const r = await solveConstraints(ctx); //branch, options);
 
@@ -501,14 +447,7 @@ async function expand (
         }
     }
 
-    await debugUnsolvedVariables(ctx);
-
-    // const extendSets = await branch.data.extendSets;
     for await (let sID of ctx.extendSets.values()) {
-        /*const set = await getVariable(branch, sID);
-        console.log(set);
-        
-        console.log("EXTEND SET ", await toString(branch, sID));*/
         const r = await extendSet(ctx, sID)// branch, sID);
         if (r) {
             await branch.update({state: 'split'});
@@ -516,140 +455,10 @@ async function expand (
         }
     }
 
-    await debugUnsolvedVariables(ctx);
-
     console.log("EXPAND DUMP BRANCH ", await ctx.toString());
-    // console.log("END!!", await toString(branch, await branch.data.root));
-
-
 
     // else 
     throw 'expand : next steps!!';
-
-    /*let r;
-    if (await branch.data.setsInDomains.size) {
-        const setsInDomains = await branch.data.setsInDomains;
-
-        let id, domain;
-        for await (let e of setsInDomains.values()) {
-            id = e;
-            const v = await getVariable(branch, id);
-
-        }
-
-        r = await unifyDomain(
-            branch,
-            options,
-            id,
-            v.domain,
-        );
-
-        await branch.update({state: 'split'});
-
-    }
-    else {
-        throw 'expand : what to solve ??';
-    }*/
-    
-    return r;
-
-    if (state === 'unsolved_variables') {
-        const unsolvedVariables = await branch.data.unsolvedVariables;
-//        let min=Infinity, minVar, minDomain; 
-//        let v;
-
-        let d; 
-        let domain;
-        let dSize;
-        let c;
-        let cSize;
-
-        for await (let vID of unsolvedVariables.values()) {
-            v = await branch.data.variables.get(vID);
-
-            if (v.domain) {
-                const dDomain = await getVariable(branch, v.domain);
-            
-                const size = await domain.size;
-
-                if (!d || dSize > size) {
-                    domain = dDomain;
-                    dSize = size;
-                    d = v;
-                }
-
-                c === null;
-
-            }
-            else if (c !== null) {
-                const size = await v.constraints.size;
-
-                if (!c || cSize > size) {
-                    cSize = size;
-                    c = v;
-                }
-            }
-
-            /*const domain = await getVariable(branch, v.domain);
-            
-            if (domain.size < min) {
-                min = domain.size;
-                minDomain = domain;
-                minVar = v;
-            }*/
-
-        }
-        
-        // const minVarD = minDomain.elements;
-        // const r = await Promise.all(minVarD.map(cID => unify(branch, options, minVar.id, cID)));
-
-        let r;
-        if (d) {
-            const elements = domain.elements;
-            r = await Promise.all(elements.map(cID => unify(branch, options, d.id, cID))); 
-        }
-        else {
-            await executeConstraints(options, definitionDB, branch, c);
-        }
-        
-        await branch.update({state: 'split'});
-
-        return r;
-    }
-    else {
-        const id = await selector(branch);
-
-        if (id === undefined) {
-            throw 'SELECTING A UNDEFINED ID';
-        }
-
-
-        const v = await getVariable(branch, id);
-
-        let r;
-
-        if (v.domain) {
-            r = await unifyDomain(
-                branch,
-                options,
-                id,
-                v.domain,
-            );
-
-            await branch.update({state: 'split'});
-
-        }
-        else {
-            const searchTerm = await toJS(branch, id);
-            const ds = await definitions(searchTerm);
-
-            r = await Promise.all(ds.map(definition => unify(branch, options, id, null, definition)));
-
-            await branch.update({state: 'split'});
-        }
-
-        return r;
-    }
 }
 
 async function createBranchMaterializedSet (
@@ -708,31 +517,13 @@ async function createBranchMaterializedSet (
             }
         );
 
-        // const state = await getContextState(ctx);
-
-        const eStr = await ctxElement.toString(); // TODO: make specilized to string ctx. 
+        const eStr = await ctxElement.toString(); 
         
         const message = `state=${await ctxElement.currentState()}, root=${eStr}`; 
-        // const log = await logger(options, {log: ctx.log}, message);
         
         await ctxElement.logger(message);
 
-        // TODO: await ctxElement.logger(message);
-
-        /*const branch = await rDB.tables.branches.insert({
-            ...ctx,
-            variableCounter: varCounter(),
-            state,
-            log,
-            branchID: `${parentBranch.id}-element`
-        }, null);*/
-
         const branch = await ctxElement.saveBranch();
-
-        /*console.log("ELEMENT BRANCH - START DUMP UNSOLVED CONSTRAINTS!!");
-        for await (let csID of ctx.unsolvedConstraints.values()) {
-            console.log("ELEMENT BRANCH RR => ", await toString(null, csID, ctx)); 
-        }*/
 
         return branch;
     }
@@ -806,6 +597,77 @@ async function mergeElement (ctx, branchA, branchB, id) {
 }
 
 async function merge (options, rDB, branchA, branchB) {
+    const ctxA = await BranchContext.create(branchA, options, null, rDB);
+    const ctxB = await BranchContext.create(branchB, options, null, rDB);
+
+    console.log("MERGE BRANCHES ", branchA.id, branchB.id);
+    const resultsSetID = '__resultsSet';
+    const a = await ctxA.getVariable(resultsSetID);
+    const b = await ctxB.getVariable(resultsSetID);
+
+    console.log(a, await a.uniqueMap.size);
+    for await (let eaID of a.elements.values()) {
+        const eA = await ctxA.getVariable(eaID);
+        console.log(await ctxA.toString(eaID) ,eA, await eA.uniqueMap.size);
+
+        for await (let ebID of b.elements.values()) {
+            const eB = await ctxB.getVariable(ebID);
+            console.log(await ctxB.toString(ebID), eB, await eB.uniqueMap.size);
+
+            // TODO: sometimes we get same values from diff branches ?? 
+            console.log("MERGE ", await ctxA.toString(eaID), ' ** ' , await ctxB.toString(ebID) );
+
+            const bElements = new Set(await eB.elements.toArray());
+
+            for (const e of bElements) {
+                const eV = await ctxB.getVariable(e); 
+                console.log(`MAP ${e} -> ${eV.id}`);
+            }
+
+            const bElementsConflict = new Set();
+            for await (let [key, aValue] of eA.uniqueMap) {
+                console.log("hash ==>", key, aValue);
+                if (await eB.uniqueMap.has(key)) {
+                    const bValue = await eB.uniqueMap.get(key);
+
+                    const eV = await ctxB.getVariable(bValue); 
+                    console.log(`MAP 222 ${bValue} -> ${eV.id}`);
+    
+                    console.log(
+                        "Conflict", 
+                        await ctxA.toString(aValue), 
+                        await ctxB.toString(bValue)
+                    );
+
+                    bElements.delete(bValue);
+                    bElementsConflict.add(bValue);
+                }
+                /*else {
+                    console.log("No Conflict ", 
+                        await ctxA.toString(aValue),
+                        await ctxB.toString(bValue)
+                    );
+                }*/
+            }
+
+            for (let e of bElements) {
+                console.log(" el  --> ", await ctxB.toString(e));
+            }
+
+            for (let e of bElementsConflict) {
+                console.log(" elC --> ", await ctxB.toString(e));
+            }
+
+            console.log("b el ", [...bElements], [...bElementsConflict]);
+
+            throw 'MERGE BOTH ELEMENTS';
+        }
+    }
+
+    throw 'DO MERGE !!';
+}
+
+async function __merge (options, rDB, branchA, branchB) {
     throw 'MERGE ??';
 
     {

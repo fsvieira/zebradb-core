@@ -21,12 +21,12 @@ const {
 const { v4: uuidv4 } = require('uuid');
 
 async function getContextState(ctx) {
-    console.log("getContextState", {
+    /*console.log("getContextState", {
         setsInDomains: await ctx.setsInDomains.size,
         unsolvedConstraints: await ctx.unsolvedConstraints.size,
         extendSets: await ctx.extendSets.size,
         unsolvedVariables: await ctx.unsolvedVariables.size
-    });
+    });*/
 
     return (
         await ctx.setsInDomains.size ||
@@ -398,6 +398,7 @@ async function createMaterializedSet (
         defID: v.cid,
         definition: expression ? definitionElement : null,
         domain: domainID,
+        uniqueMap: ctx.rDB.iMap(),
         size
     };
 
@@ -643,11 +644,12 @@ async function copyPartialIndex (
 async function copyPartialTerm (
     ctx, p, vID, 
     extendSets=false,
-    preserveVarname=false
+    preserveVarname=false,
+    mapVars={}
 ) {
 
-    const {variables} = p;
-    const mapVars = {};
+    const { variables } = p;
+    // const mapVars = {};
 
     const getVarname = async (v, extendSets=false) => {
         if (v) {

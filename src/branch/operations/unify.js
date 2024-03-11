@@ -45,9 +45,6 @@ const FN_FALSE = async () => false;
 
 async function unifyMsMs (ctx, p, q) {
 
-    // const {definitionDB} = ctx.options;
-    const definitionDB = ctx.definitionDB;
-
     let aSize = await p.elements.size;
     let bSize = await q.elements.size;
 
@@ -61,6 +58,15 @@ async function unifyMsMs (ctx, p, q) {
         bSize = aTmpSize;
     }
 
+    if (await p.uniqueMap.size) {
+        throw 'P INDEXES';
+    }
+
+    if (await q.uniqueMap.size) {
+        throw 'Q INDEXES';
+    }
+
+
     if (bSize === 0) {
         let {
             defID,
@@ -73,16 +79,20 @@ async function unifyMsMs (ctx, p, q) {
 
         if (s.elements.length === 1) {
             const copyID = s.elements[0];
+            const mapVars = {[defID]: a.id};
+
             for await (let id of a.elements.values()) {
-                const eID = await copyPartialTerm(ctx, definition, copyID, definitionDB, true, true);
+                // throw 'BUG BUG : WRONG -> COPY ELEMENT WILL CREATE A NEW SET TO PUT INDEXES!!';
+                const eID = await copyPartialTerm(
+                    ctx, definition, copyID, 
+                    true, true,
+                    mapVars
+                );
+
                 await doUnify(ctx, id, eID);
             }
 
-            /*ctx.variables = await ctx.variables.set(a.id, {
-                ...a,
-                defID,
-                definition
-            });*/
+            a = await ctx.getVariable(a.id);
 
             await ctx.setVariableValue(a.id, {
                 ...a,
@@ -91,7 +101,6 @@ async function unifyMsMs (ctx, p, q) {
             });
 
             await ctx.addExtendSet(b.id);
-            // ctx.extendSets = await ctx.extendSets.add(b.id);
             console.log("TODO: rules to add extended set: it must be able to create elements, and set is not full!");
 
         }
@@ -99,28 +108,13 @@ async function unifyMsMs (ctx, p, q) {
             throw 'UnifyMsMs : TODO handle sets with more than one element def!';
         }
 
-
-        /*ctx.variables = await ctx.variables.set(b.id, {
-            ...b,
-            defer: a.id
-        });*/
-
         await ctx.setVariableValue(b.id, {
             ...b,
             defer: a.id
         });
-
-        /*
-        ctx.unchecked = await ctx.unchecked.remove(q.id);
-        ctx.unchecked = await ctx.unchecked.remove(p.id);
-
-        ctx.checked = await ctx.unchecked.add(q.id);
-        ctx.checked = await ctx.unchecked.add(p.id);
-        */
     }
 
     return true;
-    // throw 'Unify Ms Ms is not defined!!';
 }
 
 const unifyFn = {
@@ -250,15 +244,12 @@ async function deepUnify(
 }
 
 const doUnify = async (ctx, p, q) => {
-    // p = await get(ctx, p);
-    // q = await get(ctx, q);
     p = await ctx.getVariable(p);
     q = await ctx.getVariable(q);
 
     let s;
     
     if (ctx.options.log) {
-        // s = `${await toString(undefined, p.id, ctx)} ** ${await toString(undefined, q.id, ctx)}`;
         s = `${await ctx.toString(p.id)} ** ${await ctx.toString(q.id)}`;
     }
 
@@ -277,12 +268,10 @@ const doUnify = async (ctx, p, q) => {
 
         s += `; p=${ps}, q=${qs}`;
         if (!ok) {
-            // ctx.log = await ctx.log.push(`FAIL: ${s}`);
             await ctx.logger(`FAIL: ${s}`);
         }
         else {
             await ctx.logger(`SUCC: ${s}`);
-            // ctx.log = await ctx.log.push(`SUCC: ${s}`);
         }
     }
 
@@ -369,29 +358,6 @@ async function createBranch (
 }
 
 async function unify (ctx, tuple, definitionID, definition) {
-
-    /*
-    const level = await branch.data.level + 1;
-    const rDB = branch.table.db;
-
-    const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
-    const ctx = {
-        variables: await branch.data.variables,
-        constraints: await branch.data.constraints,
-        unsolvedConstraints: await branch.data.unsolvedConstraints,
-        extendSets: await branch.data.extendSets,
-        unsolvedVariables: await branch.data.unsolvedVariables,
-        unchecked: await branch.data.unchecked,
-        checked: await branch.data.checked,
-        setsInDomains: await branch.data.setsInDomains,
-        newVar,
-        level,
-        rDB: branch.table.db,
-        branch,
-        log: await branch.data.log,
-        options  
-    };*/
-
     if (definition) {
         throw 'unify definition provided, deprecated!!'
         definitionID = await copyTerm(ctx, definition);
@@ -404,44 +370,6 @@ async function unify (ctx, tuple, definitionID, definition) {
     );
 
     ctx.state = !ok ? 'no': ctx.state;
-    // await ctx.saveBranch();
-    /*
-    const {
-        variables, constraints, 
-        unsolvedVariables, unchecked,
-        unsolvedConstraints,
-        extendSets,
-        setsInDomains,
-        checked, fail, log
-    } = await deepUnify(
-        ctx,
-        tuple, 
-        definitionID
-    );
-
-    console.log("DEEP UNIFY - START DUMP UNSOLVED CONSTRAINTS!!");
-    for await (let csID of unsolvedConstraints.values()) {
-        console.log("DEEP UNIFY RR => ", await toString(null, csID, ctx)); 
-    }
-
-    await createBranch(
-        options,
-        fail,
-        branch,
-        varCounter,
-        ctx.level,
-        checked,
-        unchecked,
-        variables,
-        constraints,
-        unsolvedConstraints,
-        extendSets,
-        unsolvedVariables,
-        setsInDomains,
-        log        
-    );
-
-    return branch;*/
 }
 
 module.exports = {unify, constants, createBranch};

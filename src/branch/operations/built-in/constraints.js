@@ -303,17 +303,21 @@ async function checkUniqueIndexConstrain (ctx, cs, env) {
 
     const indexKey = indexValues.join("-");
 
-    const uniqueMap = set.uniqueMap = set.uniqueMap || ctx.rDB.iMap();
+    // let uniqueMap = set.uniqueMap || ctx.rDB.iMap();
 
-    if (await uniqueMap.has(indexKey)) {
-        throw '[checkUniqueIndexConstrain]: key exists';
+    if (await set.uniqueMap.has(indexKey)) {
+        // throw '[checkUniqueIndexConstrain]: key exists';
+        return C_FALSE;
     }
     else {
-        await uniqueMap.set(indexKey, eID);
+        const uniqueMap = await set.uniqueMap.set(indexKey, eID);
+        await ctx.setVariableValue(setID, {
+            ...set,
+            uniqueMap
+        });
+
         return C_TRUE;
     }
-
-    return C_UNKNOWN;
 }
 
 async function checkNumberRelationConstrain(ctx, cs, env) {
@@ -817,10 +821,6 @@ async function evalConstraint (ctx, cs, env, parentConstraints) {
         return true;
     }
 
-    const strCs = await ctx.toString(cs.id);
-
-    console.log(" ===============> " , strCs);
-
     let r;
     switch (cs.op) {
         // Set Operators,
@@ -883,7 +883,8 @@ async function evalConstraint (ctx, cs, env, parentConstraints) {
         // constraints = await constraints.remove(vcID);
 
         if (r === C_FALSE && env.stop) {
-            await logger(ctx.options || {}, ctx, `C_FALSE && STOP ${cs}`);
+            // await logger(ctx.options || {}, ctx, `C_FALSE && STOP ${cs}`);
+            await ctx.logger(`C_FALSE && STOP ${cs}`);
 
             return false;
         }
