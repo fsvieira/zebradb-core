@@ -137,7 +137,13 @@ const unifyFn = {
                         }
                     }
 
-                    await checkTuple(ctx, p, q);
+                    // await checkTuple(ctx, p, q);
+
+                    await ctx.setVariableValue(
+                        q.id, {
+                            defer: p.id
+                        }
+                    );
 
                     return true;
                 }
@@ -187,60 +193,6 @@ const checkTuple = async (ctx, p, q) => {
         // ctx.unchecked = await ctx.unchecked.remove(p.id);
         await ctx.removeUnchecked(p.id);
     }
-}
-
-async function deepUnify(
-    ctx,
-    tuple, 
-    definitionID,
-) {
-
-    const ok = await doUnify(
-        ctx,
-        tuple, 
-        definitionID
-    );
-
-    // let unsolvedVariablesClean = ctx.unsolvedVariables;
-
-    /*for await (let vid of ctx.unsolvedVariables.values()) {
-        const v = await get(ctx, vid);
-
-        if (v.in) {
-            for await (let eID of v.in.values()) {
-                await doUnify(ctx, v.id, eID);
-                // ctx.variables = await ctx.variables.set(v.id, {...v, defer: vin.id});
-
-                unsolvedVariablesClean = await unsolvedVariablesClean.remove(vid);
-            }
-        }
-    }*/
-
-    // throw 'WE PROBABLY DONT NEED THIS CHECKS AND DONT NEED TO RETURN NOTHING, because everything is on the context.'
-    /*if (await ctx.unchecked.size === 0 && await ctx.unsolvedVariables.size > 0) {
-        // Check if unsolved variables are solved.
-        for await (let vid of ctx.unsolvedVariables.values()) {
-            const v = await get(ctx, vid);
-
-            if (!(v.constraints && v.domain)) {
-                unsolvedVariablesClean = await unsolvedVariablesClean.remove(vid);
-            }
-        }
-    }
-
-    return {
-        variables: ctx.variables,
-        constraints: ctx.constraints,
-        unsolvedConstraints: ctx.unsolvedConstraints,
-        extendSets: ctx.extendSets,
-        unsolvedVariables: unsolvedVariablesClean,
-        setsInDomains: ctx.setsInDomains,
-        unchecked: ctx.unchecked, 
-        checked: ctx.checked, 
-        fail: !ok, 
-        // variableCounter: varCounter(),
-        log: ctx.log
-    };*/
 }
 
 const doUnify = async (ctx, p, q) => {

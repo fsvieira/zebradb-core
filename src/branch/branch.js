@@ -362,7 +362,7 @@ async function executeConstraints (options, definitionDB, branch, v) {
 }
 
 async function extendSet (ctx, setID) {
-    const set = await ctx.getVariable(setID);
+    let set = await ctx.getVariable(setID);
 
     await ctx.removeExtendSet(setID);
 
@@ -380,9 +380,13 @@ async function extendSet (ctx, setID) {
             mapVars
         );
 
-        set.elements = await set.elements.add(eID);
+        set = await ctx.getVariable(set.id);
+        const elements = await set.elements.add(eID);
 
-        await ctx.setVariableValue(set.id, set);
+        await ctx.setVariableValue(set.id, {
+            ...set,
+            elements
+        });
     }
     else {
         console.log("TODO: ONLY VALID SETS SHOULD BE HERE!!");
@@ -604,8 +608,9 @@ async function merge (options, rDB, branchA, branchB) {
     const resultsSetID = '__resultsSet';
     const a = await ctxA.getVariable(resultsSetID);
     const b = await ctxB.getVariable(resultsSetID);
-
+    
     console.log(a, await a.uniqueMap.size);
+
     for await (let eaID of a.elements.values()) {
         const eA = await ctxA.getVariable(eaID);
         console.log(await ctxA.toString(eaID) ,eA, await eA.uniqueMap.size);
@@ -630,17 +635,22 @@ async function merge (options, rDB, branchA, branchB) {
                 if (await eB.uniqueMap.has(key)) {
                     const bValue = await eB.uniqueMap.get(key);
 
-                    const eV = await ctxB.getVariable(bValue); 
-                    console.log(`MAP 222 ${bValue} -> ${eV.id}`);
-    
-                    console.log(
-                        "Conflict", 
-                        await ctxA.toString(aValue), 
-                        await ctxB.toString(bValue)
-                    );
+                    const aV = await ctxB.getVariable(aValue); 
+                    const bV = await ctxB.getVariable(bValue);
+                    
+                    if (aV.id === bV.id) {
+                        console.log(`MAP a=${aV.id}, b=${bV.id}.`);        
+                    }
+                    else {
+                        console.log(
+                            "Conflict", aV.id, bV.id,
+                            await ctxA.toString(aValue), 
+                            await ctxB.toString(bValue)
+                        );
 
-                    bElements.delete(bValue);
-                    bElementsConflict.add(bValue);
+                        bElements.delete(bV.id);
+                        bElementsConflict.add(bV.id);
+                    }
                 }
                 /*else {
                     console.log("No Conflict ", 

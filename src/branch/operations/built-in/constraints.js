@@ -311,7 +311,7 @@ async function checkUniqueIndexConstrain (ctx, cs, env) {
     }
     else {
         const uniqueMap = await set.uniqueMap.set(indexKey, eID);
-        await ctx.setVariableValue(setID, {
+        await ctx.setVariableValue(set.id, {
             ...set,
             uniqueMap
         });
