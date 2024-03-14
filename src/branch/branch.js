@@ -608,9 +608,7 @@ async function merge (options, rDB, branchA, branchB) {
     const resultsSetID = '__resultsSet';
     const a = await ctxA.getVariable(resultsSetID);
     const b = await ctxB.getVariable(resultsSetID);
-    
-    console.log(a, await a.uniqueMap.size);
-
+        
     for await (let eaID of a.elements.values()) {
         const eA = await ctxA.getVariable(eaID);
         console.log(await ctxA.toString(eaID) ,eA, await eA.uniqueMap.size);
@@ -639,7 +637,7 @@ async function merge (options, rDB, branchA, branchB) {
                     const bV = await ctxB.getVariable(bValue);
                     
                     if (aV.id === bV.id) {
-                        console.log(`MAP a=${aV.id}, b=${bV.id}.`);        
+                        console.log(`MAP a=${aV.id}, b=${bV.id}.`);
                     }
                     else {
                         console.log(
@@ -648,9 +646,11 @@ async function merge (options, rDB, branchA, branchB) {
                             await ctxB.toString(bValue)
                         );
 
-                        bElements.delete(bV.id);
                         bElementsConflict.add(bV.id);
                     }
+
+                    bElements.delete(bValue);
+                    bElements.delete(bV.id);
                 }
                 /*else {
                     console.log("No Conflict ", 
@@ -670,11 +670,31 @@ async function merge (options, rDB, branchA, branchB) {
 
             console.log("b el ", [...bElements], [...bElementsConflict]);
 
+            let elements = a.elements;
+            for (let e of bElements) {
+                throw 'WE NEED TO COPY ELEMENT TO NEW BRANCH !! HOW :D MERGE BRANCH ??'
+                elements = await elements.add(e)
+            }
+
+            /*await ctxA.setVariableValue(eA.id, {
+                ...eA,
+                elements
+            });*/
+
+            for await (let e of elements) {
+                console.log("RRR => ", await ctxA.getVariable(e));
+            }
+ 
             throw 'MERGE BOTH ELEMENTS';
         }
+
+        await ctxA.saveBranch();
     }
 
-    throw 'DO MERGE !!';
+    await branchA.update({update: 'merge'});
+    await branchB.update({update: 'merge'});
+
+    // throw 'DO MERGE !!';
 }
 
 async function __merge (options, rDB, branchA, branchB) {
