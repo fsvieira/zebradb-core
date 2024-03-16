@@ -1,6 +1,8 @@
 const { v4: uuidv4 } = require('uuid');
 const { constants } = require('./operations');
 
+const {SHA256} = require("sha2");
+
 class BranchContext {
     constructor (
         branch, 
@@ -42,7 +44,7 @@ class BranchContext {
             unchecked: await p('unchecked', rDB.iSet()),
             constraints: await p('constraints', rDB.iSet()),
             unsolvedConstraints: await p('unsolvedConstraints', rDB.iSet()),
-            variables: await p('variables', rDB.iSet()),
+            variables: await p('variables', rDB.iMap()),
             extendSets: await p('extendSets', rDB.iSet()),
             unsolvedVariables: await p('unsolvedVariables', rDB.iSet()),
             variableCounter: await p('variableCounter', 0),
@@ -133,7 +135,6 @@ class BranchContext {
         while(id);
     
         return v;
-
     }
 
     async hasVariable (id) {
@@ -211,6 +212,67 @@ class BranchContext {
 
     async addExtendSet (cID) {
         this._ctx.extendSets = await this._ctx.extendSets.add(cID);
+        return this;
+    }
+
+    async getVariableHash (id) {
+        let hash = await this._ctx.variablesHash.get(id);
+
+        if (!hash) {
+            const v = await this.getVariable(id);
+
+            switch (v.type) {
+                case constants.type.MATERIALIZED_SET: {
+                    const hashes = [];
+                    for await (let eID of v.elements.values()) {
+                        const hash = await this.getVariableHash(eID);
+                        hashes.push(hash);
+                    }
+
+                    const sHash = SHA256(hashes.sort().join('-')).toString("hex");
+
+                    hash = `${v.type}:${sHash}:${v.size}`;
+                    break;
+                }
+
+                case constants.type.TUPLE: {
+                    const hashes = [];
+                    for (let i=0; i<v.data.length; i++) {
+                        const eID = v.data[i];
+                        const hash = await this.getVariableHash(eID);
+                        hashes.push(hash);
+                    }
+
+                    const tHash = SHA256(hashes.join('-')).toString("hex");
+
+                    hash = `${v.type}:${tHash}:${v.data.length}`;
+                    break;
+                }
+
+                case constants.type.CONSTANT: {
+                    hash = v.data;
+                    break;
+                }
+
+                default:
+                    throw 'get variable hash ' + v.type + ' is not implemented!';
+            }
+
+            await this._ctx.variablesHash.set(id, hash);
+            await this._ctx.hashVariables.set(hash, id);
+        }
+
+        console.log("HASH", id, hash);
+        return hash;
+    }
+
+    async genHashes () {
+        if (!this._ctx.hashVariables) {
+            this._ctx.hashVariables = this.rDB.iMap();
+            this._ctx.variablesHash = this.rDB.iMap();
+            await this.getVariableHash('__resultsSet');
+        }
+
         return this;
     }
 

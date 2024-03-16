@@ -555,7 +555,7 @@ async function getElement (ctx, id, branch) {
     throw 'GET ELEMENT MAYBE A HAS ID??';        
 }
 
-async function mergeMaterializedSets(ctx, valueA, valueB, branchB) {
+async function __mergeMaterializedSets(ctx, valueA, valueB, branchB) {
 
     let elements = valueA.elements;
 
@@ -573,7 +573,7 @@ async function mergeMaterializedSets(ctx, valueA, valueB, branchB) {
     );
 }
 
-async function mergeElement (ctx, branchA, branchB, id) {
+async function __mergeElement (ctx, branchA, branchB, id) {
     const variablesA = await branchA.data.variables;
     const variablesB = await branchB.data.variables;
      
@@ -600,7 +600,164 @@ async function mergeElement (ctx, branchA, branchB, id) {
 
 }
 
+async function mergeConstants (ctxA, ctxB, constA, constB) {
+    if (constA.data === constB.data) {
+        return {new: false, values: [constA.id, constA.id]};
+    }
+    else if (await ctxA.hasVariable(constB.id)) {
+            return {newValue: false, values: [constA.id, constA.id]};
+    }
+    else {
+        await ctxA.setVariableValue(constB.id, constB);
+
+        return {newValue: true, values: [constA.id, constB.id]};
+    }
+}
+
+async function mergeTuples (ctxA, ctxB, tupleA, tupleB) {
+    if (tupleA.data.length === tupleB.data.length) {
+        const t = [];
+
+        let r = false;
+        for (let i=0; i<tupleA.data.length; i++) {
+            const a = await ctxA.getVariable(tupleA.data[i]);
+            const b = await ctxB.getVariable(tupleB.data[i]);
+
+            const {newValue, values} = await mergeAux(
+                ctxA, ctxB, a, b
+            );
+
+            r = r || newValue;
+            t.push(values); 
+        }
+
+        
+    }
+    else {
+        throw 'mergeTuples : tuples have diferente size!!';
+    }
+}
+
+async function mergeMaterializedSets(ctxA, ctxB, setA, setB) {
+
+    for await (let bID of setB.elements.values()) {
+        const b = await ctxB.getVariable(bID);
+        for await (let aID of setA.elements.values()) {
+            const a = await ctxB.getVariable(bID);
+            await mergeAux(ctxA, ctxB, a, b);
+        }
+    }
+}
+
+async function mergeAux (ctxA, ctxB, a, b) {
+    if (a.type === b.type) {
+        console.log(`mergeAux : ${await ctxA.toString(a.id)} ** ${await ctxB.toString(b.id)}`);
+        switch (a.type) {
+            case constants.type.MATERIALIZED_SET:
+                return mergeMaterializedSets(ctxA, ctxB, a, b);
+
+            case constants.type.TUPLE:
+                return mergeTuples(ctxA, ctxB, a, b);
+
+            case constants.type.CONSTANT:
+                return mergeConstants(ctxA, ctxB, a, b);
+
+            default: 
+                throw `mergeAux : type ${a.type} is not defined!`
+        }
+    }
+    else {
+        throw 'mergeAux : diferente types is not defined!'
+    }
+}
+
+async function __merge (options, rDB, branchA, branchB) {
+    const resultsSetID = '__resultsSet';
+
+    console.log("TODO: check the branch that has more variables to be A");
+
+    const ctxA = await BranchContext.create(branchA, options, null, rDB);
+    const ctxB = await BranchContext.create(branchB, options, null, rDB);
+
+    const setA = await ctxA.getVariable(resultsSetID);
+    const setB = await ctxB.getVariable(resultsSetID);
+
+    await mergeAux(ctxA, ctxB, setA, setB);
+}
+
 async function merge (options, rDB, branchA, branchB) {
+    
+    const ctxA = await BranchContext.create(branchA, options, null, rDB);
+    const ctxB = await BranchContext.create(branchB, options, null, rDB);
+
+    await ctxA.genHashes();
+    await ctxB.genHashes();
+
+    /*
+    const setA = await ctxA.getVariable(resultsSetID);
+    const setB = await ctxB.getVariable(resultsSetID);
+
+    await mergeAux(ctxA, ctxB, setA, setB);
+    */
+}
+
+async function __3_merge (options, rDB, branchA, branchB) {
+    const ctxA = await BranchContext.create(branchA, options, null, rDB);
+    const ctxB = await BranchContext.create(branchB, options, null, rDB);
+
+    
+    console.log(
+        await ctxA.toString() + ' ** ' + 
+        await ctxB.toString() 
+    );
+
+    for await (let [bvID] of ctxB._ctx.variables) {
+        const bv = await ctxB.getVariable(bvID);
+        console.log("MERGE " , bvID, bv.id, bv);
+
+        if ([
+            constants.type.INDEX,
+            constants.type.CONSTRAINT
+        ].includes(bv.type)) {
+            continue;
+        }
+
+        // TODO: why "has" is not working ??  
+        // const r = await ctxA._ctx.variables.has(bv.id);
+        const r = await ctxA.hasVariable(bv.id);
+        if (r) {
+            const equal = await compare(ctxA, ctxB, bv);
+
+            // if equal then don't copy else copy 
+            if (equal) {
+                continue;
+            }
+            else {
+                // clone b ?? 
+            }
+            /*
+            const av = await ctxA.getVariable(bv.id);
+
+            if (av.id === bv.id) {
+                const cmp = await compare(ctxA, ctxB, bv);
+                console.log("CHECK IF THEY HAVE SAME ID!", await ctxB.toString(bv.id), cmp);
+            }
+            else if (bv.id === bvID) {
+                console.log("AV - COPY B ID => ", await ctxB.toString(bv.id))
+            }
+            else {
+                console.log("DONT COPY, IDS ARE DIFF")
+            }*/
+        }
+        else {
+            console.log("COPY B ID => ", await ctxB.toString(bv.id));
+        }
+    }
+
+    throw 'MERGE STOP!!'
+}
+
+async function __2_merge (options, rDB, branchA, branchB) {
     const ctxA = await BranchContext.create(branchA, options, null, rDB);
     const ctxB = await BranchContext.create(branchB, options, null, rDB);
 
