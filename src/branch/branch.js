@@ -693,6 +693,21 @@ async function merge (options, rDB, branchA, branchB) {
     await ctxA.genHashes();
     await ctxB.genHashes();
 
+    const aSize = await ctxA._ctx.hashVariables.size;
+    const bSize = await ctxB._ctx.hashVariables.size;
+
+    const a = aSize > bSize ? ctxA : ctxB;
+    const b = aSize > bSize ? ctxB : ctxA;
+
+    for await (let [hash, vn] of b._ctx.hashVariables) {
+        if (!await a._ctx.hashVariables.has(hash)) {
+            console.log("NEW ", await b.toString(vn));
+        }
+        else {
+            const va = await a._ctx.hashVariables.get(hash);
+            console.log("SAME ", await a.toString(va), " <=> ", await b.toString(vn));
+        }
+    }
     /*
     const setA = await ctxA.getVariable(resultsSetID);
     const setB = await ctxB.getVariable(resultsSetID);

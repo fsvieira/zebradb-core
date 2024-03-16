@@ -221,12 +221,9 @@ class BranchContext {
         }
 
         const v = await this.getVariable(id);
-
         let hash = await this._ctx.variablesHash.get(v.id);
 
         if (!hash && hash != '') {
-            // handle recursive
-            this._ctx.variablesHash = await this._ctx.variablesHash.set(v.id, '');
 
             switch (v.type) {
                 case constants.type.MATERIALIZED_SET: {
@@ -236,12 +233,17 @@ class BranchContext {
                         hashes.push(hash);
                     }
 
-                    const dHash = await this.getVariableHash(v.domain);
+                    // TODO: maybe domain should not be considered,
+                    // TODO: recursive domains are not generating good hashes why ? 
+                    // TODO: we can't handle recursion.
+                    const dHash = ''; // await this.getVariableHash(v.domain);
                     const sHash = SHA256(
                         `${hashes.sort().join('-')}:${dHash}` 
                     ).toString("hex");
 
                     hash = `${v.type}:${sHash}:${v.size}`;
+                    console.log("---->", `${hashes.join('-')}:${dHash}`, hash, await this.toString(v.id));
+
                     break;
                 }
 
@@ -253,12 +255,16 @@ class BranchContext {
                         hashes.push(hash);
                     }
 
-                    const dHash = await this.getVariableHash(v.domain);
+                    // TODO: maybe domain should not be considered,
+                    // TODO: recursive domains are not generating good hashes why ? 
+                    const dHash = '' ; // await this.getVariableHash(v.domain);
                     const tHash = SHA256(
                         `${hashes.join('-')}:${dHash}` 
                     ).toString("hex");
 
                     hash = `${v.type}:${tHash}:${v.data.length}`;
+                    console.log("---->", `${hashes.join('-')}:${dHash}`, hash, await this.toString(v.id));
+
                     break;
                 }
 
