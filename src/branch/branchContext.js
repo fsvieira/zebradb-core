@@ -216,10 +216,17 @@ class BranchContext {
     }
 
     async getVariableHash (id) {
-        let hash = await this._ctx.variablesHash.get(id);
+        if (!id) {
+            return '';
+        }
 
-        if (!hash) {
-            const v = await this.getVariable(id);
+        const v = await this.getVariable(id);
+
+        let hash = await this._ctx.variablesHash.get(v.id);
+
+        if (!hash && hash != '') {
+            // handle recursive
+            this._ctx.variablesHash = await this._ctx.variablesHash.set(v.id, '');
 
             switch (v.type) {
                 case constants.type.MATERIALIZED_SET: {
@@ -229,7 +236,10 @@ class BranchContext {
                         hashes.push(hash);
                     }
 
-                    const sHash = SHA256(hashes.sort().join('-')).toString("hex");
+                    const dHash = await this.getVariableHash(v.domain);
+                    const sHash = SHA256(
+                        `${hashes.sort().join('-')}:${dHash}` 
+                    ).toString("hex");
 
                     hash = `${v.type}:${sHash}:${v.size}`;
                     break;
@@ -243,7 +253,10 @@ class BranchContext {
                         hashes.push(hash);
                     }
 
-                    const tHash = SHA256(hashes.join('-')).toString("hex");
+                    const dHash = await this.getVariableHash(v.domain);
+                    const tHash = SHA256(
+                        `${hashes.join('-')}:${dHash}` 
+                    ).toString("hex");
 
                     hash = `${v.type}:${tHash}:${v.data.length}`;
                     break;
@@ -258,11 +271,11 @@ class BranchContext {
                     throw 'get variable hash ' + v.type + ' is not implemented!';
             }
 
-            await this._ctx.variablesHash.set(id, hash);
-            await this._ctx.hashVariables.set(hash, id);
+            this._ctx.variablesHash = await this._ctx.variablesHash.set(v.id, hash);
+            this._ctx.hashVariables = await this._ctx.hashVariables.set(hash, v.id);
         }
 
-        console.log("HASH", id, hash);
+        console.log("HASH", v.id, hash);
         return hash;
     }
 
