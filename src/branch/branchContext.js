@@ -281,7 +281,7 @@ class BranchContext {
                 }
 
                 case constants.type.CONSTANT: {
-                    hash = v.data;
+                    hash = v.id;
                     break;
                 }
 
