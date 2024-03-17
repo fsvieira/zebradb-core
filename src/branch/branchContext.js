@@ -115,9 +115,21 @@ class BranchContext {
         return this;
     }
 
+    async setHash (id, hash) {
+        this._ctx.hashVariables = await this._ctx.hashVariables.set(hash, id);
+        this._ctx.variablesHash = await this._ctx.variablesHash.set(id, hash);
+
+        return this;
+    }
+    
     // variables,
-    async setVariableValue (id, value) {
+    async setVariableValue (id, value, hash) {
         this._ctx.variables = await this._ctx.variables.set(id, value);
+
+        if (hash) {
+            await this.setHash(id, hash);
+        }
+
         return this;
     }
 
@@ -277,8 +289,7 @@ class BranchContext {
                     throw 'get variable hash ' + v.type + ' is not implemented!';
             }
 
-            this._ctx.variablesHash = await this._ctx.variablesHash.set(v.id, hash);
-            this._ctx.hashVariables = await this._ctx.hashVariables.set(hash, v.id);
+           await this.setHash(v.id, hash);
         }
 
         console.log("HASH", v.id, hash);
