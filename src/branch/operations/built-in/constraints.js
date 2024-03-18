@@ -311,9 +311,15 @@ async function checkUniqueIndexConstrain (ctx, cs, env) {
     }
     else {
         const uniqueMap = await set.uniqueMap.set(indexKey, eID);
+        let varIndexesValues = await set.varIndexes.get(eID) || ctx.rDB.iSet();
+
+        varIndexesValues = await varIndexesValues.add(indexKey);
+        const varIndexes = await set.varIndexes.set(eID, varIndexesValues);
+        
         await ctx.setVariableValue(set.id, {
             ...set,
-            uniqueMap
+            uniqueMap,
+            varIndexes
         });
 
         return C_TRUE;

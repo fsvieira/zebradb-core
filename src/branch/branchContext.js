@@ -240,10 +240,18 @@ class BranchContext {
             switch (v.type) {
                 case constants.type.MATERIALIZED_SET: {
                     const hashes = [];
+                    // let elementIndex = v.elementIndex || this.rDB.iSet();
                     for await (let eID of v.elements.values()) {
                         const hash = await this.getVariableHash(eID);
                         hashes.push(hash);
+
+                        // elementIndex = await elementIndex.add(hash);
                     }
+
+                    /*await this.setVariableValue(
+                        v.id,
+                        {...v, elementIndex}
+                    );*/
 
                     // TODO: maybe domain should not be considered,
                     // TODO: recursive domains are not generating good hashes why ? 
