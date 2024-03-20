@@ -79,17 +79,19 @@ async function unifyMsMs (ctx, p, q) {
 
         if (s.elements.length === 1) {
             const copyID = s.elements[0];
-            const mapVars = {[defID]: a.id};
 
             for await (let id of a.elements.values()) {
-                // throw 'BUG BUG : WRONG -> COPY ELEMENT WILL CREATE A NEW SET TO PUT INDEXES!!';
                 const eID = await copyPartialTerm(
                     ctx, definition, copyID, 
                     true, true,
-                    mapVars
+                    {[defID]: a.id}
                 );
 
-                await doUnify(ctx, id, eID);
+                const ok = await doUnify(ctx, id, eID);
+
+                if (!ok) {
+                    return false;
+                }
             }
 
             a = await ctx.getVariable(a.id);

@@ -414,7 +414,7 @@ async function expand (
 
     const ctx = await BranchContext.create(branch, options, definitionDB);
     
-    console.log("Sets In Domains ", await ctx.toString());
+    // console.log("Sets In Domains ", await ctx.toString());
     for await (let eID of ctx.setsInDomains.values()) {
         const v = await ctx.getVariable(eID);
         const d = await ctx.getVariable(v.domain);
@@ -458,8 +458,6 @@ async function expand (
             return r; 
         }
     }
-
-    console.log("EXPAND DUMP BRANCH ", await ctx.toString());
 
     // else 
     throw 'expand : next steps!!';
