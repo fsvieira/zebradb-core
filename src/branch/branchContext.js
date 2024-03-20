@@ -293,6 +293,11 @@ class BranchContext {
                     break;
                 }
 
+                case constants.type.LOCAL_VAR: {
+                    hash = v.id;
+                    break;
+                }
+
                 default:
                     throw 'get variable hash ' + v.type + ' is not implemented!';
             }
