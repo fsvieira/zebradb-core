@@ -361,10 +361,86 @@ async function executeConstraints (options, definitionDB, branch, v) {
     // throw 'Create New Branch';
 }
 
-async function extendSet (ctx, setID) {
+async function getIndexSize (ctx, vars) {
+    const domains = {};
+    let size = 1;
+
+    for (let i=0; i<vars.length; i++) {
+        const v = vars[i];
+
+        if (v.domain) {
+            let s = domains[v.domain] || await getSetSize(ctx, v.domain);
+            domains[v.domain] = s;
+
+            size = s * size;
+        }
+        else {
+            return Infinity;
+        }
+    }
+
+    return size;
+
+}
+
+async function getSetSize (ctx, setID) {
+    console.log("TODO : Add get set size to branchContext!!");
     let set = await ctx.getVariable(setID);
 
-    await ctx.removeExtendSet(setID);
+    if (set.size === -1) {
+        let size = Infinity;
+
+        if (set.definition) {
+            const {definition: {variables, root}, defID=root} = set;
+            const setDef = variables[defID];
+
+            if (setDef.indexes) {
+                for (let i=0; i<setDef.indexes.length; i++) {
+                    const idxID = setDef.indexes[i];
+                    const index = variables[idxID];
+                    const vars = index.variables.map(id => variables[id]);
+                    const indexSize = await getIndexSize(ctx, vars);
+
+                    size = Math.min(indexSize, size);
+                }
+
+            }
+            else {
+                throw 'getSetSize : has no-index implementation';
+            }    
+        }
+        else {
+            throw 'getSetSize : has no-definition implementation';
+        }
+
+        if (size === Infinity) {
+            return -1;
+        }
+
+        await ctx.setVariableValue(set.id, {
+            ...set,
+            size
+        });
+    }
+    else {
+        return set.size;
+    }
+}
+
+async function extendSet (ctx, setID) {
+    await getSetSize(ctx, setID);
+
+    let set = await ctx.getVariable(setID);
+
+    const elTotal = await set.elements.size; 
+    if (set.size === elTotal) {
+        await ctx.removeExtendSet(setID);
+        await ctx.saveBranch();
+        return true;
+    }
+    else if (set.size === elTotal + 1) {
+        await ctx.removeExtendSet(setID);
+    }
 
     if (set.definition) {
         const {definition: {variables, root}, defID=root} = set;
@@ -450,6 +526,8 @@ async function expand (
             return r;
         }
     }
+
+    console.log('S=', await ctx.toString());
 
     for await (let sID of ctx.extendSets.values()) {
         const r = await extendSet(ctx, sID)// branch, sID);

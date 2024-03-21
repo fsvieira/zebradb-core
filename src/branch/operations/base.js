@@ -390,7 +390,7 @@ async function createMaterializedSet (
     }
     
     const domainID = await getVarname(domain);
-
+    
     const valueResults = {
         type: MATERIALIZED_SET,
         id: vn,
