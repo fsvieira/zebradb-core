@@ -72,17 +72,121 @@ class BranchContext {
         );
     }
 
-    async getContextState() {
+    async getContextState(ignoreConstraints=false) {
         return (
             await this._ctx.setsInDomains.size ||
             // await ctx.unchecked.size ||
-            await this._ctx.unsolvedConstraints.size ||
+            (!ignoreConstraints || await this._ctx.unsolvedConstraints.size) ||
             await this._ctx.extendSets.size ||
             await this._ctx.unsolvedVariables.size
         ) ? 'maybe' : 'yes';
     
     }
     
+    async getIndexSize (vars) {
+        const domains = {};
+        let size = 1;
+    
+        for (let i=0; i<vars.length; i++) {
+            const v = vars[i];
+    
+            if (v.domain) {
+                let s = domains[v.domain] || await this.getSetSize(v.domain);
+                domains[v.domain] = s;
+    
+                size = s * size;
+            }
+            else {
+                return Infinity;
+            }
+        }
+    
+        return size;
+    
+    }
+    
+    async getIndexStats (variables, indexes) {
+        const stats = {
+            indexes: {},
+            min: Infinity,
+            max: -Infinity,
+        };
+
+        for (let i=0; i<indexes.length; i++) {
+            const idxID = indexes[i];
+            const index = variables[idxID];
+            const vars = index.variables.map(id => variables[id]);
+            const indexSize = await this.getIndexSize(vars);
+
+            stats.min = Math.min(indexSize, stats.min);
+            stats.max = Math.max(indexSize, stats.max);
+            stats.indexes[idxID] = {size: indexSize, vars};
+        }
+
+        return stats;
+    }
+
+    async getSetSize (setID) {
+        let set = await this.getVariable(setID);
+    
+        /*
+            TODO: 
+                * The min index size is the max number of elements,
+                * The min index size can be the size of the set iff the index vars has no constraints.  
+        */
+
+        if (set.size === -1) {
+            let size = Infinity;
+    
+            if (set.definition) {
+                const {definition: {variables, root}, defID=root} = set;
+                const setDef = variables[defID];
+    
+                if (setDef.indexes) {    
+                    const {min} = await this.getIndexStats(variables, setDef.indexes);
+                    size = min;
+                }
+                else {
+                    throw 'getSetSize : has no-index implementation';
+                }    
+            }
+            else {
+                console.log("TODO: we need to copy all global domains on init before doing domain getSize");
+                /*console.log(await this.toString(setID));
+                if (set.domain) {
+                    await this.getSetSize(set.domain);
+                    const domain = await this.getVariable(set.domain);
+                    console.log(domain);
+                }*/
+
+                /**
+                 * Check element indexes if any:
+                 *  stats El indexes : max , min
+                 *  => Math.pow((max/min), min);
+                 *     * max / min, will give the number of elements to take for each set position (elements)
+                 */
+
+
+
+                console.log("TODO: 'getSetSize : has no-definition implementation'")
+                return -1;
+                // throw 'getSetSize : has no-definition implementation';
+            }
+    
+            if (size === Infinity) {
+                return -1;
+            }
+    
+            await this.setVariableValue(set.id, {
+                ...set,
+                size
+            });
+        }
+        else {
+            return set.size;
+        }
+    }
+
     async logger (message) {
         if (this.options && this.options.log) {
             const stack = new Error().stack;
@@ -319,9 +423,9 @@ class BranchContext {
         return this;
     }
 
-    async saveBranch () {
+    async saveBranch (ignoreConstraints=false) {
         if (!this._ctx.state) {
-            this._ctx.state = await this.getContextState()
+            this._ctx.state = await this.getContextState(ignoreConstraints);
         }
 
         return await this.rDB.tables.branches.insert(this._ctx, null);
@@ -339,7 +443,9 @@ class BranchContext {
 
         v.domain && vars.add(v.domain);
 
-        return `{${el.join(" ")} ${size === -1 ? '...': ''}}${domain}`;        
+        const setSize = size === el.length ? '' : '...';
+
+        return `{${el.join(" ")} ${setSize}}${domain}`;        
     }
 
     async toStringConstraint (v, vars) {

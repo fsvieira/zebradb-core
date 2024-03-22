@@ -361,81 +361,15 @@ async function executeConstraints (options, definitionDB, branch, v) {
     // throw 'Create New Branch';
 }
 
-async function getIndexSize (ctx, vars) {
-    const domains = {};
-    let size = 1;
-
-    for (let i=0; i<vars.length; i++) {
-        const v = vars[i];
-
-        if (v.domain) {
-            let s = domains[v.domain] || await getSetSize(ctx, v.domain);
-            domains[v.domain] = s;
-
-            size = s * size;
-        }
-        else {
-            return Infinity;
-        }
-    }
-
-    return size;
-
-}
-
-async function getSetSize (ctx, setID) {
-    console.log("TODO : Add get set size to branchContext!!");
-    let set = await ctx.getVariable(setID);
-
-    if (set.size === -1) {
-        let size = Infinity;
-
-        if (set.definition) {
-            const {definition: {variables, root}, defID=root} = set;
-            const setDef = variables[defID];
-
-            if (setDef.indexes) {
-                for (let i=0; i<setDef.indexes.length; i++) {
-                    const idxID = setDef.indexes[i];
-                    const index = variables[idxID];
-                    const vars = index.variables.map(id => variables[id]);
-                    const indexSize = await getIndexSize(ctx, vars);
-
-                    size = Math.min(indexSize, size);
-                }
-
-            }
-            else {
-                throw 'getSetSize : has no-index implementation';
-            }    
-        }
-        else {
-            throw 'getSetSize : has no-definition implementation';
-        }
-
-        if (size === Infinity) {
-            return -1;
-        }
-
-        await ctx.setVariableValue(set.id, {
-            ...set,
-            size
-        });
-    }
-    else {
-        return set.size;
-    }
-}
-
 async function extendSet (ctx, setID) {
-    await getSetSize(ctx, setID);
+    await ctx.getSetSize(setID);
 
     let set = await ctx.getVariable(setID);
 
     const elTotal = await set.elements.size; 
     if (set.size === elTotal) {
         await ctx.removeExtendSet(setID);
-        await ctx.saveBranch();
+        await ctx.saveBranch(true);
         return true;
     }
     else if (set.size === elTotal + 1) {
@@ -537,8 +471,10 @@ async function expand (
         }
     }
 
+    await branch.update({state: 'yes'});
+
     // else 
-    throw 'expand : next steps!!';
+    // throw 'expand : next steps!!';
 }
 
 async function createBranchMaterializedSet (

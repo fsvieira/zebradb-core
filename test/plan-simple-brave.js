@@ -4,7 +4,21 @@ const test = require("../test-utils/test");
 
 describe("Plan Simple Puzzles", () => {
 
-	it("Simple Brave", test(
+	it("Simple Unique", test(
+		`
+			$N = {1 2}
+			$TEST = {{('x:$N 'y:$N) | 'x != 'y } ['x, 'y] is unique ...}
+		`, [{
+			query: `{{('x 'y) ...}:$TEST ...}`,
+			results: []
+		}], {
+			path: 'dbs/plan-simple-brave/1', 
+			timeout: 1000 * 60 * 60,
+			log: true
+		})
+	);
+
+	xit("Simple Brave", test(
 		`
 			/*$BRAVE = {
 				{('l:$LETTER 'x:$N 'y:$N) | 
@@ -25,16 +39,18 @@ describe("Plan Simple Puzzles", () => {
 					[ ['x = 'y and 'd1 = 101 ] or ['x != 'y and ['d1 = 'y * 5 + 'x]] ] 
 					and 
 					[ [['y = 6 - 'x] and 'd2 = 102 ] or [['y != 6 - 'x] and ['d2 = 'y * 5 + 'x]]]
-				} 
+				}
+				['x, 'y] is unique,
 				['l, 'x] is unique, 
 				['l, 'y] is unique,
+				['l, 'x, 'y] is unique,
 				['l, 'd1] is unique,
 				['l, 'd2] is unique
 			...}
 		`,	 
 		[
 			{
-				query: /*`{
+				query: `{
 					{
 						(B 1 1 ' ') (R 2 1 ' ') (A 3 1 ' ') (V 4 1 ' ') (E 5 1 ' ')
                                     (E 2 2 ' ') (B 3 2 ' ') (R 4 2 ' ') 
@@ -43,7 +59,7 @@ describe("Plan Simple Puzzles", () => {
                                                 (E 3 5 ' ') (B 4 5 ' ')
 						... 
 					}:$BRAVE ... 
-				}`*/
+				}`
 				/*
                         B R A V E
                         V E B R A
@@ -51,7 +67,7 @@ describe("Plan Simple Puzzles", () => {
                         E B R A V
                         A V E B R
                 */
-				`{
+				/*`{
 					{
 						(B 1 1 ' ') (R 2 1 ' ') (A 3 1 ' ') (V 4 1 ' ') (E 5 1 ' ')
                         (V 1 2 ' ') (E 2 2 ' ') (B 3 2 ' ') (R 4 2 ' ') (A 5 2 ' ')
@@ -60,7 +76,7 @@ describe("Plan Simple Puzzles", () => {
                         (A 1 5 ' ') (V 2 5 ' ') (E 3 5 ' ') (B 4 5 ' ') (R 5 5 ' ') 
 						...
 					}:$BRAVE ... 
-				}`
+				}`*/
 				/*`{
 					{
 						(B 1 1 ' ') (R 2 1 ' ') 
@@ -73,7 +89,7 @@ describe("Plan Simple Puzzles", () => {
 			}
 		], 
 		{
-			path: 'dbs/plan-simple-brave/1', 
+			path: 'dbs/plan-simple-brave/2', 
 			timeout: 1000 * 60 * 60,
 			log: true
 		}

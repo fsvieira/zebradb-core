@@ -66,6 +66,17 @@ async function unifyMsMs (ctx, p, q) {
         throw 'Q INDEXES';
     }
 
+    console.log("TODO: should calc the set size ??");
+    /*let aSetSize = await ctx.getSetSize(a.id);
+    let bSetSize = await ctx.getSetSize(b.id);
+
+    aSetSize = aSetSize === -1 ? bSetSize : aSetSize;  
+    bSetSize = bSetSize === -1 ? aSetSize : bSetSize;
+
+    if (aSetSize !== bSetSize) {
+        // we can't unify diferent sets,
+        return false;
+    }*/
 
     if (bSize === 0) {
         let {
@@ -99,12 +110,18 @@ async function unifyMsMs (ctx, p, q) {
             await ctx.setVariableValue(a.id, {
                 ...a,
                 defID,
-                definition
+                definition,
+                // size: aSetSize
             });
 
-            await ctx.addExtendSet(b.id);
-            console.log("TODO: rules to add extended set: it must be able to create elements, and set is not full!");
+            /*if (aSize === aSetSize) {
+                await ctx.removeExtendSet(a.id);
+            }
+            else { 
+                await ctx.addExtendSet(a.id);
+            }*/
 
+            await ctx.addExtendSet(a.id);
         }
         else {
             throw 'UnifyMsMs : TODO handle sets with more than one element def!';
@@ -114,6 +131,9 @@ async function unifyMsMs (ctx, p, q) {
             ...b,
             defer: a.id
         });
+
+        await ctx.removeExtendSet(b.id);
+
     }
 
     return true;
