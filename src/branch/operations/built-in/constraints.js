@@ -303,10 +303,8 @@ async function checkUniqueIndexConstrain (ctx, cs, env) {
 
     const indexKey = indexValues.join("-");
 
-    // let uniqueMap = set.uniqueMap || ctx.rDB.iMap();
 
     if (await set.uniqueMap.has(indexKey)) {
-        // throw '[checkUniqueIndexConstrain]: key exists';
         return C_FALSE;
     }
     else {
@@ -933,7 +931,11 @@ async function checkVariableConstraints (ctx, v) {
         const cs = await ctx.getVariable(vcID);
         const env = await constraintEnv(ctx, cs);
 
-        await evalConstraint(ctx, cs, env, parentConstraints);
+        const r = await evalConstraint(ctx, cs, env, parentConstraints);
+
+        if (r === false) {
+            return false;
+        }
     }
 
     /*

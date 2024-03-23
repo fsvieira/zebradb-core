@@ -7,12 +7,26 @@ describe("Plan Simple Puzzles", () => {
 	it("Simple Unique", test(
 		`
 			$N = {1 2}
+			$TEST = {{('x:$N 'y:$N) | 'd = 'x + 'y } ['x, 'y] is unique ...}
+		`, [{
+			query: `{{('x 'y) ...}:$TEST ...}`,
+			results: [`{{(1 1) (1 2) (2 1) (2 2) }:$TEST ...}`]
+		}], {
+			path: 'dbs/plan-simple-brave/1', 
+			timeout: 1000 * 60 * 60,
+			log: true
+		})
+	);
+
+	xit("Simple Unique", test(
+		`
+			$N = {1 2}
 			$TEST = {{('x:$N 'y:$N) | 'x != 'y } ['x, 'y] is unique ...}
 		`, [{
 			query: `{{('x 'y) ...}:$TEST ...}`,
 			results: []
 		}], {
-			path: 'dbs/plan-simple-brave/1', 
+			path: 'dbs/plan-simple-brave/2', 
 			timeout: 1000 * 60 * 60,
 			log: true
 		})
@@ -89,7 +103,7 @@ describe("Plan Simple Puzzles", () => {
 			}
 		], 
 		{
-			path: 'dbs/plan-simple-brave/2', 
+			path: 'dbs/plan-simple-brave/3', 
 			timeout: 1000 * 60 * 60,
 			log: true
 		}

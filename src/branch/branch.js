@@ -51,48 +51,24 @@ async function setIn (ctx, set, element) {
 
     const branches = [];
 
-    // const {varCounter, newVar} = varGenerator(await branch.data.variableCounter);
-    
-    // const rDB = branch.table.db;
-
-    /*const ctx = {
-        parent: branch,
-        root: await branch.data.root,
-        variables: await branch.data.variables,
-        setsInDomains: await branch.data.setsInDomains,
-        constraints: await branch.data.constraints,
-        unsolvedConstraints: await branch.data.unsolvedConstraints,
-        extendSets: await branch.data.extendSets,
-        unsolvedVariables: await branch.data.unsolvedVariables,
-        unchecked: await branch.data.unchecked,
-        checked: await branch.data.checked,
-        level: await branch.data.level + 1,
-        // branch,
-        log: await branch.data.log,
-        children: []  
-    };*/
-
-    // await ctx.removeSetsInDomains(element);
-    // const domainBranch = await ctx.saveBranch();
-
-    /*const newBranch1 = await rDB.tables.branches.insert(ctx, null);
-
-    ctx.rDB = rDB;
-    ctx.newVar = newVar;
-    ctx.options = options;
-    */
-
-    /*const unifyCtx = await BranchContext.create(
-        domainBranch,
-        ctx.options,
-        ctx.definitionDB
-    );*/
+    console.log("setIn start =>", await ctx.toString(set.id));
 
     for await (let eID of set.elements.values()) {
         const unifyCtx = await ctx.snapshot();
+
+        console.log("unifyCtx (1) ==>", 
+            await unifyCtx.toString(set.id), 
+            await unifyCtx.toString(element), 
+        );
+
         await unify(unifyCtx, eID, element);
         await unifyCtx.removeSetsInDomains(element);
         const unifiedBranch = await unifyCtx.saveBranch();
+
+        console.log("unifyCtx (2) ==>", 
+            await unifyCtx.toString(set.id), 
+            await unifyCtx.toString(element), 
+        );
 
         branches.push(unifiedBranch);
     }
