@@ -369,6 +369,13 @@ async function extendSet (ctx, setID) {
         set = await ctx.getVariable(set.id);
         const elements = await set.elements.add(eID);
 
+        await ctx.startGroup({
+            op: 'add-set-element',
+            elementID: eID,
+            setID,
+            id: eID
+        });
+
         await ctx.setVariableValue(set.id, {
             ...set,
             elements
@@ -400,7 +407,7 @@ async function expand (
 
     const ctx = await BranchContext.create(branch, options, definitionDB);
     
-    // console.log("Sets In Domains ", await ctx.toString());
+    // 1. Solve Set Domains
     for await (let eID of ctx.setsInDomains.values()) {
         const v = await ctx.getVariable(eID);
         const d = await ctx.getVariable(v.domain);
@@ -414,6 +421,7 @@ async function expand (
         return r;
     }
 
+    // 2. Assign domains values to variables, 
     for await (let e of ctx.unsolvedVariables.values()) {
         const v = await ctx.getVariable(e);
         const d = await ctx.getVariable(v.domain);
@@ -428,6 +436,7 @@ async function expand (
         return r;
     }
 
+    // 3. Trigger unsolved constrained variables, 
     if (await ctx.unsolvedConstraints.size) {
         const r = await solveConstraints(ctx); //branch, options);
 
@@ -437,8 +446,75 @@ async function expand (
         }
     }
 
-    console.log('S=', await ctx.toString());
 
+    // 4. Check groups,
+    const group = await ctx.getGroup();
+    
+    if (group.id) {
+        const branches = ctx.rDB.tables.branches
+        const mergeBranches = [branch];
+        for await (let groupBranch of branches.findByIndex({
+            group: group.id,
+            groupState: 'start',
+            state: 'group'
+        })) {
+            if (branch.id !== groupBranch.id) {
+                const ctxB = await BranchContext.create(groupBranch, options, definitionDB);
+                
+                console.log(
+                    "--> LL ", groupBranch.id, 
+                    await ctxB.toString(),
+                    await groupBranch.data.state        
+                );
+
+                mergeBranches.push(groupBranch);
+
+                if (mergeBranches.length === 2) {
+                    break;
+                }
+            }
+        }
+
+        if (mergeBranches.length >= 2) {
+            console.log("MERGE GROUP ", 
+                "branches => " + mergeBranches.map(b => b.id).join(", "),
+                await ctx.toString()
+            );        
+
+            throw 'GROUP HANDLE!!';
+        }
+        else {
+            let count = 0;
+            for await (let groupBranch of branches.findByIndex({
+                group: group.id,
+                groupState: 'start',
+                state: 'maybe'
+            })) {
+                count++ 
+            };
+
+            for await (let groupBranch of branches.findByIndex({
+                group: group.id,
+                groupState: 'start',
+                state: 'yes'
+            })) {
+                count++ 
+            };
+            // check if there another group branches,
+
+            if (count > 1) {
+                await branch.update({state: 'group'});
+                return true;
+            }
+            else {
+                throw 'THERE IS ONLY ONE ELEMENT ON GROUP!'
+            }
+        }
+
+    }
+
+    // 5. Add an element to incomplete sets, 
+    console.log('S=', await ctx.toString());
     for await (let sID of ctx.extendSets.values()) {
         const r = await extendSet(ctx, sID)// branch, sID);
         if (r) {

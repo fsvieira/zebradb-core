@@ -31,6 +31,7 @@ class QueryEngine {
                 .index('parent')
                 .index('level')
                 .index('state')
+                .index('group', 'groupState', 'state')
                 .save()
             ;
 
@@ -46,10 +47,11 @@ class QueryEngine {
     async nextBranch () {
         const branches = this.rDB.tables.branches;
 
+        /*
         // Solve unsolved variables first, because solutions are guaranteed. 
         for await (let branch of branches.findByIndex({state: 'unsolved_variables'})) {
             return branch;
-        }
+        }*/
 
         for await (let branch of branches.findByIndex({state: 'maybe'})) {
             return branch;

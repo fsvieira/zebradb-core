@@ -50,7 +50,10 @@ class BranchContext {
             variableCounter: await p('variableCounter', 0),
             children: [],
             log: await p('log', rDB.iArray()),
-            state: ctx.state
+            state: ctx.state,
+            group: await p('group', null),
+            groupState: await p('groupState', null),
+            groups: await p('groups', rDB.iMap())
         };
 
         return new BranchContext(
@@ -506,6 +509,26 @@ class BranchContext {
         }
 
         return str;
+    }
+
+    // Groups 
+    async startGroup(group) {
+        if (this._ctx.group) {
+            throw 'Multiple groups are not handled : create a stack!';
+        }
+        
+        const {id, ...args} = group;
+        this._ctx.groups = await this._ctx.groups.set(
+            id,
+            {data: args}
+        );
+
+        this._ctx.group = id;
+        this._ctx.groupState = 'start';
+    }
+
+    getGroup () {
+        return {id: this._ctx.group, state: this._ctx.groupState};
     }
 }
 
