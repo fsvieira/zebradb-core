@@ -484,6 +484,7 @@ async function expand (
             throw 'GROUP HANDLE!!';
         }
         else {
+            // check if there are another group branches,
             let count = 0;
             for await (let groupBranch of branches.findByIndex({
                 group: group.id,
@@ -500,7 +501,6 @@ async function expand (
             })) {
                 count++ 
             };
-            // check if there another group branches,
 
             if (count > 1) {
                 await branch.update({state: 'group'});
