@@ -61,7 +61,7 @@ describe("Plan Simple Puzzles", () => {
 				['l, 'd1] is unique,
 				['l, 'd2] is unique
 			...}
-		`,	 
+		`,
 		[
 			{
 				query: `{

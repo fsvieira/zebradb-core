@@ -288,9 +288,12 @@ async function checkUniqueIndexConstrain (ctx, cs, env) {
     const set = await ctx.getVariable(setID);
 
     let indexValues = [];
+    let indexNames = [];
     for (let i=0; i<values.length; i++) {
         const v = await ctx.getVariable(values[i]);
         const varName = variables[i];
+
+        indexNames.push(varName);
 
         if (v.type === CONSTANT) {
             indexValues.push(`${varName}:${v.id}`);
@@ -302,7 +305,7 @@ async function checkUniqueIndexConstrain (ctx, cs, env) {
     }
 
     const indexKey = indexValues.join("-");
-
+    const indexName = indexNames.join(":");
 
     if (await set.uniqueMap.has(indexKey)) {
         return C_FALSE;
@@ -313,11 +316,20 @@ async function checkUniqueIndexConstrain (ctx, cs, env) {
 
         varIndexesValues = await varIndexesValues.add(indexKey);
         const varIndexes = await set.varIndexes.set(eID, varIndexesValues);
+
+        const iterator = {...(set.iterator || {})};
+        const itr = iterator[indexName] = iterator[indexName] || {};
+        const it = itr[indexKey] = itr[indexKey] || [];
         
+        if (!it.includes(eID)) {
+            it.push(eID);
+        }
+
         await ctx.setVariableValue(set.id, {
             ...set,
             uniqueMap,
-            varIndexes
+            varIndexes,
+            iterator
         });
 
         return C_TRUE;

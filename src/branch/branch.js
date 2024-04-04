@@ -342,7 +342,7 @@ async function extendSet (ctx, setID) {
 
     let set = await ctx.getVariable(setID);
 
-    const elTotal = await set.elements.size; 
+    /*const elTotal = await set.elements.size; 
     if (set.size === elTotal) {
         await ctx.removeExtendSet(setID);
         await ctx.saveBranch(true);
@@ -350,7 +350,9 @@ async function extendSet (ctx, setID) {
     }
     else if (set.size === elTotal + 1) {
         await ctx.removeExtendSet(setID);
-    }
+    }*/
+
+    await ctx.removeExtendSet(setID);
 
     if (set.definition) {
         const {definition: {variables, root}, defID=root} = set;
@@ -369,12 +371,12 @@ async function extendSet (ctx, setID) {
         set = await ctx.getVariable(set.id);
         const elements = await set.elements.add(eID);
 
-        await ctx.startGroup({
+        /*await ctx.startGroup({
             op: 'add-set-element',
             elementID: eID,
             setID,
             id: eID
-        });
+        });*/
 
         await ctx.setVariableValue(set.id, {
             ...set,
@@ -395,6 +397,63 @@ async function debugUnsolvedVariables (ctx) {
     for await (let e of ctx.unsolvedVariables.values()) {
         console.log(" == DEBUG ===> Unsolved Variables", await ctx.getVariable(e));
     }
+}
+
+function generateCombinations(arrays) {
+    function generate(index, current) {
+        if (index === arrays.length) {
+            result.push(current.slice());
+            return;
+        }
+
+        for (let i = 0; i < arrays[index].length; i++) {
+            current.push(arrays[index][i]);
+            generate(index + 1, current);
+            current.pop();
+        }
+    }
+
+    const result = [];
+    generate(0, []);
+    return result;
+}
+
+async function genSetIterator (ctx, id='__resultsSet') {
+    const set = await ctx.getVariable(id);
+
+//    throw 'WE NEED TO GROUP UNIQUE ITERATOR BY ITERATOR VALUE, ALSO WE NEED ITERATOR NAME'
+    const mergeIterator = {...set.iterator} || {}; 
+    if (set.elements) {        
+        for await (let eID of set.elements.values()) {
+            const itr = await genSetIterator(ctx, eID);
+            console.log("ITR ", JSON.stringify(itr, null, '  '));
+
+            if (itr) {
+                for (let it in itr) {
+                    const vs = mergeIterator[it] = mergeIterator[it] || [];
+                    const v = itr[it];
+                    if (!vs.includes(v)) {
+                        vs.push(v);
+                    }
+                }
+            }
+        }
+
+        await ctx.setVariableValue(set.id, {
+            ...set,
+            iterator: mergeIterator
+        });
+    }
+
+    console.log("SET GEN", await ctx.toString(), set, mergeIterator);
+  
+    return mergeIterator;
+    /*
+    for await (let [key, value] of set.uniqueMap) {
+        console.log("==>", key, value);
+    }*/
+
+    throw 'CREATE SET GEN';
 }
 
 async function expand (
@@ -447,74 +506,32 @@ async function expand (
     }
 
 
-    // 4. Check groups,
-    const group = await ctx.getGroup();
     
-    if (group.id) {
-        const branches = ctx.rDB.tables.branches
-        const mergeBranches = [branch];
-        for await (let groupBranch of branches.findByIndex({
-            group: group.id,
-            groupState: 'start',
-            state: 'group'
-        })) {
-            if (branch.id !== groupBranch.id) {
-                const ctxB = await BranchContext.create(groupBranch, options, definitionDB);
-                
-                console.log(
-                    "--> LL ", groupBranch.id, 
-                    await ctxB.toString(),
-                    await groupBranch.data.state        
-                );
+    // 4. convert sets to set generator ...
+    // COMPARE IF STATE IS MERGE ??
+    const r = await genSetIterator(ctx);
 
-                mergeBranches.push(groupBranch);
-
-                if (mergeBranches.length === 2) {
-                    break;
-                }
-            }
-        }
-
-        if (mergeBranches.length >= 2) {
-            console.log("MERGE GROUP ", 
-                "branches => " + mergeBranches.map(b => b.id).join(", "),
-                await ctx.toString()
-            );        
-
-            throw 'GROUP HANDLE!!';
-        }
-        else {
-            // check if there are another group branches,
-            let count = 0;
-            for await (let groupBranch of branches.findByIndex({
-                group: group.id,
-                groupState: 'start',
-                state: 'maybe'
-            })) {
-                count++ 
-            };
-
-            for await (let groupBranch of branches.findByIndex({
-                group: group.id,
-                groupState: 'start',
-                state: 'yes'
-            })) {
-                count++ 
-            };
-
-            if (count > 1) {
-                await branch.update({state: 'group'});
-                return true;
-            }
-            else {
-                throw 'THERE IS ONLY ONE ELEMENT ON GROUP!'
-            }
-        }
-
+    if (r) {
+        ctx.state = 'merge';
+        await ctx.saveBranch();
+        await branch.update({state: 'split'});
+        return r;
     }
 
-    // 5. Add an element to incomplete sets, 
-    console.log('S=', await ctx.toString());
+    // else 
+
+    console.log("---->", await ctx.toString(), JSON.stringify(r, null, '  '));
+    throw 'EVAL IF EXTEND SET IS NEEDED!! ...';
+
+    
+    /*
+    const r = await genSetIterator(ctx);
+    console.log("---->", await ctx.toString(), JSON.stringify(r, null, '  '));
+    throw 'MERGE ...';
+    */
+
+    // 4. Add only one element to incomplete sets, 
+    /*console.log('S=', await ctx.toString());
     for await (let sID of ctx.extendSets.values()) {
         const r = await extendSet(ctx, sID)// branch, sID);
         if (r) {
@@ -524,6 +541,7 @@ async function expand (
     }
 
     await branch.update({state: 'yes'});
+    */
 
     // else 
     // throw 'expand : next steps!!';
@@ -651,90 +669,41 @@ async function addElement (ctx, setA, el, setB) {
     }*/
 }
 
-async function mergeSetSet (ctx, setA, setB) {
-    for await (let bID of setB.elements.values()) {
-        const b = await ctx.getVariable(bID);
-        for await (let aID of setA.elements.values()) {
-            const a = await ctx.getVariable(aID);
 
-            if (
-                a.type === b.type 
-                && a.type === constants.type.MATERIALIZED_SET
-            ) {
-                await mergeSets(ctx, b, a);
-            }
-            else {
-                await addElement(ctx, setA, b, setB);
-            }
-        }
-    }
-}
 
-async function mergeSets(ctx, setA, setB) {
-
-    await mergeSetSet(ctx, setA, setB);
-    await mergeSetSet(ctx, setB, setA);
-
-    // await addElement(ctx, setA, sA, setB);
-    // await addElement(ctx, setA, sB, setB);
+async function mergeSetSet (ctxA, ctxB, setA, setB) {
     
-    /*
-    const bElements = new Set();
-    const abElements = new Set();
+    const iterator = {...(setA.iterator || {})};
+    if (setB.iterator) {
+        for (let idx in setB.iterator) {
+            const as = iterator[idx] = iterator[idx] ||  [];
+            const bs = setB.iterator[idx];
+            for (let i=0; i<bs.length; i++) {
+                const bValuesIndexes = bs[i];
 
-    for await (let eID of setB.elements.values()) {
-        if (await setA.elements.has(eID)) {
-            abElements.add(eID);
-        }
-        else {
-            bElements.add(e);
-        }
-    }
+                for (let index in bValuesIndexes) {
+                    const values = bValuesIndexes[index];
 
-    for await (let [idx, bID] of setB.uniqueMap) {
-        if (bElements.has(bID)) { 
-            const aID = await setA.uniqueMap.get(idx);
+                    const aValues = as[index] = as[index] || [];
+                    for (let i=0; i<values.length; i++) {
+                        const bID = values[i];
+                        const abID = await getMergeVariable(ctxA, ctxB, bID);
 
-            if (aID) {
-                bElements.remove(bID);
-            }
-        }
-    }
-
-    for (let eID of bElements) {
-
-    }*/
-    /*
-    for await (let bID of setB.elements.values()) {
-        if (!await setA.elements.has(bID)) {
-            console.log("TODO: check if bID is a conflict index element ??");
-
-            const r = new Set();
-
-            for await (let [idx, value] of setB.uniqueMap) {
-                const bi = await ctx.getVariable(value);
-                if (bi.id === bID) {
-                    throw 'FOUND INDEX!';
-                    const aID = await setA.uniqueMap.get(idx);
-
-                    if (aID) {
-                        r.add(aID);
+                        if (!aValues.includes(abID)) {
+                            aValues.push(abID);
+                        }
                     }
                 }
             }
-
-            if (r.size > 0) {
-                throw 'mergeSets: conflicting elements is not implemented!';
-            }
-            else {
-                for await (let aID of setA.elements.values()) {            
-                    await mergeElements(ctx, setA, setB, aID, bID);
-                }
-            }
         }
-    }*/
-    
-    
+    }
+
+    console.log("IT ", JSON.stringify(iterator, null, '  '));
+
+    await ctxA.setVariableValue(setA.id, {
+        ...setA, 
+        iterator
+    });
 }
 
 async function getMergeVariable (dest, src, id) {
@@ -745,6 +714,32 @@ async function getMergeVariable (dest, src, id) {
 
     if (vn) {
         return vn;
+    }
+
+    switch (v.type) {
+        case constants.type.TUPLE: {
+            const data = [];
+            for (let i=0; i<v.data; i++) {
+                const id = await getMergeVariable(v.data[i]);
+                data.push(id);
+            }
+
+            await dest.setVariableValue(
+                bHash, {
+                    ...v,
+                    data,
+                    id: bHash
+                }
+            );
+
+            await dest._ctx.variablesHash.set(bHash, bHash);
+            await dest._ctx.hashVariables.set(bHash, bHash);
+
+            break;
+        }
+        
+        default:
+            throw 'getMergeVariable Copy ' + v.type + ' is not defined!';
     }
 
     return bHash;
@@ -807,10 +802,31 @@ async function mergeCopy (dest, src) {
 }
 
 async function merge (options, rDB, branchA, branchB) {
-    
+
     const ctxA = await BranchContext.create(branchA, options, null, rDB);
     const ctxB = await BranchContext.create(branchB, options, null, rDB);
 
+    await ctxA.genHashes();
+    await ctxB.genHashes();
+
+    const aSize = await ctxA._ctx.hashVariables.size;
+    const bSize = await ctxB._ctx.hashVariables.size;
+
+    const a = aSize > bSize ? ctxA : ctxB;
+    const b = aSize > bSize ? ctxB : ctxA;
+
+    const resultsSetID = '__resultsSet';
+    const setA = await a.getVariable(resultsSetID);
+    const setB = await b.getVariable(resultsSetID);
+
+    await mergeSetSet(a, b, setA, setB);
+
+    await branchA.update({state: 'merged'});
+    await branchB.update({state: 'merged'});
+
+    return a.saveBranch();
+
+    /*
     await ctxA.genHashes();
     await ctxB.genHashes();
 
@@ -846,11 +862,12 @@ async function merge (options, rDB, branchA, branchB) {
     const setB = await b.getVariable(resultsSetID);
 
     await mergeAux(a, b, setA, setB);
-*/
+
     await branchA.update({state: 'merged'});
     await branchB.update({state: 'merged'});
 
     return a.saveBranch();
+    */
 }
 
 module.exports = {

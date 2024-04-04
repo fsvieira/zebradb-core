@@ -3,6 +3,7 @@ const {parse} = require('../parsing');
 const {DB} = require('beastdb');
 const {SHA256} = require("sha2");
 const BranchContext = require('./branchContext');
+const { type } = require('./operations/constants');
 
 class QueryEngine {
 
@@ -53,6 +54,14 @@ class QueryEngine {
             return branch;
         }*/
 
+        const merge = [];
+        for await (let branch of branches.findByIndex({state: 'merge'})) {
+            merge.push(branch);
+            if (merge.length === 2) {
+                return merge;
+            }
+        }
+
         for await (let branch of branches.findByIndex({state: 'maybe'})) {
             return branch;
         }
@@ -75,28 +84,36 @@ class QueryEngine {
 
         const end = timeout?new Date().getTime() + timeout:Infinity;
 
-        const branches = this.rDB.tables.branches;
+        // const branches = this.rDB.tables.branches;
 
         while ((branch = await this.nextBranch()) && new Date().getTime() < end) {
-            const level = await branch.data.level;
 
-            if (!depth || (depth > level)) {
-                await branchOps.expand(
-                    this.db,
-                    branch, 
-                    this.options, 
-                    selector, 
-                    definitions
-                );
+            if (branch.length === 2) {
+                // throw 'Merge Branches ' + branch.map(b => b.id).join(", ");
+                await branchOps.merge(this.options, this.rDB, ...branch);
             }
             else {
-                await branch.update({state: 'stop'});
+                const level = await branch.data.level;
+
+                if (!depth || (depth > level)) {
+                    await branchOps.expand(
+                        this.db,
+                        branch, 
+                        this.options, 
+                        selector, 
+                        definitions
+                    );
+                }
+                else {
+                    await branch.update({state: 'stop'});
+                }
             }
         }
 
+        /*
         console.log("TODO : merge all on result set!!");
         // TODO: make a new "queue" for success branches!!
-        /*
+
         let mergeBranch;
         for await (let branch of branches.findByIndex({state: 'yes'})) {
             if (!mergeBranch) {
