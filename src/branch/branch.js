@@ -395,6 +395,51 @@ async function mergeSetSet (ctxA, ctxB, aID, bID) {
         bm = bs.matrix;
     }
 
+    const elements = [];
+    const data = []; // am.data.concat(bm.data);
+    const indexes = {};
+
+    for(let i=0; i<am.elements.length; i++) {
+        const aID = am.elements[i];
+        elements.push(await ctxA.toString(aID));
+    }
+
+    for(let e in am.indexes) {
+        indexes[await ctxA.toString(e)] = am.indexes[e];
+    }
+
+    for(let i=0; i<bm.elements.length; i++) {
+        const bID = bm.elements[i];
+        elements.push(await ctxB.toString(bID));
+    }
+
+    for(let e in bm.indexes) {
+        indexes[await ctxB.toString(e)] = bm.indexes[e];
+    }
+
+    for (let i=0; i<elements.length; i++) {
+        const r = [];
+        data.push(r);
+        const aID = elements[i];
+        for (let i=0; i<elements.length; i++) {
+            const bID = elements[i];
+
+            if (aID === bID) {
+                r.push(1);
+            }
+            else {
+                const ai = indexes[aID];
+                const bi = indexes[bID];
+
+                const conflict = ai.filter(idx => bi.includes(idx)).length > 0;
+
+                r.push(conflict?1:0);
+            }
+        }
+    }
+
+
+    console.log("ELEMENTS ", elements, data, indexes);
     console.log("MERGE MATRIX", JSON.stringify([am, bm], null, '  '));
 }
 
