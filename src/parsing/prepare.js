@@ -229,7 +229,7 @@ function termLocalVariable (ctx, lv) {
 
 
     if (lv.indexes) {
-        console.log("LOCAL VAR INDEXES ", lv.indexes);    
+        console.log("LOCAL VAR INDEXES ", lv.indexes);
         throw 'LOCAL VAR INDEXES';
     }
 

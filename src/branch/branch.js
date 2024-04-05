@@ -51,24 +51,12 @@ async function setIn (ctx, set, element) {
 
     const branches = [];
 
-    console.log("setIn start =>", await ctx.toString(set.id));
-
     for await (let eID of set.elements.values()) {
         const unifyCtx = await ctx.snapshot();
-
-        console.log("unifyCtx (1) ==>", 
-            await unifyCtx.toString(set.id), 
-            await unifyCtx.toString(element), 
-        );
 
         await unify(unifyCtx, eID, element);
         await unifyCtx.removeSetsInDomains(element);
         const unifiedBranch = await unifyCtx.saveBranch();
-
-        console.log("unifyCtx (2) ==>", 
-            await unifyCtx.toString(set.id), 
-            await unifyCtx.toString(element), 
-        );
 
         branches.push(unifiedBranch);
     }
@@ -393,69 +381,6 @@ async function extendSet (ctx, setID) {
     return true;
 }
 
-async function debugUnsolvedVariables (ctx) {
-    for await (let e of ctx.unsolvedVariables.values()) {
-        console.log(" == DEBUG ===> Unsolved Variables", await ctx.getVariable(e));
-    }
-}
-
-function generateCombinations(arrays) {
-    function generate(index, current) {
-        if (index === arrays.length) {
-            result.push(current.slice());
-            return;
-        }
-
-        for (let i = 0; i < arrays[index].length; i++) {
-            current.push(arrays[index][i]);
-            generate(index + 1, current);
-            current.pop();
-        }
-    }
-
-    const result = [];
-    generate(0, []);
-    return result;
-}
-
-async function genSetIterator (ctx, id='__resultsSet') {
-    const set = await ctx.getVariable(id);
-
-//    throw 'WE NEED TO GROUP UNIQUE ITERATOR BY ITERATOR VALUE, ALSO WE NEED ITERATOR NAME'
-    const mergeIterator = {...set.iterator} || {}; 
-    if (set.elements) {        
-        for await (let eID of set.elements.values()) {
-            const itr = await genSetIterator(ctx, eID);
-            console.log("ITR ", JSON.stringify(itr, null, '  '));
-
-            if (itr) {
-                for (let it in itr) {
-                    const vs = mergeIterator[it] = mergeIterator[it] || [];
-                    const v = itr[it];
-                    if (!vs.includes(v)) {
-                        vs.push(v);
-                    }
-                }
-            }
-        }
-
-        await ctx.setVariableValue(set.id, {
-            ...set,
-            iterator: mergeIterator
-        });
-    }
-
-    console.log("SET GEN", await ctx.toString(), set, mergeIterator);
-  
-    return mergeIterator;
-    /*
-    for await (let [key, value] of set.uniqueMap) {
-        console.log("==>", key, value);
-    }*/
-
-    throw 'CREATE SET GEN';
-}
-
 async function expand (
     definitionDB, 
     branch, 
@@ -505,23 +430,10 @@ async function expand (
         }
     }
 
+    console.log("---->", await ctx.toString());
+    await branch.update({state: 'yes'});
 
-    
-    // 4. convert sets to set generator ...
-    // COMPARE IF STATE IS MERGE ??
-    const r = await genSetIterator(ctx);
-
-    if (r) {
-        ctx.state = 'merge';
-        await ctx.saveBranch();
-        await branch.update({state: 'split'});
-        return r;
-    }
-
-    // else 
-
-    console.log("---->", await ctx.toString(), JSON.stringify(r, null, '  '));
-    throw 'EVAL IF EXTEND SET IS NEEDED!! ...';
+    // throw 'EVAL IF EXTEND SET IS NEEDED!! ...';
 
     
     /*
@@ -616,96 +528,6 @@ async function createBranchMaterializedSet (
 
 }
 
-async function mergeElements (ctx, setA, setB, aID, bID) {
-    const a = await ctx.getVariable(aID);
-    const b = await ctx.getVariable(bID);
-
-    if (a.id !== b.id) {
-        if (a.type === b.type) {
-            if (a.type === constants.type.MATERIALIZED_SET) {
-                await mergeSets(ctx, a, b);
-            }
-            else {
-                const elements = await setA.elements.add(bID);
-                await ctx.setVariableValue(setA.id, {
-                    ...setA,
-                    elements
-                });
-            }
-        }
-        else {
-            throw `mergeElements, diff type ${a.type} !== ${b.type}`;
-        }
-    }
-    // else nothing to do, 
-
-//     throw 'MergeElements';
-}
-
-async function addElement (ctx, setA, el, setB) {
-    if (!await setA.elements.has(el.id)) {
-        const indexes = await setB.varIndexes.get(el.id);
-
-        console.log(
-            `addElement : ${await ctx.toString(el.id)} in ${await ctx.toString(setA.id)}`
-        );
-
-        if (indexes) {
-            for await (let idx of indexes.values()) {
-                if (await setA.uniqueMap.has(idx)) {
-                    // conflict found, do nothing.
-                    return;
-                }
-            }
-        }
-
-        setA.elements = await setA.elements.add(el.id);
-        await ctx.setVariableValue(setA.id, setA);
-    }
-    /*else {
-        console.log(
-            `addElement : ${await ctx.toString(el.id)} IS IN ${await ctx.toString(setA.id)}`
-        );
-    }*/
-}
-
-
-
-async function mergeSetSet (ctxA, ctxB, setA, setB) {
-    
-    const iterator = {...(setA.iterator || {})};
-    if (setB.iterator) {
-        for (let idx in setB.iterator) {
-            const as = iterator[idx] = iterator[idx] ||  [];
-            const bs = setB.iterator[idx];
-            for (let i=0; i<bs.length; i++) {
-                const bValuesIndexes = bs[i];
-
-                for (let index in bValuesIndexes) {
-                    const values = bValuesIndexes[index];
-
-                    const aValues = as[index] = as[index] || [];
-                    for (let i=0; i<values.length; i++) {
-                        const bID = values[i];
-                        const abID = await getMergeVariable(ctxA, ctxB, bID);
-
-                        if (!aValues.includes(abID)) {
-                            aValues.push(abID);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    console.log("IT ", JSON.stringify(iterator, null, '  '));
-
-    await ctxA.setVariableValue(setA.id, {
-        ...setA, 
-        iterator
-    });
-}
-
 async function getMergeVariable (dest, src, id) {
     const v = await src.getVariable(id);
     const vID = v.id;
@@ -745,134 +567,8 @@ async function getMergeVariable (dest, src, id) {
     return bHash;
 }
 
-async function mergeCopy (dest, src) {
-    for await (let [hash, vn] of src._ctx.hashVariables) {
-
-        if (!await dest._ctx.hashVariables.has(hash)) {
-            console.log("COPY ", await src.toString(vn));
-            const v = await src.getVariable(vn);
-
-            switch (v.type) {
-                case constants.type.CONSTANT: {
-                    await dest.setVariableValue(v.id, v, hash);
-                    break;
-                }
-
-                case constants.type.TUPLE: {
-                    const data = [];
-                    for (let i=0; i<v.data.length; i++) {
-                        const vn = v.data[i];
-                        data.push(await getMergeVariable(dest, src, vn));
-                    }
-
-                    await dest.setVariableValue(hash, {
-                        ...v,
-                        data,
-                        id: hash,
-                    }, hash);
-
-                    break;
-                }
-                
-                case constants.type.MATERIALIZED_SET: {
-                    let elements = dest.rDB.iSet();
-
-                    for await (let vn of v.elements.values()) {
-                        const ve = await src.getVariable(vn);
-                        const e = await getMergeVariable(dest, src, ve.id);
-                        elements = await elements.add(e);
-                    }
-
-                    console.log("TODO: we need to make new uniqueMap and save it!");
-                    await dest.setVariableValue(hash, {
-                        ...v,
-                        elements,
-                        id: hash,
-                    }, hash);
-
-                    break;
-                }
-
-                default:
-                    throw `mergeCopy : Copy ${v.type} is not implemented!`;
-            }
-        }
-
-    }
-}
-
-async function merge (options, rDB, branchA, branchB) {
-
-    const ctxA = await BranchContext.create(branchA, options, null, rDB);
-    const ctxB = await BranchContext.create(branchB, options, null, rDB);
-
-    await ctxA.genHashes();
-    await ctxB.genHashes();
-
-    const aSize = await ctxA._ctx.hashVariables.size;
-    const bSize = await ctxB._ctx.hashVariables.size;
-
-    const a = aSize > bSize ? ctxA : ctxB;
-    const b = aSize > bSize ? ctxB : ctxA;
-
-    const resultsSetID = '__resultsSet';
-    const setA = await a.getVariable(resultsSetID);
-    const setB = await b.getVariable(resultsSetID);
-
-    await mergeSetSet(a, b, setA, setB);
-
-    await branchA.update({state: 'merged'});
-    await branchB.update({state: 'merged'});
-
-    return a.saveBranch();
-
-    /*
-    await ctxA.genHashes();
-    await ctxB.genHashes();
-
-    const aSize = await ctxA._ctx.hashVariables.size;
-    const bSize = await ctxB._ctx.hashVariables.size;
-
-    const a = aSize > bSize ? ctxA : ctxB;
-    const b = aSize > bSize ? ctxB : ctxA;
-
-    console.log(`Merge ${await a.toString()} ** ${await b.toString()}`);
-
-    await mergeCopy(a, b);
-
-    const resultsSetID = '__resultsSet';
-    const bSetID = await getMergeVariable(a, b, resultsSetID);
-
-    const setA = await a.getVariable(resultsSetID);
-    const setB = await a.getVariable(bSetID);
-
-    console.log(`Merge Sets : setA=${await a.toString(setA.id)}`);
-
-    console.log("TODO: setB copy is not ok!!", setB);
-    console.log(`Merge Sets : setB=${await a.toString(setB.id)}`);
-
-    console.log(`Merge Sets : setA=${await a.toString(setA.id)}, setB=${await a.toString(setB.id)}`);
-    
-    await mergeSets(a, setA, setB);
-
-    /*
-    const resultsSetID = '__resultsSet';
-
-    const setA = await a.getVariable(resultsSetID);
-    const setB = await b.getVariable(resultsSetID);
-
-    await mergeAux(a, b, setA, setB);
-
-    await branchA.update({state: 'merged'});
-    await branchB.update({state: 'merged'});
-
-    return a.saveBranch();
-    */
-}
-
 module.exports = {
     // create,
-    merge,
     createBranchMaterializedSet,
     expand,
     toJS,

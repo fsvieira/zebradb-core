@@ -155,25 +155,8 @@ class BranchContext {
             }
             else {
                 console.log("TODO: we need to copy all global domains on init before doing domain getSize");
-                /*console.log(await this.toString(setID));
-                if (set.domain) {
-                    await this.getSetSize(set.domain);
-                    const domain = await this.getVariable(set.domain);
-                    console.log(domain);
-                }*/
-
-                /**
-                 * Check element indexes if any:
-                 *  stats El indexes : max , min
-                 *  => Math.pow((max/min), min);
-                 *     * max / min, will give the number of elements to take for each set position (elements)
-                 */
-
-
-
                 console.log("TODO: 'getSetSize : has no-definition implementation'")
                 return -1;
-                // throw 'getSetSize : has no-definition implementation';
             }
     
             if (size === Infinity) {
@@ -334,98 +317,6 @@ class BranchContext {
         return this;
     }
 
-    async getVariableHash (id) {
-        if (!id) {
-            return '';
-        }
-
-        const v = await this.getVariable(id);
-        let hash = await this._ctx.variablesHash.get(v.id);
-
-        if (!hash && hash != '') {
-
-            switch (v.type) {
-                case constants.type.MATERIALIZED_SET: {
-                    const hashes = [];
-                    // let elementIndex = v.elementIndex || this.rDB.iSet();
-                    for await (let eID of v.elements.values()) {
-                        const hash = await this.getVariableHash(eID);
-                        hashes.push(hash);
-
-                        // elementIndex = await elementIndex.add(hash);
-                    }
-
-                    /*await this.setVariableValue(
-                        v.id,
-                        {...v, elementIndex}
-                    );*/
-
-                    // TODO: maybe domain should not be considered,
-                    // TODO: recursive domains are not generating good hashes why ? 
-                    // TODO: we can't handle recursion.
-                    const dHash = ''; // await this.getVariableHash(v.domain);
-                    const sHash = SHA256(
-                        `${hashes.sort().join('-')}:${dHash}` 
-                    ).toString("hex");
-
-                    hash = `${v.type}:${sHash}:${v.size}`;
-                    console.log("---->", `${hashes.join('-')}:${dHash}`, hash, await this.toString(v.id));
-
-                    break;
-                }
-
-                case constants.type.TUPLE: {
-                    const hashes = [];
-                    for (let i=0; i<v.data.length; i++) {
-                        const eID = v.data[i];
-                        const hash = await this.getVariableHash(eID);
-                        hashes.push(hash);
-                    }
-
-                    // TODO: maybe domain should not be considered,
-                    // TODO: recursive domains are not generating good hashes why ? 
-                    const dHash = '' ; // await this.getVariableHash(v.domain);
-                    const tHash = SHA256(
-                        `${hashes.join('-')}:${dHash}` 
-                    ).toString("hex");
-
-                    hash = `${v.type}:${tHash}:${v.data.length}`;
-                    console.log("---->", `${hashes.join('-')}:${dHash}`, hash, await this.toString(v.id));
-
-                    break;
-                }
-
-                case constants.type.CONSTANT: {
-                    hash = v.id;
-                    break;
-                }
-
-                case constants.type.LOCAL_VAR: {
-                    hash = v.id;
-                    break;
-                }
-
-                default:
-                    throw 'get variable hash ' + v.type + ' is not implemented!';
-            }
-
-           await this.setHash(v.id, hash);
-        }
-
-        console.log("HASH", v.id, hash);
-        return hash;
-    }
-
-    async genHashes () {
-        if (!this._ctx.hashVariables) {
-            this._ctx.hashVariables = this.rDB.iMap();
-            this._ctx.variablesHash = this.rDB.iMap();
-            await this.getVariableHash('__resultsSet');
-        }
-
-        return this;
-    }
-
     async saveBranch (ignoreConstraints=false) {
         if (!this._ctx.state) {
             this._ctx.state = await this.getContextState(ignoreConstraints);
@@ -509,26 +400,6 @@ class BranchContext {
         }
 
         return str;
-    }
-
-    // Groups 
-    async startGroup(group) {
-        if (this._ctx.group) {
-            throw 'Multiple groups are not handled : create a stack!';
-        }
-        
-        const {id, ...args} = group;
-        this._ctx.groups = await this._ctx.groups.set(
-            id,
-            {data: args}
-        );
-
-        this._ctx.group = id;
-        this._ctx.groupState = 'start';
-    }
-
-    getGroup () {
-        return {id: this._ctx.group, state: this._ctx.groupState};
     }
 }
 

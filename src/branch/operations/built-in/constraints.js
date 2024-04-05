@@ -824,14 +824,6 @@ async function constraintEnv (ctx, cs) {
     return r;
 }
 
-async function debugConstraint (ctx, id, result, str='') {
-    
-    // DEBUG
-    const s = await toString(null, id, ctx);
-    const values = ['', 'FALSE', 'TRUE', 'UNKNOWN'];
-    console.log(`DEBUG ${str}:`, s, " ==> " , values[result]);
-}
-
 async function evalConstraint (ctx, cs, env, parentConstraints) {
     if (!env.check) {
         return true;

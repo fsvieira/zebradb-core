@@ -109,21 +109,6 @@ class QueryEngine {
                 }
             }
         }
-
-        /*
-        console.log("TODO : merge all on result set!!");
-        // TODO: make a new "queue" for success branches!!
-
-        let mergeBranch;
-        for await (let branch of branches.findByIndex({state: 'yes'})) {
-            if (!mergeBranch) {
-                mergeBranch = branch;
-            }
-            else {
-                mergeBranch = await branchOps.merge(this.options, this.rDB, mergeBranch, branch);
-            }
-        }*/
-
     }
 
     async toJS (branch) {
