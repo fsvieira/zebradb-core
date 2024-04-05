@@ -312,10 +312,40 @@ async function checkUniqueIndexConstrain (ctx, cs, env) {
     }
     else {
         const uniqueMap = await set.uniqueMap.set(indexKey, eID);
+        
+        let matrix = {
+            elements: set.matrix.elements.slice(),
+            indexes: {
+                ...set.matrix.indexes,
+                [eID]: (set.matrix.indexes[eID] || []).concat(indexKey),
+            },
+            data: set.matrix.data.slice()
+        };
+
+        if (!matrix.elements.includes(eID)) {
+            matrix.elements.push(eID);
+
+            const r = [];
+            matrix.data.push(r);
+
+            for (let i=0; i<matrix.elements.length; i++) {
+                const vID = matrix.elements[i];
+
+                if (vID === eID) {
+                    r.push(1);
+                }
+                else {
+                    r.push(0);
+                }
+
+                console.log("TODO: WE NEED TO CHECK THE INDEXES!");
+            }
+        }
 
         await ctx.setVariableValue(set.id, {
             ...set,
-            uniqueMap
+            uniqueMap,
+            matrix
         });
 
         return C_TRUE;

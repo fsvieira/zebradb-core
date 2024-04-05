@@ -399,6 +399,11 @@ async function createMaterializedSet (
         definition: expression ? definitionElement : null,
         domain: domainID,
         uniqueMap: ctx.rDB.iMap(),
+        matrix: {
+            elements: [],
+            data: [],
+            indexes: {}
+        },
         size
     };
 

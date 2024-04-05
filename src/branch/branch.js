@@ -1,4 +1,3 @@
-const { definitions } = require('../..');
 const {
     unify,
     varGenerator,
@@ -381,6 +380,41 @@ async function extendSet (ctx, setID) {
     return true;
 }
 
+async function mergeSetSet (ctxA, ctxB, aID, bID) {
+    const a = await ctxA.getVariable(aID);
+    const b = await ctxB.getVariable(bID);
+
+    let am, bm;
+    for await (let eID of a.elements.values()) {
+        const as = await ctxA.getVariable(eID);
+        am = as.matrix;
+    }
+
+    for await (let eID of b.elements.values()) {
+        const bs = await ctxB.getVariable(eID);
+        bm = bs.matrix;
+    }
+
+    console.log("MERGE MATRIX", JSON.stringify([am, bm], null, '  '));
+}
+
+async function merge (options, rDB, branchA, branchB) {
+
+    const ctxA = await BranchContext.create(branchA, options, rDB);
+    const ctxB = await BranchContext.create(branchB, options, rDB);
+
+    const resultsSetID = '__resultsSet';
+    // const a = await ctxA.getVariable(resultsSetID);
+    // const b = await ctxA.getVariable(resultsSetID);
+
+    await mergeSetSet(ctxA, ctxB, resultsSetID, resultsSetID);
+
+    console.log("MERGE ", await ctxA.toString(), " ** " , await ctxB.toString());
+
+    throw 'MERGE IS NOT IMPLEMENTED';
+}
+
+
 async function expand (
     definitionDB, 
     branch, 
@@ -431,7 +465,9 @@ async function expand (
     }
 
     console.log("---->", await ctx.toString());
-    await branch.update({state: 'yes'});
+    // await branch.update({state: 'yes'});
+
+    await branch.update({state: 'merge'});
 
     // throw 'EVAL IF EXTEND SET IS NEEDED!! ...';
 
@@ -528,49 +564,11 @@ async function createBranchMaterializedSet (
 
 }
 
-async function getMergeVariable (dest, src, id) {
-    const v = await src.getVariable(id);
-    const vID = v.id;
-    const bHash = await src._ctx.variablesHash.get(vID);
-    const vn = await dest._ctx.hashVariables.get(bHash);
-
-    if (vn) {
-        return vn;
-    }
-
-    switch (v.type) {
-        case constants.type.TUPLE: {
-            const data = [];
-            for (let i=0; i<v.data; i++) {
-                const id = await getMergeVariable(v.data[i]);
-                data.push(id);
-            }
-
-            await dest.setVariableValue(
-                bHash, {
-                    ...v,
-                    data,
-                    id: bHash
-                }
-            );
-
-            await dest._ctx.variablesHash.set(bHash, bHash);
-            await dest._ctx.hashVariables.set(bHash, bHash);
-
-            break;
-        }
-        
-        default:
-            throw 'getMergeVariable Copy ' + v.type + ' is not defined!';
-    }
-
-    return bHash;
-}
-
 module.exports = {
     // create,
     createBranchMaterializedSet,
     expand,
+    merge,
     toJS,
     toString,
     varGenerator,

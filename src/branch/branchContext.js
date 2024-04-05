@@ -332,6 +332,8 @@ class BranchContext {
             el.push(await this.toStringRec(eID, vars));
         }
 
+        console.log("=== MATRIX ===>", JSON.stringify(v.matrix));
+
         const size = v.size; 
         const domain = v.domain ? ':' + v.domain : '';
 
