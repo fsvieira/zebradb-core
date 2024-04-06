@@ -380,21 +380,60 @@ async function extendSet (ctx, setID) {
     return true;
 }
 
+async function mergeElement (ctxA, ctxB, aID, bID) {
+    const as = await ctxA.getVariable(aID);
+    const bs = await ctxB.getVariable(bID);
+
+    if (as.type === bs.type) {
+
+        switch (as.type) {
+            case constants.type.MATERIALIZED_SET: {
+                await mergeSetSet(ctxA, ctxB, aID, bID);
+                return;
+            }
+
+            case constants.type.TUPLE: {
+                if (as.data.length === bs.data.length) {
+                    for (let i=0; i<as.data.length; i++) {
+                        const aID = as.data[i];
+                        const bID = bs.data[i];
+
+                        await mergeElement(ctxA, ctxB, aID, bID);
+                    }
+                }
+            }
+
+            case constants.type.CONSTANT: {
+                /*
+                if (as.id !== bs.id) {
+                    throw `MERGE CONSTANT ${as.id} ** ${bs.id}`;
+                }*/
+                // We don't care about set elements!
+                return; 
+            }
+
+            default:
+                throw `MERGE ELEMENT!! ${as.type}!`;
+        }
+    }
+    else {
+        throw `MERGE ELEMENT!! ${as.type} ** ${bs.type}!`;
+    }
+}
+
 async function mergeSetSet (ctxA, ctxB, aID, bID) {
     const a = await ctxA.getVariable(aID);
     const b = await ctxB.getVariable(bID);
 
-    let am, bm;
     for await (let eID of a.elements.values()) {
-        const as = await ctxA.getVariable(eID);
-        am = as.matrix;
+        await mergeElement(ctxA, ctxB, eID, eID);
     }
 
-    for await (let eID of b.elements.values()) {
-        const bs = await ctxB.getVariable(eID);
-        bm = bs.matrix;
-    }
+    const am = a.matrix;
+    const bm = b.matrix;
 
+    console.log("MERGE MATRIX", am, bm);
+    /*
     const elements = [];
     const data = []; // am.data.concat(bm.data);
     const indexes = {};
@@ -438,12 +477,12 @@ async function mergeSetSet (ctxA, ctxB, aID, bID) {
         }
     }
 
-
     console.log("ELEMENTS ", elements, data, indexes);
     console.log("MERGE MATRIX", JSON.stringify([am, bm], null, '  '));
+    */
 }
 
-async function merge (options, rDB, branchA, branchB) {
+async function __merge (options, rDB, branchA, branchB) {
 
     const ctxA = await BranchContext.create(branchA, options, rDB);
     const ctxB = await BranchContext.create(branchB, options, rDB);
@@ -455,6 +494,87 @@ async function merge (options, rDB, branchA, branchB) {
     await mergeSetSet(ctxA, ctxB, resultsSetID, resultsSetID);
 
     console.log("MERGE ", await ctxA.toString(), " ** " , await ctxB.toString());
+
+    throw 'MERGE IS NOT IMPLEMENTED';
+}
+
+async function copyElement(ctxA, ctxB, id) {
+    throw 'COPY ELEMENT NOT IMPLEMENTED!';
+    return await ctxB.toString(id);
+}
+
+async function mergeMatrix (ctxA, ctxB, a, b) {
+    const am = a.matrix;
+    const bm = b.matrix;
+
+    const elements = am.elements.slice();
+    const indexes = {...am.indexes};
+    const data = [];
+
+    for (let i=0; i<bm.elements.length; i++) {
+        const id = bm.elements[i];
+
+        const aIdx = am.indexes[id];
+        const bIdx = bm.indexes[id];
+
+        const ai = aIdx.sort().join(":");
+        const bi = bIdx.sort().join(":");
+
+        if (ai != bi) {
+            const bID = await copyElement(ctxA, ctxB, id);
+            elements.push(bID);
+            indexes[bID] = bIdx.slice();
+        }
+    }
+
+    for (let i=0; i<elements.length; i++) {
+        const r = [];
+        data.push(r);
+        const aID = elements[i];
+        for (let i=0; i<elements.length; i++) {
+            const bID = elements[i];
+
+            if (aID === bID) {
+                r.push(1);
+            }
+            else {
+                const ai = indexes[aID];
+                const bi = indexes[bID];
+
+                const conflict = ai.filter(idx => bi.includes(idx)).length > 0;
+
+                r.push(conflict?1:0);
+            }
+        }
+    }
+
+    return {
+        elements,
+        indexes,
+        data
+    };
+} 
+
+async function merge (options, rDB, branchA, branchB) {
+    const ctxA = await BranchContext.create(branchA, options, rDB);
+    const ctxB = await BranchContext.create(branchB, options, rDB);
+
+    for await (let [eID] of ctxA._ctx.variables) {
+        const a = await ctxA.getVariable(eID);
+
+        if (a.type === constants.type.MATERIALIZED_SET) {
+            const b = await ctxB.getVariable(eID);
+            const matrix = await mergeMatrix(ctxA, ctxB, a, b);
+
+            console.log("MERGED MATRIX -->", JSON.stringify(matrix, null, '  '));
+            await ctxA.setVariableValue(a.id, {
+                ...a,
+                matrix
+            });
+
+            throw 'SET MATRIX';
+        }
+    }
 
     throw 'MERGE IS NOT IMPLEMENTED';
 }
