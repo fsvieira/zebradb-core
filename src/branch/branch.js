@@ -499,7 +499,7 @@ async function __merge (options, rDB, branchA, branchB) {
 }
 
 async function copyElement(ctxA, ctxB, id) {
-    throw 'COPY ELEMENT NOT IMPLEMENTED!';
+    // throw 'COPY ELEMENT NOT IMPLEMENTED!';
     return await ctxB.toString(id);
 }
 
@@ -521,6 +521,13 @@ async function mergeMatrix (ctxA, ctxB, a, b) {
         const bi = bIdx.sort().join(":");
 
         if (ai != bi) {
+            a.elements = await a.elements.remove(id);
+
+            // remove element from unique map,
+            for (let i=0; i<aIdx.length; i++) {
+                a.uniqueMap = await a.uniqueMap.remove(aIdx[i]);
+            }
+
             const bID = await copyElement(ctxA, ctxB, id);
             elements.push(bID);
             indexes[bID] = bIdx.slice();
@@ -548,11 +555,14 @@ async function mergeMatrix (ctxA, ctxB, a, b) {
         }
     }
 
-    return {
-        elements,
-        indexes,
-        data
-    };
+    await ctxA.setVariableValue(a.id, {
+        ...a,
+        matrix: {
+            elements,
+            indexes,
+            data
+        }
+    });
 } 
 
 async function merge (options, rDB, branchA, branchB) {
@@ -563,16 +573,9 @@ async function merge (options, rDB, branchA, branchB) {
         const a = await ctxA.getVariable(eID);
 
         if (a.type === constants.type.MATERIALIZED_SET) {
+            const aSet = {...a};
             const b = await ctxB.getVariable(eID);
-            const matrix = await mergeMatrix(ctxA, ctxB, a, b);
-
-            console.log("MERGED MATRIX -->", JSON.stringify(matrix, null, '  '));
-            await ctxA.setVariableValue(a.id, {
-                ...a,
-                matrix
-            });
-
-            throw 'SET MATRIX';
+            await mergeMatrix(ctxA, ctxB, aSet, b);
         }
     }
 
