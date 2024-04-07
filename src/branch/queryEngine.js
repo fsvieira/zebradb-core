@@ -58,12 +58,17 @@ class QueryEngine {
         for await (let branch of branches.findByIndex({state: 'merge'})) {
             merge.push(branch);
             if (merge.length === 2) {
-                return merge;
+                return {type: 'merge', merge};
             }
         }
 
         for await (let branch of branches.findByIndex({state: 'maybe'})) {
-            return branch;
+            return {type: 'maybe', branch};
+        }
+
+        if (merge.length === 1) {
+            // await merge[0].update({state: 'yes'});
+            return {type: 'gen-sets', branch: merge[0]};
         }
     }
 
@@ -78,7 +83,7 @@ class QueryEngine {
 
         const definitions = async tuple => this.db.search(tuple);
 
-        let branch;
+        // let branch;
 
         const {depth, timeout} = this.options;
 
@@ -86,13 +91,16 @@ class QueryEngine {
 
         // const branches = this.rDB.tables.branches;
 
-        while ((branch = await this.nextBranch()) && new Date().getTime() < end) {
+        let b;
+        while ((b = await this.nextBranch()) && new Date().getTime() < end) {
+            const {type, ...args} = b;
 
-            if (branch.length === 2) {
+            if (type === 'merge') {
                 // throw 'Merge Branches ' + branch.map(b => b.id).join(", ");
-                await branchOps.merge(this.options, this.rDB, ...branch);
+                await branchOps.merge(this.options, this.rDB, ...args.merge);
             }
-            else {
+            else if (type === 'maybe') {
+                const branch = args.branch;
                 const level = await branch.data.level;
 
                 if (!depth || (depth > level)) {
@@ -107,6 +115,9 @@ class QueryEngine {
                 else {
                     await branch.update({state: 'stop'});
                 }
+            }
+            else if (type === 'gen-sets') {
+                await branchOps.genSets(this.options, this.rDB, args.branch);
             }
         }
     }

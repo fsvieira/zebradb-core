@@ -482,25 +482,43 @@ async function mergeSetSet (ctxA, ctxB, aID, bID) {
     */
 }
 
-async function __merge (options, rDB, branchA, branchB) {
 
-    const ctxA = await BranchContext.create(branchA, options, rDB);
-    const ctxB = await BranchContext.create(branchB, options, rDB);
-
-    const resultsSetID = '__resultsSet';
-    // const a = await ctxA.getVariable(resultsSetID);
-    // const b = await ctxA.getVariable(resultsSetID);
-
-    await mergeSetSet(ctxA, ctxB, resultsSetID, resultsSetID);
-
-    console.log("MERGE ", await ctxA.toString(), " ** " , await ctxB.toString());
-
-    throw 'MERGE IS NOT IMPLEMENTED';
-}
-
-async function copyElement(ctxA, ctxB, id) {
+async function copyElement(dest, src, id) {
     // throw 'COPY ELEMENT NOT IMPLEMENTED!';
-    return await ctxB.toString(id);
+    const v = await src.getVariable(id);
+
+    switch (v.type) {
+        case constants.type.TUPLE: {
+            const id = dest.newVar();
+            const data = [];
+
+            for (let i=0; i<v.data.length; i++) {
+                const copyID = v.data[i];
+                data[i] = await copyElement(dest, src, copyID);                
+            }
+
+            await dest.setVariableValue(id, {
+                ...v,
+                data,
+                id
+            });
+
+            return id;
+        }
+
+        case constants.type.CONSTANT: {
+            if (!await dest.hasVariable(v.id)) {
+                dest.setVariableValue(v.id, v);
+            }
+
+            return v.id;
+        }
+
+        default: 
+            throw `copyElement ${v.type} is not implemented!`;        
+    }
+
+
 }
 
 async function mergeMatrix (ctxA, ctxB, a, b) {
@@ -514,7 +532,7 @@ async function mergeMatrix (ctxA, ctxB, a, b) {
     for (let i=0; i<bm.elements.length; i++) {
         const id = bm.elements[i];
 
-        const aIdx = am.indexes[id];
+        const aIdx = am.indexes[id] || [];
         const bIdx = bm.indexes[id];
 
         const ai = aIdx.sort().join(":");
@@ -579,9 +597,21 @@ async function merge (options, rDB, branchA, branchB) {
         }
     }
 
-    throw 'MERGE IS NOT IMPLEMENTED';
+    await branchA.update({state: 'merged'});
+    await branchB.update({state: 'merged'});
+
+    ctxA.state = 'merge';
+    await ctxA.saveBranch();
+    // throw 'MERGE IS NOT IMPLEMENTED';
 }
 
+async function genSets(options, rDB, branch) {
+    const ctx = await BranchContext.create(branch, options, rDB);
+ 
+    console.log("GEN SETS ", await ctx.toString());
+
+    throw 'GEN SETS';
+}
 
 async function expand (
     definitionDB, 
@@ -746,6 +776,7 @@ module.exports = {
     getVariable,
     constants,
     logger,
-    BranchContext
+    BranchContext,
+    genSets
 }
 
