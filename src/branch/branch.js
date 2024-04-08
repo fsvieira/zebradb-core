@@ -433,53 +433,6 @@ async function mergeSetSet (ctxA, ctxB, aID, bID) {
     const bm = b.matrix;
 
     console.log("MERGE MATRIX", am, bm);
-    /*
-    const elements = [];
-    const data = []; // am.data.concat(bm.data);
-    const indexes = {};
-
-    for(let i=0; i<am.elements.length; i++) {
-        const aID = am.elements[i];
-        elements.push(await ctxA.toString(aID));
-    }
-
-    for(let e in am.indexes) {
-        indexes[await ctxA.toString(e)] = am.indexes[e];
-    }
-
-    for(let i=0; i<bm.elements.length; i++) {
-        const bID = bm.elements[i];
-        elements.push(await ctxB.toString(bID));
-    }
-
-    for(let e in bm.indexes) {
-        indexes[await ctxB.toString(e)] = bm.indexes[e];
-    }
-
-    for (let i=0; i<elements.length; i++) {
-        const r = [];
-        data.push(r);
-        const aID = elements[i];
-        for (let i=0; i<elements.length; i++) {
-            const bID = elements[i];
-
-            if (aID === bID) {
-                r.push(1);
-            }
-            else {
-                const ai = indexes[aID];
-                const bi = indexes[bID];
-
-                const conflict = ai.filter(idx => bi.includes(idx)).length > 0;
-
-                r.push(conflict?1:0);
-            }
-        }
-    }
-
-    console.log("ELEMENTS ", elements, data, indexes);
-    console.log("MERGE MATRIX", JSON.stringify([am, bm], null, '  '));
-    */
 }
 
 
@@ -529,26 +482,30 @@ async function mergeMatrix (ctxA, ctxB, a, b) {
     const indexes = {...am.indexes};
     const data = [];
 
+    throw 'MERGE MATRIX WITH UNIQUE ELEMENTS!!';
+
     for (let i=0; i<bm.elements.length; i++) {
         const id = bm.elements[i];
 
-        const aIdx = am.indexes[id] || [];
+        const aIdx = am.indexes[id];
         const bIdx = bm.indexes[id];
 
-        const ai = aIdx.sort().join(":");
-        const bi = bIdx.sort().join(":");
+        if (aIdx) {
+            const ai = aIdx.sort().join(":");
+            const bi = bIdx.sort().join(":");
 
-        if (ai != bi) {
-            a.elements = await a.elements.remove(id);
+            if (ai != bi) {
+                a.elements = await a.elements.remove(id);
 
-            // remove element from unique map,
-            for (let i=0; i<aIdx.length; i++) {
-                a.uniqueMap = await a.uniqueMap.remove(aIdx[i]);
+                // remove element from unique map,
+                for (let i=0; i<aIdx.length; i++) {
+                    a.uniqueMap = await a.uniqueMap.remove(aIdx[i]);
+                }
+
+                const bID = await copyElement(ctxA, ctxB, id);
+                elements.push(bID);
+                indexes[bID] = bIdx.slice();
             }
-
-            const bID = await copyElement(ctxA, ctxB, id);
-            elements.push(bID);
-            indexes[bID] = bIdx.slice();
         }
     }
 
@@ -608,6 +565,16 @@ async function merge (options, rDB, branchA, branchB) {
 async function genSets(options, rDB, branch) {
     const ctx = await BranchContext.create(branch, options, rDB);
  
+    for await (let [eID] of ctx._ctx.variables) {
+        const v = await ctx.getVariable(eID);
+
+        if (v.type === constants.type.MATERIALIZED_SET) {
+            if (v.matrix.elements.length > 0) {
+                console.log("MATRIX ", JSON.stringify(v.matrix, null, '  '));
+            }
+        }
+    }
+
     console.log("GEN SETS ", await ctx.toString());
 
     throw 'GEN SETS';

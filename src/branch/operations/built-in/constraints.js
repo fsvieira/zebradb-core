@@ -287,6 +287,16 @@ async function checkUniqueIndexConstrain (ctx, cs, env) {
 
     const set = await ctx.getVariable(setID);
 
+    // get the element index,
+    const def = set.definition.variables[set.defID]; 
+
+    let maxIndex = 0;
+    for (let i=0; i<def.indexes.length; i++) {
+        const idxID = def.indexes[i];
+        const idx = set.definition.variables[idxID];
+        maxIndex = Math.max(maxIndex, idx.variables.length);
+    }
+
     let indexValues = [];
     let indexNames = [];
     for (let i=0; i<values.length; i++) {
@@ -312,9 +322,18 @@ async function checkUniqueIndexConstrain (ctx, cs, env) {
     }
     else {
         const uniqueMap = await set.uniqueMap.set(indexKey, eID);
-        
+
+        let uniqueElements = set.matrix.uniqueElements;
+        if (indexValues.length === maxIndex) {
+            uniqueElements = {
+                ...uniqueElements, 
+                [indexKey]: eID
+            };
+        }
+
         let matrix = {
             elements: set.matrix.elements.slice(),
+            uniqueElements,
             indexes: {
                 ...set.matrix.indexes,
                 [eID]: (set.matrix.indexes[eID] || []).concat(indexKey),

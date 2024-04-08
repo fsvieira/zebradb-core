@@ -402,7 +402,8 @@ async function createMaterializedSet (
         matrix: {
             elements: [],
             data: [],
-            indexes: {}
+            indexes: {},
+            uniqueElements: {}
         },
         size
     };
