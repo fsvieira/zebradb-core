@@ -549,15 +549,18 @@ async function mergeMatrix (ctxA, ctxB, a, b) {
         }
     }
 
-    await ctxA.setVariableValue(a.id, {
-        ...a,
-        matrix: {
-            elements,
-            indexes,
-            uniqueElements,
-            data
-        }
-    });
+    if (elements.length) {
+        await ctxA.setVariableValue(a.id, {
+            ...a,
+            elements: ctxA.rDB.iSet(),
+            matrix: {
+                elements,
+                indexes,
+                uniqueElements,
+                data
+            }
+        });
+    }
 } 
 
 async function merge (options, rDB, branchA, branchB) {
@@ -582,22 +585,64 @@ async function merge (options, rDB, branchA, branchB) {
     // throw 'MERGE IS NOT IMPLEMENTED';
 }
 
+async function genSet (ctx, set) {
+    const matrix = set.matrix;
+
+    let eIndex = 0;
+    let elements = set.elements;
+    let conflictMask = matrix.data[eIndex].slice();
+
+    do {
+        let row = matrix.data[eIndex];
+        elements = await elements.add(matrix.elements[eIndex]);
+
+        eIndex = null;
+        for (let i=0; i<conflictMask.length; i++) {
+            const r = conflictMask[i] = conflictMask[i] | row[i];
+            
+            if (eIndex === null && r === 0) {
+                eIndex = i;
+            }
+        }
+    }
+    while (eIndex !== null);
+
+    await ctx.setVariableValue(set.id, {
+        ...set,
+        elements,
+        size: await elements.size
+    });
+
+    console.log("GEN SETT (1)", await ctx.toString(set.id));
+
+}
+
 async function genSets(options, rDB, branch) {
     const ctx = await BranchContext.create(branch, options, rDB);
  
+    const done = {};
     for await (let [eID] of ctx._ctx.variables) {
         const v = await ctx.getVariable(eID);
 
-        if (v.type === constants.type.MATERIALIZED_SET) {
-            if (v.matrix.elements.length > 0) {
-                console.log("MATRIX ", JSON.stringify(v.matrix, null, '  '));
+        if (!done[v.id]) {
+            done[v.id] = true;
+
+            if (v.type === constants.type.MATERIALIZED_SET) {
+                if (v.matrix.elements.length > 0) {
+                    console.log("MATRIX ", JSON.stringify(v.matrix, null, '  '));
+
+                    await genSet(ctx, v);
+                }
             }
         }
     }
 
-    console.log("GEN SETS ", await ctx.toString());
+    console.log("GEN SETTTTT", await ctx.toString());
 
-    throw 'GEN SETS';
+    await branch.update({state: 'split'});
+
+    ctx.state = 'yes';
+    await ctx.saveBranch();
 }
 
 async function expand (
