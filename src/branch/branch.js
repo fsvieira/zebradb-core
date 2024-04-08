@@ -478,10 +478,29 @@ async function mergeMatrix (ctxA, ctxB, a, b) {
     const am = a.matrix;
     const bm = b.matrix;
 
+    const uniqueElements = am.uniqueElements;
     const elements = am.elements.slice();
     const indexes = {...am.indexes};
     const data = [];
 
+
+    for (let idx in bm.uniqueElements) {
+        if (!uniqueElements[idx]) {
+            const bID = bm.uniqueElements[idx];
+            const id = uniqueElements[idx] = await copyElement(
+                ctxA, 
+                ctxB, 
+                bID
+            );
+
+            elements.push(id);
+
+            const bIdx = bm.indexes[bID];
+            indexes[id] = bIdx.slice();
+        }
+    }
+
+    /*
     throw 'MERGE MATRIX WITH UNIQUE ELEMENTS!!';
 
     for (let i=0; i<bm.elements.length; i++) {
@@ -507,7 +526,7 @@ async function mergeMatrix (ctxA, ctxB, a, b) {
                 indexes[bID] = bIdx.slice();
             }
         }
-    }
+    }*/
 
     for (let i=0; i<elements.length; i++) {
         const r = [];
@@ -535,6 +554,7 @@ async function mergeMatrix (ctxA, ctxB, a, b) {
         matrix: {
             elements,
             indexes,
+            uniqueElements,
             data
         }
     });
