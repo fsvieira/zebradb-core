@@ -745,22 +745,31 @@ async function createBranchMaterializedSet (
 
     const ctxElement = ctxEmpty.snapshot();
 
+    /*
+    TODO: Handle Empty Set "merge" in case of fail.
     {
         // Set empty set branch, has success 
         const emptyResults = {
             type: constants.type.MATERIALIZED_SET,
             id,
-            elements: rDB.iSet()
+            elements: rDB.iSet(),
+            matrix: {
+                elements: [],
+                data: [],
+                indexes: {},
+                uniqueElements: {}
+            }
         };
 
         await ctxEmpty.setVariableValue(id, emptyResults);
         await ctxEmpty.logger("Create Empty Set Results");
 
-        ctxEmpty.state = 'yes';
+        ctxEmpty.state = 'merge';
         ctxEmpty.branchID = `${parentBranch.id}-empty`;
 
         await ctxEmpty.saveBranch();
     }
+    */
 
     {
         const {root} = definitionElement;

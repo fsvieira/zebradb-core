@@ -341,7 +341,7 @@ class BranchContext {
 
         const setSize = size === el.length ? '' : '...';
 
-        return `{${el.join(" ")} ${setSize}}${domain}`;        
+        return `{${el.sort().join(" ")} ${setSize}}${domain}`;        
     }
 
     async toStringConstraint (v, vars) {
