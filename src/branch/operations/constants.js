@@ -10,7 +10,8 @@ module.exports = {
         GLOBAL_VAR: 'gv',
         DEF_REF: 'd',
         INDEX: 'idx',
-        MATERIALIZED_SET: 'ms'
+        MATERIALIZED_SET: 'ms',
+        SET_SIZE: 'ss'
     },
     operation: {
         OR: "or",

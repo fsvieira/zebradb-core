@@ -8,7 +8,8 @@
           SET_EXP,
           LOCAL_VAR,
           GLOBAL_VAR,
-          INDEX
+          INDEX,
+          SET_SIZE
       },
       operation: {
           OR,
@@ -132,9 +133,11 @@ indexes = _ index:index indexes:( _ ',' _ idx:index {return idx})* {
 	return [index].concat(indexes || [])
 }
 
+alias = 'as' wsp variable:variable _ ','? _ {return variable}
+
 set_def = "{" _ element:element _ 
   expression:( "|" _ expression:expression {return expression;} 
-  / "..." {return null}) _ "}" domain:(":" variable:variable {return variable})? _ indexes:indexes? _
+  / "..." {return null}) _ "}" domain:(":" variable:variable {return variable})? _ alias:alias? _ indexes:indexes? _
      {
        return {
          type: SET,
@@ -142,7 +145,8 @@ set_def = "{" _ element:element _
          indexes,
          domain,
          expression,
-         size: -1
+         size: -1,
+         elementAlias: alias
        }
      }
      / "{" _ elements:tupleTerms _ "..." _ "}" domain:(":" variable:variable {return variable})?
@@ -178,7 +182,7 @@ set = a:set_def _ op:set_op _ b:set {
   }
   / set:set_def {return set} 
 
-
+setSize = '|'_ variable:variable _ '|' {return {type: SET_SIZE, variable}} 
 expression = logical_or
 
 logical_or
@@ -212,6 +216,7 @@ setExpression
 expressionTerm
   = variable 
   / constantExpression
+  / setSize 
   / '[' _ expression:expression _ ']' {return expression}
 
 /* 
