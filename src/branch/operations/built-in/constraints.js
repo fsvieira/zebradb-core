@@ -282,20 +282,22 @@ async function checkUniqueIndexConstrain (ctx, cs, env) {
         variables, 
         values, 
         setID,
-        eID
+        eID,
+        uniqueElementIndex
     } = cs;
 
+    console.log(cs);
     const set = await ctx.getVariable(setID);
 
     // get the element index,
-    const def = set.definition.variables[set.defID]; 
+    /*const def = set.definition.variables[set.defID];
 
     let maxIndex = 0;
     for (let i=0; i<def.indexes.length; i++) {
         const idxID = def.indexes[i];
         const idx = set.definition.variables[idxID];
         maxIndex = Math.max(maxIndex, idx.variables.length);
-    }
+    }*/
 
     let indexValues = [];
     let indexNames = [];
@@ -324,42 +326,32 @@ async function checkUniqueIndexConstrain (ctx, cs, env) {
         const uniqueMap = await set.uniqueMap.set(indexKey, eID);
 
         let uniqueElements = set.matrix.uniqueElements;
+        let elements = []; 
+
+        if (uniqueElementIndex) {
+            uniqueElements = {
+                ...uniqueElements, 
+                [indexKey]: eID
+            };
+
+            elements.push(eID);
+        }
+        /*
         if (indexValues.length === maxIndex) {
             uniqueElements = {
                 ...uniqueElements, 
                 [indexKey]: eID
             };
-        }
+        }*/
 
         let matrix = {
-            elements: set.matrix.elements.slice(),
+            elements: elements.concat(set.matrix.elements),
             uniqueElements,
             indexes: {
                 ...set.matrix.indexes,
                 [eID]: (set.matrix.indexes[eID] || []).concat(indexKey),
-            },
-            data: set.matrix.data.slice()
-        };
-
-        if (!matrix.elements.includes(eID)) {
-            matrix.elements.push(eID);
-
-            const r = [];
-            matrix.data.push(r);
-
-            for (let i=0; i<matrix.elements.length; i++) {
-                const vID = matrix.elements[i];
-
-                if (vID === eID) {
-                    r.push(1);
-                }
-                else {
-                    r.push(0);
-                }
-
-                console.log("TODO: WE NEED TO CHECK THE INDEXES!");
             }
-        }
+        };
 
         await ctx.setVariableValue(set.id, {
             ...set,

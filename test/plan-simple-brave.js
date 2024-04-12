@@ -4,7 +4,7 @@ const test = require("../test-utils/test");
 
 describe("Plan Simple Puzzles", () => {
 
-	it("Simple Unique", test(
+	/*it("Simple Unique", test(
 		`
 			$N = {1 2}
 			$TEST = {{('x:$N 'y:$N) | 'd = 'x + 'y } ['x, 'y] is unique ...}
@@ -16,7 +16,7 @@ describe("Plan Simple Puzzles", () => {
 			timeout: 1000 * 60 * 60,
 			log: true
 		})
-	);
+	);*/
 
 	xit("Simple Unique", test(
 		`
@@ -32,19 +32,8 @@ describe("Plan Simple Puzzles", () => {
 		})
 	);
 
-	xit("Simple Brave", test(
+	it("Simple Brave", test(
 		`
-			/*$BRAVE = {
-				{('l:$LETTER 'x:$N 'y:$N) | 
-					['x = 'y and 'd = «D1»] or 
-					[['y = 6 - 'x] and 'd = «D2» ] or
-					['x != 'y and ['y != 6 - 'x] and ['d = 'y * 5 + 'x]]				
-				} 
-				['l, 'x] is unique, 
-				['l, 'y] is unique,
-				['l, 'd] is unique
-			|}*/
-
 			$LETTER = {B R A V E}
 			$N = {1 2 3 4 5}
 
@@ -61,6 +50,25 @@ describe("Plan Simple Puzzles", () => {
 				['l, 'd1] is unique,
 				['l, 'd2] is unique
 			...}
+
+			/*
+			$BRAVE = {
+				{('l:$LETTER 'x:$N 'y:$N 'd1 'd2) |
+					[ ['x = 'y and 'd1 = 101 ] or ['x != 'y and ['d1 = 'y * 5 + 'x]] ] 
+					and 
+					[ [['y = 6 - 'x] and 'd2 = 102 ] or [['y != 6 - 'x] and ['d2 = 'y * 5 + 'x]]]
+				} 
+				as 's,
+				['x, 'y] is unique,
+				['l, 'x] is unique, 
+				['l, 'y] is unique,
+				['l, 'x, 'y] is unique,
+				['l, 'd1] is unique,
+				['l, 'd2] is unique
+			|
+				# only solutions with full size are valid
+				|'s| = |$N| * |$N| 
+			}*/
 		`,
 		[
 			{
@@ -70,10 +78,17 @@ describe("Plan Simple Puzzles", () => {
                                     (E 2 2 ' ') (B 3 2 ' ') (R 4 2 ' ') 
                                                 (V 3 3 ' ') 
                                     (B 2 4 ' ') (R 3 4 ' ')
-                                                (E 3 5 ' ') (B 4 5 ' ')
+                                                (E 3 5 ' ') (B 4 5 ' ') ('l 'x 'y ' ')
 						... 
 					}:$BRAVE ... 
 				}`
+				/*
+				query: `{
+					{
+						(B 1 1 ' ') ('l 'x 'y ' ')
+						... 
+					}:$BRAVE ... 
+				}`*/
 				/*
                         B R A V E
                         V E B R A

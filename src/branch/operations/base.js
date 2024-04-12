@@ -401,7 +401,6 @@ async function createMaterializedSet (
         uniqueMap: ctx.rDB.iMap(),
         matrix: {
             elements: [],
-            data: [],
             indexes: {},
             uniqueElements: {}
         },

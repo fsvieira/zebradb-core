@@ -140,6 +140,31 @@ function __termSetConstraints (ctx, t) {
     return cid;
 }
 
+function getElementVariables (v, vars=[], dups={}) {
+    switch (v.type) {
+        case TUPLE: {
+            for (i=0; i<v.data.length; i++) {
+                getElementVariables(v.data[i], vars, dups);
+            }
+
+            break;
+        }
+
+        case LOCAL_VAR: {
+            if (!dups[v.varname]) {
+                dups[v.varname] = true;
+                vars.push({type: v.type, varname: v.varname})
+            }
+            break;
+        }
+
+        default:
+            throw `getElementVariables type ${v.type} not implemented!`;
+    }
+
+    return vars;
+}
+
 function termSet (ctx, t) {
     // const {type, elements, variable, size} = t;
     const {
@@ -156,17 +181,32 @@ function termSet (ctx, t) {
 
     let varIndexes, varIndexesEl = [];
 
-    if (indexes) {
-        varIndexes = indexes.map(v => {
-            const idx = {
-                ...v,
-                setID: cid
-            };
+    if (indexes || expression) {
+        const newIndexes = indexes || [];
 
-            varIndexesEl.push(idx);
-            // create constraint:
-            return term(ctx, idx);
-        });
+        const variables = getElementVariables(elements[0]);
+
+        if (variables.length) {
+            newIndexes.push({
+                type: INDEX,
+                op: UNIQUE,
+                variables,
+                uniqueElementIndex: true
+            });
+        }
+
+        if (newIndexes.length) {
+            varIndexes = newIndexes.map(v => {
+                const idx = {
+                    ...v,
+                    setID: cid
+                };
+
+                varIndexesEl.push(idx);
+                // create constraint:
+                return term(ctx, idx);
+            });
+        }
     }
 
     const termVariable = variable ? term(ctx, variable) : cid; 
@@ -301,7 +341,13 @@ function termConstant (ctx, c) {
 
 function termIndex(ctx, idx) {
 
-    const {type, variables, op, setID} = idx;
+    const {
+        type, 
+        variables, 
+        op, 
+        setID,
+        uniqueElementIndex
+    } = idx;
     const avs = variables.map(variable => term(ctx, variable));
 
     let vars = [...avs, setID].sort();
@@ -316,7 +362,8 @@ function termIndex(ctx, idx) {
             variables: avs,
             op,
             setID,
-            cid
+            cid,
+            uniqueElementIndex
         };
     }
 

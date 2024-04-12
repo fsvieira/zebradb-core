@@ -461,7 +461,7 @@ async function copyElement(dest, src, id) {
 
         case constants.type.CONSTANT: {
             if (!await dest.hasVariable(v.id)) {
-                dest.setVariableValue(v.id, v);
+                await dest.setVariableValue(v.id, v);
             }
 
             return v.id;
@@ -481,7 +481,7 @@ async function mergeMatrix (ctxA, ctxB, a, b) {
     const uniqueElements = am.uniqueElements;
     const elements = am.elements.slice();
     const indexes = {...am.indexes};
-    const data = [];
+    // const data = [];
 
 
     for (let idx in bm.uniqueElements) {
@@ -500,55 +500,6 @@ async function mergeMatrix (ctxA, ctxB, a, b) {
         }
     }
 
-    /*
-    throw 'MERGE MATRIX WITH UNIQUE ELEMENTS!!';
-
-    for (let i=0; i<bm.elements.length; i++) {
-        const id = bm.elements[i];
-
-        const aIdx = am.indexes[id];
-        const bIdx = bm.indexes[id];
-
-        if (aIdx) {
-            const ai = aIdx.sort().join(":");
-            const bi = bIdx.sort().join(":");
-
-            if (ai != bi) {
-                a.elements = await a.elements.remove(id);
-
-                // remove element from unique map,
-                for (let i=0; i<aIdx.length; i++) {
-                    a.uniqueMap = await a.uniqueMap.remove(aIdx[i]);
-                }
-
-                const bID = await copyElement(ctxA, ctxB, id);
-                elements.push(bID);
-                indexes[bID] = bIdx.slice();
-            }
-        }
-    }*/
-
-    for (let i=0; i<elements.length; i++) {
-        const r = [];
-        data.push(r);
-        const aID = elements[i];
-        for (let i=0; i<elements.length; i++) {
-            const bID = elements[i];
-
-            if (aID === bID) {
-                r.push(1);
-            }
-            else {
-                const ai = indexes[aID];
-                const bi = indexes[bID];
-
-                const conflict = ai.filter(idx => bi.includes(idx)).length > 0;
-
-                r.push(conflict?1:0);
-            }
-        }
-    }
-
     if (elements.length) {
         await ctxA.setVariableValue(a.id, {
             ...a,
@@ -556,8 +507,7 @@ async function mergeMatrix (ctxA, ctxB, a, b) {
             matrix: {
                 elements,
                 indexes,
-                uniqueElements,
-                data
+                uniqueElements
             }
         });
     }
@@ -586,6 +536,46 @@ async function merge (options, rDB, branchA, branchB) {
 }
 
 async function genSet (ctx, set) {
+
+    const matrix = set.matrix;
+
+    let eIndex = 0;
+    let elements = set.elements;
+    let conflictMask = matrix.elements.map(() => false);
+
+    const conflict = (aID, bID) => {
+        const ai = matrix.indexes[aID];
+        const bi = matrix.indexes[bID];
+
+        return ai.find(idx => bi.includes(idx)) !== undefined;
+    }
+
+    do {
+        const eID = matrix.elements[eIndex];
+        elements = await elements.add(eID);
+
+        eIndex = null;
+        for (let i=0; i<conflictMask.length; i++) {
+            const nID = matrix.elements[i];
+            const r = conflictMask[i] = conflictMask[i] || conflict(eID, nID);
+
+            if (eIndex === null && r === false) {
+                eIndex = i;
+            }
+        }
+    }
+    while (eIndex !== null);
+
+    await ctx.setVariableValue(set.id, {
+        ...set,
+        elements,
+        size: await elements.size
+    });
+
+    console.log("GEN SETT (1)", await ctx.toString(set.id));
+
+    
+    /*
     const matrix = set.matrix;
 
     let eIndex = 0;
@@ -614,10 +604,10 @@ async function genSet (ctx, set) {
     });
 
     console.log("GEN SETT (1)", await ctx.toString(set.id));
-
+    */
 }
 
-async function genSets(options, rDB, branch) {
+async function genSets (options, rDB, branch) {
     const ctx = await BranchContext.create(branch, options, rDB);
  
     const done = {};
