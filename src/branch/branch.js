@@ -76,7 +76,7 @@ async function setIn (ctx, set, element) {
 
     for (let i=0; i<s.elements.length; i++) {
         const id = s.elements[i];
-        const eID = await copyPartialTerm(ctx, definition, id, null, false, true);
+        const eID = await copyPartialTerm(ctx, definition, id, false, true);
         elements.push(eID);
     }
 
