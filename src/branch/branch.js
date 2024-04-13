@@ -50,6 +50,7 @@ async function setIn (ctx, set, element) {
 
     const branches = [];
 
+    console.log(await set.elements.size);
     for await (let eID of set.elements.values()) {
         const unifyCtx = await ctx.snapshot();
 
@@ -64,6 +65,7 @@ async function setIn (ctx, set, element) {
         return branches;
     }
 
+    /*
     const elements = [];
     const {
         definition
@@ -99,6 +101,7 @@ async function setIn (ctx, set, element) {
     }
 
     return branches;
+    */
 }
 
 async function __unifyDomain (

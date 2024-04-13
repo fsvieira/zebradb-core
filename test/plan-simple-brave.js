@@ -53,6 +53,7 @@ describe("Plan Simple Puzzles", () => {
 			...}
 			*/
 
+			/*
 			$BRAVE = {
 				{('l:$LETTER 'x:$N 'y:$N 'd1 'd2) |
 					[ ['x = 'y and 'd1 = 101 ] or ['x != 'y and ['d1 = 'y * 5 + 'x]] ] 
@@ -69,6 +70,21 @@ describe("Plan Simple Puzzles", () => {
 			|
 				# only solutions with full size are valid
 				|'s| = |$N| * |$N| 
+			}*/
+
+			$BRAVE = {
+				{('l:$LETTER 'x:$N 'y:$N 'd1 'd2) |
+					[ ['x = 'y and 'd1 = 101 ] or ['x != 'y and ['d1 = 'y * 5 + 'x]] ] 
+					and 
+					[ [['y = 6 - 'x] and 'd2 = 102 ] or [['y != 6 - 'x] and ['d2 = 'y * 5 + 'x]]]
+				} 
+				['x, 'y] is unique,
+				['l, 'x] is unique, 
+				['l, 'y] is unique,
+				['l, 'x, 'y] is unique,
+				['l, 'd1] is unique,
+				['l, 'd2] is unique
+				| 1 = 1
 			}
 		`,
 		[

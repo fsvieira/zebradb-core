@@ -10,7 +10,8 @@ const {
         SET_EXP, // 'se'
         LOCAL_VAR, // : 'lv',
         GLOBAL_VAR, // : 'gv',
-        INDEX // idx
+        INDEX, // idx,
+        SET_SIZE
     },
     operation: {
         OR, // "or",
@@ -80,66 +81,6 @@ function termConstraints (ctx, exp) {
     return cid;
 }
 
-function __termSetConstraints (ctx, t) {
-    const {
-        type, 
-        element, 
-        expression, 
-        indexes,
-        variable, 
-        size
-    } = t;
-
-    const cid = ctx.newVar(t);
-
-    // if (indexes) {
-        // console.log(indexes);
-        // console.log("TODO: indexes should constrain variables, and point to the created set!");
-        /*
-            1. The copy of set should have a "phisical" set to store set elements, state, and 
-               constraints.
-            2. Since indexes is global set constraint, variables should redirect to special 
-            functions that takes set state into account. 
-        */
-
-        // throw 'PREPARE SET HAS INDEXES!!';
-
-    // }
-
-
-    let varIndexes;
-
-    if (indexes) {
-        varIndexes = indexes.map(v => {
-            const idx = {
-                ...v,
-                setID: cid
-            };
-
-            // create constraint:
-            return term(ctx, idx);
-        });
-    }
-
-    const v = term(ctx, {
-        ...element,
-        expression
-    });
-
-    const nt = {
-        type,
-        element: v,
-        variable: variable ? term(ctx, variable) : cid,
-        indexes: varIndexes,
-        size,
-        cid
-    };
-
-    ctx.variables[cid] = nt;
-
-    return cid;
-}
-
 function getElementVariables (v, vars=[], dups={}) {
     switch (v.type) {
         case TUPLE: {
@@ -156,6 +97,10 @@ function getElementVariables (v, vars=[], dups={}) {
                 vars.push({type: v.type, varname: v.varname})
             }
             break;
+        }
+
+        case SET: {
+            return v;
         }
 
         default:
@@ -250,6 +195,17 @@ function termGlobalVariable (ctx, t) {
     if (!v) {
         ctx.variables[cid] = {...t, cid};
     }
+
+    return cid;
+}
+
+function termSetSize (ctx, s) {
+    const cid = ctx.newVar(s);
+    const v = ctx.variables[cid] || {...s, cid};
+    
+    ctx.variables[cid] = v;
+
+    // term(ctx, lv.expression);
 
     return cid;
 }
@@ -382,6 +338,7 @@ function term (ctx, t) {
             case CONSTRAINT: return termConstraints(ctx, t);
             case SET_EXP: return termSetExpression(ctx, t);
             case INDEX: return termIndex(ctx, t);
+            case SET_SIZE: return termSetSize(ctx, t);
             default:
                 throw `TYPE ${t.type} IS NOT DEFINED, ${JSON.stringify(t)}`;
         }
@@ -439,7 +396,10 @@ function prepare (tuple) {
             case SET_EXP:
             case INDEX:
             case SET: return newVar();
-        
+            case SET_SIZE: {
+                return `${v.variable.varname}#size`;
+            }
+
             default:
                 throw 'prepare : type is not defined ' + v.type;
         }
