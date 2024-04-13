@@ -65,7 +65,7 @@ async function setIn (ctx, set, element) {
         return branches;
     }
 
-    /*
+    // if there is no elements on set/domain we need to create them,
     const elements = [];
     const {
         definition
@@ -80,28 +80,18 @@ async function setIn (ctx, set, element) {
         elements.push(eID);
     }
 
-    ctx.variableCounter = varCounter();
-    ctx.state = 'split';
-    delete ctx.newVar;
-    delete ctx.options;
-    delete ctx.rDB;
-
-    const message = `state=${ctx.state}, root=${await toString(null, ctx.root, ctx, true)}`; 
-    await logger(options, ctx, message);
-
-    const newBranch = await rDB.tables.branches.insert(ctx, null);
-    const children = (await branch.data.children).concat([newBranch]);
-    branch.update({children});
-
     for (let i=0; i<elements.length; i++) {
         const eID = elements[i];
+        const unifyCtx = await ctx.snapshot();
 
-        // throw 'Set In : need to check unify';
-        branches.push(await unify(newBranch, options, eID, element));
+        await unify(unifyCtx, eID, element);
+        await unifyCtx.removeSetsInDomains(element);
+        const unifiedBranch = await unifyCtx.saveBranch();
+
+        branches.push(unifiedBranch);
     }
 
-    return branches;
-    */
+    return branches;    
 }
 
 async function __unifyDomain (
@@ -648,6 +638,8 @@ async function expand (
 
     const ctx = await BranchContext.create(branch, options, definitionDB);
     
+    console.log("Expand ", await ctx.toString());
+
     // 1. Solve Set Domains
     for await (let eID of ctx.setsInDomains.values()) {
         const v = await ctx.getVariable(eID);
@@ -789,6 +781,7 @@ async function createBranchMaterializedSet (
         
         await ctxElement.logger(message);
 
+        console.log(message);
         const branch = await ctxElement.saveBranch();
 
         return branch;

@@ -20,7 +20,8 @@ const {
         LOCAL_VAR, // : 'lv',
         GLOBAL_VAR, // : 'gv',
         DEF_REF, // d
-        MATERIALIZED_SET // ms
+        MATERIALIZED_SET, // ms
+        SET_SIZE // ss
     },
     operation: {
         OR, // "or",
@@ -230,6 +231,9 @@ function getBoolValue (v) {
 function getValue (v) {
     if (v.type === CONSTANT) {
         return v.data;
+    }
+    else if (v.type === SET_SIZE) {
+        throw 'getValue : SET_SIZE';
     }
     else if (
         v.type === CONSTRAINT && 

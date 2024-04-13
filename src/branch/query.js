@@ -26,26 +26,8 @@ const query = async (options, rDB, set, branchID, definitionsDB) => {
 
     await ctx.logger(`Query Start`);
     
-    // const log = await rDB.iArray().push(`Query Setup`);
-    const queryRootBranch = await ctx.saveBranch(); /*await rDB.tables.branches.insert({
-        branchID,
-        parent: null,
-        root: resultsID,
-        level: 0,
-        setsInDomains: rDB.iSet(),
-        checked: rDB.iSet(),
-        unchecked: rDB.iSet(),
-        variables: rDB.iMap(),
-        constraints: rDB.iSet(),
-        unsolvedConstraints: rDB.iSet(),
-        extendSets: rDB.iSet(),
-        unsolvedVariables: rDB.iSet(),
-        children: [],
-        state: 'split',
-        variableCounter: 0,
-        log
-    }, null);*/
-
+    const queryRootBranch = await ctx.saveBranch();
+    
     await branchOps.createBranchMaterializedSet(
         options,
         rDB,

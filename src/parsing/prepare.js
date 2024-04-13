@@ -119,10 +119,11 @@ function termSet (ctx, t) {
         domain,
         indexes,
         variable,
-        size
+        size,
+        elementAlias
     } = t;
 
-    const cid = ctx.newVar(t);
+    const cid = ctx.newVar(elementAlias || t);
 
     let varIndexes, varIndexesEl = [];
 
@@ -201,7 +202,13 @@ function termGlobalVariable (ctx, t) {
 
 function termSetSize (ctx, s) {
     const cid = ctx.newVar(s);
-    const v = ctx.variables[cid] || {...s, cid};
+    const variable = term(ctx, s.variable); 
+
+    const v = ctx.variables[cid] || {
+        ...s,
+        variable, 
+        cid
+    };
     
     ctx.variables[cid] = v;
 
@@ -420,11 +427,25 @@ function prepare (tuple) {
                 const av = ctx.variables[a];
                 const bv = ctx.variables[b];
 
-                if ([GLOBAL_VAR, LOCAL_VAR, CONSTRAINT].includes(av.type)) {
+                if (av.type === SET_SIZE) {
+                    const set = ctx.variables[av.variable];
+                    set.constraints = (set.constraints || []).concat(cid);
+                }
+
+                if (bv.type === SET_SIZE) {
+                    const set = ctx.variables[bv.variable];
+                    set.constraints = (set.constraints || []).concat(cid);
+                }
+
+                if ([
+                    GLOBAL_VAR, LOCAL_VAR, CONSTRAINT, SET_SIZE, SET
+                ].includes(av.type)) {
                     av.constraints = (av.constraints || []).concat(cid);
                 }
 
-                if ([GLOBAL_VAR, LOCAL_VAR, CONSTRAINT].includes(bv.type)) {
+                if ([
+                    GLOBAL_VAR, LOCAL_VAR, CONSTRAINT, SET_SIZE, SET
+                ].includes(bv.type)) {
                     bv.constraints = (bv.constraints || []).concat(cid);
                 }
             }
@@ -439,7 +460,7 @@ function prepare (tuple) {
                     const variable = variables[i];
                     const av = ctx.variables[variable];
 
-                    if ([GLOBAL_VAR, LOCAL_VAR, CONSTRAINT].includes(av.type)) {
+                    if ([GLOBAL_VAR, LOCAL_VAR, CONSTRAINT, SET_SIZE].includes(av.type)) {
                         av.constraints = (av.constraints || []).concat(cid);
                     }
                 }
