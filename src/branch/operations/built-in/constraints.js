@@ -232,8 +232,8 @@ function getValue (v) {
     if (v.type === CONSTANT) {
         return v.data;
     }
-    else if (v.type === SET_SIZE) {
-        throw 'getValue : SET_SIZE';
+    else if (v.type === SET_SIZE && v.value >= 0) {
+        return v.value;
     }
     else if (
         v.type === CONSTRAINT && 
@@ -754,8 +754,8 @@ async function checkVariableConstraintsUnify (ctx, cs, env) {
     const av = await ctx.getVariable(a);
     const bv = await ctx.getVariable(b);
 
-    const sa = getValue(av);
-    const sb = getValue(bv);
+    let sa = getValue(av, ctx);
+    let sb = getValue(bv, ctx);
 
     let state = C_UNKNOWN;
     // await debugConstraint(ctx, cs.id, state, 'UNIFY [START]');
@@ -767,7 +767,20 @@ async function checkVariableConstraintsUnify (ctx, cs, env) {
         state = sa === sb? C_TRUE:C_FALSE;
     }
     else if (env.eval) {
+        console.log("IF THEY ARE BOTH SET SIZE OR VARIBLES THEN CAN BE UNIFIED!")
 
+        if (av.type === SET_SIZE && sb !== null) {
+            const value = +sb;
+            await ctx.setVariableValue(av.variable, {
+                ...av.set,
+                size: value
+            });
+
+            await ctx.setVariableValue({...av, set: undefined, value});
+        }
+        else if (av.type === SET_SIZE || bv.type === SET_SIZE) {
+            throw 'UNIFY NOT SET FOR SET_SIZE';
+        }
         if (av.type === LOCAL_VAR && bv.type === LOCAL_VAR) {
             const r = await setVariable(ctx, av, bv);
             state = r?C_TRUE:C_FALSE;

@@ -431,6 +431,7 @@ async function mergeSetSet (ctxA, ctxB, aID, bID) {
 
 async function copyElement(dest, src, id) {
     // throw 'COPY ELEMENT NOT IMPLEMENTED!';
+    console.log(id)
     const v = await src.getVariable(id);
 
     switch (v.type) {

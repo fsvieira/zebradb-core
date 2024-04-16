@@ -236,6 +236,13 @@ class BranchContext {
         }
         while(id);
     
+        if (v.type === constants.type.SET_SIZE) {
+            const set = await this.getVariable(v.variable);
+            v = {...v, set, value: await set.size};
+            console.log(v);
+            console.log("---");
+        }
+
         return v;
     }
 
