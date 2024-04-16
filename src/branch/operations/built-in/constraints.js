@@ -59,8 +59,9 @@ async function intersectDomains(ctx, a, b) {
             return a.domain;
         }
         else {
-            const domainA = await getVariable(null, a.domain, ctx); 
-            const domainB = await getVariable(null, b.domain, ctx); 
+            throw 'UPDATE THIS!!';
+            const domainA = await ctx.getVariable(a.domain); 
+            const domainB = await ctx.getVariable(b.domain); 
 
             if (domainA.type === SET && domainB.type === SET) {
                 const elements = domainA.elements.filter(v => domainB.elements.includes(v));
@@ -99,7 +100,7 @@ async function setVariableLocalVarConstant (ctx, v, c) {
         switch (d.type) {
             case MATERIALIZED_SET:
             // case SET:
-                if (!await d.elements.has(c.id)) {
+                if (!(await d.elements.has(c.id))) {
                     return false;
                 }
 
@@ -998,7 +999,7 @@ async function checkVariableConstraints (ctx, v) {
         const r = await checkVariableConstraints(ctx, cs);
 
         if (r === false) {
-            await logger(options, ctx, `Parent Constraints - Fail - ${cs}`);
+            await ctx.logger(`Parent Constraints - Fail - ${cs}`);
             return false;
         }
     }
