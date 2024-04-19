@@ -212,6 +212,13 @@ async function copyPartialTermConstraint (
         id: vn
     });*/
 
+    console.log(vn , {
+        ...v,
+        a, b, root,
+        constraints,
+        id: vn
+    });
+    
     // ctx.unsolvedConstraints = await ctx.unsolvedConstraints.add(vn);
     await ctx.addUnsolvedConstraint(vn);
 }

@@ -235,12 +235,10 @@ class BranchContext {
             id = v.defer;
         }
         while(id);
-    
+
         if (v.type === constants.type.SET_SIZE) {
             const set = await this.getVariable(v.variable);
             v = {...v, set, value: await set.size};
-            console.log(v);
-            console.log("---");
         }
 
         return v;
@@ -339,8 +337,6 @@ class BranchContext {
             el.push(await this.toStringRec(eID, vars));
         }
 
-        console.log("=== MATRIX ===>", JSON.stringify(v.matrix));
-
         const size = v.size; 
         const domain = v.domain ? ':' + v.domain : '';
 
@@ -352,11 +348,29 @@ class BranchContext {
     }
 
     async toStringConstraint (v, vars) {
-        const {a, op, b} = v;
+        const {a, op, b, state, aValue, bValue, value} = v;
         const av = await this.toStringRec(a, vars);
         const bv = await this.toStringRec(b, vars);
 
-        return `${av} ${op} ${bv}`;
+        const s = state === constants.values.C_TRUE ? 
+            '::TRUE ' 
+            : state === constants.values.C_FALSE ? '::FALSE ' : '';
+
+        const aValueStr = aValue === constants.values.C_TRUE ? 
+            'TRUE' 
+            : aValue === constants.values.C_FALSE ? 'FALSE' : '';
+
+        const bValueStr = bValue === constants.values.C_TRUE ? 
+            'TRUE' 
+            : bValue === constants.values.C_FALSE ? 'FALSE' : '';
+
+        const valueStr = value !== undefined ? `<=>${value}`:''
+
+        return `(${av} ${aValueStr}-${op}-${bValueStr} ${bv})${s}${valueStr}`;
+    }
+
+    async toStringSetSize (v, vars) {
+        return `|${v.variable}| = ${v.value || 'undef'};`
     }
 
     async toStringRec (id, vars) {
@@ -392,6 +406,10 @@ class BranchContext {
 
             case constants.type.CONSTRAINT: {
                 return this.toStringConstraint(v, vars);
+            }
+
+            case constants.type.SET_SIZE: {
+                return this.toStringSetSize(v, vars);
             }
 
             default:

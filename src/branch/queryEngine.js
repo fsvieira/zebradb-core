@@ -67,7 +67,6 @@ class QueryEngine {
         }
 
         if (merge.length === 1) {
-            console.log("=== GEN SET ==> ", merge[0].id);
             // await merge[0].update({state: 'yes'});
             return {type: 'gen-sets', branch: merge[0]};
         }

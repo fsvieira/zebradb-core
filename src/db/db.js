@@ -766,7 +766,6 @@ class DB {
         }
 
 
-        console.log(JSON.stringify(def, null, '  '));
         throw 'SEARCH IS NOT DEF';
 
         switch (def.type) {

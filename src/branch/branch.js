@@ -50,7 +50,6 @@ async function setIn (ctx, set, element) {
 
     const branches = [];
 
-    console.log(await set.elements.size);
     for await (let eID of set.elements.values()) {
         const unifyCtx = await ctx.snapshot();
 
@@ -159,6 +158,7 @@ async function isSolved (ctx, id) {
     let root = cs.root;
 
     while (root) {
+        // console.log("CHEK ROOT ", await ctx.toString(root.csID), '\n');
         const {csID, side} = root;
         const rootCs = await ctx.getVariable(csID);
         const csValue = rootCs[`${side}Value`] || rootCs.state;
@@ -215,15 +215,21 @@ async function solveConstraints (ctx) {// (branch, options) {
         
         size = await ctx.unsolvedConstraints.size;
         for await (let csID of ctx.unsolvedConstraints.values()) {
+
             const cs = await ctx.getVariable(csID);
+
+            // console.log("csID =============> ", await ctx.toString(csID));
 
             const solved = await isSolved(ctx, cs.id);
 
             if (solved) {
+                console.log("csID SOLVED ", await ctx.toString(csID));
                 unsolvedConstraints = await unsolvedConstraints.remove(cs.id);
             }
             else {
                 const env = await constraintEnv(ctx, cs);
+                // console.log("csID ", await ctx.toString(csID), env);
+
                 fail = !(await evalConstraint(ctx, cs, env, new Set()));
 
                 if (fail) {
@@ -421,17 +427,11 @@ async function mergeSetSet (ctxA, ctxB, aID, bID) {
     for await (let eID of a.elements.values()) {
         await mergeElement(ctxA, ctxB, eID, eID);
     }
-
-    const am = a.matrix;
-    const bm = b.matrix;
-
-    console.log("MERGE MATRIX", am, bm);
 }
 
 
 async function copyElement(dest, src, id) {
     // throw 'COPY ELEMENT NOT IMPLEMENTED!';
-    console.log(id)
     const v = await src.getVariable(id);
 
     switch (v.type) {
@@ -490,6 +490,14 @@ async function mergeMatrix (ctxA, ctxB, a, b) {
             elements.push(id);
 
             const bIdx = bm.indexes[bID];
+            console.log("index", bIdx, bID, bm);
+
+            if (!bIdx) {
+                console.log(await ctxB.toString(bID));
+                console.log(await ctxB.getVariable(bID));
+                throw '----';
+            }
+
             indexes[id] = bIdx.slice();
         }
     }
@@ -534,7 +542,7 @@ async function genSet (ctx, set) {
     const matrix = set.matrix;
 
     let eIndex = 0;
-    let elements = set.elements;
+    let elements = ctx.rDB.iSet(); // set.elements;
     let conflictMask = matrix.elements.map(() => false);
 
     const conflict = (aID, bID) => {
@@ -565,8 +573,6 @@ async function genSet (ctx, set) {
         elements,
         size: await elements.size
     });
-
-    console.log("GEN SETT (1)", await ctx.toString(set.id));
 
     
     /*
@@ -613,15 +619,12 @@ async function genSets (options, rDB, branch) {
 
             if (v.type === constants.type.MATERIALIZED_SET) {
                 if (v.matrix.elements.length > 0) {
-                    console.log("MATRIX ", JSON.stringify(v.matrix, null, '  '));
 
                     await genSet(ctx, v);
                 }
             }
         }
     }
-
-    console.log("GEN SETTTTT", await ctx.toString());
 
     await branch.update({state: 'split'});
 
@@ -639,8 +642,6 @@ async function expand (
 
     const ctx = await BranchContext.create(branch, options, definitionDB);
     
-    console.log("Expand ", await ctx.toString());
-
     // 1. Solve Set Domains
     for await (let eID of ctx.setsInDomains.values()) {
         const v = await ctx.getVariable(eID);
@@ -680,7 +681,8 @@ async function expand (
         }
     }
 
-    console.log("---->", await ctx.toString());
+    console.log('PRINT => ', await ctx.toString());
+
     // await branch.update({state: 'yes'});
 
     await branch.update({state: 'merge'});
@@ -782,7 +784,6 @@ async function createBranchMaterializedSet (
         
         await ctxElement.logger(message);
 
-        console.log(message);
         const branch = await ctxElement.saveBranch();
 
         return branch;

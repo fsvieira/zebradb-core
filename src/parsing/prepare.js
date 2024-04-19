@@ -64,7 +64,8 @@ function termConstraints (ctx, exp) {
         vars = vars.sort();
     }
 
-    const cid = `__${type}:${SHA256(vars.join(op)).toString('base64')}`;
+    // const cid = `__${type}:${SHA256(vars.join(op)).toString('base64')}`;
+    const cid = ctx.newVar(exp);
 
     if (!ctx.constraints.includes(cid)) {
         ctx.constraints.push(cid);
@@ -358,6 +359,10 @@ function linkDownLogicalRoots (ctx, vID, root) {
     const {type, a, op, b, cid} = v;
 
     if (type === CONSTRAINT) {
+        /*if (v.root) {
+            throw 'CONSTRAINT ALREADY HAS ROOT!';
+        }*/
+
         v.root = root;
         if (op === OR) {
             // new root
@@ -402,6 +407,7 @@ function prepare (tuple) {
             case TUPLE:
             case SET_EXP:
             case INDEX:
+            case CONSTRAINT:
             case SET: return newVar();
             case SET_SIZE: {
                 return `${v.variable.varname}#size`;

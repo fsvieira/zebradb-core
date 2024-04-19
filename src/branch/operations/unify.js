@@ -66,7 +66,6 @@ async function unifyMsMs (ctx, p, q) {
         throw 'Q INDEXES';
     }
 
-    console.log("TODO: should calc the set size ??");
     /*let aSetSize = await ctx.getSetSize(a.id);
     let bSetSize = await ctx.getSetSize(b.id);
 

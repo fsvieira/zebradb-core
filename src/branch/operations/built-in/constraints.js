@@ -135,7 +135,7 @@ async function setVariableLocalVarTuple (ctx, v, t) {
     }
 
     // ctx.variables = await ctx.variables.set(v.id, {...v, defer: t.id});
-    await ctx.variablesValue(v.id, {...v, defer: t.id});
+    await ctx.setVariableValue(v.id, {...v, defer: t.id});
 
     if (v.constraints) {
         const r = await checkVariableConstraints(ctx, v);
@@ -291,7 +291,6 @@ async function checkUniqueIndexConstrain (ctx, cs, env) {
         uniqueElementIndex
     } = cs;
 
-    console.log(cs);
     const set = await ctx.getVariable(setID);
 
     // get the element index,
@@ -386,7 +385,10 @@ async function checkNumberRelationConstrain(ctx, cs, env) {
 
     if (state !== undefined) {
         if (state !== C_UNKNOWN) {
-            ctx.variables = await ctx.variables.set(cs.id, {
+            /*ctx.variables = await ctx.variables.set(cs.id, {
+                ...cs, state
+            });*/
+            await ctx.setVariableValue(cs.id, {
                 ...cs, state
             });
         }
@@ -414,7 +416,10 @@ async function checkNumberRelationConstrain(ctx, cs, env) {
             break;
    }
 
-   ctx.variables = await ctx.variables.set(cs.id, {
+   /*ctx.variables = await ctx.variables.set(cs.id, {
+        ...cs, state
+   });*/
+   await ctx.setVariableValue(cs.id, {
         ...cs, state
    });
 
@@ -429,6 +434,7 @@ async function checkNumberOperationsConstrain(ctx, cs, env) {
     const an = getNumber(av);
     const bn = getNumber(bv);
 
+    console.log("CS Number ", await ctx.toString(id));
     let state;
     if (isNaN(an) || isNaN(bn)) {    
         state = C_FALSE;
@@ -768,7 +774,7 @@ async function checkVariableConstraintsUnify (ctx, cs, env) {
         state = sa === sb? C_TRUE:C_FALSE;
     }
     else if (env.eval) {
-        console.log("IF THEY ARE BOTH SET SIZE OR VARIBLES THEN CAN BE UNIFIED!")
+        console.log("TODO: IF THEY ARE BOTH SET SIZE OR VARIBLES THEN CAN BE UNIFIED!")
 
         if (av.type === SET_SIZE && sb !== null) {
             const value = +sb;
