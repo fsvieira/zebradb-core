@@ -472,7 +472,7 @@ async function mergeMatrix (ctxA, ctxB, a, b) {
     const am = a.matrix;
     const bm = b.matrix;
 
-    const uniqueElements = am.uniqueElements;
+    const uniqueElements = {...am.uniqueElements};
     const elements = am.elements.slice();
     const indexes = {...am.indexes};
     // const data = [];
@@ -542,7 +542,7 @@ async function genSet (ctx, set) {
     const matrix = set.matrix;
 
     let eIndex = 0;
-    let elements = ctx.rDB.iSet(); // set.elements;
+    let elements = set.elements;
     let conflictMask = matrix.elements.map(() => false);
 
     const conflict = (aID, bID) => {
