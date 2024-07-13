@@ -19,6 +19,90 @@ describe("Lambda Tests.", () => {
     it("Lambda Definitions ",
         test(
             `
+                $LAMBDA = {
+                    (lambda 'x:$LAMBDA)
+                    (lambda 'x:$LAMBDA . 'M:$LAMBDA)
+                    (lambda 'M:$LAMBDA 'N:$LAMBDA)
+                ... }
+            `, [
+                {
+                    query: `(lambda true)`,
+                    results: ["@(lambda true)"]
+                },
+                {
+                    query: `(lambda 'x . (lambda true))`,
+                    results: ["@(lambda 'x . @(lambda true))"]
+                },
+                {
+                    query: `(lambda (lambda 'x . 'x) true)`,
+                    results: ["@(lambda @(lambda 'x . 'x) true)"]
+                }
+            ],
+            {path: 'dbs/1-lambda/1', timeout: 30000}
+        )
+    );
+
+    it("Lambda Beta Reduction",
+        test(
+            `
+                $LAMBDA = {
+                    (lambda 'x:$LAMBDA)
+                    (lambda 'x:$LAMBDA . 'M:$LAMBDA)
+                    (lambda 'M:$LAMBDA 'N:$LAMBDA)
+                ... }
+
+
+                $LAMBDA_BETA = {
+                    (beta (lambda 'x:$LAMBDA) 'x)
+                }
+                union {
+                
+                }
+
+                # should reduce it recursive.
+                $LAMBDA_BETA = {
+                    (beta (lambda 'x:$LAMBDA) 'x)
+                    (beta (lambda 'x:$LAMBDA . 'M:$LAMBDA) (lambda 'x:$LAMBDA . 'M:$LAMBDA))
+                    (beta 
+                       (lambda (lambda 'x . 'M) 'x) 
+                        'M
+                    )
+                    (beta 
+                       (lambda (lambda 'x:$LAMBDA) 'y) 
+                       (lambda (lambda 'x:$LAMBDA) 'y)
+                    )
+                       # should reduce it recusive ? 
+                    (beta 
+                       (lambda (lambda 'M:$LAMBDA 'N:$LAMBDA) 'y) 
+                       (lambda (lambda 'M:$LAMBDA 'N:$LAMBDA) 'y)
+                    )
+                ... }
+            `, [
+                {
+                    query: `(beta (lambda (lambda 'x . 'x) true) 'p)`, 
+                    results: ["@(beta @(lambda @(lambda true . true) true) true)"]
+                },
+                {
+                    query: `(beta (lambda 'x . 'x) 'p)`, 
+                    results: ["@(beta @(lambda 'x . 'x) @(lambda 'x . 'x))"]
+                },
+                {
+                    query: `(beta (lambda true) 'p)`, 
+                    results: ["@(beta @(lambda true) @(lambda true))"]
+                },
+                {
+                    query: `(beta (lambda 'y . (lambda 'x . 'x)) 'p)`, 
+                    results: ["@(beta @(lambda 'y . @(lambda 'x . 'x)) @(lambda 'y . @(lambda 'x . 'x)))"]
+                }
+            ],
+            {path: 'dbs/1-lambda/2', timeout: 30000}
+        )
+    );
+
+    /*
+    it("Lambda Definitions ",
+        test(
+            `
                 (lambda 'x)
                 (lambda 'x . 'M)
                 (lambda 'M 'N)
@@ -78,7 +162,7 @@ describe("Lambda Tests.", () => {
             ],
             {path: 'dbs/lambda/2', timeout: 30000}
         )
-    );
+    );*/
 
 });
 
