@@ -28,7 +28,8 @@
       	  BELOW_OR_EQUAL,
           ABOVE,
           ABOVE_OR_EQUAL,
-          UNIQUE
+          UNIQUE,
+          SUBSET
       }
   } = require("../branch/operations/constants");
 
@@ -42,6 +43,7 @@
       case 'or': return OR;
       case ';': return OR;
       case 'union': return UNION;
+      case 'subset': return SUBSET;
       case '+': return ADD;
       case '-': return SUB;
       case '*': return MUL;
@@ -118,7 +120,7 @@ elements = (element:element _ {return element})*
 index_ops = 'is' wsp 'unique' {return UNIQUE}
 
 index_vars = 
-	variable {return [variable]}
+	variable:variable {return [variable]}
     / '[' _
     	 variables:(variable:variable (_ ',')? _ {return variable})+  
      ']' {return variables}
@@ -210,13 +212,14 @@ multiplicative
   / setExpression
 
 setExpression 
-  = a:(expressionTerm / tuple / set) wsp op:('in') wsp b:(set / variable) {return {type: CONSTRAINT, op: opCode(op), a, b }; }
+  = a:(expressionTerm / tuple) wsp op:('in' / 'subset') wsp b:(set / variable) {return {type: CONSTRAINT, op: opCode(op), a, b }; }
   / expressionTerm
 
 expressionTerm
   = variable 
   / constantExpression
   / setSize 
+  / set
   / '[' _ expression:expression _ ']' {return expression}
 
 /* 

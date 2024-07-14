@@ -30,7 +30,8 @@ module.exports = {
         BELOW_OR_EQUAL: '<=',
         ABOVE: '>',
         ABOVE_OR_EQUAL: '>=',
-        UNIQUE: 'un'
+        UNIQUE: 'un',
+        SUBSET: 'subset'
     },
     values: {
         C_FALSE: 1,
