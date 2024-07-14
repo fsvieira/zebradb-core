@@ -699,6 +699,36 @@ class DB {
         }
     }
 
+    /**
+        TODO: what is gen index for ?
+     */
+    async genIndexesSetExpression (globalVariable, def, set, ref) {
+        let {a, b, op} = set;
+
+        const av = def.variables[a];
+        const bv = def.variables[b];
+
+        await this.genIndex(globalVariable, def, av, ref);
+        await this.genIndex(globalVariable, def, bv, ref);
+    }
+
+    async genIndex (globalVariable, def, e, ref) {
+        switch (e.type) {
+            case SET: {
+                await this.genIndexesSet(globalVariable, def, e, ref);
+                break;
+            }
+
+            case SET_EXP: {
+                await this.genIndexesSetExpression(globalVariable, def, e, ref);
+                break;
+            }
+
+            default:
+                throw 'UNKOWN GEN INDEX ' + e.type;
+        }
+    }
+
     async addElement (def) {
 
         const globalVariable = def.globalVariable;
@@ -712,15 +742,22 @@ class DB {
 
         const ref = [defRecord];
 
-        switch (root.type) {
+        await this.genIndex(globalVariable, def, root, ref);
+
+        /*switch (root.type) {
             case SET: {
                 await this.genIndexesSet(globalVariable, def, root, ref);
                 break;
             }
 
+            case SET_EXP: {
+                await this.genIndexesSetExpression(globalVariable, def, root, ref);
+                break;
+            }
+
             default:
                 throw 'UNKOWN GEN INDEX ' + root.type;
-        }
+        }*/
 
         return defRecord;
     }

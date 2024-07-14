@@ -104,6 +104,10 @@ function getElementVariables (v, vars=[], dups={}) {
             return v;
         }
 
+        case CONSTANT: {
+            return vars;
+        }
+
         default:
             throw `getElementVariables type ${v.type} not implemented!`;
     }
