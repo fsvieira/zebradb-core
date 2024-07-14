@@ -1,4 +1,7 @@
 {
+  /* 
+    peggy --cache zparser.pegjs
+  */
   const {
       type: {
           CONSTANT,
