@@ -4,16 +4,16 @@ const test = require("../test-utils/test");
 
 describe("Zebra Proofs", () => {
     it("Simple Constant", test(`
-        $DIGIT = {0 1 2 3 4 5 6 7}
+        $DIGIT = {0 1 2 3 4 5 6 7 8 9}
         $TYPES = {
             (CONSTANT 'c:$DIGIT)
         }
     `,
         [
             {
-                query: `{(CONSTANT 'x):$TYPES | 'x > 4}`,
+                query: `{(CONSTANT 'x):$TYPES | 'x > 4, x < 8}`,
                 results: [
-                    "@(2 = 1 + 1)" 
+                    `{(CONSTANT 5) (CONSTANT 6) (CONSTANT 7)}`
                 ]
             }
         ], 
@@ -123,6 +123,26 @@ describe("Zebra Proofs", () => {
 
             $UNIFY = $UNIFY_CONSTANT union $UNIFY_VARIABLE union $UNIFY_TUPLE union $UNIFY_SET
           
+            $UNIQUE_ELEMENT = {
+                ('e proper-in 's) | 'u = {'a:'s | ('a unify 'e -> 'a):$UNIFY }, |'u| = 1
+            }
+
+            $ELEMENT_DEPENDENT_TYPE = {
+                ('e:'s 's 'type) | 
+                    'u = {'a:'s | ('a unify 'e -> 'a):$UNIFY }, 
+                    [
+                        [|'u| = 1 , 'type = (proper-in 's)] ; 
+                        [|'u| > 1 , 'type = (in 's)] 
+                    ]
+            }
+
+            $PROPER_SUBSET = {
+                ('a proper-subset 'b) | {
+                    'a subset 'b,
+                    'e in 'b and 'e not-in 'a
+                }
+            }
+
             /*
             $IN = {
                 ('a in (SET 's)) | ('a unify 'b:'s -> 'u:'s) in $UNIFY
