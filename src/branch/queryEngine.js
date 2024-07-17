@@ -73,6 +73,12 @@ class QueryEngine {
     }
 
     async run () {
+        await branchOps.run(
+            this
+        );
+    }
+
+    async _run () {
         const selector = async branch => {
             const unchecked = await branch.data.unchecked;
 

@@ -343,6 +343,8 @@ async function unify (ctx, tuple, definitionID, definition) {
     );
 
     ctx.state = !ok ? 'no': ctx.state;
+
+    return ok;
 }
 
 module.exports = {unify, constants, createBranch};

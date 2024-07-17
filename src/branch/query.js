@@ -14,13 +14,17 @@ const query = async (options, rDB, set, branchID, definitionsDB) => {
         `Query Start`
     );*/
 
+    let actions = rDB.iArray();
+    actions = await actions.push({action: 'init-set', setID: resultsID, set});
+
     const ctx = await BranchContext.create(
         null, options, definitionsDB, 
         rDB, 
         {
             branchID,
-            state: 'split',
-            root: resultsID
+            state: 'maybe',
+            root: resultsID,
+            actions
         }
     );
 
@@ -28,7 +32,7 @@ const query = async (options, rDB, set, branchID, definitionsDB) => {
     
     const queryRootBranch = await ctx.saveBranch();
     
-    await branchOps.createBranchMaterializedSet(
+    /*await branchOps.createBranchMaterializedSet(
         options,
         rDB,
         resultsID,
@@ -36,7 +40,7 @@ const query = async (options, rDB, set, branchID, definitionsDB) => {
         set, 
         definitionsDB,
         true
-    );
+    );*/
 
 }
 

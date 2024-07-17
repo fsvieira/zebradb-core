@@ -369,8 +369,8 @@ async function checkUniqueIndexConstrain (ctx, cs, env) {
 
 async function checkNumberRelationConstrain(ctx, cs, env) {
     const {a, op, b, id} = cs;
-    const av = await getVariable(null, a, ctx);
-    const bv = await getVariable(null, b, ctx);
+    const av = await ctx.getVariable(a);// await getVariable(null, a, ctx);
+    const bv = await ctx.getVariable(b)// await getVariable(null, b, ctx);
 
     const an = getNumber(av);
     const bn = getNumber(bv);

@@ -50,6 +50,7 @@ class BranchContext {
             variableCounter: await p('variableCounter', 0),
             children: [],
             log: await p('log', rDB.iArray()),
+            actions: await p('actions', rDB.iArray()),
             state: ctx.state,
             group: await p('group', null),
             groupState: await p('groupState', null),
@@ -258,6 +259,10 @@ class BranchContext {
 
     set branchID (value) {
         this._ctx.branchID = value;
+    }
+
+    get actions () {
+        return this._ctx.actions;  
     }
 
     get root () {

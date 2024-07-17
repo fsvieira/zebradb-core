@@ -632,16 +632,138 @@ async function genSets (options, rDB, branch) {
     await ctx.saveBranch();
 }
 
+/*
+async function plan (ctx, elementID) {
+    const e = await ctx.getVariable(elementID);
+    const d = e.domain ? await ctx.getVariable(e.domain) : undefined;
+
+    switch (e.type) {
+        case constants.type.TUPLE: {
+            const vars = [];
+            for (let i=0; i<e.data.length; i++) {
+                const vID = e.data[i];
+                const v = await ctx.getVariable(vID);
+                if (v.type === constants.type.LOCAL_VAR || v.type === constants.type.LOCAL_VAR) {
+
+                }
+            }
+        }
+    }
+
+    console.log(e, d);
+}*/
+
+async function initSet (ctxSet, options, definitionsDB, {setID: id, set: definitionElement}) {
+    const {root, variables} = definitionElement;
+    const setID = await copyPartialTerm(
+        ctxSet, 
+        definitionElement, 
+        root,
+        true, // extendSets,
+        true
+    );
+
+    await ctxSet.setVariableValue(
+        id, {
+            type: constants.type.LOCAL_VAR, 
+            cid: id, 
+            id, 
+            defer: setID
+        }
+    );
+}
+
+async function _initSet (parentBranch, options, definitionsDB, {setID: id, set: definitionElement}) {
+    const ctxSet = await BranchContext.create(
+        parentBranch,
+        options,
+        definitionsDB
+    );
+
+    
+    // ctx.branchID = `${setID || parentBranch.id}-set`;
+
+    const {root, variables} = definitionElement;
+    const setID = await copyPartialTerm(
+        ctxSet, 
+        definitionElement, 
+        root,
+        true, // extendSets,
+        true
+    );
+
+    await ctxSet.setVariableValue(
+        id, {
+            type: constants.type.LOCAL_VAR, 
+            cid: id, 
+            id, 
+            defer: setID
+        }
+    );
+
+    const s = await ctxSet.getVariable(id);
+
+    // create ctx elements,
+    const elements = variables[root].elements;
+    for (let i=0; i<elements.length; i++) {
+        const ctxElement = ctxSet.snapshot();
+        const elID = elements[i];
+
+        const elementID = await copyPartialTerm(
+            ctxElement, 
+            definitionElement, 
+            elID,
+            true, // extendSets,
+            true
+        );
+
+        // const actions = await plan(ctxElement, elementID);
+
+        /*
+        const s = await ctxElement.getVariable(elementID);
+        const t = await ctxElement.getVariable(s.domain);
+        console.log(s, t);
+        await ctxElement.setActions([{action: ''}]);
+        */
+
+        await ctxElement.setActions([{action: 'unify-domain', elementID, inSetID: setID}]);
+        ctxElement.state = 'maybe';
+        await ctxElement.saveBranch();
+    }
+
+    ctxSet.state = 'merge';
+    await ctxSet.saveBranch();
+
+    console.log("TODO: we need to add a group or some way to merge branches to its fathers. stack ?");
+    
+    return branch;
+}
+
 async function expand (
-    definitionDB, 
+    definitionsDB, 
     branch, 
     options, 
     selector, 
     definitions
 ) {
 
-    const ctx = await BranchContext.create(branch, options, definitionDB);
+    const ctx = await BranchContext.create(branch, options, definitionsDB);
     
+    const actions = await ctx.actions.toArray();
+
+    for (let i=0; i<actions.length; i++) {
+        const action = actions[0];
+        switch (action.action) {
+            case 'init-set': await initSet(branch, options, definitionsDB, action); break;
+
+        }
+    }
+
+    // createBranchMaterializedSet
+    // 1. we need to create two branches, empty set and expand-set. 
+    throw 'SOME ACTION!!';
+
+    /*
     // 1. Solve Set Domains
     for await (let eID of ctx.setsInDomains.values()) {
         const v = await ctx.getVariable(eID);
@@ -688,7 +810,7 @@ async function expand (
     await branch.update({state: 'merge'});
 
     // throw 'EVAL IF EXTEND SET IS NEEDED!! ...';
-
+    */
     
     /*
     const r = await genSetIterator(ctx);
@@ -791,6 +913,111 @@ async function createBranchMaterializedSet (
 
 }
 
+async function run (qe) {
+    console.log("Start RUN QE");
+    const branches = qe.rDB.tables.branches;
+    // const definitions = async tuple => qe.db.search(tuple);
+
+    // 1. get root branch, 
+    let rootBranch;
+    for await (let branch of branches.findByIndex({state: 'maybe'})) {
+        rootBranch = branch;
+        break;
+    }
+
+    const ctx = await BranchContext.create(rootBranch, qe.options, qe.db);
+
+    // 2. create root set,
+    const [action] = await ctx.actions.toArray();
+    await initSet(ctx, qe.options, qe.db, action);
+
+    // 3. create root set element,
+    const rootSet = await ctx.getVariable(ctx.root);
+    const definitionElement = rootSet.definition;
+    const {root, variables} = definitionElement;
+
+    const [elID] = variables[root].elements;
+    const ctxElement = ctx.snapshot();
+
+    const elementID = await copyPartialTerm(
+        ctxElement, 
+        definitionElement, 
+        elID,
+        true, // extendSets,
+        true
+    );
+
+    // 4. unify elementID with domain,
+    const element = await ctxElement.getVariable(elementID);
+    const d = await ctxElement.getVariable(element.domain);
+
+    let unifyCtx; 
+    for await (let eID of d.elements.values()) {
+        unifyCtx = await ctxElement.snapshot();
+
+        await unify(unifyCtx, eID, elementID);
+        const unifiedBranch = await unifyCtx.saveBranch();
+
+        // elements.push(unifiedBranch);
+    }
+
+    await ctxElement.saveBranch();
+
+    // 5. now 'x has domain, expand 'x variable.
+    const unifiedElement = await unifyCtx.getVariable(elementID);
+    const x = await unifyCtx.getVariable(unifiedElement.data[1]);
+    const xd = await unifyCtx.getVariable(x.domain);
+    const xCtxs = [];
+    for await (let eID of xd.elements.values()) {
+        const xCtx = await unifyCtx.snapshot();
+
+        const ok = await unify(xCtx, eID, x.id);
+        await xCtx.saveBranch();
+
+        if (ok) {
+            xCtxs.push(xCtx);
+        }
+    }
+
+    // 6. create new x domain,
+
+    const id = x.id + '@domain';
+    const xDomainCtx = unifyCtx.snapshot();
+    let xElements = qe.rDB.iSet();
+
+    for (let i=0; i<xCtxs.length; i++) {
+        const xCtx = xCtxs[i];
+        const c = await xCtx.getVariable(x.id);
+
+        xElements = await xElements.add(c.id);
+    }
+
+    const xDomain = {
+        type: constants.type.MATERIALIZED_SET,
+        id,
+        elements: xElements,
+        size: xCtxs.length,
+        matrix: {
+            elements: [],
+            data: [],
+            indexes: {},
+            uniqueElements: {}
+        }
+    };
+
+    await xDomainCtx.setVariableValue(id, xDomain);
+    await xDomainCtx.setVariableValue(x.id, {...x, domain: id});
+
+    // 7. add element to set,
+    const set = await xDomainCtx.getVariable(action.setID);
+
+    await xDomainCtx.setVariableValue(set.id, {...set, elements: await set.elements.add(elementID)});
+
+    await xDomainCtx.saveBranch();
+
+    console.log(await xDomainCtx.toString(), await xDomainCtx.toString(id));
+}
+
 module.exports = {
     // create,
     createBranchMaterializedSet,
@@ -806,6 +1033,7 @@ module.exports = {
     constants,
     logger,
     BranchContext,
-    genSets
+    genSets,
+    run
 }
 

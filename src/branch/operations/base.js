@@ -247,6 +247,8 @@ async function copyPartialTermTuple (
         data.push(await getVarname(p.variables[v.data[i]], extendSets));
     }
 
+    const domain = v.domain ? await getVarname(v.domain) : undefined;
+
     /*
     ctx.variables = await ctx.variables.set(
         vn, {
@@ -260,6 +262,7 @@ async function copyPartialTermTuple (
     await ctx.setVariableValue(
         vn, {
             ...v,
+            domain,
             data,
             pv: preserveVarname,
             id: vn

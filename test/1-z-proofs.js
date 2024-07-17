@@ -6,12 +6,12 @@ describe("Zebra Proofs", () => {
     it("Simple Constant", test(`
         $DIGIT = {0 1 2 3 4 5 6 7 8 9}
         $TYPES = {
-            (CONSTANT 'c:$DIGIT)
+            (CONSTANT 'c:$DIGIT) ...
         }
     `,
         [
             {
-                query: `{(CONSTANT 'x):$TYPES | 'x > 4, x < 8}`,
+                query: `{(CONSTANT 'x):$TYPES | 'x > 4, 'x < 8}`,
                 results: [
                     `{(CONSTANT 5) (CONSTANT 6) (CONSTANT 7)}`
                 ]
