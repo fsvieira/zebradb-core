@@ -653,26 +653,6 @@ async function plan (ctx, elementID) {
     console.log(e, d);
 }*/
 
-async function initSet (ctxSet, options, definitionsDB, {setID: id, set: definitionElement}) {
-    const {root, variables} = definitionElement;
-    const setID = await copyPartialTerm(
-        ctxSet, 
-        definitionElement, 
-        root,
-        true, // extendSets,
-        true
-    );
-
-    await ctxSet.setVariableValue(
-        id, {
-            type: constants.type.LOCAL_VAR, 
-            cid: id, 
-            id, 
-            defer: setID
-        }
-    );
-}
-
 async function _initSet (parentBranch, options, definitionsDB, {setID: id, set: definitionElement}) {
     const ctxSet = await BranchContext.create(
         parentBranch,
@@ -913,6 +893,27 @@ async function createBranchMaterializedSet (
 
 }
 
+async function initSet (ctxSet, options, definitionsDB, {setID: id, set: definitionElement}) {
+    const {root, variables} = definitionElement;
+    const setID = await copyPartialTerm(
+        ctxSet, 
+        definitionElement, 
+        root,
+        true, // extendSets,
+        true
+    );
+
+    await ctxSet.setVariableValue(
+        id, {
+            type: constants.type.LOCAL_VAR, 
+            cid: id, 
+            id, 
+            defer: setID
+        }
+    );
+}
+
+
 async function run (qe) {
     console.log("Start RUN QE");
     const branches = qe.rDB.tables.branches;
@@ -998,7 +999,7 @@ async function run (qe) {
 
     unifyCtx.state = 'split';
     await unifyCtx.saveBranch();
-    
+
     for (let i=0; i<xCtxs.length; i++) {
         const xCtx = xCtxs[i];
         const c = await xCtx.getVariable(x.id);
