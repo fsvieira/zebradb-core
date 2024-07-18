@@ -73,7 +73,7 @@ class QueryEngine {
     }
 
     async run () {
-        await branchOps.run(
+        return await branchOps.run(
             this
         );
     }

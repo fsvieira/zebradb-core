@@ -257,6 +257,10 @@ class BranchContext {
         this._ctx.state = value;  
     }
 
+    get state () {
+        return this._ctx.state;
+    }
+
     set branchID (value) {
         this._ctx.branchID = value;
     }
@@ -336,10 +340,10 @@ class BranchContext {
     }
 
     // TO STRING 
-    async toStringMaterializedSet(v, vars) {
+    async toStringMaterializedSet(v, vars, rename) {
         let el = [];
         for await (let eID of v.elements.values()) {
-            el.push(await this.toStringRec(eID, vars));
+            el.push(await this.toStringRec(eID, vars, rename));
         }
 
         const size = v.size; 
@@ -352,10 +356,10 @@ class BranchContext {
         return `{${el.sort().join(" ")} ${setSize}}${domain}`;        
     }
 
-    async toStringConstraint (v, vars) {
+    async toStringConstraint (v, vars, rename) {
         const {a, op, b, state, aValue, bValue, value} = v;
-        const av = await this.toStringRec(a, vars);
-        const bv = await this.toStringRec(b, vars);
+        const av = await this.toStringRec(a, vars, rename);
+        const bv = await this.toStringRec(b, vars, rename);
 
         const s = state === constants.values.C_TRUE ? 
             '::TRUE ' 
@@ -374,23 +378,31 @@ class BranchContext {
         return `(${av} ${aValueStr}-${op}-${bValueStr} ${bv})${s}${valueStr}`;
     }
 
-    async toStringSetSize (v, vars) {
+    async toStringSetSize (v, vars, rename) {
         return `|${v.variable}| = ${v.value || 'undef'};`
     }
 
-    async toStringRec (id, vars) {
+    async toStringRec (id, vars, rename) {
         const v = await this.getVariable(id);
+
+        if (v.domain && !vars.has(v.domain)) {
+            const d = await this.getVariable(v.domain);
+            const domainVar = rename(d); 
+            vars.set(domainVar, "");
+            const domainStr = await this.toStringRec(v.domain, vars, rename);
+            vars.set(domainVar, domainStr);
+        }
 
         switch (v.type) {
             case constants.type.MATERIALIZED_SET: {
-                return await this.toStringMaterializedSet(v, vars);
+                return await this.toStringMaterializedSet(v, vars, rename);
             }
 
             case constants.type.TUPLE: {
                 const el = [];
                 for (let i=0; i<v.data.length; i++) {
                     const eID = v.data[i];
-                    el.push(await this.toStringRec(eID, vars))
+                    el.push(await this.toStringRec(eID, vars, rename))
                 }
 
                 return `(${el.join(" ")})`;
@@ -402,19 +414,21 @@ class BranchContext {
 
             case constants.type.LOCAL_VAR: {
                 
-                const domain = v.domain ? ':' + v.domain : '';
-                v.domain && vars.add(v.domain);
+                // const domain = v.domain ? ':' + v.domain : '';
+                // const varname = v.varname || v.id;
+                // return "'" + (!v.pv && v.id?v.id + "::": "") + varname + domain;
+                const d = v.domain ? await this.getVariable(v.domain) : null;
+                const domain = d ? ':' + rename(d) : '';
 
-                const varname = v.varname || v.id;
-                return "'" + (!v.pv && v.id?v.id + "::": "") + varname + domain;
+                return "'" + rename(v) + domain;
             }
 
             case constants.type.CONSTRAINT: {
-                return this.toStringConstraint(v, vars);
+                return this.toStringConstraint(v, vars, rename);
             }
 
             case constants.type.SET_SIZE: {
-                return this.toStringSetSize(v, vars);
+                return this.toStringSetSize(v, vars, rename);
             }
 
             default:
@@ -423,15 +437,47 @@ class BranchContext {
         }
     }
 
-    async toString (id=this._ctx.root) {
-        const vars = new Set();
-        const str = this.toStringRec(id, vars);
+    renameGen () {
+        const idNameMap = new Map();
+        const names = new Set();
+        let counter = 1;
 
-        for (let v of vars) {
-            console.log("print variables", v);
+        return v => {
+            let name = idNameMap.get(v.id);
+            if (!name) {
+                if (v.pv && v.varname && !names.has(v.varname)) {
+                    names.add(v.varname);
+                    name = v.varname;
+                }
+                else {
+                    name = `_${v.type}@${counter++}`;
+                }
+                
+                idNameMap.set(v.id, name);
+            }
+
+            return name;
         }
 
-        return str;
+    }
+
+    async toString (id=this._ctx.root) {
+        const rename = this.renameGen();
+
+        const vars = new Map();
+        const str = await this.toStringRec(id, vars, rename);
+
+        let domains = [];
+        for (let [domain, def] of vars) {
+            domains.push(`${domain} = ${def}`);
+        }
+
+        const domainsStr = domains.length ? `\n\n# == Domains == \n${domains.join("\n")}\n` : "";
+
+        const s = `${str}${domainsStr}`;
+        console.log(s);
+
+        return s;
     }
 }
 

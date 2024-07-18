@@ -53,12 +53,12 @@ function test (definitions, tests, options={
                 process?
                     async b => process(await qe.toJS(b))
                     :
-                    async b => await qe.toString(b)
+                    async b => (await qe.toString(b)).replace(/\s+/g, ' ').trim()
             );
 
             const re = await Promise.all(transforms);
             
-            should(re.sort()).be.eql(results.sort());
+            should(re.sort()).be.eql(results.map(r => r.replace(/\s+/g, ' ').trim()).sort());
         }
     }
 }

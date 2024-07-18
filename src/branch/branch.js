@@ -925,6 +925,8 @@ async function run (qe) {
         break;
     }
 
+    await rootBranch.update({state: "split"});
+
     const ctx = await BranchContext.create(rootBranch, qe.options, qe.db);
 
     // 2. create root set,
@@ -938,6 +940,9 @@ async function run (qe) {
 
     const [elID] = variables[root].elements;
     const ctxElement = ctx.snapshot();
+
+    ctx.state = 'split'
+    await ctx.saveBranch();
 
     const elementID = await copyPartialTerm(
         ctxElement, 
@@ -956,11 +961,12 @@ async function run (qe) {
         unifyCtx = await ctxElement.snapshot();
 
         await unify(unifyCtx, eID, elementID);
-        const unifiedBranch = await unifyCtx.saveBranch();
+        break;
 
         // elements.push(unifiedBranch);
     }
 
+    ctxElement.state = 'split';
     await ctxElement.saveBranch();
 
     // 5. now 'x has domain, expand 'x variable.
@@ -972,11 +978,16 @@ async function run (qe) {
         const xCtx = await unifyCtx.snapshot();
 
         const ok = await unify(xCtx, eID, x.id);
-        await xCtx.saveBranch();
 
         if (ok) {
             xCtxs.push(xCtx);
+            xCtx.state = 'split';
         }
+        else {
+            xCtx.state = 'no';
+        }
+
+        await xCtx.saveBranch();
     }
 
     // 6. create new x domain,
@@ -985,6 +996,9 @@ async function run (qe) {
     const xDomainCtx = unifyCtx.snapshot();
     let xElements = qe.rDB.iSet();
 
+    unifyCtx.state = 'split';
+    await unifyCtx.saveBranch();
+    
     for (let i=0; i<xCtxs.length; i++) {
         const xCtx = xCtxs[i];
         const c = await xCtx.getVariable(x.id);
@@ -1013,9 +1027,10 @@ async function run (qe) {
 
     await xDomainCtx.setVariableValue(set.id, {...set, elements: await set.elements.add(elementID)});
 
-    await xDomainCtx.saveBranch();
+    // console.log(await xDomainCtx.toString(), await xDomainCtx.toString(id));
 
-    console.log(await xDomainCtx.toString(), await xDomainCtx.toString(id));
+    xDomainCtx.state = 'yes';
+    return await xDomainCtx.saveBranch();
 }
 
 module.exports = {
