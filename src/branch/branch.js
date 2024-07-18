@@ -893,24 +893,81 @@ async function createBranchMaterializedSet (
 
 }
 
+/*
+    1. we create an empty set branch in case element branches fail, the empty branch will be the result,
+    2. then we create a child branch with elements, 
+
+    Considerations:
+        * We should normalize the Material sets so they all share same properties like definition, 
+        * We should be able to control set creation and element creation, right now some sets are populated with elements, we should separate 
+            them so we can control how sets and elements are constructed. 
+        * We need to consider how a element fail will impact the set, should it be empty or not-exists ? 
+*/
 async function initSet (ctxSet, options, definitionsDB, {setID: id, set: definitionElement}) {
+    const rDB = ctxSet.rDB;
+    const emptyResults = {
+        type: constants.type.MATERIALIZED_SET,
+        id,
+        elements: rDB.iSet(),
+        matrix: {
+            elements: [],
+            data: [],
+            indexes: {},
+            uniqueElements: {}
+        }
+    };
+
+    await ctxSet.setVariableValue(
+        id, emptyResults
+    );
+
+    const ctxElement = ctxSet.snapshot();
+
+    ctxSet.state = 'split';
+    await ctxSet.saveBranch();
+
     const {root, variables} = definitionElement;
     const setID = await copyPartialTerm(
-        ctxSet, 
+        ctxElement, 
         definitionElement, 
         root,
         true, // extendSets,
         true
     );
 
-    await ctxSet.setVariableValue(
-        id, {
-            type: constants.type.LOCAL_VAR, 
-            cid: id, 
-            id, 
-            defer: setID
-        }
-    );
+    const s = await ctxElement.getVariable(setID);
+
+    await ctxElement.setVariableValue(id, {...s, id, elements: rDB.iSet()});
+    await ctxElement.setVariableValue(setID, {
+        type: constants.type.LOCAL_VAR, 
+        cid: setID, 
+        id: setID, 
+        defer: id
+    });
+
+    const size = await s.elements.size;
+
+    let elements;
+    if (size === 0) {
+        // create element,
+        const [elID] = variables[root].elements;
+        const elementID = await copyPartialTerm(
+            ctxElement, 
+            definitionElement, 
+            elID,
+            true, // extendSets,
+            true
+        );
+        
+        elements = [elementID];
+    }
+    else {
+        elements = await s.elements.toArray();
+    }
+
+    console.log(s);
+
+    return {ctxElement, elements};
 }
 
 
@@ -932,10 +989,10 @@ async function run (qe) {
 
     // 2. create root set,
     const [action] = await ctx.actions.toArray();
-    await initSet(ctx, qe.options, qe.db, action);
+    const {ctxElement, elements} = await initSet(ctx, qe.options, qe.db, action);
 
     // 3. create root set element,
-    const rootSet = await ctx.getVariable(ctx.root);
+    /*const rootSet = await ctx.getVariable(ctx.root);
     const definitionElement = rootSet.definition;
     const {root, variables} = definitionElement;
 
@@ -951,9 +1008,10 @@ async function run (qe) {
         elID,
         true, // extendSets,
         true
-    );
+    );*/
 
     // 4. unify elementID with domain,
+    const elementID = elements[0];
     const element = await ctxElement.getVariable(elementID);
     const d = await ctxElement.getVariable(element.domain);
 
@@ -970,9 +1028,12 @@ async function run (qe) {
     ctxElement.state = 'split';
     await ctxElement.saveBranch();
 
+    throw 'TODO: we need to check unfied elements, separe them if is the case and send them to be solved!';
+
     // 5. now 'x has domain, expand 'x variable.
     const unifiedElement = await unifyCtx.getVariable(elementID);
     const x = await unifyCtx.getVariable(unifiedElement.data[1]);
+
     const xd = await unifyCtx.getVariable(x.domain);
     const xCtxs = [];
     for await (let eID of xd.elements.values()) {
