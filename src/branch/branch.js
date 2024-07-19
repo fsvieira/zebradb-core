@@ -970,6 +970,34 @@ async function initSet (ctxSet, options, definitionsDB, {setID: id, set: definit
     return {ctxElement, elements};
 }
 
+async function split (ctx, elementID) {
+    const element = await ctx.getVariable(elementID);
+
+    let done = true;
+
+    switch (element.type) {
+        case constants.type.TUPLE: {
+            for (let i=0; i<element.data.length; i++) {
+                const vID = element.data[i];
+                const v = await ctx.getVariable(vID);
+
+                if (v.domain) {
+                    done = false;
+                    console.log(v);
+                }
+            }
+
+            break;
+        }
+
+        default:
+            throw "split : unkown type " + element.type;
+    }
+
+    return done;
+
+    console.log(element);
+}
 
 async function run (qe) {
     console.log("Start RUN QE");
@@ -1028,10 +1056,27 @@ async function run (qe) {
     ctxElement.state = 'split';
     await ctxElement.saveBranch();
 
-    throw 'TODO: we need to check unfied elements, separe them if is the case and send them to be solved!';
+    // 5. split,
+    const done = await split(unifyCtx, elementID);
 
+    if (done) {
+        const ctxElements = unifyCtx.snapshot();
+        unifyCtx.state = 'split';
+        await unifyCtx.saveBranch();
+
+        const set = await ctxElements.getVariable(action.setID);
+        const elements = await set.elements.add(elementID);
+        await ctxElements.setVariableValue(set.id, {...set, elements});
+
+        ctxElements.state = 'yes';
+        await ctxElements.saveBranch();
+
+        return;
+    }
+
+    throw 'we need to eval each results of split function, instead of done we could return an array of contexts.' 
     // 5. now 'x has domain, expand 'x variable.
-    const unifiedElement = await unifyCtx.getVariable(elementID);
+    // const unifiedElement = await unifyCtx.getVariable(elementID);
     const x = await unifyCtx.getVariable(unifiedElement.data[1]);
 
     const xd = await unifyCtx.getVariable(x.domain);

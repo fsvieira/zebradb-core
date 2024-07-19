@@ -10,7 +10,7 @@ describe("Zebra Proofs", () => {
         }
     `,
         [
-            /*{
+            {
                 query: `{(CONSTANT 'x):$TYPES | 'x > 4, 'x < 8}`,
                 results: [
                     `{(CONSTANT 'x:_ms@1) ...} 
@@ -18,14 +18,11 @@ describe("Zebra Proofs", () => {
                         _ms@1 = {5 6 7 } 
                     `
                 ]
-            },*/
+            },
             {
                 query: `{(CONSTANT 1):$TYPES ...}`,
                 results: [
-                    `{(CONSTANT 'x:_ms@1) ...} 
-                    # == Domains == 
-                        _ms@1 = {5 6 7 } 
-                    `
+                    `{(CONSTANT 1) ...}`
                 ]
             }
         ], 
