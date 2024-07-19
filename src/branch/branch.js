@@ -973,7 +973,7 @@ async function initSet (ctxSet, options, definitionsDB, {setID: id, set: definit
 async function split (ctx, elementID) {
     const element = await ctx.getVariable(elementID);
 
-    let done = true;
+    let childs = [];
 
     switch (element.type) {
         case constants.type.TUPLE: {
@@ -982,8 +982,12 @@ async function split (ctx, elementID) {
                 const v = await ctx.getVariable(vID);
 
                 if (v.domain) {
-                    done = false;
-                    console.log(v);
+                    const unifyCtx = ctx.snapshot();
+                    const ok = await unify(unifyCtx, eID, elementID);
+
+                    unifyCtx.state = ok ? 'split' : 'no';
+                    unifyCtx.saveBranch();
+                    childs.push(unifyCtx);
                 }
             }
 
@@ -994,9 +998,7 @@ async function split (ctx, elementID) {
             throw "split : unkown type " + element.type;
     }
 
-    return done;
-
-    console.log(element);
+    return childs;
 }
 
 async function run (qe) {
@@ -1057,9 +1059,9 @@ async function run (qe) {
     await ctxElement.saveBranch();
 
     // 5. split,
-    const done = await split(unifyCtx, elementID);
+    const childs = await split(unifyCtx, elementID);
 
-    if (done) {
+    if (!childs.length) {
         const ctxElements = unifyCtx.snapshot();
         unifyCtx.state = 'split';
         await unifyCtx.saveBranch();
@@ -1074,15 +1076,18 @@ async function run (qe) {
         return;
     }
 
-    throw 'we need to eval each results of split function, instead of done we could return an array of contexts.' 
+    unifyCtx.state = 'split';
+    await unifyCtx.saveBranch();
+    
     // 5. now 'x has domain, expand 'x variable.
-    // const unifiedElement = await unifyCtx.getVariable(elementID);
-    const x = await unifyCtx.getVariable(unifiedElement.data[1]);
+    const [childCtx] = childs;
+    const unifiedElement = await childCtx.getVariable(elementID);
+    const x = await childCtx.getVariable(unifiedElement.data[1]);
 
-    const xd = await unifyCtx.getVariable(x.domain);
+    const xd = await childCtx.getVariable(x.domain);
     const xCtxs = [];
     for await (let eID of xd.elements.values()) {
-        const xCtx = await unifyCtx.snapshot();
+        const xCtx = await childCtx.snapshot();
 
         const ok = await unify(xCtx, eID, x.id);
 
@@ -1100,11 +1105,11 @@ async function run (qe) {
     // 6. create new x domain,
 
     const id = x.id + '@domain';
-    const xDomainCtx = unifyCtx.snapshot();
+    const xDomainCtx = childCtx.snapshot();
     let xElements = qe.rDB.iSet();
 
-    unifyCtx.state = 'split';
-    await unifyCtx.saveBranch();
+    childCtx.state = 'split';
+    await childCtx.saveBranch();
 
     for (let i=0; i<xCtxs.length; i++) {
         const xCtx = xCtxs[i];
