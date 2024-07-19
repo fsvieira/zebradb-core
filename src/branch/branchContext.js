@@ -72,7 +72,7 @@ class BranchContext {
             this.options,
             this.definitionDB,
             this.rDB,
-            {...this._ctx}
+            {...this._ctx, branchID: undefined, state: undefined}
         );
     }
 
@@ -336,7 +336,16 @@ class BranchContext {
             this._ctx.state = await this.getContextState(ignoreConstraints);
         }
 
-        return await this.rDB.tables.branches.insert(this._ctx, null);
+        if (this.savedBranch) {
+            const u = {state: this._ctx.state};
+            await this.savedBranch.update(u);
+        }
+        else {
+            const branch = await this.rDB.tables.branches.insert(this._ctx, null); // TODO: Object update on duplicate not working ?
+            this.savedBranch = branch;
+        }
+
+        return this.savedBranch;
     }
 
     // TO STRING 

@@ -909,6 +909,7 @@ async function initSet (ctxSet, options, definitionsDB, {setID: id, set: definit
         type: constants.type.MATERIALIZED_SET,
         id,
         elements: rDB.iSet(),
+        size: 0,
         matrix: {
             elements: [],
             data: [],
@@ -923,7 +924,7 @@ async function initSet (ctxSet, options, definitionsDB, {setID: id, set: definit
 
     const ctxElement = ctxSet.snapshot();
 
-    ctxSet.state = 'split';
+    ctxSet.state = 'yes';
     await ctxSet.saveBranch();
 
     const {root, variables} = definitionElement;
@@ -981,13 +982,25 @@ async function split (ctx, elementID) {
                 const vID = element.data[i];
                 const v = await ctx.getVariable(vID);
 
+                // TODO: we need to group each processing variable, so that we can process this. 
                 if (v.domain) {
-                    const unifyCtx = ctx.snapshot();
-                    const ok = await unify(unifyCtx, eID, elementID);
+                    const vd = await ctx.getVariable(v.domain);
 
-                    unifyCtx.state = ok ? 'split' : 'no';
-                    unifyCtx.saveBranch();
-                    childs.push(unifyCtx);
+                    for await (let eID of vd.elements.values()) {
+                        const vCtx = await ctx.snapshot();
+
+                        const ok = await unify(vCtx, eID, v.id);
+
+                        if (ok) {
+                            childs.push(vCtx);
+                            vCtx.state = 'split';
+                        }
+                        else {
+                            vCtx.state = 'no';
+                        }
+
+                        await vCtx.saveBranch();
+                    }
                 }
             }
 
@@ -1049,7 +1062,30 @@ async function run (qe) {
     for await (let eID of d.elements.values()) {
         unifyCtx = await ctxElement.snapshot();
 
-        await unify(unifyCtx, eID, elementID);
+        const ok = await unify(unifyCtx, eID, elementID);
+
+        if (!ok) {
+            ctxElement.state = 'no';
+            await ctxElement.saveBranch();
+
+            unifyCtx.state = 'no';
+            await unifyCtx.saveBranch();
+
+            // TODO: When reusing the context, we can't update state, why ? Can we do it if we create new context ? 
+            // ctx.state = 'yes';
+            // await ctx.saveBranch();
+            // await ctx.branch.update({state: 'yes'});
+            
+            return;
+        }
+        else {
+            // TODO: Why this does not work ? 
+            // ctx.state = 'split';
+            // await ctx.saveBranch();
+            const r = await ctx.savedBranch.update({state: 'split'});
+            // console.log(r);
+        }
+
         break;
 
         // elements.push(unifiedBranch);
@@ -1076,11 +1112,11 @@ async function run (qe) {
         return;
     }
 
-    unifyCtx.state = 'split';
-    await unifyCtx.saveBranch();
+    // unifyCtx.state = 'split';
+    // await unifyCtx.saveBranch();
     
     // 5. now 'x has domain, expand 'x variable.
-    const [childCtx] = childs;
+    /*const [childCtx] = childs;
     const unifiedElement = await childCtx.getVariable(elementID);
     const x = await childCtx.getVariable(unifiedElement.data[1]);
 
@@ -1100,19 +1136,22 @@ async function run (qe) {
         }
 
         await xCtx.saveBranch();
-    }
+    }*/
 
     // 6. create new x domain,
 
+    // TODO: we need to group branch by variable, also we need to know what variable we want to check on branch and or what actions to do. 
+    const unifiedElement = await unifyCtx.getVariable(elementID);
+    const x = await unifyCtx.getVariable(unifiedElement.data[1]);
     const id = x.id + '@domain';
-    const xDomainCtx = childCtx.snapshot();
+    const xDomainCtx = unifyCtx.snapshot();
     let xElements = qe.rDB.iSet();
 
-    childCtx.state = 'split';
-    await childCtx.saveBranch();
+    unifyCtx.state = 'split';
+    await unifyCtx.saveBranch();
 
-    for (let i=0; i<xCtxs.length; i++) {
-        const xCtx = xCtxs[i];
+    for (let i=0; i<childs.length; i++) {
+        const xCtx = childs[i];
         const c = await xCtx.getVariable(x.id);
 
         xElements = await xElements.add(c.id);
@@ -1122,7 +1161,7 @@ async function run (qe) {
         type: constants.type.MATERIALIZED_SET,
         id,
         elements: xElements,
-        size: xCtxs.length,
+        size: childs.length,
         matrix: {
             elements: [],
             data: [],

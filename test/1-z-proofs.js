@@ -24,6 +24,12 @@ describe("Zebra Proofs", () => {
                 results: [
                     `{(CONSTANT 1) ...}`
                 ]
+            },
+            {
+                query: `{(CONSTANT 10):$TYPES ...}`,
+                results: [
+                    `{ }`
+                ]
             }
         ], 
         {
