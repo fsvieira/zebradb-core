@@ -989,6 +989,7 @@ async function split (ctx, elementID) {
                     for await (let eID of vd.elements.values()) {
                         const vCtx = await ctx.snapshot();
 
+                        await vCtx.setVariableValue('_process', v.id);
                         const ok = await unify(vCtx, eID, v.id);
 
                         if (ok) {
@@ -1112,50 +1113,44 @@ async function run (qe) {
         return;
     }
 
-    // unifyCtx.state = 'split';
-    // await unifyCtx.saveBranch();
-    
-    // 5. now 'x has domain, expand 'x variable.
-    /*const [childCtx] = childs;
-    const unifiedElement = await childCtx.getVariable(elementID);
-    const x = await childCtx.getVariable(unifiedElement.data[1]);
-
-    const xd = await childCtx.getVariable(x.domain);
-    const xCtxs = [];
-    for await (let eID of xd.elements.values()) {
-        const xCtx = await childCtx.snapshot();
-
-        const ok = await unify(xCtx, eID, x.id);
-
-        if (ok) {
-            xCtxs.push(xCtx);
-            xCtx.state = 'split';
-        }
-        else {
-            xCtx.state = 'no';
-        }
-
-        await xCtx.saveBranch();
-    }*/
-
     // 6. create new x domain,
 
     // TODO: we need to group branch by variable, also we need to know what variable we want to check on branch and or what actions to do. 
-    const unifiedElement = await unifyCtx.getVariable(elementID);
-    const x = await unifyCtx.getVariable(unifiedElement.data[1]);
-    const id = x.id + '@domain';
-    const xDomainCtx = unifyCtx.snapshot();
-    let xElements = qe.rDB.iSet();
+    
+    /*
+        Merge Case 1:
+            a. The element is a variable, there is only variable changes
+            b. There is only one branch then we are done,
+            c. There is more than one branch , create domain put all elements in there, associate variable to new domain.
 
+            * Creating merge branches, rethink branch structures, we need multiple fathers or something else. 
+     */
+
+    // const unifiedElement = await unifyCtx.getVariable(elementID);
+    // const x = await unifyCtx.getVariable(unifiedElement.data[1]);
+
+    // const id = x.id + '@domain';
+
+    // TODO: we need a way to get what are the variables that we want to merge, ex. 'x and branches that evaluate 'x . 
+
+    const xDomainCtx = unifyCtx.snapshot();
+    
     unifyCtx.state = 'split';
     await unifyCtx.saveBranch();
 
+    let xElements = qe.rDB.iSet();
+    let eID;
+
     for (let i=0; i<childs.length; i++) {
         const xCtx = childs[i];
-        const c = await xCtx.getVariable(x.id);
-
+        eID = await xCtx.getVariable('_process');
+        const c = await xCtx.getVariable(eID);
+        
         xElements = await xElements.add(c.id);
     }
+
+    const x = await xDomainCtx.getVariable(eID);
+    const id = x.id + '@domain';
 
     const xDomain = {
         type: constants.type.MATERIALIZED_SET,

@@ -27,12 +27,26 @@ class QueryEngine {
                 }
             });
             
-            await this.rDB.tables.branches
+            /*await this.rDB.tables.branches
                 .key('branchID')
                 .index('parent')
                 .index('level')
                 .index('state')
                 .index('group', 'groupState', 'state')
+                .save()
+            ;*/
+            await this.rDB.tables.branches
+                .key('branchID')
+                .index('state')
+                .index('group', 'state')
+                .save()
+            ;
+
+            await this.rDB.tables.groups
+                .key('groupID')
+                .index('groupID, state')
+                .index('state')
+                // originalBranch, resultBranch, elementID
                 .save()
             ;
 
