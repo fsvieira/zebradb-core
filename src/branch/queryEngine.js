@@ -3,7 +3,7 @@ const {parse} = require('../parsing');
 const {DB} = require('beastdb');
 const {SHA256} = require("sha2");
 const BranchContext = require('./branchContext');
-const { type } = require('./operations/constants');
+const BranchDB = require("./branchDB");
 
 class QueryEngine {
 
@@ -16,17 +16,20 @@ class QueryEngine {
         try {
             const querySet = parse(tuple)[0];
 
-            const branchID = SHA256(JSON.stringify([
+            const dbID = SHA256(JSON.stringify([
                 this.db.id,
                 SHA256(JSON.stringify(querySet)).toString("hex")
             ])).toString("hex");
 
             this.rDB = await DB.open({
                 storage: {
-                    path: this.options.path + '-' + branchID + '.db' 
+                    path: this.options.path + '-' + dbID + '.db' 
                 }
             });
             
+            this.branchDB = new BranchDB(this.rDB);
+            await this.branchDB.init();
+
             /*await this.rDB.tables.branches
                 .key('branchID')
                 .index('parent')
@@ -35,10 +38,17 @@ class QueryEngine {
                 .index('group', 'groupState', 'state')
                 .save()
             ;*/
+            /*
             await this.rDB.tables.branches
                 .key('branchID')
-                .index('state')
-                .index('group', 'state')
+                .versions('versions')
+                .save();
+
+            await this.rDB.tables.versions
+                .key('versionID')
+                .index('branchID')
+                // .index('state')
+                // .index('group', 'state')
                 .save()
             ;
 
@@ -48,9 +58,10 @@ class QueryEngine {
                 .index('state')
                 // originalBranch, resultBranch, elementID
                 .save()
-            ;
+            ;*/
 
-            await query(this.options, this.rDB, querySet, branchID, this.db);
+            // await query(this.options, this.rDB, querySet, branchID, this.db);
+            await query(this, querySet);
 
             return this;
         }

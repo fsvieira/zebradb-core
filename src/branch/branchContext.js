@@ -5,13 +5,15 @@ const {SHA256} = require("sha2");
 
 class BranchContext {
     constructor (
-        branch, 
+        branch,
+        branchDB,
         options, 
         definitionDB, 
         rDB, 
         ctx={}
     ) {
         this.branch = branch;
+        this.branchDB = branchDB;
         this.options = options;
         this.definitionDB = definitionDB;
         this.rDB = rDB;
@@ -22,6 +24,7 @@ class BranchContext {
 
     static async create (
         branch, 
+        branchDB,
         options, 
         definitionDB, 
         rDB=branch?.table.db, 
@@ -36,29 +39,32 @@ class BranchContext {
 
         const newCtx = {
             branchID: ctx.branchID,
-            parent: branch || null,
-            root: await p('root'),
-            level: await p('level', 0) + 1,
-            setsInDomains: await p('setsInDomains', rDB.iSet()),
-            checked: await p('checked', rDB.iSet()),
-            unchecked: await p('unchecked', rDB.iSet()),
-            constraints: await p('constraints', rDB.iSet()),
-            unsolvedConstraints: await p('unsolvedConstraints', rDB.iSet()),
+            // parent: branch || null,
+            // root: await p('root'),
+            // level: await p('level', 0) + 1,
+            // setsInDomains: await p('setsInDomains', rDB.iSet()),
+            // checked: await p('checked', rDB.iSet()),
+            // unchecked: await p('unchecked', rDB.iSet()),
+            // constraints: await p('constraints', rDB.iSet()),
+            // unsolvedConstraints: await p('unsolvedConstraints', rDB.iSet()),
+            
             variables: await p('variables', rDB.iMap()),
             extendSets: await p('extendSets', rDB.iSet()),
-            unsolvedVariables: await p('unsolvedVariables', rDB.iSet()),
+            // unsolvedVariables: await p('unsolvedVariables', rDB.iSet()),
             variableCounter: await p('variableCounter', 0),
-            children: [],
+            // children: [],
             log: await p('log', rDB.iArray()),
-            actions: await p('actions', rDB.iArray()),
-            state: ctx.state,
-            group: await p('group', null),
-            groupState: await p('groupState', null),
-            groups: await p('groups', rDB.iMap())
+            // actions: await p('actions', rDB.iArray()),
+            // state: ctx.state,
+            // group: await p('group', null),
+            // groupState: await p('groupState', null),
+            // groups: await p('groups', rDB.iMap()),
+            // version: await p('version', 1)
         };
 
         return new BranchContext(
             branch, 
+            branchDB,
             options, 
             definitionDB, 
             rDB,
@@ -66,6 +72,64 @@ class BranchContext {
         );
     } 
 
+
+    // === Variables === 
+    async setVariableValue (id, value) {
+        this._ctx.variables = await this._ctx.variables.set(id, value);
+
+        return this;
+    }
+
+    async getVariable (id) {
+        let v;
+        do {
+            v = await this._ctx.variables.get(id);
+            
+            if (id && id === v.defer) {
+                throw "BUG: id can't defer to itself! " +  id + ' ' + JSON.stringify(v, null, '  ');
+            }
+    
+            id = v.defer;
+        }
+        while(id);
+
+        if (v.type === constants.type.SET_SIZE) {
+            const set = await this.getVariable(v.variable);
+            v = {...v, set, value: await set.size};
+        }
+
+        return v;
+    }
+
+    async hasVariable (id) {
+        return this._ctx.variables.has(id);
+    }
+
+    newVar (v) {
+        return (v?`v$c#${v}`:'v$' + this.variableID + '$' + (++this._ctx.variableCounter));
+    }
+
+    // === Logger === 
+    async logger (message) {
+        if (this.options && this.options.log) {
+            const stack = new Error().stack;
+            this._ctx.log = await this._ctx.log.push(message + "\nSTACK=" + stack);
+        }
+    
+        return this;
+    }
+
+    // === Sets === 
+    get extendSets () {
+        return this._ctx.extendSets;
+    }
+
+    async addExtendSet (cID) {
+        this._ctx.extendSets = await this._ctx.extendSets.add(cID);
+        return this;
+    }
+    
+    /*
     snapshot () {
         return new BranchContext(
             this.branch,
@@ -133,12 +197,6 @@ class BranchContext {
     async getSetSize (setID) {
         let set = await this.getVariable(setID);
     
-        /*
-            TODO: 
-                * The min index size is the max number of elements,
-                * The min index size can be the size of the set iff the index vars has no constraints.  
-        */
-
         if (set.size === -1) {
             let size = Infinity;
     
@@ -174,15 +232,6 @@ class BranchContext {
         }
     }
 
-    async logger (message) {
-        if (this.options && this.options.log) {
-            const stack = new Error().stack;
-            this._ctx.log = await this._ctx.log.push(message + "\nSTACK=" + stack);
-        }
-    
-        return this;
-    }
-
     // sets in domains
     async removeSetsInDomains (element) {
         this._ctx.setsInDomains = await this._ctx.setsInDomains.remove(element);
@@ -213,42 +262,7 @@ class BranchContext {
         return this;
     }
     
-    // variables,
-    async setVariableValue (id, value, hash) {
-        this._ctx.variables = await this._ctx.variables.set(id, value);
-
-        if (hash) {
-            await this.setHash(id, hash);
-        }
-
-        return this;
-    }
-
-    async getVariable (id) {
-        let v;
-        do {
-            v = await this._ctx.variables.get(id);
-            
-            if (id && id === v.defer) {
-                throw "BUG: id can't defer to itself! " +  id + ' ' + JSON.stringify(v, null, '  ');
-            }
     
-            id = v.defer;
-        }
-        while(id);
-
-        if (v.type === constants.type.SET_SIZE) {
-            const set = await this.getVariable(v.variable);
-            v = {...v, set, value: await set.size};
-        }
-
-        return v;
-    }
-
-    async hasVariable (id) {
-        return this._ctx.variables.has(id);
-    }
-
     async hasChecked (id) {
         return this._ctx.checked.has(id);
     }
@@ -301,10 +315,6 @@ class BranchContext {
         return this._ctx.state;
     }
 
-    newVar (v) {
-        return (v?`v$c#${v}`:'v$' + this.variableID + '$' + (++this._ctx.variableCounter));
-    }
-
     // definitions DB 
     async search (v) {
         return this.definitionDB.search(v);
@@ -323,11 +333,6 @@ class BranchContext {
 
     async addUnsolvedConstraint (cID) {
         this._ctx.unsolvedConstraints = await this._ctx.unsolvedConstraints.add(cID);
-        return this;
-    }
-
-    async addExtendSet (cID) {
-        this._ctx.extendSets = await this._ctx.extendSets.add(cID);
         return this;
     }
 
@@ -487,7 +492,7 @@ class BranchContext {
         console.log(s);
 
         return s;
-    }
+    }*/
 }
 
 module.exports = BranchContext;

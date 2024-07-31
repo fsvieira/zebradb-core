@@ -1022,10 +1022,15 @@ async function run (qe) {
 
     // 1. get root branch, 
     let rootBranch;
-    for await (let branch of branches.findByIndex({state: 'maybe'})) {
+    for await (let branch of branches.findByIndex({branchID: 'ROOT'})) {
         rootBranch = branch;
         break;
     }
+
+    const str = await rootBranch.toString();
+    console.log(str);
+    
+    throw '--- NEED TO ADAPT!!';
 
     await rootBranch.update({state: "split"});
 
