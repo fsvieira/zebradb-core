@@ -21,13 +21,14 @@ const query = async (qe, definitionElement) => {
         ctx={}
     )*/
 
+    const rootBranch = await qe.branchDB.createBranch(null, 'ROOT');
+
     const rootCtx = await BranchContext.create(
-        null, 
+        rootBranch, 
         qe.branchDB, 
         qe.options, 
         qe.db, 
-        qe.rDB, 
-        {branchID: 'ROOT'}
+        qe.rDB
     );
 
 
@@ -42,11 +43,17 @@ const query = async (qe, definitionElement) => {
             true
     );
 
-    await rootCtx.setVariableValue(resultsID, {
+    rootCtx.root = setID;
+
+    await rootCtx.commit();
+
+    console.log("root --- ", await rootCtx.toString());
+
+    /*await rootCtx.setVariableValue(resultsID, {
         type: branchOps.constants.type.LOCAL_VAR, 
         defer: setID, 
         id: resultsID
-    });
+    });*/
     
 
     // variables = variables.set(resultsID, )

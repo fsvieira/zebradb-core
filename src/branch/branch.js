@@ -1027,10 +1027,9 @@ async function run (qe) {
         break;
     }
 
-    const str = await rootBranch.toString();
-    console.log(str);
-    
-    throw '--- NEED TO ADAPT!!';
+    // const str = await rootBranch.toString();
+
+    throw '--- WE NEED TO CREATE A BRANCH CONTEXT -- ADAPT!!';
 
     await rootBranch.update({state: "split"});
 

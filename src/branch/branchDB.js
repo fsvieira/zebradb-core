@@ -25,7 +25,7 @@ class BranchDB {
     async createBranch (parentBranch=null, branchID=uuidv4()) {
         let commit = parentBranch ? await parentBranch.data.head : null;
 
-        const branch = await rDB.tables.branches.insert({
+        const branch = await this.rDB.tables.branches.insert({
             branchID,
             head: commit
         }, null);
