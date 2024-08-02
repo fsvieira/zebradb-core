@@ -1045,14 +1045,15 @@ async function run (qe) {
 
     const [elID] = variables[root].elements;
 
-    const elementBranch = await qe.branchDB.createBranch(rootBranch);
+    /*const elementBranch = await qe.branchDB.createBranch(rootBranch);
     const elementCtx = await BranchContext.create(
         elementBranch, 
         qe.branchDB, 
         qe.options, 
         qe.db, 
         qe.rDB
-    );
+    );*/
+    const elementCtx = await rootCtx.createBranch();
 
     const elementID = await copyPartialTerm(
         elementCtx, 
@@ -1064,6 +1065,47 @@ async function run (qe) {
 
     const str = await elementCtx.toString(elementID);
     console.log("Element ", str);
+
+    await elementCtx.commit();
+
+    // 4. unify elementID with domain,
+    const element = await elementCtx.getVariable(elementID);
+    const d = await elementCtx.getVariable(element.domain);
+
+    let unifyCtx; 
+    for await (let eID of d.elements.values()) {
+        unifyCtx = await elementCtx.createBranch();
+
+        const ok = await unify(unifyCtx, eID, elementID);
+
+        throw 'HANDLE UNIFY RESULT!';
+        /*
+        if (!ok) {
+            ctxElement.state = 'no';
+            await ctxElement.saveBranch();
+
+            unifyCtx.state = 'no';
+            await unifyCtx.saveBranch();
+
+            // TODO: When reusing the context, we can't update state, why ? Can we do it if we create new context ? 
+            // ctx.state = 'yes';
+            // await ctx.saveBranch();
+            // await ctx.branch.update({state: 'yes'});
+            
+            return;
+        }
+        else {
+            // TODO: Why this does not work ? 
+            // ctx.state = 'split';
+            // await ctx.saveBranch();
+            const r = await ctx.savedBranch.update({state: 'split'});
+            // console.log(r);
+        }*/
+
+        break;
+
+        // elements.push(unifiedBranch);
+    }
 
     throw '--- WE NEED TO CREATE A BRANCH CONTEXT -- ADAPT!!';
 

@@ -79,6 +79,17 @@ class BranchContext {
         return this.branchDB.commit(this.branch, this._ctx);
     }
 
+    async createBranch () {
+        const newBranch = await this.branchDB.createBranch(this.branch);
+        return BranchContext.create(
+            newBranch, 
+            this.branchDB,
+            this.options, 
+            this.definitionDB, 
+            this.rDB
+        );
+    }
+
     // root
     get root () {
         return this._ctx.root;
@@ -230,7 +241,9 @@ class BranchContext {
                     el.push(await this.toStringRec(eID, vars, rename))
                 }
 
-                return `(${el.join(" ")})`;
+                const d = v.domain ? await this.getVariable(v.domain) : null;
+                const domain = d ? ':' + rename(d) : '';
+                return `(${el.join(" ")})${domain}`;
             }
 
             case constants.type.CONSTANT: {
