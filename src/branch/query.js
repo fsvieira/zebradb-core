@@ -47,7 +47,7 @@ const query = async (qe, definitionElement) => {
 
     await rootCtx.commit();
 
-    console.log("root --- ", await rootCtx.toString());
+    // console.log("root --- ", await rootCtx.toString());
 
     /*await rootCtx.setVariableValue(resultsID, {
         type: branchOps.constants.type.LOCAL_VAR, 

@@ -42,7 +42,7 @@ class BranchContext {
         const newCtx = {
             // branchID: ctx.branchID,
             // parent: branch || null,
-            // root: await p('root'),
+            root: await p('root'),
             // level: await p('level', 0) + 1,
             // setsInDomains: await p('setsInDomains', rDB.iSet()),
             // checked: await p('checked', rDB.iSet()),
@@ -76,7 +76,7 @@ class BranchContext {
 
     // branchDB ops
     async commit () {
-        this.branchDB.commit(this.branch, this._ctx);
+        return this.branchDB.commit(this.branch, this._ctx);
     }
 
     // root

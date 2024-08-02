@@ -1027,9 +1027,19 @@ async function run (qe) {
         break;
     }
 
-    // const str = await rootBranch.toString();
+    const rootCtx = await BranchContext.create(
+        rootBranch, 
+        qe.branchDB, 
+        qe.options, 
+        qe.db, 
+        qe.rDB
+    );
+    
+    const str = await rootCtx.toString();
+    console.log("ROOOOT ", str);
 
     throw '--- WE NEED TO CREATE A BRANCH CONTEXT -- ADAPT!!';
+
 
     await rootBranch.update({state: "split"});
 

@@ -35,7 +35,7 @@ class BranchDB {
     
     async commit (branch, changes) {
         const head = await branch.data.head;
-        const commit = await rDB.tables.commits.insert({
+        const commit = await this.rDB.tables.commits.insert({
             commitID: uuidv4(),
             parentCommit: head,
             ...changes
