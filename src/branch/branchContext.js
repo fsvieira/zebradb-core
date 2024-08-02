@@ -22,11 +22,8 @@ class BranchContext {
         this.variableID = uuidv4();
     }
 
-    static async create (
-        branch, 
-        branchDB,
-        options, 
-        definitionDB, 
+    static async getContext (
+        branch,
         rDB=branch?.table.db, 
         ctx={}
     ) {
@@ -52,7 +49,7 @@ class BranchContext {
             
             variables: await p('variables', rDB.iMap()),
             extendSets: await p('extendSets', rDB.iSet()),
-            // unsolvedVariables: await p('unsolvedVariables', rDB.iSet()),
+            unsolvedVariables: await p('unsolvedVariables', rDB.iSet()),
             variableCounter: await p('variableCounter', 0),
             // children: [],
             log: await p('log', rDB.iArray()),
@@ -63,6 +60,23 @@ class BranchContext {
             // groups: await p('groups', rDB.iMap()),
             // version: await p('version', 1)
         };
+
+        return newCtx;
+    }
+
+    static async create (
+        branch, 
+        branchDB,
+        options, 
+        definitionDB, 
+        rDB=branch?.table.db, 
+        ctx={}
+    ) {
+        const newCtx = await BranchContext.getContext(
+            branch, 
+            rDB, 
+            ctx
+        );
 
         return new BranchContext(
             branch, 
@@ -88,6 +102,15 @@ class BranchContext {
             this.definitionDB, 
             this.rDB
         );
+    }
+
+    async merge (branch) {
+        await this.branchDB.merge(this.branch, branch.branch);
+
+        // Update ctx,
+        this._ctx = await BranchContext.getContext(this.branch, this.rDB);
+
+        return this;
     }
 
     // root
@@ -170,6 +193,11 @@ class BranchContext {
         return this;
     }
 
+    async removeUnsolvedVariable (id) {
+        this._ctx.unsolvedVariables = await this._ctx.unsolvedVariables.remove(id);
+        return this;
+    }
+
     // === definitions DB ===
     async search (v) {
         return this.definitionDB.search(v);
@@ -189,7 +217,8 @@ class BranchContext {
 
         const setSize = size === el.length ? '' : '...';
 
-        return `{${el.sort().join(" ")} ${setSize}}${domain}`;        
+        el.sort();
+        return `{${el.join(" ")}${setSize}}${domain}`;        
     }
 
     async toStringConstraint (v, vars, rename) {
@@ -438,10 +467,6 @@ class BranchContext {
         return this;
     }
 
-    async removeUnsolvedVariable (id) {
-        this._ctx.unsolvedVariables = await this._ctx.unsolvedVariables.remove(id);
-        return this;
-    }
 
     async setHash (id, hash) {
         this._ctx.hashVariables = await this._ctx.hashVariables.set(hash, id);

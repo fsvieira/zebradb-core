@@ -47,6 +47,29 @@ class BranchDB {
 
         return commit;
     }
+
+    async merge (branchA, branchB) {
+        // TODO: three-way merge ? or we dont want a merge but instead idenpent operations.
+        const headA = await branchA.data.head;
+        const headB = await branchB.data.head;
+        
+        const aCommitID = await headA.data.commitID;
+        let bCommit = headB;
+        let bCommitID = await bCommit.data.commitID;
+        
+        while (aCommitID !== bCommitID) {
+            bCommit = await bCommit.data.parentCommit;
+            bCommitID = await bCommit.data.commitID;
+        };
+
+        if (aCommitID === bCommitID) {
+            return await branchA.update({head: headB});
+        }
+        else {
+            throw 'Branch Conflict Not Implemented!';
+        }
+
+    }
 }
 
 /*

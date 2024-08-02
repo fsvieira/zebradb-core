@@ -1035,9 +1035,6 @@ async function run (qe) {
         qe.rDB
     );
 
-    // const str = await rootCtx.toString();
-    // console.log("ROOOOT ", str);
-
     // 2. create root element,
     const rootSet = await rootCtx.getVariable(rootCtx.root);
     const definitionElement = rootSet.definition;
@@ -1045,14 +1042,6 @@ async function run (qe) {
 
     const [elID] = variables[root].elements;
 
-    /*const elementBranch = await qe.branchDB.createBranch(rootBranch);
-    const elementCtx = await BranchContext.create(
-        elementBranch, 
-        qe.branchDB, 
-        qe.options, 
-        qe.db, 
-        qe.rDB
-    );*/
     const elementCtx = await rootCtx.createBranch();
 
     const elementID = await copyPartialTerm(
@@ -1063,12 +1052,9 @@ async function run (qe) {
         true
     );
 
-    const str = await elementCtx.toString(elementID);
-    console.log("Element ", str);
-
     await elementCtx.commit();
 
-    // 4. unify elementID with domain,
+    // 3. unify elementID with domain,
     const element = await elementCtx.getVariable(elementID);
     const d = await elementCtx.getVariable(element.domain);
 
@@ -1078,33 +1064,82 @@ async function run (qe) {
 
         const ok = await unify(unifyCtx, eID, elementID);
 
-        throw 'HANDLE UNIFY RESULT!';
-        /*
-        if (!ok) {
-            ctxElement.state = 'no';
-            await ctxElement.saveBranch();
-
-            unifyCtx.state = 'no';
-            await unifyCtx.saveBranch();
-
-            // TODO: When reusing the context, we can't update state, why ? Can we do it if we create new context ? 
-            // ctx.state = 'yes';
-            // await ctx.saveBranch();
-            // await ctx.branch.update({state: 'yes'});
-            
-            return;
-        }
-        else {
-            // TODO: Why this does not work ? 
-            // ctx.state = 'split';
-            // await ctx.saveBranch();
-            const r = await ctx.savedBranch.update({state: 'split'});
-            // console.log(r);
-        }*/
+        unifyCtx.state = ok ? 'maybe' : 'no';
+        
+        await unifyCtx.commit();
 
         break;
+    }
 
-        // elements.push(unifiedBranch);
+    // 4. get element 'x, 
+    const tuple = await unifyCtx.getVariable(elementID);
+    const xID = tuple.data[1];
+    const x = await unifyCtx.getVariable(xID);
+    const xDomain = await unifyCtx.getVariable(x.domain);
+
+    const xDomainCtx = await unifyCtx.createBranch();
+
+    let xElements = qe.rDB.iSet();
+    const id = x.id + '@domain';
+
+    for await (let eID of xDomain.elements.values()) {
+        let xValueCtx = await xDomainCtx.createBranch();
+        const ok = await unify(xValueCtx, xID, eID);
+
+        if (ok) {
+            const c = await xValueCtx.getVariable(xID);
+            xElements = await xElements.add(c.id);
+            xValueCtx.state = 'yes'; // its completed
+        }
+        else {
+            xValueCtx.state = 'no'; // its completed but fails.
+        }
+
+        await xValueCtx.commit();
+    }
+
+    const xDomainSet = {
+        type: constants.type.MATERIALIZED_SET,
+        id,
+        elements: xElements,
+        size: await xElements.size
+    };
+
+    await xDomainCtx.setVariableValue(id, xDomainSet);
+    await xDomainCtx.setVariableValue(x.id, {...x, domain: id});
+
+    xDomainCtx.state = 'yes'; // its completed!
+    await xDomainCtx.commit();
+
+    // 5. merge up
+    {
+        const str = await rootCtx.toString();
+        console.log("ROOT Element ", str);
+    }
+
+    {
+        const str = await elementCtx.toString(xID);
+        console.log("TUPLE Element ", str);
+    }
+
+    {
+        const str = await unifyCtx.toString(elementID);
+        console.log("TUPLE DOMAINS Elements", str);
+    }
+
+    {
+        const str = await xDomainCtx.toString(xID);
+        console.log("X DOMAIN", str);
+    }
+
+    // 5a. Merge xDomainCtx with unifyCtx
+    // xDomain is completed so it can merge with unifyCtx,
+    // TODO: state should be at branch, because commits are shared and on merge state will be shared too. 
+    await unifyCtx.merge(xDomainCtx);
+    
+    {
+        const str = await unifyCtx.toString(elementID);
+        console.log("===> Results TUPLE DOMAINS Elements", str);
     }
 
     throw '--- WE NEED TO CREATE A BRANCH CONTEXT -- ADAPT!!';
@@ -1216,7 +1251,7 @@ async function run (qe) {
 
     // TODO: we need a way to get what are the variables that we want to merge, ex. 'x and branches that evaluate 'x . 
 
-    const xDomainCtx = unifyCtx.snapshot();
+    /*const xDomainCtx = unifyCtx.snapshot();
     
     unifyCtx.state = 'split';
     await unifyCtx.saveBranch();
@@ -1259,7 +1294,7 @@ async function run (qe) {
     // console.log(await xDomainCtx.toString(), await xDomainCtx.toString(id));
 
     xDomainCtx.state = 'yes';
-    return await xDomainCtx.saveBranch();
+    return await xDomainCtx.saveBranch();*/
 }
 
 module.exports = {
