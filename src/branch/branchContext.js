@@ -48,7 +48,7 @@ class BranchContext {
             // checked: await p('checked', rDB.iSet()),
             // unchecked: await p('unchecked', rDB.iSet()),
             // constraints: await p('constraints', rDB.iSet()),
-            // unsolvedConstraints: await p('unsolvedConstraints', rDB.iSet()),
+            unsolvedConstraints: await p('unsolvedConstraints', rDB.iSet()),
             
             variables: await p('variables', rDB.iMap()),
             extendSets: await p('extendSets', rDB.iSet()),
@@ -143,6 +143,25 @@ class BranchContext {
     async addExtendSet (cID) {
         this._ctx.extendSets = await this._ctx.extendSets.add(cID);
         return this;
+    }
+
+    // === Constraints === 
+    set unsolvedConstraints (value) {
+        this._ctx.unsolvedConstraints = value;
+    }
+
+    get unsolvedConstraints () {
+        return this._ctx.unsolvedConstraints;
+    }
+
+    async addUnsolvedConstraint (cID) {
+        this._ctx.unsolvedConstraints = await this._ctx.unsolvedConstraints.add(cID);
+        return this;
+    }
+
+    // === definitions DB ===
+    async search (v) {
+        return this.definitionDB.search(v);
     }
 
     // === toString === 
@@ -281,7 +300,6 @@ class BranchContext {
         const domainsStr = domains.length ? `\n\n# == Domains == \n${domains.join("\n")}\n` : "";
 
         const s = `${str}${domainsStr}`;
-        console.log(s);
 
         return s;
     }
@@ -440,14 +458,6 @@ class BranchContext {
         return this._ctx.actions;  
     }
 
-    set unsolvedConstraints (value) {
-        this._ctx.unsolvedConstraints = value;
-    }
-
-    get unsolvedConstraints () {
-        return this._ctx.unsolvedConstraints;
-    }
-
     get setsInDomains () {
         return this._ctx.setsInDomains;
     }
@@ -468,11 +478,6 @@ class BranchContext {
         return this._ctx.state;
     }
 
-    // definitions DB 
-    async search (v) {
-        return this.definitionDB.search(v);
-    }
-
     // tracking lists,
     async addSetInDomain (sID) {
         this._ctx.setsInDomains = await this._ctx.setsInDomains.add(sID);
@@ -481,11 +486,6 @@ class BranchContext {
 
     async addUnsolvedVariable (vID)  {
         this._ctx.unsolvedVariables = await this._ctx.unsolvedVariables.add(vID);
-        return this;
-    }
-
-    async addUnsolvedConstraint (cID) {
-        this._ctx.unsolvedConstraints = await this._ctx.unsolvedConstraints.add(cID);
         return this;
     }
 

@@ -1034,20 +1034,47 @@ async function run (qe) {
         qe.db, 
         qe.rDB
     );
-    
-    const str = await rootCtx.toString();
-    console.log("ROOOOT ", str);
+
+    // const str = await rootCtx.toString();
+    // console.log("ROOOOT ", str);
+
+    // 2. create root element,
+    const rootSet = await rootCtx.getVariable(rootCtx.root);
+    const definitionElement = rootSet.definition;
+    const {root, variables} = definitionElement;
+
+    const [elID] = variables[root].elements;
+
+    const elementBranch = await qe.branchDB.createBranch(rootBranch);
+    const elementCtx = await BranchContext.create(
+        elementBranch, 
+        qe.branchDB, 
+        qe.options, 
+        qe.db, 
+        qe.rDB
+    );
+
+    const elementID = await copyPartialTerm(
+        elementCtx, 
+        definitionElement, 
+        elID,
+        true, // extendSets,
+        true
+    );
+
+    const str = await elementCtx.toString(elementID);
+    console.log("Element ", str);
 
     throw '--- WE NEED TO CREATE A BRANCH CONTEXT -- ADAPT!!';
 
 
-    await rootBranch.update({state: "split"});
+    // await rootBranch.update({state: "split"});
 
-    const ctx = await BranchContext.create(rootBranch, qe.options, qe.db);
+    // const ctx = await BranchContext.create(rootBranch, qe.options, qe.db);
 
     // 2. create root set,
-    const [action] = await ctx.actions.toArray();
-    const {ctxElement, elements} = await initSet(ctx, qe.options, qe.db, action);
+    // const [action] = await ctx.actions.toArray();
+    // const {ctxElement, elements} = await initSet(ctx, qe.options, qe.db, action);
 
     // 3. create root set element,
     /*const rootSet = await ctx.getVariable(ctx.root);
@@ -1069,7 +1096,7 @@ async function run (qe) {
     );*/
 
     // 4. unify elementID with domain,
-    const elementID = elements[0];
+    /*const elementID = elements[0];
     const element = await ctxElement.getVariable(elementID);
     const d = await ctxElement.getVariable(element.domain);
 
@@ -1125,7 +1152,7 @@ async function run (qe) {
         await ctxElements.saveBranch();
 
         return;
-    }
+    }*/
 
     // 6. create new x domain,
 
