@@ -104,15 +104,6 @@ class BranchContext {
         );
     }
 
-    async merge (branch) {
-        await this.branchDB.merge(this.branch, branch.branch);
-
-        // Update ctx,
-        this._ctx = await BranchContext.getContext(this.branch, this.rDB);
-
-        return this;
-    }
-
     // root
     get root () {
         return this._ctx.root;

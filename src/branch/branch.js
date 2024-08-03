@@ -1015,6 +1015,85 @@ async function split (ctx, elementID) {
     return childs;
 }
 
+/// --- 
+// recursive copy variables,
+async function copy (destCtxA, srcCtxB, id, done=new Set()) {
+    if (!done.has(id)) {
+        done.add(id);
+
+        const dataB = await srcCtxB.getVariable(id);
+        let data = dataB;
+
+        /*
+        TODO: check commit history to check if should overwrite A.
+        if (await destCtxA.hasVariable(id)) {
+            const dataA = await destCtxA.getVariable(id);
+            throw 'CONFLICT ID NOT IMPLEMENTED';
+        }*/
+        
+        await destCtxA.setVariableValue(id, data);
+
+        if (data.domain) {
+            await copy(destCtxA, srcCtxB, data.domain, done);
+        }
+
+        switch (data.type) {
+            case constants.type.MATERIALIZED_SET: {
+                for await (let eID of data.elements.values()) {
+                    await copy(destCtxA, srcCtxB, eID, done);
+                }
+
+                break;
+            }
+            case constants.type.TUPLE: {
+                for (i=0; i<data.data.length; i++) {
+                    await copy(destCtxA, srcCtxB, data.data[i], done);
+                }
+            }
+
+            case constants.type.LOCAL_VAR: 
+            case constants.type.GLOBAL_VAR: 
+            case constants.type.CONSTANT: 
+                break;
+
+            default:
+                throw 'copy unkown type ' + dataB.type
+        }
+    }
+}
+
+async function execute (destCtxA, srcCtxB, cmds) {
+    for (let i=0; i<cmds.length; i++) {
+        const c = cmds[i];
+
+        switch (c.cmd) {
+            case 'copy': {
+                for (let i=0; i<c.ids.length; i++) {
+                    const id = c.ids[i];
+                    await copy(destCtxA, srcCtxB, id);
+                }
+
+                break;
+            }
+
+            case 'in': {
+                const set = await destCtxA.getVariable(c.set);
+                const elements = await set.elements.add(c.elementID);
+
+                await destCtxA.setVariableValue(set.id, {
+                    ...set,
+                    elements
+                });
+
+                break;
+            }
+
+            default:
+                throw 'Unkown Command';
+        }
+    }
+}
+
 async function run (qe) {
     console.log("Start RUN QE");
     const branches = qe.rDB.tables.branches;
@@ -1118,12 +1197,12 @@ async function run (qe) {
     }
 
     {
-        const str = await elementCtx.toString(xID);
+        const str = await elementCtx.toString(elementID);
         console.log("TUPLE Element ", str);
     }
 
     {
-        const str = await unifyCtx.toString(elementID);
+        const str = await unifyCtx.toString(xID);
         console.log("TUPLE DOMAINS Elements", str);
     }
 
@@ -1132,13 +1211,33 @@ async function run (qe) {
         console.log("X DOMAIN", str);
     }
 
-    // 5a. Merge xDomainCtx with unifyCtx
+    // 5a. Update changes on unifyCtx,
     // xDomain is completed so it can merge with unifyCtx,
     // TODO: state should be at branch, because commits are shared and on merge state will be shared too. 
-    await unifyCtx.merge(xDomainCtx);
-    
+    // await unifyCtx.merge(xDomainCtx);
+
+    const cmd = [{cmd: 'copy', ids: [x.id]}];
+
+    await execute(unifyCtx, xDomainCtx, cmd);
+    await unifyCtx.commit();
+
+    // 5b. Now unifyCtx is also a yes, we need to join up,
+
+    await execute(elementCtx, unifyCtx, cmd);
+    await elementCtx.commit();
+
+    // 5c. Now element is also a yes, join up,
+    cmd.push(
+        {cmd: 'copy', ids: [elementID]},
+        {cmd: 'in', elementID, set: rootCtx.root}
+    );
+
+    await execute(rootCtx, elementCtx, cmd);
+    await rootCtx.commit();
+
     {
-        const str = await unifyCtx.toString(elementID);
+        console.log("----------- Start toString -------------------");
+        const str = await rootCtx.toString();
         console.log("===> Results TUPLE DOMAINS Elements", str);
     }
 

@@ -98,9 +98,15 @@ class QueryEngine {
     }
 
     async run () {
-        return await branchOps.run(
-            this
-        );
+        try {
+            return await branchOps.run(
+                this
+            );
+        }
+        catch (e) {
+            console.log(e);
+            process.exit();
+        }
     }
 
     async _run () {
