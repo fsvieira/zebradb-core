@@ -109,13 +109,36 @@ class QueryEngine {
 
     async run () {
         try {
-            let branch;
-            while (branch = await this.nextBranch()) {
+            // let branch;
+            /*while (branch = await this.nextBranch()) {
                 await branchOps.run(
                     this,
                     branch
                 );
+            }*/
+            const branches = this.rDB.tables.branches;
+            let stop = true;
+            do {
+                for await (let branch of branches.findByIndex({state: 'process'})) {
+                    await branchOps.run(
+                        this,
+                        branch
+                    );
+
+                    stop = false;
+                }
+
+                for await (let branch of branches.findByIndex({state: 'processing'})) {
+                    await branchOps.run(
+                        this,
+                        branch
+                    );
+
+                    stop = false;
+                }
             }
+            while (!stop);
+
         }
         catch (e) {
             console.log(e);

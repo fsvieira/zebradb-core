@@ -55,7 +55,7 @@ class BranchContext {
             log: await p('log', rDB.iArray()),
             // actions: await p('actions', rDB.iArray()),
             actions: await p('actions', []),
-            state: ctx.state,
+            state: await p('state', 'start'),
             // group: await p('group', null),
             // groupState: await p('groupState', null),
             // groups: await p('groups', rDB.iMap()),

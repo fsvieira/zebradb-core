@@ -1018,6 +1018,10 @@ async function split (ctx, elementID) {
 /// --- 
 // recursive copy variables,
 async function copy (destCtxA, srcCtxB, id, done=new Set()) {
+    if (srcCtxB.state !== 'yes') {
+        throw "Can't copy from a non 'yes' final branch!";
+    }
+
     if (!done.has(id)) {
         done.add(id);
 
@@ -1031,7 +1035,7 @@ async function copy (destCtxA, srcCtxB, id, done=new Set()) {
             throw 'CONFLICT ID NOT IMPLEMENTED';
         }*/
         
-        await destCtxA.setVariableValue(id, data);
+        await destCtxA.setVariableValue(dataB.id, data);
 
         if (data.domain) {
             await copy(destCtxA, srcCtxB, data.domain, done);
@@ -1059,6 +1063,8 @@ async function copy (destCtxA, srcCtxB, id, done=new Set()) {
             default:
                 throw 'copy unkown type ' + dataB.type
         }
+
+        return dataB.id;
     }
 }
 
@@ -1094,6 +1100,230 @@ async function execute (destCtxA, srcCtxB, cmds) {
     }
 }
 
+async function createSetElement (branchCtx, setID) {
+    const set = await branchCtx.getVariable(setID);
+    const definitionElement = set.definition;
+    const {root, variables} = definitionElement;
+
+    const [elID] = variables[root].elements;
+
+    const elementCtx = await branchCtx.createBranch();
+
+    const elementID = await copyPartialTerm(
+        elementCtx, 
+        definitionElement, 
+        elID,
+        true, // extendSets,
+        true
+    );
+
+    branchCtx.state = 'processing';
+    branchCtx.actions = []; // TODO: should we put here something ? 
+    await branchCtx.commit();
+
+    elementCtx.state = 'process';
+    elementCtx.actions = [{cmd: 'eval', elementID}];
+    await elementCtx.commit();
+}
+
+async function eval (branchCtx, elementID) {
+    const e = await branchCtx.getVariable(elementID);
+
+    if (e.domain) {
+        // solve domain,
+
+        if (e.type === constants.type.LOCAL_VAR
+            && !(e.constraints || await e.constraints.size)
+        ) {
+            // nothing to do!
+            branchCtx.state = 'yes';
+            await branchCtx.commit();
+            return;
+        }
+
+        let valueCtx; 
+        const domain = {elementID, valueBranches: [], values: []};
+        const d = await branchCtx.getVariable(e.domain);
+
+        for await (let dID of d.elements.values()) {
+            valueCtx = await branchCtx.createBranch();
+
+            // const ok = await unify(unifyCtx, eID, elementID);
+
+            // unifyCtx.state = ok ? 'maybe' : 'no';
+            valueCtx.state = 'process';
+            valueCtx.actions = [{cmd: 'unify', dID, eID: elementID}];
+
+            await valueCtx.commit();
+            domain.valueBranches.push(valueCtx.branch);
+        }
+
+        branchCtx.state = 'processing';
+        branchCtx.actions = [{cmd: 'solve-domain', ...domain}];
+        await branchCtx.commit();
+    }
+    else {
+        switch (e.type) {
+            case constants.type.TUPLE: {
+                const actions = [];
+                
+                for (let i=0; i<e.data.length; i++) {
+                    const vID = e.data[i];
+                    const v = await branchCtx.getVariable(vID);
+
+                    if (v.domain) {
+                        const elementBranch = await branchCtx.createBranch();
+                        elementBranch.actions = [{cmd: 'eval', elementID: vID}];
+                        elementBranch.state = 'process';
+                        await elementBranch.commit();
+                        actions.push({cmd: 'copy', branch: elementBranch.branch, elementID: vID});
+                    }
+                }
+
+                if (actions.length) {
+                    branchCtx.actions = actions;
+                    branchCtx.state = 'processing';
+                }
+                else {
+                    branchCtx.state = 'yes';
+                }
+                
+                await branchCtx.commit();
+
+                break;
+            }
+
+            case constants.type.CONSTANT: 
+                branchCtx.state = 'yes';
+                await branchCtx.commit();
+                break;
+            ;
+
+            default:
+                throw 'EVAL IS NOT DEFINED FOR TYPE : ' + e.type;
+        }
+    }
+
+}
+
+async function process (cmd, branchCtx) {
+
+    switch (cmd.cmd) {
+        case 'create-element': {
+            await createSetElement(branchCtx, cmd.elementID);
+            break;
+        }
+
+        case 'eval': {
+            await eval(branchCtx, cmd.elementID);
+            break;
+        }
+
+        case "unify": {
+            const {dID, eID} = cmd;
+            const ok = await unify(branchCtx, dID, eID);
+
+            if (!ok) {
+                branchCtx.state = 'no';
+                branchCtx.actions = [];
+                await branchCtx.commit();
+            }
+            else {
+                // commit unify changes,
+                await branchCtx.commit();
+                await eval(branchCtx, eID);
+            }
+
+            break;
+        }
+
+        case 'solve-domain': {
+            let completed = 0;
+            let valueBranches = [];
+            let values = cmd.values.slice();
+
+            for (let i=0; i<cmd.valueBranches.length; i++) {
+                const branch = cmd.valueBranches[i];
+                const state = await branch.data.state;
+
+                if (['yes', 'no'].includes(state)) {
+                    if (state === 'yes') {
+                        // actions.push({cmd: 'copy', branch, elementID: cmd.elementID});
+                        const srcCtx = await BranchContext.create(
+                            branch, 
+                            branchCtx.branchDB, 
+                            branchCtx.options, 
+                            branchCtx.definitionsDB, 
+                            branchCtx.rDB
+                        );
+
+                        const id = await copy(branchCtx, srcCtx, cmd.elementID);
+                        values.push(id);
+                    }
+                }
+                else {
+                    valueBranches.push(branch);
+                }
+            }
+
+            if (valueBranches.length < cmd.valueBranches.length) {
+                if (valueBranches.length === 0) {
+                    // nothing else to do,
+                    branchCtx.actions = [];
+                    if (values.length) {
+                        branchCtx.state = 'yes';
+
+                        throw 'HANDLE FINAL DOMAIN!';
+                    }
+                    else {
+                        branchCtx.state = 'no';
+                    }
+
+                    await branchCtx.commit();
+                }
+                else {                
+                    // if its not completed keep going,
+                    branchCtx.actions = [{
+                        ...cmd,
+                        valueBranches,
+                        values
+                    }];
+
+                    await branchCtx.commit();
+                }
+            }
+
+            break;
+        }
+
+        case 'copy' : {
+            const state = await cmd.branch.data.state;
+            if (state === 'yes') {
+                const srcCtx = await BranchContext.create(
+                    cmd.branch, 
+                    branchCtx.branchDB, 
+                    branchCtx.options, 
+                    branchCtx.definitionsDB, 
+                    branchCtx.rDB
+                );
+
+                await copy(branchCtx, srcCtx, cmd.elementID);
+            }
+            else if (state === 'no') {
+                branchCtx.stte = 'no';
+                branchCtx.actions = [];
+                await branchCtx.commit();
+            }
+
+            break;
+        }
+
+        default:
+            console.log(cmd);
+            throw 'Unkown Command ' + cmd.cmd;
+    }
+}
+
 async function run (qe, branch) {
     const branchCtx = await BranchContext.create(
         branch, 
@@ -1106,7 +1336,9 @@ async function run (qe, branch) {
     const [cmd] = branchCtx.actions;
     console.log(cmd);
 
-    throw 'IMPLEMENT RUN';
+    if (cmd) {
+        await process(cmd, branchCtx);
+    }
 }
 
 async function _new_run (qe) {
