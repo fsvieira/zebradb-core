@@ -1022,18 +1022,89 @@ async function copy (destCtxA, srcCtxB, id, done=new Set()) {
         throw "Can't copy from a non 'yes' final branch!";
     }
 
+    const dataB = await srcCtxB.getVariable(id);
+
+    id = dataB.id;
+
+    if (!done.has(id)) {
+        done.add(id);
+
+        let domain;
+
+        if (dataB.domain) {
+            domain = await copy(destCtxA, srcCtxB, dataB.domain, done);
+        }
+
+        switch (dataB.type) {
+            case constants.type.MATERIALIZED_SET: {
+                let elements = destCtxA.rDB.iSet();
+                
+                for await (let eID of dataB.elements.values()) {
+                    const id = await copy(destCtxA, srcCtxB, eID, done);
+                    elements = await elements.add(id);
+                }
+
+                await destCtxA.setVariableValue(id, {
+                    ...dataB, 
+                    elements,
+                    domain
+                });
+
+                break;
+            }
+
+            case constants.type.TUPLE: {
+                const data = [];
+                for (i=0; i<data.data.length; i++) {
+                    data.push(await copy(destCtxA, srcCtxB, data.data[i], done));
+                }
+
+
+                await destCtxA.setVariableValue(id, {
+                    ...dataB, 
+                    data,
+                    domain
+                });
+
+                break;
+            }
+
+            case constants.type.LOCAL_VAR: 
+            case constants.type.GLOBAL_VAR: 
+                await destCtxA.setVariableValue(id, {...dataB, domain});
+                break;
+
+            case constants.type.CONSTANT:
+                await destCtxA.setVariableValue(id, dataB);
+                break;
+
+            default:
+                throw 'copy unkown type ' + dataB.type
+        }
+
+    }
+
+    return id;
+}
+
+/*
+async function __copy (destCtxA, srcCtxB, id, done=new Set()) {
+    if (srcCtxB.state !== 'yes') {
+        throw "Can't copy from a non 'yes' final branch!";
+    }
+
     if (!done.has(id)) {
         done.add(id);
 
         const dataB = await srcCtxB.getVariable(id);
         let data = dataB;
 
-        /*
-        TODO: check commit history to check if should overwrite A.
-        if (await destCtxA.hasVariable(id)) {
-            const dataA = await destCtxA.getVariable(id);
-            throw 'CONFLICT ID NOT IMPLEMENTED';
-        }*/
+        
+        // TODO: check commit history to check if should overwrite A.
+        // if (await destCtxA.hasVariable(id)) {
+        //    const dataA = await destCtxA.getVariable(id);
+        //    throw 'CONFLICT ID NOT IMPLEMENTED';
+        // }
         
         await destCtxA.setVariableValue(dataB.id, data);
 
@@ -1098,7 +1169,7 @@ async function execute (destCtxA, srcCtxB, cmds) {
                 throw 'Unkown Command';
         }
     }
-}
+}*/
 
 async function createSetElement (branchCtx, setID) {
     const set = await branchCtx.getVariable(setID);
@@ -1238,7 +1309,6 @@ async function process (cmd, branchCtx) {
         }
 
         case 'solve-domain': {
-            let completed = 0;
             let valueBranches = [];
             let values = cmd.values.slice();
 
@@ -1273,7 +1343,34 @@ async function process (cmd, branchCtx) {
                     if (values.length) {
                         branchCtx.state = 'yes';
 
-                        throw 'HANDLE FINAL DOMAIN!';
+                        const elementID = cmd.elementID;
+
+                        if (values.length === 1) {
+                            await branchCtx.setVariableValue(elementID, {
+                                type: constants.type.LOCAL_VAR,
+                                defer: values[i]
+                            });
+                        }
+                        else {
+                            const domainID = branchCtx.newVar();
+                            let elements = branchCtx.rDB.iSet();
+
+                            for (let i=0; i<values.length; i++) {
+                                const id = values[i];
+                                elements = await elements.add(id);
+                            }
+
+                            const domainSet = {
+                                type: constants.type.MATERIALIZED_SET,
+                                id: domainID,
+                                elements,
+                                size: await elements.size
+                            };
+                        
+                            const e = await branchCtx.getVariable(elementID);
+                            await branchCtx.setVariableValue(domainID, domainSet);
+                            await branchCtx.setVariableValue(e.id, {...e, domain: domainID});
+                        }
                     }
                     else {
                         branchCtx.state = 'no';
