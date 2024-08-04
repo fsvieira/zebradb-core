@@ -70,7 +70,7 @@ class QueryEngine {
         }
     }
 
-    async nextBranch () {
+    async __nextBranch () {
         const branches = this.rDB.tables.branches;
 
         /*
@@ -97,11 +97,25 @@ class QueryEngine {
         }
     }
 
+    async nextBranch () {
+        const branches = this.rDB.tables.branches;
+
+        for await (let branch of branches.findByIndex({state: 'process'})) {
+            return branch;
+        }
+
+        return null;
+    }
+
     async run () {
         try {
-            return await branchOps.run(
-                this
-            );
+            let branch;
+            while (branch = await this.nextBranch()) {
+                await branchOps.run(
+                    this,
+                    branch
+                );
+            }
         }
         catch (e) {
             console.log(e);

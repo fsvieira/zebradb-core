@@ -1094,7 +1094,22 @@ async function execute (destCtxA, srcCtxB, cmds) {
     }
 }
 
-async function run (qe) {
+async function run (qe, branch) {
+    const branchCtx = await BranchContext.create(
+        branch, 
+        qe.branchDB, 
+        qe.options, 
+        qe.db, 
+        qe.rDB
+    );
+
+    const [cmd] = branchCtx.actions;
+    console.log(cmd);
+
+    throw 'IMPLEMENT RUN';
+}
+
+async function _new_run (qe) {
     console.log("Start RUN QE");
     const branches = qe.rDB.tables.branches;
     // const definitions = async tuple => qe.db.search(tuple);

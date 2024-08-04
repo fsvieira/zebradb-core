@@ -54,7 +54,8 @@ class BranchContext {
             // children: [],
             log: await p('log', rDB.iArray()),
             // actions: await p('actions', rDB.iArray()),
-            // state: ctx.state,
+            actions: await p('actions', []),
+            state: ctx.state,
             // group: await p('group', null),
             // groupState: await p('groupState', null),
             // groups: await p('groups', rDB.iMap()),
@@ -187,6 +188,24 @@ class BranchContext {
     async removeUnsolvedVariable (id) {
         this._ctx.unsolvedVariables = await this._ctx.unsolvedVariables.remove(id);
         return this;
+    }
+
+    // === State ===
+    set state (value) {
+        this._ctx.state = value;  
+    }
+
+    get state () {
+        return this._ctx.state;
+    }
+
+    // === Actions ===
+    set actions (value) {
+        this._ctx.actions = value;  
+    }
+
+    get actions () {
+        return this._ctx.actions;
     }
 
     // === definitions DB ===
@@ -469,14 +488,6 @@ class BranchContext {
     
     async hasChecked (id) {
         return this._ctx.checked.has(id);
-    }
-
-    set state (value) {
-        this._ctx.state = value;  
-    }
-
-    get state () {
-        return this._ctx.state;
     }
 
     set branchID (value) {

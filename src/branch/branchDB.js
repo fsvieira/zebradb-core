@@ -14,11 +14,13 @@ class BranchDB {
         await this.rDB.tables.commits
             .key('commitID')
             .index('parentCommit')
+            .index('state')
             .save();
 
         await this.rDB.tables.branches
             .key('branchID')
             .index('head')
+            .index('state')
             .save();
     }
 
@@ -41,8 +43,10 @@ class BranchDB {
             ...changes
         }, null);
 
+        const state = await commit.data.state;
         await branch.update({
-            head: commit
+            head: commit,
+            state
         });
 
         return commit;

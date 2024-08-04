@@ -44,6 +44,8 @@ const query = async (qe, definitionElement) => {
     );
 
     rootCtx.root = setID;
+    rootCtx.actions = [{cmd: 'create-element', elementID: rootCtx.root}];
+    rootCtx.state = 'process';
 
     await rootCtx.commit();
 
