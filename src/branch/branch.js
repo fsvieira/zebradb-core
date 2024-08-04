@@ -223,7 +223,6 @@ async function solveConstraints (ctx) {// (branch, options) {
             const solved = await isSolved(ctx, cs.id);
 
             if (solved) {
-                console.log("csID SOLVED ", await ctx.toString(csID));
                 unsolvedConstraints = await unsolvedConstraints.remove(cs.id);
             }
             else {
@@ -490,7 +489,6 @@ async function mergeMatrix (ctxA, ctxB, a, b) {
             elements.push(id);
 
             const bIdx = bm.indexes[bID];
-            console.log("index", bIdx, bID, bm);
 
             if (!bIdx) {
                 console.log(await ctxB.toString(bID));
@@ -966,8 +964,6 @@ async function initSet (ctxSet, options, definitionsDB, {setID: id, set: definit
         elements = await s.elements.toArray();
     }
 
-    console.log(s);
-
     return {ctxElement, elements};
 }
 
@@ -1018,10 +1014,6 @@ async function split (ctx, elementID) {
 /// --- 
 // recursive copy variables,
 async function copy (destCtxA, srcCtxB, id, done=new Set()) {
-    if (srcCtxB.state !== 'yes') {
-        throw "Can't copy from a non 'yes' final branch!";
-    }
-
     const dataB = await srcCtxB.getVariable(id);
 
     id = dataB.id;
@@ -1038,7 +1030,7 @@ async function copy (destCtxA, srcCtxB, id, done=new Set()) {
         switch (dataB.type) {
             case constants.type.MATERIALIZED_SET: {
                 let elements = destCtxA.rDB.iSet();
-                
+
                 for await (let eID of dataB.elements.values()) {
                     const id = await copy(destCtxA, srcCtxB, eID, done);
                     elements = await elements.add(id);
@@ -1055,8 +1047,8 @@ async function copy (destCtxA, srcCtxB, id, done=new Set()) {
 
             case constants.type.TUPLE: {
                 const data = [];
-                for (i=0; i<data.data.length; i++) {
-                    data.push(await copy(destCtxA, srcCtxB, data.data[i], done));
+                for (i=0; i<dataB.data.length; i++) {
+                    data.push(await copy(destCtxA, srcCtxB, dataB.data[i], done));
                 }
 
 
@@ -1189,7 +1181,13 @@ async function createSetElement (branchCtx, setID) {
     );
 
     branchCtx.state = 'processing';
-    branchCtx.actions = []; // TODO: should we put here something ? 
+    branchCtx.actions = [{
+        cmd: 'copy', 
+        branch: elementCtx.branch, 
+        elementID,
+        in: setID
+    }];
+    
     await branchCtx.commit();
 
     elementCtx.state = 'process';
@@ -1346,10 +1344,14 @@ async function process (cmd, branchCtx) {
                         const elementID = cmd.elementID;
 
                         if (values.length === 1) {
-                            await branchCtx.setVariableValue(elementID, {
-                                type: constants.type.LOCAL_VAR,
-                                defer: values[i]
-                            });
+                            const id = values[0];
+                            if (elementID !== id) {
+                                await branchCtx.setVariableValue(elementID, {
+                                    id: elementID,
+                                    type: constants.type.LOCAL_VAR,
+                                    defer: id
+                                });
+                            }
                         }
                         else {
                             const domainID = branchCtx.newVar();
@@ -1404,7 +1406,30 @@ async function process (cmd, branchCtx) {
                     branchCtx.rDB
                 );
 
-                await copy(branchCtx, srcCtx, cmd.elementID);
+                console.log("copy ---->", cmd.elementID, await srcCtx.toString(cmd.elementID));
+
+                const id = await copy(branchCtx, srcCtx, cmd.elementID);
+
+                console.log("copy result ---->", id,  await branchCtx.toString(id));
+
+                if (cmd.elementID !== id) {
+                    await branchCtx.setVariableValue(cmd.elementID, {
+                        id: cmd.elementID,
+                        type: constants.type.LOCAL_VAR,
+                        defer: id
+                    });
+                }
+
+                if (cmd.in) {
+                    const set = await branchCtx.getVariable(cmd.in);
+                    const elements = await set.elements.add(cmd.elementID);
+
+                    await branchCtx.setVariableValue(set.id, {...set, elements});
+                }
+
+                branchCtx.actions = [];
+                branchCtx.state = 'yes';
+                await branchCtx.commit();
             }
             else if (state === 'no') {
                 branchCtx.stte = 'no';
@@ -1431,7 +1456,6 @@ async function run (qe, branch) {
     );
 
     const [cmd] = branchCtx.actions;
-    console.log(cmd);
 
     if (cmd) {
         await process(cmd, branchCtx);

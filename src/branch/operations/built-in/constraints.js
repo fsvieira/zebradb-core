@@ -434,7 +434,6 @@ async function checkNumberOperationsConstrain(ctx, cs, env) {
     const an = getNumber(av);
     const bn = getNumber(bv);
 
-    console.log("CS Number ", await ctx.toString(id));
     let state;
     if (isNaN(an) || isNaN(bn)) {    
         state = C_FALSE;

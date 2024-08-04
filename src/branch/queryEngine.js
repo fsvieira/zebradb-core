@@ -117,8 +117,9 @@ class QueryEngine {
                 );
             }*/
             const branches = this.rDB.tables.branches;
-            let stop = true;
+            let stop;
             do {
+                stop = true;
                 for await (let branch of branches.findByIndex({state: 'process'})) {
                     await branchOps.run(
                         this,
@@ -227,7 +228,7 @@ class QueryEngine {
         const r = [];
         const branches = this.rDB.tables.branches;
 
-        for await (let branch of branches.findByIndex({state: 'yes'})) {
+        for await (let branch of branches.findByIndex({branchID: 'ROOT', state: 'yes'})) {
             r.push(branch);
         }
 
