@@ -228,7 +228,8 @@ class QueryEngine {
         const r = [];
         const branches = this.rDB.tables.branches;
 
-        for await (let branch of branches.findByIndex({branchID: 'ROOT', state: 'yes'})) {
+        for await (let branch of branches.findByIndex({branchID: 'ROOT'})) {
+            console.log(await branch.data.state);
             r.push(branch);
         }
 

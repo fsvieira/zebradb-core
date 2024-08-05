@@ -82,7 +82,7 @@ async function createMaterializedSet (
 
 
     let elements = ctx.rDB.iSet();
-    if (!expression) {
+    if (!expression && size !== -1) {
         for (let i=0; i<setElements.length; i++) {
             const elementID = setElements[i];
             const element = await getVarname(elementID, extendSets);
@@ -101,7 +101,7 @@ async function createMaterializedSet (
         id: vn,
         elements,
         defID: v.cid,
-        definition: expression ? definitionElement : null,
+        definition: definitionElement, // expression ? definitionElement : null,
         domain: domainID,
         uniqueMap: ctx.rDB.iMap(),
         matrix: {

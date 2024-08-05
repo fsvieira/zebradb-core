@@ -21,6 +21,7 @@ class BranchDB {
             .key('branchID')
             .index('head')
             .index('state')
+            .index('branchID', 'state')
             .save();
     }
 

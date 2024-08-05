@@ -1051,7 +1051,6 @@ async function copy (destCtxA, srcCtxB, id, done=new Set()) {
                     data.push(await copy(destCtxA, srcCtxB, dataB.data[i], done));
                 }
 
-
                 await destCtxA.setVariableValue(id, {
                     ...dataB, 
                     data,
@@ -1163,6 +1162,90 @@ async function execute (destCtxA, srcCtxB, cmds) {
     }
 }*/
 
+async function __createSetElement (branchCtx, setID, createBranch=true) {
+    const set = await branchCtx.getVariable(setID);
+    const definitionElement = set.definition;
+    const {root, variables} = definitionElement;
+
+    let elements = set.elements;
+
+    const [elID] = variables[root].elements;
+
+    const elementCtx = createBranch ? await branchCtx.createBranch() : branchCtx;
+
+    const elementID = await copyPartialTerm(
+        elementCtx, 
+        definitionElement, 
+        elID,
+        true, // extendSets,
+        true
+    );
+
+    if (createBranch) {
+        branchCtx.state = 'processing';
+        branchCtx.actions = [{
+            cmd: 'copy', 
+            branch: elementCtx.branch, 
+            elementID,
+            in: setID
+        }];
+        
+        await branchCtx.commit();
+    
+        elementCtx.state = 'process';
+        elementCtx.actions = [{cmd: 'eval', elementID}];
+        await elementCtx.commit();
+    }
+    else {
+        elements = await elements.add(elementID);
+        await branchCtx.setVariableValue(set.id, {
+            ...set,
+            elements
+        });
+
+        await branchCtx.commit();
+    }
+}
+
+async function createDomainSetElements (branchCtx, setID) {
+    console.log("TODO: domains should also be evaluated or proof that exists.");
+
+    const set = await branchCtx.getVariable(setID);
+
+    const size = await set.elements.size;
+    if (set.size === size) {
+        // nothing to do.
+        return;
+    }
+
+    const definitionElement = set.definition;
+    const {root, variables} = definitionElement;
+
+    const defElements = variables[root].elements;
+    let elements = set.elements;
+    for (let i=0; i<defElements.length; i++) {
+        const elID = defElements[i];
+
+        const elementID = await copyPartialTerm(
+            branchCtx, 
+            definitionElement, 
+            elID,
+            true, // extendSets,
+            true
+        );
+
+        elements = await elements.add(elementID);
+    }
+
+    await branchCtx.setVariableValue(set.id, {
+        ...set,
+        elements
+    });
+
+    await branchCtx.commit();
+}
+
+
 async function createSetElement (branchCtx, setID) {
     const set = await branchCtx.getVariable(setID);
     const definitionElement = set.definition;
@@ -1187,9 +1270,9 @@ async function createSetElement (branchCtx, setID) {
         elementID,
         in: setID
     }];
-    
+        
     await branchCtx.commit();
-
+    
     elementCtx.state = 'process';
     elementCtx.actions = [{cmd: 'eval', elementID}];
     await elementCtx.commit();
@@ -1202,7 +1285,7 @@ async function eval (branchCtx, elementID) {
         // solve domain,
 
         if (e.type === constants.type.LOCAL_VAR
-            && !(e.constraints || await e.constraints.size)
+            && !(e.constraints ? await e.constraints.size : false)
         ) {
             // nothing to do!
             branchCtx.state = 'yes';
@@ -1212,6 +1295,9 @@ async function eval (branchCtx, elementID) {
 
         let valueCtx; 
         const domain = {elementID, valueBranches: [], values: []};
+
+        await createDomainSetElements(branchCtx, e.domain);
+
         const d = await branchCtx.getVariable(e.domain);
 
         for await (let dID of d.elements.values()) {
@@ -1262,11 +1348,33 @@ async function eval (branchCtx, elementID) {
                 break;
             }
 
-            case constants.type.CONSTANT: 
+            case constants.type.CONSTANT: {
                 branchCtx.state = 'yes';
                 await branchCtx.commit();
                 break;
-            ;
+            }
+
+            case constants.type.MATERIALIZED_SET: {
+                console.log(e);
+                const size = await e.elements.size;
+                if (size > 0) {
+                    const actions = [];
+                    for await (let eID of e.elements.values()) {
+                        actions.push({cmd: 'eval', elementID: eID});
+                    }
+
+                    branchCtx.actions = actions;
+                }
+                else {
+                    branchCtx.actions = [{cmd: 'create-element', elementID}];
+                }
+
+                branchCtx.state = 'process';
+                await branchCtx.commit();
+
+                break;
+            }
+
 
             default:
                 throw 'EVAL IS NOT DEFINED FOR TYPE : ' + e.type;
@@ -1276,6 +1384,8 @@ async function eval (branchCtx, elementID) {
 }
 
 async function process (cmd, branchCtx) {
+
+    console.log("COMMAND", cmd);
 
     switch (cmd.cmd) {
         case 'create-element': {
@@ -1334,7 +1444,7 @@ async function process (cmd, branchCtx) {
                 }
             }
 
-            if (valueBranches.length < cmd.valueBranches.length) {
+            if (valueBranches.length === 0 || valueBranches.length < cmd.valueBranches.length) {
                 if (valueBranches.length === 0) {
                     // nothing else to do,
                     branchCtx.actions = [];
@@ -1432,8 +1542,18 @@ async function process (cmd, branchCtx) {
                 await branchCtx.commit();
             }
             else if (state === 'no') {
-                branchCtx.stte = 'no';
+                branchCtx.state = 'no';
                 branchCtx.actions = [];
+
+                if (cmd.in) {
+                    const set = await branchCtx.getVariable(cmd.in);
+
+                    await branchCtx.setVariableValue(set.id, {
+                        ...set, 
+                        elements: branchCtx.rDB.iSet()
+                    });
+                }
+
                 await branchCtx.commit();
             }
 
