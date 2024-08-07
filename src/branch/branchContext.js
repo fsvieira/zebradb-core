@@ -60,6 +60,7 @@ class BranchContext {
             // groupState: await p('groupState', null),
             // groups: await p('groups', rDB.iMap()),
             // version: await p('version', 1)
+            graph: await p('graph', {})
         };
 
         return newCtx;
@@ -201,11 +202,20 @@ class BranchContext {
 
     // === Actions ===
     set actions (value) {
-        this._ctx.actions = value;  
+        this._ctx.actions = value;
     }
 
     get actions () {
         return this._ctx.actions;
+    }
+
+    // === graph === 
+    set graph (value) {
+        this._ctx.graph = value;
+    }
+
+    get graph () {
+        return this._ctx.graph;
     }
 
     // === definitions DB ===

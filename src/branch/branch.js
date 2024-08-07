@@ -1245,37 +1245,91 @@ async function createDomainSetElements (branchCtx, setID) {
     await branchCtx.commit();
 }
 
+async function updateGraph (branchCtx, elementID) {
+    let actions = branchCtx.graph.actions;
+    if (!(await actions.has(elementID))) {
+        const e = await branchCtx.getVariable(elementID);
+        actions = await actions.set(elementID, {
+            cmd: 'eval',
+            elementID,
+            deps: e.domain ? [e.domain]: undefined
+        });
 
-async function createSetElement (branchCtx, setID) {
+        branchCtx.graph = {
+            ...branchCtx.graph,
+            actions
+        };
+
+        /*
+        let deps = [];
+        if (e.domain) {
+            deps.push(e.domain);
+        }
+
+        switch (e.type) {
+            case constants.type.TUPLE: {
+                for (let i=0; i<e.data.length; i++) {
+                    const vID = e.data[i];
+                    deps.push(vID);
+                    await updateGraph(branchCtx, vID);
+                }
+
+                actions = await actions.set(elementID, {
+                    cmd: 'eval',
+                    elementID,
+                    deps
+                });
+            }
+        }*/
+        
+        console.log(e);
+    }
+}
+
+async function createSetElements (branchCtx, setID) {
     const set = await branchCtx.getVariable(setID);
     const definitionElement = set.definition;
     const {root, variables} = definitionElement;
 
-    const [elID] = variables[root].elements;
+    // const [elID] = variables[root].elements;
 
-    const elementCtx = await branchCtx.createBranch();
+    const elements = variables[root].elements;
+    const branches = [];
+    for (let i=0; i<elements.length; i++) {
+        const elementCtx = await branchCtx.createBranch();
+        const elID = elements[i];
 
-    const elementID = await copyPartialTerm(
-        elementCtx, 
-        definitionElement, 
-        elID,
-        true, // extendSets,
-        true
-    );
+        const elementID = await copyPartialTerm(
+            elementCtx, 
+            definitionElement, 
+            elID,
+            true, // extendSets,
+            true
+        );
 
-    branchCtx.state = 'processing';
-    branchCtx.actions = [{
-        cmd: 'copy', 
-        branch: elementCtx.branch, 
-        elementID,
-        in: setID
-    }];
+        elementCtx.state = 'process';
+        await updateGraph(elementCtx, elementID);
+        elementCtx.graph.result = elementID;
+        await elementCtx.commit();
+
+        branches.push(elementCtx.branch);
+
+        /*branchCtx.state = 'processing';
+        branchCtx.actions = [{
+            cmd: 'copy', 
+            branch: elementCtx.branch, 
+            elementID,
+            in: setID
+        }];*/
+    }
         
-    await branchCtx.commit();
+    // await branchCtx.commit();
     
-    elementCtx.state = 'process';
+    /*elementCtx.state = 'process';
     elementCtx.actions = [{cmd: 'eval', elementID}];
-    await elementCtx.commit();
+    await elementCtx.commit();*/
+
+    return branches;
 }
 
 async function eval (branchCtx, elementID) {
@@ -1383,6 +1437,7 @@ async function eval (branchCtx, elementID) {
 
 }
 
+/*
 async function process (cmd, branchCtx) {
 
     console.log("COMMAND", cmd);
@@ -1564,6 +1619,57 @@ async function process (cmd, branchCtx) {
             console.log(cmd);
             throw 'Unkown Command ' + cmd.cmd;
     }
+}*/
+
+async function process (action, branchCtx) {
+    switch (action.cmd) {
+        case 'in': {
+            if (action.branches) {
+                const branches = [];
+                for (let i=0; i<action.branches.length; i++) {
+                    const branch = action.branches[i];
+
+                    const state = await branch.data.state;
+                    if (['yes', 'no'].includes(state)) {
+                        if (state === 'yes') {
+                            const elementID = await branch.data.graph.result;
+
+                            const srcCtx = await BranchContext.create(
+                                branch, 
+                                branchCtx.branchDB, 
+                                branchCtx.options, 
+                                branchCtx.definitionsDB, 
+                                branchCtx.rDB
+                            );
+    
+                            const id = await copy(branchCtx, srcCtx, elementID);
+                            values.push(id);
+                        }
+                    }
+                    else {
+                        branches.push(branch);
+                    }
+                }
+            }
+            else {
+                // start branch elements
+                action.branches = await createSetElements(branchCtx, action.setID);
+            }
+
+            break;
+        }
+
+        default:
+            console.log(action);
+            throw 'Unkown Command ' + action.cmd;
+    }
+}
+
+async function executeActions (branchCtx, id=branchCtx.graph.result) {
+    const graph = branchCtx.graph;
+    const action = await graph.actions.get(id);
+
+    await process(action, branchCtx);
 }
 
 async function run (qe, branch) {
@@ -1575,11 +1681,15 @@ async function run (qe, branch) {
         qe.rDB
     );
 
-    const [cmd] = branchCtx.actions;
+    await executeActions(branchCtx);
+    branchCtx.state = 'processing';
+    await branchCtx.commit();
+
+    /*const [cmd] = branchCtx.actions;
 
     if (cmd) {
         await process(cmd, branchCtx);
-    }
+    }*/
 }
 
 async function _new_run (qe) {

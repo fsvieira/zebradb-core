@@ -45,7 +45,13 @@ const query = async (qe, definitionElement) => {
 
     rootCtx.root = setID;
     // rootCtx.actions = [{cmd: 'create-element', elementID: rootCtx.root}];
-    rootCtx.actions = [{cmd: 'eval', elementID: rootCtx.root}];
+    // rootCtx.actions = [{cmd: 'eval', elementID: rootCtx.root}];
+    const actions = await rootCtx.rDB.iMap().set(setID, {cmd: 'in', setID});
+    rootCtx.graph = {
+        actions,
+        result: setID
+    };
+
     rootCtx.state = 'process';
 
     await rootCtx.commit();

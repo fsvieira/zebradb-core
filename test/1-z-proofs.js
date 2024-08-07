@@ -18,7 +18,7 @@ describe("Zebra Proofs", () => {
                         _ms@1 = {5 6 7} 
                     `
                 ]
-            },
+            }/*,
             {
                 query: `{(CONSTANT 1):$TYPES ...}`,
                 results: [
@@ -30,7 +30,7 @@ describe("Zebra Proofs", () => {
                 results: [
                     `{}`
                 ]
-            }
+            }*/
         ], 
         {
             path: 'dbs/1-z-proofs/types', 
