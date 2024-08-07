@@ -1249,6 +1249,38 @@ async function updateGraph (branchCtx, elementID) {
     let actions = branchCtx.graph.actions;
     if (!(await actions.has(elementID))) {
         const e = await branchCtx.getVariable(elementID);
+
+        if (e.domain) {
+            branchCtx.graph.actions = actions = await actions.set(elementID, {
+                cmd: 'unify-domain',
+                elementID,
+                deps: [e.domain]
+            });
+
+            await updateGraph(branchCtx, e.domain);
+        }
+        else {
+            switch (e.type) {
+                case constants.type.MATERIALIZED_SET: {
+                    branchCtx.graph.actions = actions = await actions.set(elementID, {
+                        cmd: 'in',
+                        setID: elementID
+                    });
+
+                    break;
+                }
+
+                default:
+                    throw 'updateGraph ' + e.type + ' is not defined';
+            }
+        }
+
+        /*branchCtx.graph = {
+            ...branchCtx.graph,
+            actions
+        };*/
+
+        /*
         actions = await actions.set(elementID, {
             cmd: 'eval',
             elementID,
@@ -1260,6 +1292,10 @@ async function updateGraph (branchCtx, elementID) {
             actions
         };
 
+        if (e.domain) {
+            await updateGraph(branchCtx, e.domain);
+        }
+        */
         /*
         let deps = [];
         if (e.domain) {
@@ -1309,6 +1345,10 @@ async function createSetElements (branchCtx, setID) {
 
         elementCtx.state = 'process';
         await updateGraph(elementCtx, elementID);
+
+        const actionsStr = await elementCtx.graph.actions.toArray();
+        console.log(actionsStr);
+
         elementCtx.graph.result = elementID;
         await elementCtx.commit();
 
@@ -1659,6 +1699,10 @@ async function process (action, branchCtx) {
             break;
         }
 
+        case 'eval': {
+            await eval(branchCtx, action.elementID);
+        }
+
         default:
             console.log(action);
             throw 'Unkown Command ' + action.cmd;
@@ -1669,7 +1713,24 @@ async function executeActions (branchCtx, id=branchCtx.graph.result) {
     const graph = branchCtx.graph;
     const action = await graph.actions.get(id);
 
-    await process(action, branchCtx);
+    if (action.done) {
+        return true;
+    }
+
+    let done = true;
+    if (action.deps) {
+        for (let i=0; i<action.deps.length; i++) {
+            const id = action.deps[i];
+            done = done && await executeActions(branchCtx, id);
+        }
+    }
+    
+    if (done) {
+        await process(action, branchCtx);
+    }
+
+    return false;
+    
 }
 
 async function run (qe, branch) {
