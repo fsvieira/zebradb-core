@@ -33,7 +33,7 @@ class BranchContext {
             return ctx[field] 
                 || (
                     commit ? await commit.data[field] : defaultValue
-                )
+                );
         };
 
         const newCtx = {

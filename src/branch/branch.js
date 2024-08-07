@@ -1251,24 +1251,65 @@ async function updateGraph (branchCtx, elementID) {
         const e = await branchCtx.getVariable(elementID);
 
         if (e.domain) {
-            branchCtx.graph.actions = actions = await actions.set(elementID, {
+            actions = await actions.set(elementID, {
                 cmd: 'unify-domain',
                 elementID,
                 deps: [e.domain]
             });
 
+            branchCtx.graph = {
+                ...branchCtx.graph,
+                actions
+            };
+
             await updateGraph(branchCtx, e.domain);
+
+            return elementID;
         }
         else {
             switch (e.type) {
                 case constants.type.MATERIALIZED_SET: {
-                    branchCtx.graph.actions = actions = await actions.set(elementID, {
+                    actions = await actions.set(elementID, {
                         cmd: 'in',
                         setID: elementID
                     });
 
-                    break;
+                    branchCtx.graph = {
+                        ...branchCtx.graph,
+                        actions
+                    };
+        
+                    return elementID;
                 }
+
+                case constants.type.TUPLE: {
+
+                    const deps = [];
+                    for (let i=0; i<e.data.length; i++) {
+                        const id = await updateGraph(branchCtx, e.data[i]);
+                        if (id) {
+                            deps.push(id);
+                        }
+                    }
+
+                    if (deps.length) {
+                        actions = await branchCtx.graph.actions.set(elementID, {
+                            cmd: 'tuple-check',
+                            elementID,
+                            deps
+                        });
+            
+                        branchCtx.graph = {
+                            ...branchCtx.graph,
+                            actions
+                        };
+            
+                        return elementID;
+                    }
+                }
+
+                case constants.type.CONSTANT: 
+                    return;
 
                 default:
                     throw 'updateGraph ' + e.type + ' is not defined';
@@ -1317,8 +1358,6 @@ async function updateGraph (branchCtx, elementID) {
                 });
             }
         }*/
-        
-        console.log(e);
     }
 }
 
@@ -1372,6 +1411,7 @@ async function createSetElements (branchCtx, setID) {
     return branches;
 }
 
+/*
 async function eval (branchCtx, elementID) {
     const e = await branchCtx.getVariable(elementID);
 
@@ -1474,8 +1514,7 @@ async function eval (branchCtx, elementID) {
                 throw 'EVAL IS NOT DEFINED FOR TYPE : ' + e.type;
         }
     }
-
-}
+}*/
 
 /*
 async function process (cmd, branchCtx) {
@@ -1693,15 +1732,27 @@ async function process (action, branchCtx) {
             }
             else {
                 // start branch elements
-                action.branches = await createSetElements(branchCtx, action.setID);
+                const branches = await createSetElements(branchCtx, action.setID);
+                const actions = await branchCtx.graph.actions.set(
+                    action.setID,
+                    {...action, branches}
+                );
+
+                branchCtx.graph = {
+                    ...branchCtx.graph,
+                    actions
+                };
+
+                await branchCtx.commit();
             }
 
             break;
         }
 
-        case 'eval': {
+        /*case 'eval': {
             await eval(branchCtx, action.elementID);
-        }
+            break;
+        }*/
 
         default:
             console.log(action);
@@ -1711,7 +1762,17 @@ async function process (action, branchCtx) {
 
 async function executeActions (branchCtx, id=branchCtx.graph.result) {
     const graph = branchCtx.graph;
-    const action = await graph.actions.get(id);
+
+    let action = await graph.actions.get(id);
+
+    if (!action) {
+        console.log("---->", graph, await graph.actions.toArray());
+        const v = await branchCtx.getVariable(id);
+
+        console.log(v);
+        throw 'Why Variable is not defined here! ';
+    }
+
 
     if (action.done) {
         return true;
