@@ -85,7 +85,7 @@ function termConstraints (ctx, exp) {
 function getElementVariables (v, vars=[], dups={}) {
     switch (v.type) {
         case TUPLE: {
-            for (i=0; i<v.data.length; i++) {
+            for (let i=0; i<v.data.length; i++) {
                 getElementVariables(v.data[i], vars, dups);
             }
 

@@ -1481,6 +1481,88 @@ async function processActionTupleElements (branchCtx, action) {
 
 }
 
+async function analyseTuple (branchCtx, v) {
+    const branches = [];
+    
+    for (let i=0; i<v.data.length; i++) {
+        const eID = v.data[i];
+        const e = await branchCtx.getVariable(eID);
+
+        switch (e.type) {
+            case constants.type.LOCAL_VAR: {
+                if (e.domain) {
+                    const elementCtx = await branchCtx.createBranch();
+                    elementCtx.state = 'process';
+                    elementCtx.result = e.id;
+                    await processElementDomain(elementCtx, e);
+                    await elementCtx.commit();
+                    branches.push(elementCtx.branch);
+                }
+
+                break;
+            }
+
+            case constants.type.TUPLE: {
+                if (e.domain) {
+                    const elementCtx = await branchCtx.createBranch();
+                    elementCtx.state = 'process';
+                    elementCtx.result = e.id;
+                    await processElementDomain(elementCtx, e);
+                    await elementCtx.commit();
+                    branches.push(elementCtx.branch);
+                }
+                else {
+                    const tupleBranches = await analyseTuple(branchCtx, e);
+                    branches.push(...tupleBranches);
+                }
+
+                break;
+            }
+
+            case constants.type.CONSTANT:
+                break;
+
+            default:
+                throw 'processActionEval: tuple element unknown type ' + e.type;
+        }
+    }
+
+    return branches;
+}
+
+async function analyseElement (branchCtx, elementID, v) {
+    switch (v.type) {
+        case constants.type.TUPLE: {
+            const branches = await analyseTuple(branchCtx, v);
+
+            if (branches.length) {
+                branchCtx.actions = {
+                    cmd: 'tuple-elements', 
+                    branches,
+                    elementID
+                };
+
+                await branchCtx.commit();
+            }
+            else {
+                branchCtx.state = 'yes';
+                await branchCtx.commit();
+            }
+
+            break;
+        }
+
+        case constants.type.CONSTANT: 
+            branchCtx.state = 'yes';
+            await branchCtx.commit();
+            break;
+
+        default: 
+            console.log(v);
+            throw 'processActionEval : Unknown element type ' + v.type;
+    }
+}
+
 async function processActionEval (branchCtx, action) {
     const {elementID, branch} = action;
 
@@ -1521,61 +1603,7 @@ async function processActionEval (branchCtx, action) {
         return await processElementDomain(branchCtx, v);
     }
     else {
-        switch (v.type) {
-            case constants.type.TUPLE: {
-                const branches = [];
-                for (let i=0; i<v.data.length; i++) {
-                    const eID = v.data[i];
-                    const e = await branchCtx.getVariable(eID);
-
-                    switch (e.type) {
-                        case constants.type.LOCAL_VAR: {
-                            if (e.domain) {
-                                const elementCtx = await branchCtx.createBranch();
-                                elementCtx.state = 'process';
-                                elementCtx.result = e.id;
-                                await processElementDomain(elementCtx, e);
-                                await elementCtx.commit();
-                                branches.push(elementCtx.branch);
-                            }
-                        }
-
-                        case constants.type.CONSTANT:
-                            break;
-
-                        default:
-                            throw 'processActionEval: tuple element unknown type ' + e.type;
-                    }
-                }
-
-                if (branches.length) {
-                    branchCtx.actions = {
-                        cmd: 'tuple-elements', 
-                        branches,
-                        elementID
-                    };
-
-                    await branchCtx.commit();
-                }
-                else {
-                    branchCtx.state = 'yes';
-                    await branchCtx.commit();
-                }
-
-                break;
-            }
-
-            case constants.type.CONSTANT: 
-                branchCtx.state = 'yes';
-                await branchCtx.commit();
-                break;
-
-            default: 
-                console.log(v);
-                throw 'processActionEval : Unknown element type ' + v.type;
-        }
-
-        
+        return await analyseElement(branchCtx, elementID, v);
     }
 }
 
@@ -1605,7 +1633,6 @@ async function processActionUnify (branchCtx, action) {
 async function processAction (branchCtx) {
     const action = branchCtx.actions;
 
-    console.log(action, await branchCtx.toString(branchCtx.result));
     switch (action.cmd) {
         case 'in': {
             return processActionIn(branchCtx, action);

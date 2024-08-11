@@ -45,6 +45,44 @@ describe("Zebra Proofs", () => {
         }
     ));
 
+    it ("Constants Unify", test (`
+        $TYPES = {
+            (CONSTANT 'c) ...
+        }
+
+        $UNIFY_CONSTANT = {((CONSTANT 'c):$TYPES unify (CONSTANT 'c):$TYPES -> (CONSTANT 'c):$TYPES) ...}
+    `,
+        [
+            {
+                query: `{((CONSTANT 'c) unify (CONSTANT 'c) -> (CONSTANT 1)):$UNIFY_CONSTANT ... }`,
+                results: [
+                    `
+                    {((CONSTANT 1) -> (CONSTANT 1) -> (CONSTANT 1)):_ms@1...} 
+                    
+                    # == Domains == 
+                    _ms@1 = {...}
+                    `
+                ]
+            },
+            {
+                query: `{((CONSTANT 2) unify (CONSTANT 'c) -> (CONSTANT 1)):$UNIFY_CONSTANT ... }`,
+                results: [`{}`]
+            },
+            {
+                query: `{
+                    ((CONSTANT 'a) unify (CONSTANT 'b) -> (CONSTANT 'c)):$UNIFY_CONSTANT 
+                    | 'a != 'b 
+                }`,
+                results: [`{}`]
+            }
+        ], 
+        {
+            path: 'dbs/1-z-proofs/types', 
+            timeout: 1000 * 60 * 60,
+            log: true
+        }
+    ));
+
     xit("Types", test(`
         $TUPLE_BODY = {nil (0 'e:$TYPES nil) ...} union {('n 'e:$TYPES ('n1 ' '):$TUPLES_BODY) | 'n > 0 and 'n1 = 'n - 1, 'n = 'n1 + 1}
 
@@ -57,9 +95,13 @@ describe("Zebra Proofs", () => {
     `,
         [
             {
-                query: `{ (CONSTANT 1 2):$TYPES ... }`,
+                query: `{ (CONSTANT 1):$TYPES ... }`,
                 results: [
-                    "@(2 = 1 + 1)" 
+                    `{(CONSTANT 1):_ms@1...} 
+                    
+                    # == Domains == 
+                    _ms@1 = {...}
+                    ` 
                 ]
             }
         ], 
