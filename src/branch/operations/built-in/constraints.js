@@ -59,27 +59,42 @@ async function intersectDomains(ctx, a, b) {
             return a.domain;
         }
         else {
-            throw 'UPDATE THIS!!';
             const domainA = await ctx.getVariable(a.domain); 
             const domainB = await ctx.getVariable(b.domain); 
 
-            if (domainA.type === SET && domainB.type === SET) {
-                const elements = domainA.elements.filter(v => domainB.elements.includes(v));
-                
-                if (elements.length === 0) {
+            if (domainA.type === MATERIALIZED_SET && domainB.type === MATERIALIZED_SET) {
+                const elementsA = [];
+                let elements = ctx.rDB.iSet();
+
+                for await (let eID of domainA.elements.values()) {
+                    const v = await ctx.getVariable(eID);
+                    elementsA.push(v.id);
+                }
+
+                for await (let eID of domainB.elements.values()) {
+                    const v = await ctx.getVariable(eID);
+                    if (elementsA.includes(v.id)) {
+                        elements = await elements.add(v.id);
+                    }
+                }
+
+                // const elementsIDs = domainA.elements.filter(v => domainB.elements.includes(v));
+                const size = await elements.size;
+                if (size === 0) {
                     return null;
                 }
 
                 const id = ctx.newVar();
                 const s = {
-                    type: SET,
+                    type: MATERIALIZED_SET,
                     elements,
                     id,
-                    size: elements.length
+                    size
                 };
 
-                ctx.variables = await ctx.variables.set(id, s);
+               //  ctx.variables = await ctx.variables.set(id, s);
 
+                await ctx.setVariableValue(id, s);
                 return id;
             }
             else {

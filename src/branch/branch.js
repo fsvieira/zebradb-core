@@ -1247,8 +1247,13 @@ async function createDomainSetElements (branchCtx, setID) {
 
 async function processActionIn (branchCtx, action) {
     const {branches, setID} = action;
+    const set = await branchCtx.getVariable(setID);
+    let elements = set.elements;
+
     if (branches) {
         const nextBranches = [];
+        let updateSet = false;
+
         for (let i=0; i<branches.length; i++) {
             const branch = branches[i];
             const elementCtx = await BranchContext.create(
@@ -1262,11 +1267,28 @@ async function processActionIn (branchCtx, action) {
             const state = elementCtx.state;
 
             if (state === 'yes') {
-                throw 'processActionIn : put element on set';
+                const id = await copy(branchCtx, elementCtx, elementCtx.result);
+                elements = await elements.add(id);
+                updateSet = true;
             }
             else if (state !== 'no') {
                 nextBranches.push(branch);
             }
+        }
+
+        if (updateSet) {
+            let size = set.size;
+            if (action.sizeElementsEval) {
+                size = await elements.size;
+            }
+
+            await branchCtx.setVariableValue(set.id, {
+                ...set,
+                elements,
+                size
+            });
+
+            console.log("SET", await branchCtx.toString(set.id));
         }
 
         if (nextBranches.length) {
@@ -1274,12 +1296,12 @@ async function processActionIn (branchCtx, action) {
                 ...branchCtx.actions,
                 branches: nextBranches
             }
-
-            await branchCtx.commit();                
         }
         else {
-            throw 'THERE IS NO MORE BRANCHES TO SOLVE!!';
+            branchCtx.state = 'yes';
         }
+
+        await branchCtx.commit();
        
     }
     else {
@@ -1331,6 +1353,13 @@ async function processElementDomain (branchCtx, element) {
     const set = await branchCtx.getVariable(element.domain);
 
     const definitionElement = set.definition;
+
+    if (!definitionElement) {
+        console.log(await branchCtx.toString(element.id));
+        // throw 'NO DEFS';
+        return;
+    }
+
     const {root, variables} = definitionElement;
 
     const defElements = variables[root].elements;
@@ -1362,14 +1391,86 @@ async function processElementDomain (branchCtx, element) {
         branches.push(elementCtx.branch);
     }
 
-    if (branches.length === 1) {
+    if (branches.length === 0) {
+        branchCtx.state = 'no';
+        await branchCtx.commit();
+    }
+    else if (branches.length === 1) {
         branchCtx.actions = {cmd: 'eval', branch: branches[0]};
         await branchCtx.commit();
     }
     else {
-        throw 'CREATE ELEMENT DOMAIN';
+        const domainID = branchCtx.newVar();
+
+        const domainSet = {
+            type: constants.type.MATERIALIZED_SET,
+            id: domainID,
+            elements: branchCtx.rDB.iSet(),
+            size: -1
+        };
+    
+        
+        await branchCtx.setVariableValue(domainID, domainSet);
+        await branchCtx.setVariableValue(element.id, {...element, domain: domainID});
+        
+        branchCtx.actions = {
+            cmd: 'in', 
+            branches, 
+            sizeElementsEval: true,
+            setID: domainID
+        };
+
+        await branchCtx.commit();
     }
 } 
+
+async function processActionTupleElements (branchCtx, action) {
+    const branches = [];
+
+    for (let i=0; i<action.branches.length; i++) {
+        const branch = action.branches[i];
+
+        const elementCtx = await BranchContext.create(
+            branch, 
+            branchCtx.branchDB, 
+            branchCtx.options, 
+            branchCtx.db, 
+            branchCtx.rDB
+        );
+
+        const state = elementCtx.state;
+
+        if (state === 'yes') {
+            // copy element, 
+            const id = await copy(branchCtx, elementCtx, elementCtx.result);
+
+            /*
+            const a = await branchCtx.toString(id);
+            const b = await branchCtx.toString(elementCtx.result);
+            
+            console.log("--->", a, b);
+            throw 'TODO: Should Unify ??'*/
+        }
+        else if (state === 'no') {
+            branchCtx.state = 'no';
+            await branchCtx.commit();
+            return;
+        }
+        else {
+            branches.push(branch);
+        }
+    }
+
+    if (branches.length) {
+        branchCtx.actions = {...branchCtx.actions, branches};
+    }
+    else {
+        branchCtx.state = 'yes';
+    }
+
+    await branchCtx.commit();
+
+}
 
 async function processActionEval (branchCtx, action) {
     const {elementID, branch} = action;
@@ -1391,7 +1492,8 @@ async function processActionEval (branchCtx, action) {
                 elementCtx.result
             );
 
-            branchCtx.actions = {cmd: 'eval', elementID};
+            // branchCtx.actions = {cmd: 'eval', elementID};
+            branchCtx.state = 'yes';
             await branchCtx.commit();
         }
         else if (state === 'no') {
@@ -1420,7 +1522,12 @@ async function processActionEval (branchCtx, action) {
                     switch (e.type) {
                         case constants.type.LOCAL_VAR: {
                             if (e.domain) {
-                                await processElementDomain(branchCtx, v);
+                                const elementCtx = await branchCtx.createBranch();
+                                elementCtx.state = 'process';
+                                elementCtx.result = e.id;
+                                await processElementDomain(elementCtx, e);
+                                await elementCtx.commit();
+                                branches.push(elementCtx.branch);
                             }
                         }
 
@@ -1430,11 +1537,29 @@ async function processActionEval (branchCtx, action) {
                         default:
                             throw 'processActionEval: tuple element unknown type ' + e.type;
                     }
-
                 }
 
-                throw 'Create branches for each element to be evaluated!';
+                if (branches.length) {
+                    branchCtx.actions = {
+                        cmd: 'tuple-elements', 
+                        branches,
+                        elementID
+                    };
+
+                    await branchCtx.commit();
+                }
+                else {
+                    branchCtx.state = 'yes';
+                    await branchCtx.commit();
+                }
+
+                break;
             }
+
+            case constants.type.CONSTANT: 
+                branchCtx.state = 'yes';
+                await branchCtx.commit();
+                break;
 
             default: 
                 console.log(v);
@@ -1459,7 +1584,7 @@ async function processActionUnify (branchCtx, action) {
             });
         }
 
-        branchCtx.actions = {cmd: 'eval', elementID: a};
+        branchCtx.actions = {cmd: 'eval', elementID: b};
     }
     else {
         branchCtx.state = 'no';
@@ -1471,7 +1596,7 @@ async function processActionUnify (branchCtx, action) {
 async function processAction (branchCtx) {
     const action = branchCtx.actions;
 
-    console.log(action);
+    console.log(action, await branchCtx.toString(branchCtx.result));
     switch (action.cmd) {
         case 'in': {
             return processActionIn(branchCtx, action);
@@ -1483,6 +1608,10 @@ async function processAction (branchCtx) {
 
         case 'unify': {
             return processActionUnify(branchCtx, action);
+        }
+
+        case 'tuple-elements': {
+            return processActionTupleElements(branchCtx, action);
         }
 
         default: 
