@@ -13,16 +13,22 @@ describe("Zebra Proofs", () => {
             {
                 query: `{(CONSTANT 'x):$TYPES | 'x > 4, 'x < 8}`,
                 results: [
-                    `{(CONSTANT 'x:_ms@1)...} 
+                    `{(CONSTANT 'c:_ms@2):_ms@1...} 
+                    
                     # == Domains == 
-                        _ms@1 = {5 6 7} 
+                    _ms@1 = {...} 
+                    _ms@2 = {5 6 7}
                     `
                 ]
-            }/*,
+            },
             {
                 query: `{(CONSTANT 1):$TYPES ...}`,
                 results: [
-                    `{(CONSTANT 1)...}`
+                    `{(CONSTANT 1):_ms@1...} 
+                    
+                    # == Domains == 
+                    _ms@1 = {...}
+                    `
                 ]
             },
             {
@@ -30,7 +36,7 @@ describe("Zebra Proofs", () => {
                 results: [
                     `{}`
                 ]
-            }*/
+            }
         ], 
         {
             path: 'dbs/1-z-proofs/types', 

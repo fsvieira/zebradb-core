@@ -1298,6 +1298,15 @@ async function processActionIn (branchCtx, action) {
             }
         }
         else {
+            // check elements in set,
+            const size = await elements.size;
+            if (size === 0) {
+                await branchCtx.setVariableValue(set.id, {
+                    ...set,
+                    size: 0
+                });
+            }
+
             branchCtx.state = 'yes';
         }
 
