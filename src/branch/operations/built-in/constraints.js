@@ -206,6 +206,15 @@ async function setVariableLocalVarLocalVar (ctx, v, p) {
     // ctx.variables = await ctx.variables.set(b.id, {...b, defer: a.id});
     await ctx.setVariableValue(b.id, {...b, defer: a.id});
 
+    const ca = await ctx.getVariable(a.id);
+    if (ca.constraints) {
+        const r = await checkVariableConstraints(ctx, ca);
+
+        if (r === false) {
+            return r;
+        }
+    }
+
     return true;
 }
 
