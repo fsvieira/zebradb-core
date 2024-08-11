@@ -40,6 +40,7 @@ class BranchContext {
             // branchID: ctx.branchID,
             // parent: branch || null,
             root: await p('root'),
+            result: await p('result'),
             // level: await p('level', 0) + 1,
             // setsInDomains: await p('setsInDomains', rDB.iSet()),
             // checked: await p('checked', rDB.iSet()),
@@ -54,13 +55,13 @@ class BranchContext {
             // children: [],
             log: await p('log', rDB.iArray()),
             // actions: await p('actions', rDB.iArray()),
-            actions: await p('actions', []),
+            actions: await p('actions'),
             state: await p('state', 'start'),
             // group: await p('group', null),
             // groupState: await p('groupState', null),
             // groups: await p('groups', rDB.iMap()),
             // version: await p('version', 1)
-            graph: await p('graph', {})
+            // graph: await p('graph', {})
         };
 
         return newCtx;
@@ -106,13 +107,23 @@ class BranchContext {
         );
     }
 
-    // root
+    // === root ===
     get root () {
         return this._ctx.root;
     }
 
     set root (id) {
         this._ctx.root = id;
+        return this;
+    }
+
+    // === result ===
+    get result () {
+        return this._ctx.result;
+    }
+
+    set result (id) {
+        this._ctx.result = id;
         return this;
     }
 
@@ -209,6 +220,8 @@ class BranchContext {
         return this._ctx.actions;
     }
 
+    
+    /*
     // === graph === 
     set graph (value) {
         this._ctx.graph = value;
@@ -216,7 +229,7 @@ class BranchContext {
 
     get graph () {
         return this._ctx.graph;
-    }
+    }*/
 
     // === definitions DB ===
     async search (v) {

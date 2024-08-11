@@ -46,11 +46,14 @@ const query = async (qe, definitionElement) => {
     rootCtx.root = setID;
     // rootCtx.actions = [{cmd: 'create-element', elementID: rootCtx.root}];
     // rootCtx.actions = [{cmd: 'eval', elementID: rootCtx.root}];
-    const actions = await rootCtx.rDB.iMap().set(setID, {cmd: 'in', setID});
+    // const actions = await rootCtx.rDB.iMap().set(setID, {cmd: 'in', setID});
+    /*const actions = await rootCtx.rDB.iSet().add({cmd: 'in', setID});
     rootCtx.graph = {
         actions,
         result: setID
-    };
+    };*/
+    rootCtx.result = setID;
+    rootCtx.actions = {cmd: 'in', setID};
 
     rootCtx.state = 'process';
 

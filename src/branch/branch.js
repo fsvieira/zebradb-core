@@ -1245,6 +1245,252 @@ async function createDomainSetElements (branchCtx, setID) {
     await branchCtx.commit();
 }
 
+async function processActionIn (branchCtx, action) {
+    const {branches, setID} = action;
+    if (branches) {
+        const nextBranches = [];
+        for (let i=0; i<branches.length; i++) {
+            const branch = branches[i];
+            const elementCtx = await BranchContext.create(
+                branch, 
+                branchCtx.branchDB, 
+                branchCtx.options, 
+                branchCtx.db, 
+                branchCtx.rDB
+            );
+
+            const state = elementCtx.state;
+
+            if (state === 'yes') {
+                throw 'processActionIn : put element on set';
+            }
+            else if (state !== 'no') {
+                nextBranches.push(branch);
+            }
+        }
+
+        if (nextBranches.length) {
+            branchCtx.actions = {
+                ...branchCtx.actions,
+                branches: nextBranches
+            }
+
+            await branchCtx.commit();                
+        }
+        else {
+            throw 'THERE IS NO MORE BRANCHES TO SOLVE!!';
+        }
+       
+    }
+    else {
+        // create branches for in operator,
+        // 1. iterate over elements of set, create them if needed,
+        const set = await branchCtx.getVariable(setID);
+
+        const size = await set.elements.size;
+        if (set.size === size) {
+            // 2. insert all elements in the set,
+            throw 'processActionIn insert elements in the set'
+        }
+        else {
+            const definitionElement = set.definition;
+            const {root, variables} = definitionElement;
+
+            const defElements = variables[root].elements;
+
+            const branches = [];
+            for (let i=0; i<defElements.length; i++) {
+                const elID = defElements[i];
+                const elementCtx = await branchCtx.createBranch();
+
+                const elementID = await copyPartialTerm(
+                    elementCtx, 
+                    definitionElement, 
+                    elID,
+                    true, // extendSets,
+                    true
+                );
+
+                elementCtx.actions = {cmd: 'eval', elementID};
+                elementCtx.result = elementID;
+                elementCtx.state = 'process';
+                await elementCtx.commit();
+
+                branches.push(elementCtx.branch);
+            }
+
+            branchCtx.actions = {...action, branches};
+            branchCtx.state = 'processing';
+            await branchCtx.commit();
+        }
+    }
+}
+
+async function processElementDomain (branchCtx, element) {
+
+    const set = await branchCtx.getVariable(element.domain);
+
+    const definitionElement = set.definition;
+    const {root, variables} = definitionElement;
+
+    const defElements = variables[root].elements;
+
+    const branches = [];
+    for (let i=0; i<defElements.length; i++) {
+        const elID = defElements[i];
+        const elementCtx = await branchCtx.createBranch();
+
+        const elementID = await copyPartialTerm(
+            elementCtx, 
+            definitionElement, 
+            elID,
+            true, // extendSets,
+            true
+        );
+
+        elementCtx.actions = {
+            cmd: 'unify', 
+            a: element.id, 
+            b: elementID,
+            domain: element.domain
+        };
+
+        elementCtx.result = elementID;
+        elementCtx.state = 'process';
+        await elementCtx.commit();
+
+        branches.push(elementCtx.branch);
+    }
+
+    if (branches.length === 1) {
+        branchCtx.actions = {cmd: 'eval', branch: branches[0]};
+        await branchCtx.commit();
+    }
+    else {
+        throw 'CREATE ELEMENT DOMAIN';
+    }
+} 
+
+async function processActionEval (branchCtx, action) {
+    const {elementID, branch} = action;
+
+    if (!elementID && branch) {
+        const elementCtx = await BranchContext.create(
+            branch, 
+            branchCtx.branchDB, 
+            branchCtx.options, 
+            branchCtx.definitionsDB, 
+            branchCtx.rDB
+        );
+
+        const state = elementCtx.state;
+        if (state === 'yes') {
+            const elementID = await copy(
+                branchCtx, 
+                elementCtx, 
+                elementCtx.result
+            );
+
+            branchCtx.actions = {cmd: 'eval', elementID};
+            await branchCtx.commit();
+        }
+        else if (state === 'no') {
+            branchCtx.state = 'no';
+            await branchCtx.commit();
+        }
+
+        return; 
+    }
+
+    const v = await branchCtx.getVariable(elementID);
+
+    if (v.domain && !v.unifiedDomains?.includes(v.domain)) {
+        // TODO: both v.domain and unfiedDomains may contain outdated ids and may 
+        // mismatch, we need to make a better control check.
+        return await processElementDomain(branchCtx, v);
+    }
+    else {
+        switch (v.type) {
+            case constants.type.TUPLE: {
+                const branches = [];
+                for (let i=0; i<v.data.length; i++) {
+                    const eID = v.data[i];
+                    const e = await branchCtx.getVariable(eID);
+
+                    switch (e.type) {
+                        case constants.type.LOCAL_VAR: {
+                            if (e.domain) {
+                                await processElementDomain(branchCtx, v);
+                            }
+                        }
+
+                        case constants.type.CONSTANT:
+                            break;
+
+                        default:
+                            throw 'processActionEval: tuple element unknown type ' + e.type;
+                    }
+
+                }
+
+                throw 'Create branches for each element to be evaluated!';
+            }
+
+            default: 
+                console.log(v);
+                throw 'processActionEval : Unknown element type ' + v.type;
+        }
+
+        
+    }
+}
+
+async function processActionUnify (branchCtx, action) {
+    const {a, b, domain} = action;
+
+    const ok = await unify(branchCtx, a, b);
+
+    if (ok) {
+        const element = await branchCtx.getVariable(a);
+        if (domain) {
+            await branchCtx.setVariableValue(element.id, {
+                ...element,
+                unifiedDomains: (element.unifiedDomains || []).concat(domain)
+            });
+        }
+
+        branchCtx.actions = {cmd: 'eval', elementID: a};
+    }
+    else {
+        branchCtx.state = 'no';
+    }
+
+    await branchCtx.commit();
+}
+
+async function processAction (branchCtx) {
+    const action = branchCtx.actions;
+
+    console.log(action);
+    switch (action.cmd) {
+        case 'in': {
+            return processActionIn(branchCtx, action);
+        }
+
+        case 'eval': {
+            return processActionEval(branchCtx, action);
+        }
+
+        case 'unify': {
+            return processActionUnify(branchCtx, action);
+        }
+
+        default: 
+            console.log(action);
+            throw 'processAction : Undefined cmd ' + action.cmd;
+    }
+}
+
 async function updateGraph (branchCtx, elementID) {
     let actions = branchCtx.graph.actions;
     if (!(await actions.has(elementID))) {
@@ -1760,7 +2006,8 @@ async function process (action, branchCtx) {
     }
 }
 
-async function executeActions (branchCtx, id=branchCtx.graph.result) {
+/*
+async function executeActions (branchCtx) {
     const graph = branchCtx.graph;
 
     let action = await graph.actions.get(id);
@@ -1792,7 +2039,7 @@ async function executeActions (branchCtx, id=branchCtx.graph.result) {
 
     return false;
     
-}
+}*/
 
 async function run (qe, branch) {
     const branchCtx = await BranchContext.create(
@@ -1803,9 +2050,11 @@ async function run (qe, branch) {
         qe.rDB
     );
 
-    await executeActions(branchCtx);
-    branchCtx.state = 'processing';
-    await branchCtx.commit();
+    // await executeActions(branchCtx);
+    await processAction(branchCtx);
+    
+    // branchCtx.state = 'processing';
+    // await branchCtx.commit();
 
     /*const [cmd] = branchCtx.actions;
 
