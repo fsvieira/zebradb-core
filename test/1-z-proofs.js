@@ -71,7 +71,53 @@ describe("Zebra Proofs", () => {
             {
                 query: `{
                     ((CONSTANT 'a) unify (CONSTANT 'b) -> (CONSTANT 'c)):$UNIFY_CONSTANT 
-                    | 'a != 'b 
+                    | 'a != 'b ; 'a != 'c ; 'b != 'c
+                }`,
+                results: [`{}`]
+            }
+        ], 
+        {
+            path: 'dbs/1-z-proofs/unify', 
+            timeout: 1000 * 60 * 60,
+            log: true
+        }
+    ));
+
+    it ("Constants Unify Proofs", test (`
+        $TYPES = {
+            (CONSTANT 'c) ...
+        }
+
+        $UNIFY_CONSTANT = {((CONSTANT 'c):$TYPES unify (CONSTANT 'c):$TYPES -> (CONSTANT 'c):$TYPES) ...}
+            
+        // Proposition : A proposition is a statement that is proven to be true, but it is generally considered less significant than a theorem.
+        Proposition $UNIFY_CONSTANT correctness : 'Unify Constant is correct'
+        [
+            ((CONSTANT 'a):$TYPES unify (CONSTANT 'b):$TYPES -> (CONSTANT 'c):$TYPES) ...} = $UNIFY_CONSTANT 
+            and
+            |{((CONSTANT 'a):$TYPES unify (CONSTANT 'b):$TYPES -> (CONSTANT 'c):$TYPES) | 'a != 'b ; 'a != 'c ; 'b != 'c}| = 0 
+        ]
+    `,
+        [
+            {
+                query: `{((CONSTANT 'c) unify (CONSTANT 'c) -> (CONSTANT 1)):$UNIFY_CONSTANT ... }`,
+                results: [
+                    `
+                    {((CONSTANT 1) -> (CONSTANT 1) -> (CONSTANT 1)):_ms@1...} 
+                    
+                    # == Domains == 
+                    _ms@1 = {...}
+                    `
+                ]
+            },
+            {
+                query: `{((CONSTANT 2) unify (CONSTANT 'c) -> (CONSTANT 1)):$UNIFY_CONSTANT ... }`,
+                results: [`{}`]
+            },
+            {
+                query: `{
+                    ((CONSTANT 'a) unify (CONSTANT 'b) -> (CONSTANT 'c)):$UNIFY_CONSTANT 
+                    | 'a != 'b ; 'a != 'c ; 'b != 'c
                 }`,
                 results: [`{}`]
             }
