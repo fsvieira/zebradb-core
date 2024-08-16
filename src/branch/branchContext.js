@@ -331,6 +331,17 @@ class BranchContext {
                 return this.toStringSetSize(v, vars, rename);
             }
 
+            case constants.type.INDEX: {
+                switch (v.op) {
+                    case constants.operation.UNIQUE: {
+                        return 'unique index ' + v.variables.join(',');
+                    }
+                    default: 
+                        throw 'Index undefined op ' + v.op;
+                }
+                
+            }
+
             default:
                 console.log(v);
                 throw 'toString ' + v.type + ' is not defined!';

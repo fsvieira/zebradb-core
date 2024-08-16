@@ -12,7 +12,8 @@
           LOCAL_VAR,
           GLOBAL_VAR,
           INDEX,
-          SET_SIZE
+          SET_SIZE,
+          PROPOSITION
       },
       operation: {
           OR,
@@ -70,6 +71,19 @@ definition = _ variable:(globalVariable:globalVariable _ "=" {return globalVaria
   	variable
   }
 }
+/ proof
+
+proof = _ "Proposition" wsp variable:variable wsp 
+	property:constant _ ":" _ statement:constant 
+    _ proof:expression _ {
+    	return {
+        	type: PROPOSITION,
+            variable,
+            property: property.data,
+            statement: statement.data,
+            proof
+        }
+    }
 
 /* Terms */
 

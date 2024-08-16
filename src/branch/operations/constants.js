@@ -11,7 +11,8 @@ module.exports = {
         DEF_REF: 'd',
         INDEX: 'idx',
         MATERIALIZED_SET: 'ms',
-        SET_SIZE: 'ss'
+        SET_SIZE: 'ss',
+        PROPOSITION: 'prop'
     },
     operation: {
         OR: "or",

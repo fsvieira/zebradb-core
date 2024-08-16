@@ -1530,6 +1530,15 @@ async function analyseTuple (branchCtx, v) {
     return branches;
 }
 
+async function analyseConstraints (branchCtx, v) {
+    for await (let eID of v.constraints.values()) {
+        console.log('V ==> ', await branchCtx.getVariable(eID));
+        console.log("CS ==> ", eID, await branchCtx.toString(eID));
+    }
+
+    throw 'Analyse Constraints!!'
+}
+
 async function analyseElement (branchCtx, elementID, v) {
     switch (v.type) {
         case constants.type.TUPLE: {
@@ -1552,10 +1561,30 @@ async function analyseElement (branchCtx, elementID, v) {
             break;
         }
 
-        case constants.type.CONSTANT: 
+        case constants.type.CONSTANT: {
             branchCtx.state = 'yes';
             await branchCtx.commit();
             break;
+        }
+
+        case constants.type.LOCAL_VAR: {
+            if (v.domain) {
+                throw 'Solve Domain!';
+            }
+            else if ( (await v.constraints.size) > 0) {
+                // we need to analyse constraints, 
+                const branch =  await analyseConstraints(branchCtx, v);
+
+                throw 'Check for branch for ok!';
+            }
+            else {
+                // nothing to do.
+                branchCtx.state = 'yes';
+                await branchCtx.commit();
+            }
+
+            break;
+        }
 
         default: 
             console.log(v);

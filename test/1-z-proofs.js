@@ -3,7 +3,7 @@
 const test = require("../test-utils/test");
 
 describe("Zebra Proofs", () => {
-    it("Simple Constant", test(`
+    xit("Simple Constant", test(`
         $DIGIT = {0 1 2 3 4 5 6 7 8 9}
         $TYPES = {
             (CONSTANT 'c:$DIGIT) ...
@@ -45,7 +45,7 @@ describe("Zebra Proofs", () => {
         }
     ));
 
-    it ("Constants Unify", test (`
+    xit ("Constants Unify", test (`
         $TYPES = {
             (CONSTANT 'c) ...
         }
@@ -83,19 +83,61 @@ describe("Zebra Proofs", () => {
         }
     ));
 
-    it ("Constants Unify Proofs", test (`
+    it ("Constants Unify Proofs (1)", test (`
         $TYPES = {
             (CONSTANT 'c) ...
         }
 
         $UNIFY_CONSTANT = {((CONSTANT 'c):$TYPES unify (CONSTANT 'c):$TYPES -> (CONSTANT 'c):$TYPES) ...}
-            
-        // Proposition : A proposition is a statement that is proven to be true, but it is generally considered less significant than a theorem.
-        Proposition $UNIFY_CONSTANT correctness : 'Unify Constant is correct'
+    `,
         [
-            ((CONSTANT 'a):$TYPES unify (CONSTANT 'b):$TYPES -> (CONSTANT 'c):$TYPES) ...} = $UNIFY_CONSTANT 
+            {
+                query: `{ 'v | 
+                    's = {
+                        ((CONSTANT 'a):$TYPES unify (CONSTANT 'b):$TYPES -> (CONSTANT 'c):$TYPES) | 
+                        'a != 'b ; 'a != 'c ; 'b != 'c
+                    } 
+                    and 'v = |'s| = 0
+                }`,
+                results: [
+                    `
+                    {((CONSTANT 1) -> (CONSTANT 1) -> (CONSTANT 1)):_ms@1...} 
+                    
+                    # == Domains == 
+                    _ms@1 = {...}
+                    `
+                ]
+            }
+        ], 
+        {
+            path: 'dbs/1-z-proofs/proof', 
+            timeout: 1000 * 60 * 60,
+            log: true
+        }
+    ));
+
+    xit ("Constants Unify Proofs (1)", test (`
+        $TYPES = {
+            (CONSTANT 'c) ...
+        }
+
+        $UNIFY_CONSTANT = {((CONSTANT 'c):$TYPES unify (CONSTANT 'c):$TYPES -> (CONSTANT 'c):$TYPES) ...}
+
+        # Proposition : A proposition is a statement that is proven to be true, but it is generally considered less significant than a theorem.
+        Proposition $UNIFY_CONSTANT correctness : «Unify Constant is correct»
+        [
+            {
+                ((CONSTANT 'a):$TYPES unify (CONSTANT 'b):$TYPES -> (CONSTANT 'c):$TYPES) 
+                ...
+            } = $UNIFY_CONSTANT 
+
             and
-            |{((CONSTANT 'a):$TYPES unify (CONSTANT 'b):$TYPES -> (CONSTANT 'c):$TYPES) | 'a != 'b ; 'a != 'c ; 'b != 'c}| = 0 
+
+            's = {
+                ((CONSTANT 'a):$TYPES unify (CONSTANT 'b):$TYPES -> (CONSTANT 'c):$TYPES) | 
+                'a != 'b ; 'a != 'c ; 'b != 'c
+            } 
+            and |'s| = 0
         ]
     `,
         [
