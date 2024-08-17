@@ -128,9 +128,21 @@ async function copyPartialTermSetSize (
 ) {
     const variable = await getVarname(v.variable, extendSets);
 
+    let constraints;
+    if (v.constraints) {
+        constraints = ctx.rDB.iSet();
+
+        for (let i=0; i<v.constraints.length; i++) {
+            const vc = v.constraints[i];
+            const id = await getVarname(p.variables[vc], extendSets);
+            constraints = await constraints.add(id);
+        }
+    }
+
     await ctx.setVariableValue(vn, {
         ...v,
         variable,
+        constraints,
         id: vn
     });
 }

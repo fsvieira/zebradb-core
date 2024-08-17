@@ -97,7 +97,7 @@ describe("Zebra Proofs", () => {
                         ((CONSTANT 'a):$TYPES unify (CONSTANT 'b):$TYPES -> (CONSTANT 'c):$TYPES) | 
                         'a != 'b ; 'a != 'c ; 'b != 'c
                     } 
-                    and 'v = |'s| = 0
+                    and 'v = 1 = |'s| = 0 
                 }`,
                 results: [
                     `

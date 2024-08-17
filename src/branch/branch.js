@@ -1530,13 +1530,68 @@ async function analyseTuple (branchCtx, v) {
     return branches;
 }
 
-async function analyseConstraints (branchCtx, v) {
-    for await (let eID of v.constraints.values()) {
-        console.log('V ==> ', await branchCtx.getVariable(eID));
-        console.log("CS ==> ", eID, await branchCtx.toString(eID));
-    }
+async function analyseConstrain (branchCtx, csID, checked) {
+    console.log("--->", csID);
+    const cs = await branchCtx.getVariable(csID);
 
-    throw 'Analyse Constraints!!'
+    if (!checked.has(cs.id)) {
+        await analyseConstraints(branchCtx, cs, checked);
+        
+        if (cs.type === constants.type.CONSTRAINT) {
+
+            const {a, op, b} = cs;
+
+            switch (op) {
+                case 'and': 
+                case '=': {
+                    await analyseConstrain(branchCtx, a, checked);
+                    await analyseConstrain(branchCtx, b, checked);
+                    break;
+                }
+
+                default:
+                    throw `analyseConstraints: Unknown Op ${op}`;
+            }
+        }
+        else if (cs.type === constants.type.INDEX) {
+            console.log("TODO: analyse the index!");
+        }
+        else {
+            const {type, variable} = cs;
+
+            switch (type) {
+                case constants.type.SET_SIZE: {
+                    await analyseConstrain(branchCtx, variable, checked);
+                    break;
+                }
+
+                case constants.type.MATERIALIZED_SET: {
+                    console.log(cs);
+                    throw 'Analyse MATERIAL SET'
+                }
+
+                case constants.type.LOCAL_VAR: 
+                case constants.type.CONSTANT: 
+                    break;
+
+                default: 
+                    throw `analyseConstraints: Unknown element type ${type}` 
+            }
+        }
+    }
+}
+
+async function analyseConstraints (branchCtx, v, checked=new Set) {
+    if (!checked.has(v.id)) {
+        checked.add(v.id);
+
+        if (v.constraints) {
+            for await (let eID of v.constraints.values()) {
+                console.log("CS ==> ", eID, await branchCtx.toString(eID));
+                await analyseConstrain(branchCtx, eID, checked);
+            }
+        }
+    }
 }
 
 async function analyseElement (branchCtx, elementID, v) {

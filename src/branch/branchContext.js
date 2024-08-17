@@ -137,6 +137,7 @@ class BranchContext {
     async getVariable (id) {
         let v;
         do {
+            // console.log("GET VARIABLE ID", id);
             v = await this._ctx.variables.get(id);
             
             if (id && id === v.defer) {
@@ -147,10 +148,13 @@ class BranchContext {
         }
         while(id);
 
+        /*
         if (v.type === constants.type.SET_SIZE) {
             const set = await this.getVariable(v.variable);
             v = {...v, set, value: await set.size};
-        }
+        }*/
+
+        // console.log("GET VARIABLE ID = ", id, v);
 
         return v;
     }
@@ -237,7 +241,7 @@ class BranchContext {
     }
 
     // === toString === 
-    async toStringMaterializedSet(v, vars, rename) {
+    async toStringMaterializedSet (v, vars, rename) {
         let el = [];
         for await (let eID of v.elements.values()) {
             el.push(await this.toStringRec(eID, vars, rename));
@@ -246,7 +250,7 @@ class BranchContext {
         const size = v.size; 
         const domain = v.domain ? ':' + v.domain : '';
 
-        v.domain && vars.add(v.domain);
+        // v.domain && vars.set(v.domain, );
 
         const setSize = size === el.length ? '' : '...';
 
@@ -290,10 +294,12 @@ class BranchContext {
             const domainStr = await this.toStringRec(v.domain, vars, rename);
             vars.set(domainVar, domainStr);
         }
-
+    
+        let str = "";
         switch (v.type) {
             case constants.type.MATERIALIZED_SET: {
-                return await this.toStringMaterializedSet(v, vars, rename);
+                str =  await this.toStringMaterializedSet(v, vars, rename);
+                break;
             }
 
             case constants.type.TUPLE: {
@@ -305,47 +311,56 @@ class BranchContext {
 
                 const d = v.domain ? await this.getVariable(v.domain) : null;
                 const domain = d ? ':' + rename(d) : '';
-                return `(${el.join(" ")})${domain}`;
+                str = `(${el.join(" ")})${domain}`;
+                break;
             }
 
             case constants.type.CONSTANT: {
-                return v.data;
+                str =  v.data;
+                break;
             }
 
             case constants.type.LOCAL_VAR: {
-                
                 // const domain = v.domain ? ':' + v.domain : '';
                 // const varname = v.varname || v.id;
                 // return "'" + (!v.pv && v.id?v.id + "::": "") + varname + domain;
                 const d = v.domain ? await this.getVariable(v.domain) : null;
                 const domain = d ? ':' + rename(d) : '';
 
-                return "'" + rename(v) + domain;
+                str =  "'" + rename(v) + domain;
+                break;
             }
 
             case constants.type.CONSTRAINT: {
-                return this.toStringConstraint(v, vars, rename);
+                str =  this.toStringConstraint(v, vars, rename);
+                break;
             }
 
             case constants.type.SET_SIZE: {
-                return this.toStringSetSize(v, vars, rename);
+                str = this.toStringSetSize(v, vars, rename);
+                break;
             }
 
             case constants.type.INDEX: {
                 switch (v.op) {
                     case constants.operation.UNIQUE: {
-                        return 'unique index ' + v.variables.join(',');
+                        str = 'unique index ' + v.variables.join(',');
+                        break;
                     }
+
                     default: 
-                        throw 'Index undefined op ' + v.op;
+                    throw 'Index undefined op ' + v.op;
                 }
-                
+
+                break;           
             }
 
             default:
                 console.log(v);
                 throw 'toString ' + v.type + ' is not defined!';
         }
+
+        return  str;
     }
 
     renameGen () {
