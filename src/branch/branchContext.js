@@ -57,6 +57,9 @@ class BranchContext {
             // actions: await p('actions', rDB.iArray()),
             actions: await p('actions'),
             state: await p('state', 'start'),
+            ids: await p('ids', rDB.iSet()),
+            changes: await p('changes', rDB.iSet()),
+            newIds: await p('newIds', rDB.iSet()),
             // group: await p('group', null),
             // groupState: await p('groupState', null),
             // groups: await p('groups', rDB.iMap()),
@@ -80,6 +83,20 @@ class BranchContext {
             rDB, 
             ctx
         );
+
+        // 1. put all changes on ids,
+        for await (let vID of newCtx.changes.values()) {
+            newCtx.ids = await newCtx.ids.add(vID);
+        }
+        
+        newCtx.changes = rDB.iSet();
+
+        // 2. put all new ids on ids,
+        for await (let vID of newCtx.newIds.values()) {
+            newCtx.ids = await newCtx.ids.add(vID);
+        }
+        
+        newCtx.newIds = rDB.iSet();
 
         return new BranchContext(
             branch, 
@@ -127,8 +144,37 @@ class BranchContext {
         return this;
     }
 
+    // === Debug ===
+    async debug () {
+        console.log("---- ids -----");
+        /*for await (let vID of this._ctx.ids.values()) {
+            const v = await this.getVariable(vID);
+            console.log(v);
+        }*/
+
+        console.log("---- changes -----");
+        for await (let vID of this._ctx.changes.values()) {
+            const v = await this.getVariable(vID);
+            console.log(v);
+        }
+
+        console.log("---- new ids -----");
+        for await (let vID of this._ctx.newIds.values()) {
+            const v = await this.getVariable(vID);
+            console.log(v);
+        }
+    }
+
+
     // === Variables === 
     async setVariableValue (id, value) {
+        if (await this._ctx.ids.has(id)) {
+            this._ctx.changes = await this._ctx.changes.add(id);
+        }
+        else {
+            this._ctx.newIds = await this._ctx.newIds.add(id);
+        }
+
         this._ctx.variables = await this._ctx.variables.set(id, value);
 
         return this;

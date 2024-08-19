@@ -93,58 +93,6 @@ async function setIn (ctx, set, element) {
     return branches;    
 }
 
-async function __unifyDomain (
-    branch,
-    options,
-    id,
-    domainID
-) {
-    const d = await getVariable(branch, domainID);
-    const e = await getVariable(branch, id);
-
-    switch (e.type) {
-        /*case constants.type.SET: {
-            return await Promise.all(s.elements.map(
-                definitionID => unify(branch, options, id, definitionID)
-            ));        
-        }
-
-        case constants.type.SET_EXP: {
-            const {a, op, b} = s;
-
-            switch (op) {
-                case constants.operation.UNION: {
-                    const av = await getVariable(branch, a);
-                    const bv = await getVariable(branch, b);
-
-                    const branches = [
-                        await unify(branch, options, id, null, av.element),
-                        await unify(branch, options, id, null, bv.element),
-                    ];
-
-                    return branches;
-                }
-            } 
-
-        }
-
-        case constants.type.SET: {
-            return [await unify(branch, options, id, null, s.element)];
-        }*/
-
-        case constants.type.MATERIALIZED_SET: {
-            return await setIn(
-                branch, 
-                options, 
-                d, e
-            );
-        }
-
-        default:
-            throw 'unify domain unknown type ' + s.type;
-    }
-}
-
 const hasValue = v => [C_TRUE, C_FALSE].includes(v);
 
 async function isSolved (ctx, id) {
@@ -320,62 +268,6 @@ async function executeConstraints (options, definitionDB, branch, v) {
 
     return changes;
     // throw 'Create New Branch';
-}
-
-async function extendSet (ctx, setID) {
-    await ctx.getSetSize(setID);
-
-    let set = await ctx.getVariable(setID);
-
-    /*const elTotal = await set.elements.size; 
-    if (set.size === elTotal) {
-        await ctx.removeExtendSet(setID);
-        await ctx.saveBranch(true);
-        return true;
-    }
-    else if (set.size === elTotal + 1) {
-        await ctx.removeExtendSet(setID);
-    }*/
-
-    await ctx.removeExtendSet(setID);
-
-    if (set.definition) {
-        const {definition: {variables, root}, defID=root} = set;
-
-        const setDef = variables[defID];
-        const copyID = setDef.elements[0];
-
-        const mapVars = {[defID]: set.id};
-
-        const eID = await copyPartialTerm(
-            ctx, set.definition, 
-            copyID, true, true,
-            mapVars
-        );
-
-        set = await ctx.getVariable(set.id);
-        const elements = await set.elements.add(eID);
-
-        /*await ctx.startGroup({
-            op: 'add-set-element',
-            elementID: eID,
-            setID,
-            id: eID
-        });*/
-
-        await ctx.setVariableValue(set.id, {
-            ...set,
-            elements
-        });
-    }
-    else {
-        console.log("TODO: ONLY VALID SETS SHOULD BE HERE!!");
-        return false;
-    }
-    
-    await ctx.saveBranch();
-
-    return true;
 }
 
 async function mergeElement (ctxA, ctxB, aID, bID) {
@@ -630,189 +522,6 @@ async function genSets (options, rDB, branch) {
     await ctx.saveBranch();
 }
 
-/*
-async function plan (ctx, elementID) {
-    const e = await ctx.getVariable(elementID);
-    const d = e.domain ? await ctx.getVariable(e.domain) : undefined;
-
-    switch (e.type) {
-        case constants.type.TUPLE: {
-            const vars = [];
-            for (let i=0; i<e.data.length; i++) {
-                const vID = e.data[i];
-                const v = await ctx.getVariable(vID);
-                if (v.type === constants.type.LOCAL_VAR || v.type === constants.type.LOCAL_VAR) {
-
-                }
-            }
-        }
-    }
-
-    console.log(e, d);
-}*/
-
-async function _initSet (parentBranch, options, definitionsDB, {setID: id, set: definitionElement}) {
-    const ctxSet = await BranchContext.create(
-        parentBranch,
-        options,
-        definitionsDB
-    );
-
-    
-    // ctx.branchID = `${setID || parentBranch.id}-set`;
-
-    const {root, variables} = definitionElement;
-    const setID = await copyPartialTerm(
-        ctxSet, 
-        definitionElement, 
-        root,
-        true, // extendSets,
-        true
-    );
-
-    await ctxSet.setVariableValue(
-        id, {
-            type: constants.type.LOCAL_VAR, 
-            cid: id, 
-            id, 
-            defer: setID
-        }
-    );
-
-    const s = await ctxSet.getVariable(id);
-
-    // create ctx elements,
-    const elements = variables[root].elements;
-    for (let i=0; i<elements.length; i++) {
-        const ctxElement = ctxSet.snapshot();
-        const elID = elements[i];
-
-        const elementID = await copyPartialTerm(
-            ctxElement, 
-            definitionElement, 
-            elID,
-            true, // extendSets,
-            true
-        );
-
-        // const actions = await plan(ctxElement, elementID);
-
-        /*
-        const s = await ctxElement.getVariable(elementID);
-        const t = await ctxElement.getVariable(s.domain);
-        console.log(s, t);
-        await ctxElement.setActions([{action: ''}]);
-        */
-
-        await ctxElement.setActions([{action: 'unify-domain', elementID, inSetID: setID}]);
-        ctxElement.state = 'maybe';
-        await ctxElement.saveBranch();
-    }
-
-    ctxSet.state = 'merge';
-    await ctxSet.saveBranch();
-
-    console.log("TODO: we need to add a group or some way to merge branches to its fathers. stack ?");
-    
-    return branch;
-}
-
-async function expand (
-    definitionsDB, 
-    branch, 
-    options, 
-    selector, 
-    definitions
-) {
-
-    const ctx = await BranchContext.create(branch, options, definitionsDB);
-    
-    const actions = await ctx.actions.toArray();
-
-    for (let i=0; i<actions.length; i++) {
-        const action = actions[0];
-        switch (action.action) {
-            case 'init-set': await initSet(branch, options, definitionsDB, action); break;
-
-        }
-    }
-
-    // createBranchMaterializedSet
-    // 1. we need to create two branches, empty set and expand-set. 
-    throw 'SOME ACTION!!';
-
-    /*
-    // 1. Solve Set Domains
-    for await (let eID of ctx.setsInDomains.values()) {
-        const v = await ctx.getVariable(eID);
-        const d = await ctx.getVariable(v.domain);
-
-        const r = await setIn(
-            ctx,
-            d, eID
-        );
-
-        await branch.update({state: 'split'});
-        return r;
-    }
-
-    // 2. Assign domains values to variables, 
-    for await (let e of ctx.unsolvedVariables.values()) {
-        const v = await ctx.getVariable(e);
-        const d = await ctx.getVariable(v.domain);
-
-        const r = await setIn(
-            ctx,
-            d, e
-        );
-
-        await branch.update({state: 'split'});
-
-        return r;
-    }
-
-    // 3. Trigger unsolved constrained variables, 
-    if (await ctx.unsolvedConstraints.size) {
-        const r = await solveConstraints(ctx); //branch, options);
-
-        if (r) {
-            await branch.update({state: 'split'});
-            return r;
-        }
-    }
-
-    console.log('PRINT => ', await ctx.toString());
-
-    // await branch.update({state: 'yes'});
-
-    await branch.update({state: 'merge'});
-
-    // throw 'EVAL IF EXTEND SET IS NEEDED!! ...';
-    */
-    
-    /*
-    const r = await genSetIterator(ctx);
-    console.log("---->", await ctx.toString(), JSON.stringify(r, null, '  '));
-    throw 'MERGE ...';
-    */
-
-    // 4. Add only one element to incomplete sets, 
-    /*console.log('S=', await ctx.toString());
-    for await (let sID of ctx.extendSets.values()) {
-        const r = await extendSet(ctx, sID)// branch, sID);
-        if (r) {
-            await branch.update({state: 'split'});
-            return r; 
-        }
-    }
-
-    await branch.update({state: 'yes'});
-    */
-
-    // else 
-    // throw 'expand : next steps!!';
-}
-
 async function createBranchMaterializedSet (
     options,
     rDB, 
@@ -967,50 +676,6 @@ async function initSet (ctxSet, options, definitionsDB, {setID: id, set: definit
     return {ctxElement, elements};
 }
 
-async function split (ctx, elementID) {
-    const element = await ctx.getVariable(elementID);
-
-    let childs = [];
-
-    switch (element.type) {
-        case constants.type.TUPLE: {
-            for (let i=0; i<element.data.length; i++) {
-                const vID = element.data[i];
-                const v = await ctx.getVariable(vID);
-
-                // TODO: we need to group each processing variable, so that we can process this. 
-                if (v.domain) {
-                    const vd = await ctx.getVariable(v.domain);
-
-                    for await (let eID of vd.elements.values()) {
-                        const vCtx = await ctx.snapshot();
-
-                        await vCtx.setVariableValue('_process', v.id);
-                        const ok = await unify(vCtx, eID, v.id);
-
-                        if (ok) {
-                            childs.push(vCtx);
-                            vCtx.state = 'split';
-                        }
-                        else {
-                            vCtx.state = 'no';
-                        }
-
-                        await vCtx.saveBranch();
-                    }
-                }
-            }
-
-            break;
-        }
-
-        default:
-            throw "split : unkown type " + element.type;
-    }
-
-    return childs;
-}
-
 /// --- 
 // recursive copy variables,
 async function copy (destCtxA, srcCtxB, id, done=new Set()) {
@@ -1078,169 +743,77 @@ async function copy (destCtxA, srcCtxB, id, done=new Set()) {
     return id;
 }
 
-/*
-async function __copy (destCtxA, srcCtxB, id, done=new Set()) {
-    if (srcCtxB.state !== 'yes') {
-        throw "Can't copy from a non 'yes' final branch!";
-    }
+async function processActionInDomain (branchCtx, action) {
+    const {elementID} = action;
+    const element = await branchCtx.getVariable(elementID);
+    const set = await branchCtx.getVariable(element.domain);
 
-    if (!done.has(id)) {
-        done.add(id);
-
-        const dataB = await srcCtxB.getVariable(id);
-        let data = dataB;
-
-        
-        // TODO: check commit history to check if should overwrite A.
-        // if (await destCtxA.hasVariable(id)) {
-        //    const dataA = await destCtxA.getVariable(id);
-        //    throw 'CONFLICT ID NOT IMPLEMENTED';
-        // }
-        
-        await destCtxA.setVariableValue(dataB.id, data);
-
-        if (data.domain) {
-            await copy(destCtxA, srcCtxB, data.domain, done);
-        }
-
-        switch (data.type) {
-            case constants.type.MATERIALIZED_SET: {
-                for await (let eID of data.elements.values()) {
-                    await copy(destCtxA, srcCtxB, eID, done);
-                }
-
-                break;
-            }
-            case constants.type.TUPLE: {
-                for (i=0; i<data.data.length; i++) {
-                    await copy(destCtxA, srcCtxB, data.data[i], done);
-                }
-            }
-
-            case constants.type.LOCAL_VAR: 
-            case constants.type.GLOBAL_VAR: 
-            case constants.type.CONSTANT: 
-                break;
-
-            default:
-                throw 'copy unkown type ' + dataB.type
-        }
-
-        return dataB.id;
-    }
-}
-
-async function execute (destCtxA, srcCtxB, cmds) {
-    for (let i=0; i<cmds.length; i++) {
-        const c = cmds[i];
-
-        switch (c.cmd) {
-            case 'copy': {
-                for (let i=0; i<c.ids.length; i++) {
-                    const id = c.ids[i];
-                    await copy(destCtxA, srcCtxB, id);
-                }
-
-                break;
-            }
-
-            case 'in': {
-                const set = await destCtxA.getVariable(c.set);
-                const elements = await set.elements.add(c.elementID);
-
-                await destCtxA.setVariableValue(set.id, {
-                    ...set,
-                    elements
-                });
-
-                break;
-            }
-
-            default:
-                throw 'Unkown Command';
-        }
-    }
-}*/
-
-async function __createSetElement (branchCtx, setID, createBranch=true) {
-    const set = await branchCtx.getVariable(setID);
     const definitionElement = set.definition;
-    const {root, variables} = definitionElement;
 
-    let elements = set.elements;
-
-    const [elID] = variables[root].elements;
-
-    const elementCtx = createBranch ? await branchCtx.createBranch() : branchCtx;
-
-    const elementID = await copyPartialTerm(
-        elementCtx, 
-        definitionElement, 
-        elID,
-        true, // extendSets,
-        true
-    );
-
-    if (createBranch) {
-        branchCtx.state = 'processing';
-        branchCtx.actions = [{
-            cmd: 'copy', 
-            branch: elementCtx.branch, 
-            elementID,
-            in: setID
-        }];
-        
-        await branchCtx.commit();
-    
-        elementCtx.state = 'process';
-        elementCtx.actions = [{cmd: 'eval', elementID}];
-        await elementCtx.commit();
-    }
-    else {
-        elements = await elements.add(elementID);
-        await branchCtx.setVariableValue(set.id, {
-            ...set,
-            elements
-        });
-
-        await branchCtx.commit();
-    }
-}
-
-async function createDomainSetElements (branchCtx, setID) {
-    console.log("TODO: domains should also be evaluated or proof that exists.");
-
-    const set = await branchCtx.getVariable(setID);
-
-    const size = await set.elements.size;
-    if (set.size === size) {
-        // nothing to do.
+    if (!definitionElement) {
+        console.log(await branchCtx.toString(element.id));
+        // throw 'NO DEFS';
         return;
     }
 
-    const definitionElement = set.definition;
-    const {root, variables} = definitionElement;
+    const {variables} = definitionElement;
 
-    const defElements = variables[root].elements;
-    let elements = set.elements;
+    const defElements = variables[set.defID].elements;
+
+    const branches = [];
     for (let i=0; i<defElements.length; i++) {
         const elID = defElements[i];
+        const elementCtx = await branchCtx.createBranch();
 
         const elementID = await copyPartialTerm(
-            branchCtx, 
+            elementCtx, 
             definitionElement, 
             elID,
             true, // extendSets,
             true
         );
 
-        elements = await elements.add(elementID);
+        elementCtx.actions = {
+            cmd: 'unify', 
+            a: element.id, 
+            b: elementID,
+            domain: element.domain
+        };
+
+        elementCtx.result = elementID;
+        elementCtx.state = 'process';
+        await elementCtx.commit();
+
+        branches.push(elementCtx.branch);
     }
 
-    await branchCtx.setVariableValue(set.id, {
-        ...set,
-        elements
-    });
+    if (branches.length === 0) {
+        branchCtx.state = 'no';
+    }
+    else if (branches.length === 1) {
+        branchCtx.actions = {cmd: 'value', branch: branches[0]};
+    }
+    else {
+        const domainID = branchCtx.newVar();
+
+        const domainSet = {
+            type: constants.type.MATERIALIZED_SET,
+            id: domainID,
+            elements: branchCtx.rDB.iSet(),
+            size: -1
+        };
+
+        await branchCtx.setVariableValue(domainID, domainSet);
+        await branchCtx.setVariableValue(element.id, {...element, domain: domainID});
+        
+        console.log(await branchCtx.toString(element.id));
+        branchCtx.actions = {
+            cmd: 'in', 
+            branches, 
+            sizeElementsEval: true,
+            setID: domainID
+        };
+    }
 
     await branchCtx.commit();
 }
@@ -1267,7 +840,16 @@ async function processActionIn (branchCtx, action) {
             const state = elementCtx.state;
 
             if (state === 'yes') {
+
+                await branchCtx.debug();
+
                 const id = await copy(branchCtx, elementCtx, elementCtx.result);
+
+                console.log(
+                    '[1] ===> copy ' , await elementCtx.toString(elementCtx.result),
+                    ' ==> result => ', await branchCtx.toString(id)
+                );
+
                 elements = await elements.add(id);
                 updateSet = true;
             }
@@ -1316,8 +898,6 @@ async function processActionIn (branchCtx, action) {
     else {
         // create branches for in operator,
         // 1. iterate over elements of set, create them if needed,
-        const set = await branchCtx.getVariable(setID);
-
         const size = await set.elements.size;
         if (set.size === size) {
             // 2. insert all elements in the set,
@@ -1325,9 +905,9 @@ async function processActionIn (branchCtx, action) {
         }
         else {
             const definitionElement = set.definition;
-            const {root, variables} = definitionElement;
+            const {variables} = definitionElement;
 
-            const defElements = variables[root].elements;
+            const defElements = variables[set.defID].elements;
 
             const branches = [];
             for (let i=0; i<defElements.length; i++) {
@@ -1342,10 +922,12 @@ async function processActionIn (branchCtx, action) {
                     true
                 );
 
-                elementCtx.actions = {cmd: 'eval', elementID};
+                /*elementCtx.actions = {cmd: 'eval', elementID};
                 elementCtx.result = elementID;
                 elementCtx.state = 'process';
                 await elementCtx.commit();
+                */
+                await selectAction(elementCtx, elementID);
 
                 branches.push(elementCtx.branch);
             }
@@ -1357,6 +939,7 @@ async function processActionIn (branchCtx, action) {
     }
 }
 
+/*
 async function processElementDomain (branchCtx, element) {
 
     const set = await branchCtx.getVariable(element.domain);
@@ -1453,12 +1036,11 @@ async function processActionTupleElements (branchCtx, action) {
             // copy element, 
             const id = await copy(branchCtx, elementCtx, elementCtx.result);
 
-            /*
-            const a = await branchCtx.toString(id);
-            const b = await branchCtx.toString(elementCtx.result);
+            // const a = await branchCtx.toString(id);
+            // const b = await branchCtx.toString(elementCtx.result);
             
-            console.log("--->", a, b);
-            throw 'TODO: Should Unify ??'*/
+            // console.log("--->", a, b);
+            // throw 'TODO: Should Unify ??'
         }
         else if (state === 'no') {
             branchCtx.state = 'no';
@@ -1479,174 +1061,111 @@ async function processActionTupleElements (branchCtx, action) {
 
     await branchCtx.commit();
 
-}
+}*/
 
-async function analyseTuple (branchCtx, v) {
-    const branches = [];
-    
-    for (let i=0; i<v.data.length; i++) {
-        const eID = v.data[i];
-        const e = await branchCtx.getVariable(eID);
+/*
+    Select Action
+*/
 
-        switch (e.type) {
-            case constants.type.LOCAL_VAR: {
-                if (e.domain) {
-                    const elementCtx = await branchCtx.createBranch();
-                    elementCtx.state = 'process';
-                    elementCtx.result = e.id;
-                    await processElementDomain(elementCtx, e);
-                    await elementCtx.commit();
-                    branches.push(elementCtx.branch);
-                }
+async function selectElementAction (branchCtx, elementID, level=0, checked=new Set()) {
+    const element = await branchCtx.getVariable(elementID);
 
-                break;
-            }
-
-            case constants.type.TUPLE: {
-                if (e.domain) {
-                    const elementCtx = await branchCtx.createBranch();
-                    elementCtx.state = 'process';
-                    elementCtx.result = e.id;
-                    await processElementDomain(elementCtx, e);
-                    await elementCtx.commit();
-                    branches.push(elementCtx.branch);
-                }
-                else {
-                    const tupleBranches = await analyseTuple(branchCtx, e);
-                    branches.push(...tupleBranches);
-                }
-
-                break;
-            }
-
-            case constants.type.CONSTANT:
-                break;
-
-            default:
-                throw 'processActionEval: tuple element unknown type ' + e.type;
-        }
+    if (checked.has(element.id)) {
+        return [];
     }
 
-    return branches;
-}
+    checked.add(element.id);
 
-async function analyseConstrain (branchCtx, csID, checked) {
-    console.log("--->", csID);
-    const cs = await branchCtx.getVariable(csID);
+    level += 1;
 
-    if (!checked.has(cs.id)) {
-        await analyseConstraints(branchCtx, cs, checked);
-        
-        if (cs.type === constants.type.CONSTRAINT) {
-
-            const {a, op, b} = cs;
-
-            switch (op) {
-                case 'and': 
-                case '=': {
-                    await analyseConstrain(branchCtx, a, checked);
-                    await analyseConstrain(branchCtx, b, checked);
-                    break;
-                }
-
-                default:
-                    throw `analyseConstraints: Unknown Op ${op}`;
-            }
-        }
-        else if (cs.type === constants.type.INDEX) {
-            console.log("TODO: analyse the index!");
-        }
-        else {
-            const {type, variable} = cs;
-
-            switch (type) {
-                case constants.type.SET_SIZE: {
-                    await analyseConstrain(branchCtx, variable, checked);
-                    break;
-                }
-
-                case constants.type.MATERIALIZED_SET: {
-                    console.log(cs);
-                    throw 'Analyse MATERIAL SET'
-                }
-
-                case constants.type.LOCAL_VAR: 
-                case constants.type.CONSTANT: 
-                    break;
-
-                default: 
-                    throw `analyseConstraints: Unknown element type ${type}` 
-            }
-        }
+    if (element.domain && !element.unifiedDomains?.includes(element.domain)) {
+        return [{
+            cmd: 'in-domain', 
+            elementID: 
+            element.id, 
+            level, 
+            result: element.id
+        }];
     }
-}
 
-async function analyseConstraints (branchCtx, v, checked=new Set) {
-    if (!checked.has(v.id)) {
-        checked.add(v.id);
-
-        if (v.constraints) {
-            for await (let eID of v.constraints.values()) {
-                console.log("CS ==> ", eID, await branchCtx.toString(eID));
-                await analyseConstrain(branchCtx, eID, checked);
-            }
+    let actions = [];
+    switch (element.type) {
+        case constants.type.MATERIALIZED_SET: {
+            return [{
+                cmd: 'in', 
+                setID: element.id, 
+                level,
+                result: element.id
+            }];
         }
-    }
-}
 
-async function analyseElement (branchCtx, elementID, v) {
-    switch (v.type) {
+        case constants.type.CONSTRAINT: {
+            const {a, b} = element;
+            actions = actions.concat(await selectElementAction(branchCtx, a, level, checked))
+            actions = actions.concat(await selectElementAction(branchCtx, b, level, checked));
+
+            break;
+        }
+
+        case constants.type.SET_SIZE: {
+            const {variable} = element;
+            actions = actions.concat(await selectElementAction(branchCtx, variable, level, checked));
+            break;
+        }
+
         case constants.type.TUPLE: {
-            const branches = await analyseTuple(branchCtx, v);
-
-            if (branches.length) {
-                branchCtx.actions = {
-                    cmd: 'tuple-elements', 
-                    branches,
-                    elementID
-                };
-
-                await branchCtx.commit();
-            }
-            else {
-                branchCtx.state = 'yes';
-                await branchCtx.commit();
+            for (let i=0; i<element.data.length; i++) {
+                actions = actions.concat(
+                    await selectElementAction(branchCtx, element.data[i], level, checked)
+                );
             }
 
             break;
         }
 
-        case constants.type.CONSTANT: {
-            branchCtx.state = 'yes';
-            await branchCtx.commit();
+        case constants.type.LOCAL_VAR:
+        case constants.type.INDEX: 
+        case constants.type.CONSTANT:
             break;
-        }
-
-        case constants.type.LOCAL_VAR: {
-            if (v.domain) {
-                throw 'Solve Domain!';
-            }
-            else if ( (await v.constraints.size) > 0) {
-                // we need to analyse constraints, 
-                const branch =  await analyseConstraints(branchCtx, v);
-
-                throw 'Check for branch for ok!';
-            }
-            else {
-                // nothing to do.
-                branchCtx.state = 'yes';
-                await branchCtx.commit();
-            }
-
-            break;
-        }
-
-        default: 
-            console.log(v);
-            throw 'processActionEval : Unknown element type ' + v.type;
+        
+        default:
+            throw `selectAction : type ${element.type} is not implemented`;
     }
+
+    if (actions.length === 0 && element.constraints) {
+        for await (let csID of element.constraints.values()) {
+            actions = actions.concat(await selectElementAction(
+                branchCtx, 
+                csID, 
+                level,
+                checked
+            ));
+        }
+    }
+
+    return actions;
 }
 
+async function selectAction (branchCtx, elementID) {
+    const actions = await selectElementAction(branchCtx, elementID);
+
+    if (actions.length > 0) {
+        const selectedAction = actions.sort((a, b) => a.length - b.level)[0];
+
+        const {result, level, ...action} = selectedAction;
+
+        branchCtx.result = result;
+        branchCtx.actions = action;
+        branchCtx.state = 'process';
+        await branchCtx.commit();
+    }
+    else {
+        branchCtx.state = 'yes';
+        await branchCtx.commit();
+        // throw 'SHOULD MARK BRANCH HAS YES?';
+    }
+}
+/*
 async function processActionEval (branchCtx, action) {
     const {elementID, branch} = action;
 
@@ -1666,6 +1185,8 @@ async function processActionEval (branchCtx, action) {
                 elementCtx, 
                 elementCtx.result
             );
+
+            console.log(elementID, elementCtx.result);
 
             // branchCtx.actions = {cmd: 'eval', elementID};
             branchCtx.state = 'yes';
@@ -1689,7 +1210,7 @@ async function processActionEval (branchCtx, action) {
     else {
         return await analyseElement(branchCtx, elementID, v);
     }
-}
+}*/
 
 async function processActionUnify (branchCtx, action) {
     const {a, b, domain} = action;
@@ -1705,13 +1226,56 @@ async function processActionUnify (branchCtx, action) {
             });
         }
 
-        branchCtx.actions = {cmd: 'eval', elementID: b};
+        // branchCtx.actions = {cmd: 'eval', elementID: b};
+
+        await selectAction(branchCtx, b);
     }
     else {
         branchCtx.state = 'no';
     }
 
     await branchCtx.commit();
+}
+
+async function processActionValue (branchCtx, action) {
+    const {branch} = action;
+    const state = await branch.data.state;
+
+    if (state === 'yes') {
+        const elementCtx = await BranchContext.create(
+            branch, 
+            branchCtx.branchDB, 
+            branchCtx.options, 
+            branchCtx.definitionsDB, 
+            branchCtx.rDB
+        );
+
+        const elementID = await copy(
+            branchCtx, 
+            elementCtx, 
+            elementCtx.result
+        );
+    
+        await elementCtx.debug();
+
+        console.log(
+            '[2] ===> copy ' , await elementCtx.toString(elementCtx.result),
+            ' ==> result => ', await branchCtx.toString(elementID),
+            ' ==> Element branchCtx Result', await elementCtx.toString(branchCtx.result),
+            ' ==> branchCtx Result', await branchCtx.toString(branchCtx.result)
+        );
+
+        branchCtx.state = 'yes'; 
+        await branchCtx.commit();
+        
+        // throw 'processActionValue : Copy result';
+    }
+    else if (state === 'no') {
+        branchCtx.state = 'no';
+        await branchCtx.commit();
+    }
+    // else do nothing, just wait.
+
 }
 
 async function processAction (branchCtx) {
@@ -1722,137 +1286,31 @@ async function processAction (branchCtx) {
             return processActionIn(branchCtx, action);
         }
 
-        case 'eval': {
+        /*case 'eval': {
             return processActionEval(branchCtx, action);
+        }*/
+
+        case 'value': {
+            return processActionValue(branchCtx, action);
+        }
+
+        case 'in-domain': {
+            return processActionInDomain(branchCtx, action);
+            // return processElementDomain(branchCtx, v);
         }
 
         case 'unify': {
             return processActionUnify(branchCtx, action);
         }
 
+        /*
         case 'tuple-elements': {
             return processActionTupleElements(branchCtx, action);
-        }
+        }*/
 
         default: 
             console.log(action);
             throw 'processAction : Undefined cmd ' + action.cmd;
-    }
-}
-
-async function updateGraph (branchCtx, elementID) {
-    let actions = branchCtx.graph.actions;
-    if (!(await actions.has(elementID))) {
-        const e = await branchCtx.getVariable(elementID);
-
-        if (e.domain) {
-            actions = await actions.set(elementID, {
-                cmd: 'unify-domain',
-                elementID,
-                deps: [e.domain]
-            });
-
-            branchCtx.graph = {
-                ...branchCtx.graph,
-                actions
-            };
-
-            await updateGraph(branchCtx, e.domain);
-
-            return elementID;
-        }
-        else {
-            switch (e.type) {
-                case constants.type.MATERIALIZED_SET: {
-                    actions = await actions.set(elementID, {
-                        cmd: 'in',
-                        setID: elementID
-                    });
-
-                    branchCtx.graph = {
-                        ...branchCtx.graph,
-                        actions
-                    };
-        
-                    return elementID;
-                }
-
-                case constants.type.TUPLE: {
-
-                    const deps = [];
-                    for (let i=0; i<e.data.length; i++) {
-                        const id = await updateGraph(branchCtx, e.data[i]);
-                        if (id) {
-                            deps.push(id);
-                        }
-                    }
-
-                    if (deps.length) {
-                        actions = await branchCtx.graph.actions.set(elementID, {
-                            cmd: 'tuple-check',
-                            elementID,
-                            deps
-                        });
-            
-                        branchCtx.graph = {
-                            ...branchCtx.graph,
-                            actions
-                        };
-            
-                        return elementID;
-                    }
-                }
-
-                case constants.type.CONSTANT: 
-                    return;
-
-                default:
-                    throw 'updateGraph ' + e.type + ' is not defined';
-            }
-        }
-
-        /*branchCtx.graph = {
-            ...branchCtx.graph,
-            actions
-        };*/
-
-        /*
-        actions = await actions.set(elementID, {
-            cmd: 'eval',
-            elementID,
-            deps: e.domain ? [e.domain]: undefined
-        });
-
-        branchCtx.graph = {
-            ...branchCtx.graph,
-            actions
-        };
-
-        if (e.domain) {
-            await updateGraph(branchCtx, e.domain);
-        }
-        */
-        /*
-        let deps = [];
-        if (e.domain) {
-            deps.push(e.domain);
-        }
-
-        switch (e.type) {
-            case constants.type.TUPLE: {
-                for (let i=0; i<e.data.length; i++) {
-                    const vID = e.data[i];
-                    deps.push(vID);
-                    await updateGraph(branchCtx, vID);
-                }
-
-                actions = await actions.set(elementID, {
-                    cmd: 'eval',
-                    elementID,
-                    deps
-                });
-            }
-        }*/
     }
 }
 
@@ -2255,41 +1713,6 @@ async function process (action, branchCtx) {
     }
 }
 
-/*
-async function executeActions (branchCtx) {
-    const graph = branchCtx.graph;
-
-    let action = await graph.actions.get(id);
-
-    if (!action) {
-        console.log("---->", graph, await graph.actions.toArray());
-        const v = await branchCtx.getVariable(id);
-
-        console.log(v);
-        throw 'Why Variable is not defined here! ';
-    }
-
-
-    if (action.done) {
-        return true;
-    }
-
-    let done = true;
-    if (action.deps) {
-        for (let i=0; i<action.deps.length; i++) {
-            const id = action.deps[i];
-            done = done && await executeActions(branchCtx, id);
-        }
-    }
-    
-    if (done) {
-        await process(action, branchCtx);
-    }
-
-    return false;
-    
-}*/
-
 async function run (qe, branch) {
     const branchCtx = await BranchContext.create(
         branch, 
@@ -2299,337 +1722,23 @@ async function run (qe, branch) {
         qe.rDB
     );
 
-    // await executeActions(branchCtx);
     await processAction(branchCtx);
-    
-    // branchCtx.state = 'processing';
-    // await branchCtx.commit();
-
-    /*const [cmd] = branchCtx.actions;
-
-    if (cmd) {
-        await process(cmd, branchCtx);
-    }*/
-}
-
-async function _new_run (qe) {
-    console.log("Start RUN QE");
-    const branches = qe.rDB.tables.branches;
-    // const definitions = async tuple => qe.db.search(tuple);
-
-    // 1. get root branch, 
-    let rootBranch;
-    for await (let branch of branches.findByIndex({branchID: 'ROOT'})) {
-        rootBranch = branch;
-        break;
-    }
-
-    const rootCtx = await BranchContext.create(
-        rootBranch, 
-        qe.branchDB, 
-        qe.options, 
-        qe.db, 
-        qe.rDB
-    );
-
-    // 2. create root element,
-    const rootSet = await rootCtx.getVariable(rootCtx.root);
-    const definitionElement = rootSet.definition;
-    const {root, variables} = definitionElement;
-
-    const [elID] = variables[root].elements;
-
-    const elementCtx = await rootCtx.createBranch();
-
-    const elementID = await copyPartialTerm(
-        elementCtx, 
-        definitionElement, 
-        elID,
-        true, // extendSets,
-        true
-    );
-
-    await elementCtx.commit();
-
-    // 3. unify elementID with domain,
-    const element = await elementCtx.getVariable(elementID);
-    const d = await elementCtx.getVariable(element.domain);
-
-    let unifyCtx; 
-    for await (let eID of d.elements.values()) {
-        unifyCtx = await elementCtx.createBranch();
-
-        const ok = await unify(unifyCtx, eID, elementID);
-
-        unifyCtx.state = ok ? 'maybe' : 'no';
-        
-        await unifyCtx.commit();
-
-        break;
-    }
-
-    // 4. get element 'x, 
-    const tuple = await unifyCtx.getVariable(elementID);
-    const xID = tuple.data[1];
-    const x = await unifyCtx.getVariable(xID);
-    const xDomain = await unifyCtx.getVariable(x.domain);
-
-    const xDomainCtx = await unifyCtx.createBranch();
-
-    let xElements = qe.rDB.iSet();
-    const id = x.id + '@domain';
-
-    for await (let eID of xDomain.elements.values()) {
-        let xValueCtx = await xDomainCtx.createBranch();
-        const ok = await unify(xValueCtx, xID, eID);
-
-        if (ok) {
-            const c = await xValueCtx.getVariable(xID);
-            xElements = await xElements.add(c.id);
-            xValueCtx.state = 'yes'; // its completed
-        }
-        else {
-            xValueCtx.state = 'no'; // its completed but fails.
-        }
-
-        await xValueCtx.commit();
-    }
-
-    const xDomainSet = {
-        type: constants.type.MATERIALIZED_SET,
-        id,
-        elements: xElements,
-        size: await xElements.size
-    };
-
-    await xDomainCtx.setVariableValue(id, xDomainSet);
-    await xDomainCtx.setVariableValue(x.id, {...x, domain: id});
-
-    xDomainCtx.state = 'yes'; // its completed!
-    await xDomainCtx.commit();
-
-    // 5. merge up
-    {
-        const str = await rootCtx.toString();
-        console.log("ROOT Element ", str);
-    }
-
-    {
-        const str = await elementCtx.toString(elementID);
-        console.log("TUPLE Element ", str);
-    }
-
-    {
-        const str = await unifyCtx.toString(xID);
-        console.log("TUPLE DOMAINS Elements", str);
-    }
-
-    {
-        const str = await xDomainCtx.toString(xID);
-        console.log("X DOMAIN", str);
-    }
-
-    // 5a. Update changes on unifyCtx,
-    // xDomain is completed so it can merge with unifyCtx,
-    // TODO: state should be at branch, because commits are shared and on merge state will be shared too. 
-    // await unifyCtx.merge(xDomainCtx);
-
-    const cmd = [{cmd: 'copy', ids: [x.id]}];
-
-    await execute(unifyCtx, xDomainCtx, cmd);
-    await unifyCtx.commit();
-
-    // 5b. Now unifyCtx is also a yes, we need to join up,
-
-    await execute(elementCtx, unifyCtx, cmd);
-    await elementCtx.commit();
-
-    // 5c. Now element is also a yes, join up,
-    cmd.push(
-        {cmd: 'copy', ids: [elementID]},
-        {cmd: 'in', elementID, set: rootCtx.root}
-    );
-
-    await execute(rootCtx, elementCtx, cmd);
-    await rootCtx.commit();
-
-    {
-        console.log("----------- Start toString -------------------");
-        const str = await rootCtx.toString();
-        console.log("===> Results TUPLE DOMAINS Elements", str);
-    }
-
-    throw '--- WE NEED TO CREATE A BRANCH CONTEXT -- ADAPT!!';
-
-
-    // await rootBranch.update({state: "split"});
-
-    // const ctx = await BranchContext.create(rootBranch, qe.options, qe.db);
-
-    // 2. create root set,
-    // const [action] = await ctx.actions.toArray();
-    // const {ctxElement, elements} = await initSet(ctx, qe.options, qe.db, action);
-
-    // 3. create root set element,
-    /*const rootSet = await ctx.getVariable(ctx.root);
-    const definitionElement = rootSet.definition;
-    const {root, variables} = definitionElement;
-
-    const [elID] = variables[root].elements;
-    const ctxElement = ctx.snapshot();
-
-    ctx.state = 'split'
-    await ctx.saveBranch();
-
-    const elementID = await copyPartialTerm(
-        ctxElement, 
-        definitionElement, 
-        elID,
-        true, // extendSets,
-        true
-    );*/
-
-    // 4. unify elementID with domain,
-    /*const elementID = elements[0];
-    const element = await ctxElement.getVariable(elementID);
-    const d = await ctxElement.getVariable(element.domain);
-
-    let unifyCtx; 
-    for await (let eID of d.elements.values()) {
-        unifyCtx = await ctxElement.snapshot();
-
-        const ok = await unify(unifyCtx, eID, elementID);
-
-        if (!ok) {
-            ctxElement.state = 'no';
-            await ctxElement.saveBranch();
-
-            unifyCtx.state = 'no';
-            await unifyCtx.saveBranch();
-
-            // TODO: When reusing the context, we can't update state, why ? Can we do it if we create new context ? 
-            // ctx.state = 'yes';
-            // await ctx.saveBranch();
-            // await ctx.branch.update({state: 'yes'});
-            
-            return;
-        }
-        else {
-            // TODO: Why this does not work ? 
-            // ctx.state = 'split';
-            // await ctx.saveBranch();
-            const r = await ctx.savedBranch.update({state: 'split'});
-            // console.log(r);
-        }
-
-        break;
-
-        // elements.push(unifiedBranch);
-    }
-
-    ctxElement.state = 'split';
-    await ctxElement.saveBranch();
-
-    // 5. split,
-    const childs = await split(unifyCtx, elementID);
-
-    if (!childs.length) {
-        const ctxElements = unifyCtx.snapshot();
-        unifyCtx.state = 'split';
-        await unifyCtx.saveBranch();
-
-        const set = await ctxElements.getVariable(action.setID);
-        const elements = await set.elements.add(elementID);
-        await ctxElements.setVariableValue(set.id, {...set, elements});
-
-        ctxElements.state = 'yes';
-        await ctxElements.saveBranch();
-
-        return;
-    }*/
-
-    // 6. create new x domain,
-
-    // TODO: we need to group branch by variable, also we need to know what variable we want to check on branch and or what actions to do. 
-    
-    /*
-        Merge Case 1:
-            a. The element is a variable, there is only variable changes
-            b. There is only one branch then we are done,
-            c. There is more than one branch , create domain put all elements in there, associate variable to new domain.
-
-            * Creating merge branches, rethink branch structures, we need multiple fathers or something else. 
-     */
-
-    // const unifiedElement = await unifyCtx.getVariable(elementID);
-    // const x = await unifyCtx.getVariable(unifiedElement.data[1]);
-
-    // const id = x.id + '@domain';
-
-    // TODO: we need a way to get what are the variables that we want to merge, ex. 'x and branches that evaluate 'x . 
-
-    /*const xDomainCtx = unifyCtx.snapshot();
-    
-    unifyCtx.state = 'split';
-    await unifyCtx.saveBranch();
-
-    let xElements = qe.rDB.iSet();
-    let eID;
-
-    for (let i=0; i<childs.length; i++) {
-        const xCtx = childs[i];
-        eID = await xCtx.getVariable('_process');
-        const c = await xCtx.getVariable(eID);
-        
-        xElements = await xElements.add(c.id);
-    }
-
-    const x = await xDomainCtx.getVariable(eID);
-    const id = x.id + '@domain';
-
-    const xDomain = {
-        type: constants.type.MATERIALIZED_SET,
-        id,
-        elements: xElements,
-        size: childs.length,
-        matrix: {
-            elements: [],
-            data: [],
-            indexes: {},
-            uniqueElements: {}
-        }
-    };
-
-    await xDomainCtx.setVariableValue(id, xDomain);
-    await xDomainCtx.setVariableValue(x.id, {...x, domain: id});
-
-    // 7. add element to set,
-    const set = await xDomainCtx.getVariable(action.setID);
-
-    await xDomainCtx.setVariableValue(set.id, {...set, elements: await set.elements.add(elementID)});
-
-    // console.log(await xDomainCtx.toString(), await xDomainCtx.toString(id));
-
-    xDomainCtx.state = 'yes';
-    return await xDomainCtx.saveBranch();*/
 }
 
 module.exports = {
-    // create,
     createBranchMaterializedSet,
-    expand,
     merge,
     toJS,
     toString,
     varGenerator,
     copyTerm,
     copyPartialTerm,
-    // prepareVariables,
     getVariable,
     constants,
     logger,
     BranchContext,
     genSets,
-    run
+    run,
+    selectAction
 }
 
