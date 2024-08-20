@@ -84,20 +84,6 @@ class BranchContext {
             ctx
         );
 
-        // 1. put all changes on ids,
-        for await (let vID of newCtx.changes.values()) {
-            newCtx.ids = await newCtx.ids.add(vID);
-        }
-        
-        newCtx.changes = rDB.iSet();
-
-        // 2. put all new ids on ids,
-        for await (let vID of newCtx.newIds.values()) {
-            newCtx.ids = await newCtx.ids.add(vID);
-        }
-        
-        newCtx.newIds = rDB.iSet();
-
         return new BranchContext(
             branch, 
             branchDB,
@@ -115,12 +101,30 @@ class BranchContext {
 
     async createBranch () {
         const newBranch = await this.branchDB.createBranch(this.branch);
+
+        let ids = this._ctx.ids;
+
+        // 1. put all changes on ids,
+        for await (let vID of this._ctx.changes.values()) {
+            ids = await ids.add(vID);
+        }
+
+        // 2. put all newIds on ids,
+        for await (let vID of this._ctx.newIds.values()) {
+            ids = await ids.add(vID);
+        }
+                
         return BranchContext.create(
             newBranch, 
             this.branchDB,
             this.options, 
             this.definitionDB, 
-            this.rDB
+            this.rDB,
+            {
+                ids,
+                changes: this.rDB.iSet(),
+                newIds: this.rDB.iSet()
+            }
         );
     }
 
@@ -146,23 +150,24 @@ class BranchContext {
 
     // === Debug ===
     async debug () {
+        console.log("=== DEBUG START ===");
         console.log("---- ids -----");
-        /*for await (let vID of this._ctx.ids.values()) {
-            const v = await this.getVariable(vID);
-            console.log(v);
-        }*/
+        for await (let vID of this._ctx.ids.values()) {
+            console.log('DEBUG -->', vID);
+        }
 
         console.log("---- changes -----");
         for await (let vID of this._ctx.changes.values()) {
             const v = await this.getVariable(vID);
-            console.log(v);
+            console.log('DEBUG -->', vID, v.id);
         }
 
         console.log("---- new ids -----");
         for await (let vID of this._ctx.newIds.values()) {
-            const v = await this.getVariable(vID);
-            console.log(v);
+            console.log('DEBUG -->', vID);
         }
+        console.log("=== DEBUG END ===");
+
     }
 
 

@@ -841,7 +841,7 @@ async function processActionIn (branchCtx, action) {
 
             if (state === 'yes') {
 
-                await branchCtx.debug();
+                await elementCtx.debug();
 
                 const id = await copy(branchCtx, elementCtx, elementCtx.result);
 
