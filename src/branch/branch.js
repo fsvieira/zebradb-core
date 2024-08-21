@@ -1258,6 +1258,29 @@ async function processActionValue (branchCtx, action) {
     
         await elementCtx.debug();
 
+        // match result with branchCtx variables,
+        const result = await elementCtx.getVariable(elementCtx.result);
+        let resultID;
+        for await (let eID of elementCtx._ctx.changes.values()) {
+            if (await branchCtx.hasVariable(eID)) {
+                const r = await elementCtx.getVariable(eID);
+                if (r.id === result.id) {
+                    resultID = eID;
+                    break;
+                }
+            }
+        }
+        
+        if (resultID && resultID !== elementID) {
+            await branchCtx.setVariableValue(
+                resultID, {
+                    type: constants.type.LOCAL_VAR,
+                    defer: elementID,
+                    id: resultID
+                }
+            );
+        }
+
         console.log(
             '[2] ===> copy ' , await elementCtx.toString(elementCtx.result),
             ' ==> result => ', await branchCtx.toString(elementID),

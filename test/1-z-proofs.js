@@ -45,7 +45,7 @@ describe("Zebra Proofs", () => {
         }
     ));
 
-    xit ("Constants Unify", test (`
+    it ("Constants Unify", test (`
         $TYPES = {
             (CONSTANT 'c) ...
         }
@@ -83,7 +83,7 @@ describe("Zebra Proofs", () => {
         }
     ));
 
-    xit ("Constants Unify Proofs (1)", test (`
+    it ("Constants Unify Proofs (1)", test (`
         $TYPES = {
             (CONSTANT 'c) ...
         }
