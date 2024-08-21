@@ -342,7 +342,8 @@ async function copyPartialIndex (
         variable,
         values,
         setID,
-        eID
+        eID,
+        id: vn
     });
 
 }

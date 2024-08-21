@@ -47,7 +47,10 @@ class BranchContext {
             // unchecked: await p('unchecked', rDB.iSet()),
             // constraints: await p('constraints', rDB.iSet()),
             unsolvedConstraints: await p('unsolvedConstraints', rDB.iSet()),
-            
+            iterator: await p('iterator', {
+                variables: [],
+                position: -1
+            }),
             variables: await p('variables', rDB.iMap()),
             extendSets: await p('extendSets', rDB.iSet()),
             unsolvedVariables: await p('unsolvedVariables', rDB.iSet()),
@@ -170,6 +173,26 @@ class BranchContext {
 
     }
 
+    // === ids === 
+    get changes () {
+        return this._ctx.changes;
+    } 
+
+    get ids () {
+        return this._ctx.ids;
+    }
+
+    get newIds () {
+        return this._ctx.newIds;
+    }
+
+    set iterator (value) {
+        this._ctx.iterator = value;
+    }
+
+    get iterator () {
+        return this._ctx.iterator;
+    }
 
     // === Variables === 
     async setVariableValue (id, value) {

@@ -30,6 +30,90 @@ const {
     }
 } = constants;
 
+
+async function setupIterator (branchCtx) {
+
+    let iterator = {
+        ...branchCtx.iterator, 
+        variables: branchCtx.iterator.variables.slice()
+    };
+
+
+    await branchCtx.debug();
+
+    for await (let vID of branchCtx.newIds.values()) {
+        const v = await branchCtx.getVariable(vID);
+
+        // check if var is outdated,
+        let outdated = false;
+        for (let i=0; i<iterator.variables.length; i++) {
+            const {variable} = iterator.variables[i];
+            const vv = await branchCtx.getVariable(variable);
+
+            if (vv.id === v.id) {
+                outdated = true;
+                break;
+            }
+        }
+
+        if (outdated) {
+            continue;
+        }
+
+        const csize = await v.constraints?.size;
+        if (v.domain && (
+            csize > 0 || v.type === constants.type.TUPLE
+        )) {
+            iterator.variables.push({
+                variable: vID,
+                counter: 0,
+                domainID: v.domain
+            });
+        }
+        else {
+            switch (v.type) {
+                case constants.type.MATERIALIZED_SET: {
+                    iterator.variables.push({
+                        variable: vID,
+                        counter: 0,
+                        setID: vID
+                    });
+
+                    break;
+                }
+
+                case constants.type.TUPLE: 
+                case constants.type.LOCAL_VAR:
+                case constants.type.CONSTRAINT:
+                case constants.type.INDEX:
+                case constants.type.CONSTANT:
+                    // nothing to solve
+                    break;
+
+                default:
+                    throw `Iterator for ${v.type} is not defined`;
+            }
+        }
+    }
+
+    /*
+    const newBranch = await branchCtx.createBranch();
+
+    newBranch.iterator = iterator;
+
+    newBranch.state = 'process';
+
+    await newBranch.commit();
+    */
+    branchCtx.iterator = iterator;
+
+    branchCtx.state = 'process';
+
+    console.log(iterator.variables.length);
+
+    await branchCtx.commit();
+}
+
 async function toJS (branch, id) {
     id = id || await branch.data.root;
 
@@ -922,11 +1006,9 @@ async function processActionIn (branchCtx, action) {
                     true
                 );
 
-                /*elementCtx.actions = {cmd: 'eval', elementID};
-                elementCtx.result = elementID;
-                elementCtx.state = 'process';
-                await elementCtx.commit();
-                */
+                await elementCtx.debug();
+
+
                 await selectAction(elementCtx, elementID);
 
                 branches.push(elementCtx.branch);
@@ -1713,7 +1795,7 @@ async function process (action, branchCtx) {
     }
 }
 
-async function run (qe, branch) {
+async function __run (qe, branch) {
     const branchCtx = await BranchContext.create(
         branch, 
         qe.branchDB, 
@@ -1723,6 +1805,179 @@ async function run (qe, branch) {
     );
 
     await processAction(branchCtx);
+}
+
+async function solveElementDomainIt (branchCtx, v, iterator) {
+
+    const element = await branchCtx.getVariable(v.variable);
+    const set = await branchCtx.getVariable(v.domainID);
+
+    const definitionElement = set.definition;
+
+    if (!definitionElement) {
+        console.log(await branchCtx.toString(element.id));
+        // throw 'NO DEFS';
+        return;
+    }
+
+    const {variables} = definitionElement;
+
+    const defElements = variables[set.defID].elements;
+
+    const branches = [];
+    for (let i=0; i<defElements.length; i++) {
+        const elID = defElements[i];
+
+        const vs = iterator.variables.slice();
+        const v = vs[iterator.position];
+        vs[iterator.position] = {
+            ...v,
+            counter: i
+        };
+
+        branchCtx.iterator = {
+            ...iterator,
+            variables: vs
+        };
+
+        await branchCtx.commit();
+
+        const elementCtx = await branchCtx.createBranch();
+
+        const elementID = await copyPartialTerm(
+            elementCtx, 
+            definitionElement, 
+            elID,
+            true, // extendSets,
+            true
+        );
+
+        const ok = await unify(elementCtx, element.id, elementID);
+
+        if (!ok) {
+            elementCtx.state = 'no';
+            await elementCtx.commit();
+        }
+        else {
+            await setupIterator(elementCtx);
+            branches.push(elementCtx.branch);
+        }
+    }
+
+    if (branches.length) {
+        branchCtx.result = branches;
+    }
+    else {
+        branchCtx.state = 'no';
+    }
+
+    await branchCtx.commit();
+
+}
+
+async function createSetElementsIt (branchCtx, v, iterator) {
+    const set = await branchCtx.getVariable(v.setID);
+
+    const definitionElement = set.definition;
+
+    const {variables} = definitionElement;
+
+    const defElements = variables[set.defID].elements;
+
+    const branches = [];
+    for (let i=0; i<defElements.length; i++) {
+        
+        const vs = iterator.variables.slice();
+        const v = vs[iterator.position];
+        vs[iterator.position] = {
+            ...v,
+            counter: i
+        };
+
+        branchCtx.iterator = {
+            ...iterator,
+            variables: vs
+        };
+
+        await branchCtx.commit();
+
+        const elID = defElements[i];
+        const elementCtx = await branchCtx.createBranch();
+
+        const elementID = await copyPartialTerm(
+            elementCtx, 
+            definitionElement, 
+            elID,
+            true, // extendSets,
+            true
+        );
+        
+        // elementCtx.state = 'process';
+        // await elementCtx.commit();
+
+        await setupIterator(elementCtx);
+
+        branches.push(elementCtx.branch);
+    }
+
+    branchCtx.result = branches;
+    await branchCtx.commit();
+}
+
+async function run (qe, branch) {
+    const branchCtx = await BranchContext.create(
+        branch, 
+        qe.branchDB, 
+        qe.options, 
+        qe.db, 
+        qe.rDB
+    );
+
+    if (branchCtx.result) {
+        const branches = branchCtx.result;
+        const newBranches = [];
+        for (let i=0; i<branches.length; i++) {
+            const branch = branches[i];
+
+            const state = await branch.data.state;
+
+            if (state === 'yes') {
+                // merge branch,
+            }
+            else if (state !== 'no') {
+                newBranches.push(branch);
+            }
+        }
+
+        branchCtx.result = newBranches;
+        await branchCtx.commit();
+    }
+    else {
+        let iterator = {...branchCtx.iterator};
+        if (iterator.position + 1 >= iterator.variables.length) {
+            throw 'END RESULT!'
+            branchCtx.state = 'yes';
+            branchCtx.commit();
+        }
+        else {
+            let iterator = {
+                variables: branchCtx.iterator.variables.slice(),
+                position: branchCtx.iterator.position + 1
+            };
+        
+            const v = iterator.variables[iterator.position];
+
+            if (v.setID) {
+                await createSetElementsIt(branchCtx, v, iterator);
+            }
+            else if (v.domainID) {
+                await solveElementDomainIt(branchCtx, v, iterator);
+            }
+            else {
+                throw 'Its not a set!!';
+            }
+        }
+    }
 }
 
 module.exports = {
@@ -1739,6 +1994,7 @@ module.exports = {
     BranchContext,
     genSets,
     run,
-    selectAction
+    selectAction,
+    setupIterator
 }
 
