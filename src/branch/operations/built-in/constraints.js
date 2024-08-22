@@ -824,7 +824,10 @@ async function checkVariableConstraintsUnify (ctx, cs, env) {
             const c = bv.type === CONSTANT?av:await getConstant(ctx, sa);
             const r = await setVariable(ctx, bv, c);
             state = r?C_TRUE:C_FALSE;
-        } 
+        }
+        else {
+            throw 'WHY NOT USE UNIFY ON CONSTRAINT UNIFY EVAL ??';
+        }
     }
 
     if (state !== C_UNKNOWN) {

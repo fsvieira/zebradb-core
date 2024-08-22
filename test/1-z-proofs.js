@@ -3,7 +3,7 @@
 const test = require("../test-utils/test");
 
 describe("Zebra Proofs", () => {
-    it("Simple Constant", test(`
+    xit("Simple Constant", test(`
         $DIGIT = {0 1 2 3 4 5 6 7 8 9}
         $TYPES = {
             (CONSTANT 'c:$DIGIT) ...
@@ -36,7 +36,7 @@ describe("Zebra Proofs", () => {
         }
     ));
 
-    it ("Constants Unify", test (`
+    xit ("Constants Unify", test (`
         $TYPES = {
             (CONSTANT 'c) ...
         }

@@ -871,85 +871,28 @@ async function processActionIn (branchCtx, action) {
         }
 
         const size = await elements.size;
-        await branchCtx.setVariableValue(set.id, {
+        const setData = {
             ...set,
             elements,
             size
-        });
+        };
 
-        branchCtx.state = 'yes';
-        await branchCtx.commit();
-        /*
-        const nextBranches = [];
-        let updateSet = false;
+        await branchCtx.setVariableValue(set.id, setData);
 
-        for (let i=0; i<branches.length; i++) {
-            const branch = branches[i];
-            const elementCtx = await BranchContext.create(
-                branch, 
-                branchCtx.branchDB, 
-                branchCtx.options, 
-                branchCtx.db, 
-                branchCtx.rDB
-            );
 
-            const state = elementCtx.state;
+        const ok = await checkVariableConstraints(branchCtx, setData);
 
-            if (state === 'yes') {
-
-                await elementCtx.debug();
-
-                const id = await copy(branchCtx, elementCtx, elementCtx.result);
-
-                console.log(
-                    '[1] ===> copy ' , await elementCtx.toString(elementCtx.result),
-                    ' ==> result => ', await branchCtx.toString(id)
-                );
-
-                elements = await elements.add(id);
-                updateSet = true;
-            }
-            else if (state !== 'no') {
-                nextBranches.push(branch);
-            }
-        }
-
-        if (updateSet) {
-            let size = set.size;
-            if (action.sizeElementsEval) {
-                size = await elements.size;
-            }
-
-            await branchCtx.setVariableValue(set.id, {
-                ...set,
-                elements,
-                size
-            });
-
-            console.log("SET", await branchCtx.toString(set.id));
-        }
-
-        if (nextBranches.length) {
-            branchCtx.actions = {
-                ...branchCtx.actions,
-                branches: nextBranches
-            }
+        if (!ok) {
+            branchCtx.state = 'no';
+            await branchCtx.commit();
         }
         else {
-            // check elements in set,
-            const size = await elements.size;
-            if (size === 0) {
-                await branchCtx.setVariableValue(set.id, {
-                    ...set,
-                    size: 0
-                });
-            }
+            // TODO: did we end to eval branch ? 
+            // await selectAction(branchCtx, elementID);
 
             branchCtx.state = 'yes';
         }
 
-        await branchCtx.commit();
-       */
     }
     else {
         // create branches for in operator,
