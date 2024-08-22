@@ -22,7 +22,7 @@ const query = async (qe, definitionElement) => {
             ctx={}
         )*/
 
-        const rootBranch = await qe.branchDB.createBranch(null, 'ROOT');
+        const rootBranch = await qe.branchDB.createBranch(null, null, 'ROOT');
 
         const rootCtx = await BranchContext.create(
             rootBranch, 

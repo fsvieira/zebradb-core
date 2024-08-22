@@ -3,7 +3,7 @@
 const test = require("../test-utils/test");
 
 describe("Zebra Proofs", () => {
-    xit("Simple Constant", test(`
+    it("Simple Constant", test(`
         $DIGIT = {0 1 2 3 4 5 6 7 8 9}
         $TYPES = {
             (CONSTANT 'c:$DIGIT) ...
@@ -13,22 +13,13 @@ describe("Zebra Proofs", () => {
             {
                 query: `{(CONSTANT 'x):$TYPES | 'x > 4, 'x < 8}`,
                 results: [
-                    `{(CONSTANT 'c:_ms@2):_ms@1...} 
-                    
-                    # == Domains == 
-                    _ms@1 = {...} 
-                    _ms@2 = {5 6 7}
-                    `
+                    `{(CONSTANT 5) (CONSTANT 6) (CONSTANT 7)}`
                 ]
             },
             {
                 query: `{(CONSTANT 1):$TYPES ...}`,
                 results: [
-                    `{(CONSTANT 1):_ms@1...} 
-                    
-                    # == Domains == 
-                    _ms@1 = {...}
-                    `
+                    `{(CONSTANT 1)}`
                 ]
             },
             {
@@ -45,7 +36,7 @@ describe("Zebra Proofs", () => {
         }
     ));
 
-    xit ("Constants Unify", test (`
+    it ("Constants Unify", test (`
         $TYPES = {
             (CONSTANT 'c) ...
         }
@@ -56,12 +47,7 @@ describe("Zebra Proofs", () => {
             {
                 query: `{((CONSTANT 'c) unify (CONSTANT 'c) -> (CONSTANT 1)):$UNIFY_CONSTANT ... }`,
                 results: [
-                    `
-                    {((CONSTANT 1) -> (CONSTANT 1) -> (CONSTANT 1)):_ms@1...} 
-                    
-                    # == Domains == 
-                    _ms@1 = {...}
-                    `
+                    `{((CONSTANT 1) -> (CONSTANT 1) -> (CONSTANT 1))}`
                 ]
             },
             {

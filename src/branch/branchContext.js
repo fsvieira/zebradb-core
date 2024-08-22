@@ -99,8 +99,9 @@ class BranchContext {
         return this.branchDB.commit(this.branch, this._ctx);
     }
 
-    async createBranch () {
-        const newBranch = await this.branchDB.createBranch(this.branch);
+    async createBranch (groupID) {
+        groupID = groupID || await this.branch.data.groupID;
+        const newBranch = await this.branchDB.createBranch(groupID, this.branch);
 
         let ids = this._ctx.ids;
 

@@ -22,14 +22,16 @@ class BranchDB {
             .index('head')
             .index('state')
             .index('branchID', 'state')
+            .index('groupID', 'state')
             .save();
     }
 
-    async createBranch (parentBranch=null, branchID=uuidv4()) {
+    async createBranch (groupID, parentBranch=null, branchID=uuidv4()) {
         let commit = parentBranch ? await parentBranch.data.head : null;
 
         const branch = await this.rDB.tables.branches.insert({
             branchID,
+            groupID,
             head: commit
         }, null);
 
