@@ -163,6 +163,51 @@ async function setVariableLocalVarTuple (ctx, v, t) {
     return true;
 }
 
+async function setVariableLocalVarMaterializedSet(ctx, v, s) {
+    const domain = await intersectDomains(ctx, v, s);
+
+    if (domain === null) {
+        return false;
+    }
+
+    const sDomain = (domain && s.domain !== domain)?domain:null;
+
+    let sConstraints;
+    if (v.constraints) {
+        if (!s.constraints) {
+            sConstraints = v.constraints;
+        }
+        else {
+            sConstraints = s.constraints;
+            for await (let csID of v.constraints.values()) {
+                sConstraints = await sConstraints.add(csID);
+            }
+        }
+    }
+
+    if (sDomain || sConstraints) {
+        await ctx.setVariableValue(s.id, {
+            ...s,
+            domain: sDomain || s.domain,
+            constraints: sConstraints || s.constraints
+        });
+    }
+
+    // ctx.variables = await ctx.variables.set(b.id, {...b, defer: a.id});
+    await ctx.setVariableValue(v.id, {...v, defer: s.id});
+
+    const ca = await ctx.getVariable(s.id);
+    if (ca.constraints) {
+        const r = await checkVariableConstraints(ctx, ca);
+
+        if (r === false) {
+            return r;
+        }
+    }
+
+    return true;
+}
+
 async function setVariableLocalVarLocalVar (ctx, v, p) {
     let a = p.pv ? p : v;
     let b = p.pv ? v : p;
@@ -228,6 +273,7 @@ const setVariable = async (ctx, v, p) => {
                     case LOCAL_VAR: return await setVariableLocalVarLocalVar(ctx, v, p);
                     case CONSTANT: return await setVariableLocalVarConstant(ctx, v, p);
                     case TUPLE: return await setVariableLocalVarTuple(ctx, v, p);
+                    case MATERIALIZED_SET: return await setVariableLocalVarMaterializedSet(ctx, v, p);
                     default: 
                         throw `Set Variable [LOCAL_VAR] x ${p.type} not implemented`;
                 }
@@ -255,7 +301,7 @@ function getBoolValue (v) {
 
 function getValue (v) {
     if (v.type === CONSTANT) {
-        return v.data;
+        return isNaN(v.data) ? v.data : +v.data;
     }
     else if (v.type === SET_SIZE && v.value >= 0) {
         return v.value;
@@ -797,16 +843,33 @@ async function checkVariableConstraintsUnify (ctx, cs, env) {
         state = sa === sb? C_TRUE:C_FALSE;
     }
     else if (env.eval) {
-        console.log("TODO: IF THEY ARE BOTH SET SIZE OR VARIBLES THEN CAN BE UNIFIED!")
+        console.log("TODO: checkVariableConstraintsUnify USE MORE UNIFY FUNC")
+        /** TODO: Most if not all conditions could make direct use of unify function */
 
         if (av.type === SET_SIZE && sb !== null) {
             const value = +sb;
+
+            const set = await ctx.getVariable(av.variable);
+
+            if (set.type === MATERIALIZED_SET && set.size !== -1) {
+                state = set.size === value?C_TRUE:C_FALSE;
+                await ctx.setVariableValue(cs.id, {
+                    ...cs, state, value
+                });
+
+                return state;
+            }
+            else {
+                state = C_UNKNOWN;
+            }
+
+            /*
             await ctx.setVariableValue(av.variable, {
                 ...av.set,
                 size: value
             });
 
-            await ctx.setVariableValue({...av, set: undefined, value});
+            await ctx.setVariableValue({...av, set: undefined, value});*/
         }
         else if (av.type === SET_SIZE || bv.type === SET_SIZE) {
             throw 'UNIFY NOT SET FOR SET_SIZE';
@@ -826,7 +889,8 @@ async function checkVariableConstraintsUnify (ctx, cs, env) {
             state = r?C_TRUE:C_FALSE;
         }
         else {
-            throw 'WHY NOT USE UNIFY ON CONSTRAINT UNIFY EVAL ??';
+            const ok = await unify(ctx, a, b);
+            state = ok ? C_TRUE:C_FALSE;
         }
     }
 
@@ -1008,17 +1072,19 @@ async function checkVariableConstraints (ctx, v) {
 
     const parentConstraints = new Set();
 
-    for await (let vcID of v.constraints.values()) {
-        const cs = await ctx.getVariable(vcID);
-        const env = await constraintEnv(ctx, cs);
+    if (v.constraints) {
+        for await (let vcID of v.constraints.values()) {
+            const cs = await ctx.getVariable(vcID);
+            const env = await constraintEnv(ctx, cs);
 
-        const r = await evalConstraint(ctx, cs, env, parentConstraints);
+            const r = await evalConstraint(ctx, cs, env, parentConstraints);
 
-        if (r === false) {
-            return false;
+            if (r === false) {
+                return false;
+            }
         }
     }
-
+    
     /*
     if (constraints.size !== v.constraints.size) {
         ctx.variables = await ctx.variables.set(v.id, {
@@ -1039,11 +1105,122 @@ async function checkVariableConstraints (ctx, v) {
     return true;
 }
 
+/*
+    == Unify == 
+*/
+
+const FN_FALSE = async () => false;
+
+async function unifyMsMs (ctx, p, q) {
+    throw 'UNIFY MS MS IS NOT DEFINED';
+}
+
+const unifyFn = {
+    [LOCAL_VAR]: {
+        [LOCAL_VAR]: setVariable,
+        [TUPLE]: setVariable, // !p.d && await unifyVariable(ctx, p, q),
+        [CONSTANT]: setVariable, // async (ctx, p, q) => (!p.d || (p.d && p.d.includes(q.id))) && await unifyVariable(ctx, p, q)
+        [MATERIALIZED_SET]: setVariable
+    },
+    [TUPLE]: {
+        [LOCAL_VAR]: async (ctx, p, q) => unifyFn[LOCAL_VAR][TUPLE](ctx, q, p),
+        [TUPLE]: async (ctx, p, q) => {
+            if (p.id !== q.id) {
+                if (p.data.length === q.data.length) {
+                    for (let i=0; i<p.data.length; i++) {
+                        const r = await doUnify(ctx, p.data[i], q.data[i]);
+
+                        if (!r) {
+                            return false;
+                        }
+                    }
+
+                    // await checkTuple(ctx, p, q);
+
+                    await ctx.setVariableValue(
+                        q.id, {
+                            defer: p.id
+                        }
+                    );
+
+                    return true;
+                }
+                
+                return false;
+            }
+
+            return true;
+        },
+        [CONSTANT]: FN_FALSE,
+        [MATERIALIZED_SET]: FN_FALSE
+    },
+    [CONSTANT]: {
+        [LOCAL_VAR]: async (ctx, p, q) => unifyFn[LOCAL_VAR][CONSTANT](ctx, q, p),
+        [TUPLE]: async () => false,
+        [CONSTANT]: async (ctx, p, q) => p.data === q.data,
+        [MATERIALIZED_SET]: FN_FALSE
+    },
+    [MATERIALIZED_SET]: {
+        [LOCAL_VAR]: FN_FALSE,
+        [TUPLE]: FN_FALSE,
+        [CONSTANT]: FN_FALSE,
+        [MATERIALIZED_SET]: unifyMsMs
+    }
+}
+
+const doUnify = async (ctx, p, q) => {
+    p = await ctx.getVariable(p);
+    q = await ctx.getVariable(q);
+
+    let s;
+    
+    if (ctx.options.log) {
+        s = `${await ctx.toString(p.id)} ** ${await ctx.toString(q.id)}`;
+    }
+
+    /*
+    console.log(
+        'DO UNIFY ',
+        await toString(null, p.id, ctx), ' ** ', 
+        await toString(null, q.id, ctx)
+    );*/
+
+    const ok =  await unifyFn[p.type][q.type](ctx, p, q);
+
+    if (ctx.options.log) {
+        const ps = await ctx.toString(p.id);
+        const qs = await ctx.toString(q.id);
+
+        s += `; p=${ps}, q=${qs}`;
+        if (!ok) {
+            await ctx.logger(`FAIL: ${s}`);
+        }
+        else {
+            await ctx.logger(`SUCC: ${s}`);
+        }
+    }
+
+    return ok;
+}
+
+async function unify (ctx, tuple, definitionID) {
+    const ok = await doUnify(
+        ctx,
+        tuple, 
+        definitionID
+    );
+
+    ctx.state = !ok ? 'no': ctx.state;
+
+    return ok;
+}
 
 module.exports = {
     checkVariableConstraints,
     setVariable,
     constraintEnv,
-    evalConstraint
+    evalConstraint,
+    unify,
+    constants
 };
 

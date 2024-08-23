@@ -884,7 +884,6 @@ async function processActionIn (branchCtx, action) {
 
         if (!ok) {
             branchCtx.state = 'no';
-            await branchCtx.commit();
         }
         else {
             // TODO: did we end to eval branch ? 
@@ -892,6 +891,8 @@ async function processActionIn (branchCtx, action) {
 
             branchCtx.state = 'yes';
         }
+
+        await branchCtx.commit();
 
     }
     else {
