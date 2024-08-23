@@ -60,6 +60,8 @@ const query = async (qe, definitionElement) => {
         rootCtx.actions = {cmd: 'in', setID};
         rootCtx.state = 'process';
         */
+
+        rootCtx.result = rootCtx.root;
         await branchOps.selectAction(rootCtx, rootCtx.root);
 
         // await rootCtx.commit();

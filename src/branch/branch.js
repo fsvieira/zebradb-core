@@ -886,8 +886,9 @@ async function processActionIn (branchCtx, action) {
             branchCtx.state = 'no';
         }
         else {
-            // TODO: did we end to eval branch ? 
-            // await selectAction(branchCtx, elementID);
+            // TODO: did we end to eval branch ?
+            // YES, we need to keep track of processing or solved elements.
+            // await selectAction(branchCtx, branchCtx.result);
 
             branchCtx.state = 'yes';
         }
@@ -1142,6 +1143,11 @@ async function selectElementAction (branchCtx, elementID, level=0, checked=new S
 
 async function selectAction (branchCtx, elementID) {
     const actions = await selectElementAction(branchCtx, elementID);
+
+    /**
+     * TODO: we need to keep track of solved and unsolved variables, so that we 
+     * can exclude the ones that are solved or in the process of solving. 
+     */
 
     if (actions.length > 0) {
         const selectedAction = actions.sort((a, b) => a.length - b.level)[0];
