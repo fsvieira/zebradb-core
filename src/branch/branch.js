@@ -1118,9 +1118,14 @@ async function selectElementAction (branchCtx, elementID, level=0, checked=new S
             break;
         }
 
+        case constants.type.PROPOSITION: {
+            actions = actions.concat(await selectElementAction(branchCtx, element.proof, level, checked));
+            break;
+        }
+
         case constants.type.LOCAL_VAR:
         case constants.type.INDEX: 
-        case constants.type.CONSTANT:
+        case constants.type.CONSTANT:        
             break;
         
         default:

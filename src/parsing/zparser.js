@@ -287,9 +287,10 @@ function peg$parse(input, options) {
   var peg$f4 = function(variable, property, statement, proof) {
     	return {
         	type: PROPOSITION,
-            variable,
-            property: property.data,
-            statement: statement.data
+          variable,
+          property: property.data,
+          statement: statement.data,
+          proof
         }
     };
   var peg$f5 = function(terms, domain) {return domain};

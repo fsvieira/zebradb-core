@@ -78,10 +78,10 @@ proof = _ "Proposition" wsp variable:variable wsp
     _ proof:expression _ {
     	return {
         	type: PROPOSITION,
-            variable,
-            property: property.data,
-            statement: statement.data,
-            proof
+          variable,
+          property: property.data,
+          statement: statement.data,
+          proof
         }
     }
 

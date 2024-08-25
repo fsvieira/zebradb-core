@@ -407,6 +407,16 @@ class BranchContext {
                 break;           
             }
 
+            case constants.type.PROPOSITION: {
+                // const variable = await this.toString(v.variable);
+                const proof = await this.getVariable(v.proof);
+
+                const value = proof.state === constants.values.C_TRUE ? true : false;
+                console.log(proof);
+                str = `Proposition ${v.variable} ${v.property} is ${value}`;
+                break;
+            }
+
             default:
                 console.log(v);
                 throw 'toString ' + v.type + ' is not defined!';
@@ -452,7 +462,7 @@ class BranchContext {
 
         const domainsStr = domains.length ? `\n\n# == Domains == \n${domains.join("\n")}\n` : "";
 
-        const s = `${str}${domainsStr}`;
+        const s = `${str}${domainsStr}${'\n\nState => ' + this.state}`;
 
         return s;
     }

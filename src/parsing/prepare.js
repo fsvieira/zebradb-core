@@ -11,7 +11,8 @@ const {
         LOCAL_VAR, // : 'lv',
         GLOBAL_VAR, // : 'gv',
         INDEX, // idx,
-        SET_SIZE
+        SET_SIZE,
+        PROPOSITION
     },
     operation: {
         OR, // "or",
@@ -307,6 +308,19 @@ function termConstant (ctx, c) {
     return cid;
 }
 
+function termProposition (ctx, p) {
+    const cid = ctx.newVar(p);
+
+    ctx.variables[cid] = {
+        ...p,
+        cid,
+        variable: term(ctx, p.variable),
+        proof: term(ctx, p.proof)
+    };
+
+    return cid;
+}
+
 function termIndex(ctx, idx) {
 
     const {
@@ -351,6 +365,7 @@ function term (ctx, t) {
             case SET_EXP: return termSetExpression(ctx, t);
             case INDEX: return termIndex(ctx, t);
             case SET_SIZE: return termSetSize(ctx, t);
+            case PROPOSITION: return termProposition(ctx, t);
             default:
                 throw `TYPE ${t.type} IS NOT DEFINED, ${JSON.stringify(t)}`;
         }
@@ -413,9 +428,9 @@ function prepare (tuple) {
             case INDEX:
             case CONSTRAINT:
             case SET: return newVar();
-            case SET_SIZE: {
-                return `${v.variable.varname}#size`;
-            }
+            case SET_SIZE: return `${v.variable.type}:${v.variable.varname}#size`;
+            case PROPOSITION:
+                return `prop:${v.variable.type}:${v.variable.varname}#${v.property}`;
 
             default:
                 throw 'prepare : type is not defined ' + v.type;
@@ -425,6 +440,8 @@ function prepare (tuple) {
     const root = term(ctx, tuple);
 
     const globalVariable = ctx.variables[root].variable;
+
+    // TODO: link proofs to variables ??
 
     if (ctx.constraints.length) {
         for (let i=0; i<ctx.constraints.length; i++) {

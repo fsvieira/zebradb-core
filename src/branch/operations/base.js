@@ -10,7 +10,8 @@ const {
         DEF_REF, // d,
         MATERIALIZED_SET, // 'ms',
         INDEX, // idx
-        SET_SIZE
+        SET_SIZE,
+        PROPOSITION // prop
     },
     operation: {
         OR,
@@ -275,6 +276,19 @@ async function copyPartialTermTuple (
     );
 }
 
+async function copyPartialTermProposition (
+    ctx, p, vn, getVarname, v, extendSets, preserveVarname
+) {
+
+    const proof = await getVarname(v.proof);
+    await ctx.setVariableValue(vn, {
+        ...v,
+        proof,
+        id: vn
+    });
+
+}
+
 async function copyPartialTermLocalVar (
     ctx, p, vn, getVarname, v, extendSets, preserveVarname
 ) {
@@ -463,6 +477,19 @@ async function copyPartialTerm (
                         vn = mapVars[cid] = v.type + '::' + ctx.newVar();
 
                         await copyPartialTermSetSize(
+                            ctx, p, vn,
+                            getVarname, v,
+                            extendSets,
+                            preserveVarname
+                        );
+
+                        break;
+                    }
+
+                    case PROPOSITION: {
+                        vn = cid;
+
+                        await copyPartialTermProposition(
                             ctx, p, vn,
                             getVarname, v,
                             extendSets,

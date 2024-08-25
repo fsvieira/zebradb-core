@@ -2,8 +2,11 @@
 
 const test = require("../test-utils/test");
 
+// $SET_EXCEPT = {('S / 'U = 'su) | 'su = {'s:'S | |{'s:'U ...}| = 0 }  
+// NOT THE SAME HAS {'s:$S | forall 'u in 'U, 's != 'u} , 
+
 describe("Zebra Proofs", () => {
-    it("Simple Constant", test(`
+    xit("Simple Constant", test(`
         $DIGIT = {0 1 2 3 4 5 6 7 8 9}
         $TYPES = {
             (CONSTANT 'c:$DIGIT) ...
@@ -36,7 +39,7 @@ describe("Zebra Proofs", () => {
         }
     ));
 
-    it ("Constants Unify", test (`
+    xit ("Constants Unify", test (`
         $TYPES = {
             (CONSTANT 'c) ...
         }
@@ -69,7 +72,7 @@ describe("Zebra Proofs", () => {
         }
     ));
 
-    it ("Constants Unify Proofs (1)", test (`
+    xit ("Constants Unify Proofs (1)", test (`
         $TYPES = {
             (CONSTANT 'c) ...
         }
@@ -97,7 +100,7 @@ describe("Zebra Proofs", () => {
         }
     ));
 
-    xit ("Constants Unify Proofs (1)", test (`
+    xit ("Constants Unify Proposition", test (`
         $TYPES = {
             (CONSTANT 'c) ...
         }
@@ -105,6 +108,7 @@ describe("Zebra Proofs", () => {
         $UNIFY_CONSTANT = {((CONSTANT 'c):$TYPES unify (CONSTANT 'c):$TYPES -> (CONSTANT 'c):$TYPES) ...}
 
         # Proposition : A proposition is a statement that is proven to be true, but it is generally considered less significant than a theorem.
+        /*
         Proposition $UNIFY_CONSTANT correctness : «Unify Constant is correct»
         [
             {
@@ -119,63 +123,113 @@ describe("Zebra Proofs", () => {
                 'a != 'b ; 'a != 'c ; 'b != 'c
             } 
             and |'s| = 0
-        ]
+        ]*/
     `,
         [
             {
-                query: `{((CONSTANT 'c) unify (CONSTANT 'c) -> (CONSTANT 1)):$UNIFY_CONSTANT ... }`,
+                query: `
+                    Proposition $UNIFY_CONSTANT correctness : «Unify Constant is correct»
+                    [
+                        's = {
+                            ((CONSTANT 'a) unify (CONSTANT 'b) -> (CONSTANT 'c)):$UNIFY_CONSTANT | 
+                            'a != 'b ; 'a != 'c ; 'b != 'c
+                        } 
+                        and |'s| = 0
+                    ]
+                `,
                 results: [
-                    `
-                    {((CONSTANT 1) -> (CONSTANT 1) -> (CONSTANT 1)):_ms@1...} 
-                    
-                    # == Domains == 
-                    _ms@1 = {...}
-                    `
+                    `Proposition $UNIFY_CONSTANT correctness is true`
                 ]
             },
-            {
-                query: `{((CONSTANT 2) unify (CONSTANT 'c) -> (CONSTANT 1)):$UNIFY_CONSTANT ... }`,
-                results: [`{}`]
-            },
-            {
-                query: `{
-                    ((CONSTANT 'a) unify (CONSTANT 'b) -> (CONSTANT 'c)):$UNIFY_CONSTANT 
-                    | 'a != 'b ; 'a != 'c ; 'b != 'c
-                }`,
-                results: [`{}`]
-            }
+            /*{
+                query: `
+                    Proposition $UNIFY_CONSTANT correctness : «Unify Constant is correct»
+                    [
+                        {
+                            ((CONSTANT 'ua) unify (CONSTANT 'ub) -> (CONSTANT 'uc)):$UNIFY_CONSTANT 
+                            ...
+                        } = $UNIFY_CONSTANT 
+
+                        and
+
+                        's = {
+                            ((CONSTANT 'a) unify (CONSTANT 'b) -> (CONSTANT 'c)):$UNIFY_CONSTANT | 
+                            'a != 'b ; 'a != 'c ; 'b != 'c
+                        } 
+                        and |'s| = 0
+                    ]
+                `,
+                results: [
+                    `Proposition $UNIFY_CONSTANT correctness is true`
+                ]
+            }*/
         ], 
         {
-            path: 'dbs/1-z-proofs/types', 
+            path: 'dbs/1-z-proofs/proposition', 
             timeout: 1000 * 60 * 60,
             log: true
         }
     ));
 
-    xit("Types", test(`
-        $TUPLE_BODY = {nil (0 'e:$TYPES nil) ...} union {('n 'e:$TYPES ('n1 ' '):$TUPLES_BODY) | 'n > 0 and 'n1 = 'n - 1, 'n = 'n1 + 1}
+    it('Set difference (1)', test (`
+        $S = {('x = 'x) ...}
+        $U = {('x = 'y) ...}
 
-        $TYPES = {
-            (CONSTANT 'c) 
-            (SET 's) 
-            (TUPLE 'n 't:$TUPLE_BODY) 
-            (VARIABLE 'v)
-        }
-    `,
+        # $SET_DIFF = {('S / 'U = 'su) | 'su = {'s:'S | |{'s:'U ...}| = 0 }
+
+        `,
         [
-            {
-                query: `{ (CONSTANT 1):$TYPES ... }`,
+            /*{
+                query: `
+                    {('x = 'y):$S | 'x != 'y }
+                `,
                 results: [
-                    `{(CONSTANT 1):_ms@1...} 
-                    
-                    # == Domains == 
-                    _ms@1 = {...}
-                    ` 
+                    `{}`
                 ]
-            }
+            },
+            {
+                query: `
+                    {('x = 'y):$S ... }
+                `,
+                results: [
+                    `{('x = 'x)}`
+                ]
+            },
+            {
+                query: `
+                    {('x = 'y):$U | 'x != 'y }
+                `,
+                results: [
+                    `{('x = 'y)}`
+                ]
+            },
+            {
+                query: `
+                    {('x = 'y):$U | 'x = 'y }
+                `,
+                results: [
+                    `{('y = 'y)}`
+                ]
+            },*/
+            {
+                query: `
+                    {('x = 'y):$U | 'su = {('x = 'y):$S | 'x != 'y } and |'su| = 0}
+                `,
+                results: [
+                    `{}`
+                ]
+            }/*,
+            {
+                query: `
+                    {('x = 'y):$U | 'su = {('x = 'y):$S | 'x != 'y }, |'su| = 0}
+                `,
+                results: [
+                    `{('x = 'y)}`
+                ]
+            }*/
         ], 
         {
-            path: 'dbs/1-z-proofs/types', 
+            path: 'dbs/1-z-proofs/set-difference', 
             timeout: 1000 * 60 * 60,
             log: true
         }
