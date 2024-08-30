@@ -65,6 +65,7 @@ class BranchContext {
             // groups: await p('groups', rDB.iMap()),
             // version: await p('version', 1)
             // graph: await p('graph', {})
+            variableActions: await (p('variableActions', rDB.iSet()))
         };
 
         return newCtx;
@@ -277,6 +278,50 @@ class BranchContext {
     }
 
     
+    get variableActions () {
+        return this._ctx.variableActions;
+    }
+
+    async hasVariableActions (id) {
+        if (await this._ctx.variableActions.has(id)) {
+            return true;
+        }
+        else {
+            const v = await this.getVariable(id);
+            for await (let vID of this._ctx.variableActions.values()) {
+                const a = await this.getVariable(vID);
+
+                if (a.id === v.id) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    async addVariableActions (id) {
+        this._ctx.variableActions = await this._ctx.variableActions.add(id);
+    }
+
+    async selectFromActions (actions) {
+        actions.sort((a, b) => a.length - b.level);
+
+        for (let i=0; i<actions.length; i++) {
+            const action = actions[i];
+
+            if (await this.hasVariableActions(action.result)) {
+                console.log("DONT EXECUTE ", action);
+            }
+            else {
+                console.log("EXECUTE ", action);
+                return action;
+            }
+        }
+
+        return null;
+    }
+
     /*
     // === graph === 
     set graph (value) {
@@ -462,7 +507,7 @@ class BranchContext {
 
         const domainsStr = domains.length ? `\n\n# == Domains == \n${domains.join("\n")}\n` : "";
 
-        const s = `${str}${domainsStr}${'\n\nState => ' + this.state}`;
+        const s = `${str}${domainsStr}`;
 
         return s;
     }

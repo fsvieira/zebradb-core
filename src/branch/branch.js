@@ -887,10 +887,10 @@ async function processActionIn (branchCtx, action) {
         }
         else {
             // TODO: did we end to eval branch ?
-            // YES, we need to keep track of processing or solved elements.
-            // await selectAction(branchCtx, branchCtx.result);
+            // we need to keep track of processing or solved elements.
+            await selectAction(branchCtx, branchCtx.result);
 
-            branchCtx.state = 'yes';
+            // branchCtx.state = 'yes';
         }
 
         await branchCtx.commit();
@@ -902,7 +902,10 @@ async function processActionIn (branchCtx, action) {
         const size = await set.elements.size;
         if (set.size === size) {
             // 2. insert all elements in the set,
-            throw 'processActionIn insert elements in the set'
+            // throw 'processActionIn insert elements in the set'
+            await selectAction(branchCtx, branchCtx.result);
+            // branchCtx.state = 'yes';
+            // await branchCtx.commit();
         }
         else {
             const definitionElement = set.definition;
@@ -1076,8 +1079,7 @@ async function selectElementAction (branchCtx, elementID, level=0, checked=new S
     if (element.domain && !element.unifiedDomains?.includes(element.domain)) {
         return [{
             cmd: 'in-domain', 
-            elementID: 
-            element.id, 
+            elementID: element.id, 
             level, 
             result: element.id
         }];
@@ -1147,17 +1149,23 @@ async function selectElementAction (branchCtx, elementID, level=0, checked=new S
 }
 
 async function selectAction (branchCtx, elementID) {
+
     const actions = await selectElementAction(branchCtx, elementID);
 
+    console.log(actions);
     /**
      * TODO: we need to keep track of solved and unsolved variables, so that we 
      * can exclude the ones that are solved or in the process of solving. 
      */
 
-    if (actions.length > 0) {
-        const selectedAction = actions.sort((a, b) => a.length - b.level)[0];
+    const selectedAction = await branchCtx.selectFromActions(actions); 
+
+    if (selectedAction) {
+        // const selectedAction = actions.sort((a, b) => a.length - b.level)[0];
 
         const {result, level, ...action} = selectedAction;
+
+        await branchCtx.addVariableActions(result);
 
         // TODO: remove result on get action,
         // branchCtx.result = result;
