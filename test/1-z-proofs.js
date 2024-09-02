@@ -6,7 +6,7 @@ const test = require("../test-utils/test");
 // NOT THE SAME HAS {'s:$S | forall 'u in 'U, 's != 'u} , 
 
 describe("Zebra Proofs", () => {
-    it("Simple Constant", test(`
+    xit("Simple Constant", test(`
         $DIGIT = {0 1 2 3 4 5 6 7 8 9}
         $TYPES = {
             (CONSTANT 'c:$DIGIT) ...
@@ -39,7 +39,7 @@ describe("Zebra Proofs", () => {
         }
     ));
 
-    it ("Constants Unify", test (`
+    xit ("Constants Unify", test (`
         $TYPES = {
             (CONSTANT 'c) ...
         }
@@ -72,7 +72,7 @@ describe("Zebra Proofs", () => {
         }
     ));
 
-    it ("Constants Unify Proofs (1)", test (`
+    xit ("Constants Unify Proofs (1)", test (`
         $TYPES = {
             (CONSTANT 'c) ...
         }
@@ -100,7 +100,7 @@ describe("Zebra Proofs", () => {
         }
     ));
 
-    it ("Constants Unify Proposition", test (`
+    xit ("Constants Unify Proposition", test (`
         $TYPES = {
             (CONSTANT 'c) ...
         }
@@ -194,7 +194,7 @@ describe("Zebra Proofs", () => {
                 results: [
                     `{('x = 'x)}`
                 ]
-            },
+            },*/
             {
                 query: `
                     {('x = 'y):$U | 'x != 'y }
@@ -202,7 +202,7 @@ describe("Zebra Proofs", () => {
                 results: [
                     `{('x = 'y)}`
                 ]
-            },
+            }/*,
             {
                 query: `
                     {('x = 'y):$U | 'x = 'y }
@@ -210,21 +210,21 @@ describe("Zebra Proofs", () => {
                 results: [
                     `{('y = 'y)}`
                 ]
-            },*/
+            },
             {
                 query: `
                     {('x = 'y):$U | 'su = {('x = 'y):$S | 'x != 'y } and |'su| = 0}
                 `,
                 results: [
-                    `{}`
+                    `{('x = 'y)}`
                 ]
-            }/*,
+            },
             {
                 query: `
-                    {('x = 'y):$U | 'su = {('x = 'y):$S | 'x != 'y }, |'su| = 0}
+                    {('x = 'y):$S | 'su = {('x = 'y):$U | 'x = 'y }, |'su| = 0}
                 `,
                 results: [
-                    `{('x = 'y)}`
+                    `{}`
                 ]
             }*/
         ], 

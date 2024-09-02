@@ -192,7 +192,8 @@ class BranchContext {
         do {
             // console.log("GET VARIABLE ID", id);
             v = await this._ctx.variables.get(id);
-            
+
+            console.log("------------>", id);
             if (id && id === v.defer) {
                 throw "BUG: id can't defer to itself! " +  id + ' ' + JSON.stringify(v, null, '  ');
             }
@@ -338,10 +339,10 @@ class BranchContext {
     }
 
     // === toString === 
-    async toStringMaterializedSet (v, vars, rename) {
+    async toStringMaterializedSet (v, vars, rename, constraints, stop) {
         let el = [];
         for await (let eID of v.elements.values()) {
-            el.push(await this.toStringRec(eID, vars, rename));
+            el.push(await this.toStringRec(eID, vars, rename, constraints, stop));
         }
 
         const size = v.size; 
@@ -355,10 +356,10 @@ class BranchContext {
         return `{${el.join(" ")}${setSize}}${domain}`;        
     }
 
-    async toStringConstraint (v, vars, rename) {
+    async toStringConstraint (v, vars, rename, constraints, stop) {
         const {a, op, b, state, aValue, bValue, value} = v;
-        const av = await this.toStringRec(a, vars, rename);
-        const bv = await this.toStringRec(b, vars, rename);
+        const av = await this.toStringRec(a, vars, rename, constraints, stop);
+        const bv = await this.toStringRec(b, vars, rename, constraints, stop);
 
         const s = state === constants.values.C_TRUE ? 
             '::TRUE ' 
@@ -377,25 +378,39 @@ class BranchContext {
         return `(${av} ${aValueStr}-${op}-${bValueStr} ${bv})${s}${valueStr}`;
     }
 
-    async toStringSetSize (v, vars, rename) {
+    async toStringSetSize (v, vars, rename, constraints, stop) {
         return `|${v.variable}| = ${v.value || 'undef'};`
     }
 
-    async toStringRec (id, vars, rename) {
+    async toStringRec (id, vars, rename, constraints, stop) {
         const v = await this.getVariable(id);
+
+        console.log("=============> " , v.id);
+        if (stop.has(v.id)) {
+            return stop.get(v.id);
+        }
+
+        stop.set(v.id, "");
 
         if (v.domain && !vars.has(v.domain)) {
             const d = await this.getVariable(v.domain);
             const domainVar = rename(d); 
             vars.set(domainVar, "");
-            const domainStr = await this.toStringRec(v.domain, vars, rename);
+            const domainStr = await this.toStringRec(v.domain, vars, rename, constraints, stop);
             vars.set(domainVar, domainStr);
         }
-    
+
+        if (v.constraints) {
+            for await (let vID of v.constraints.values()) {
+                const str = await this.toStringRec(vID, vars, rename, constraints, stop);
+                constraints.add(str);
+            }
+        }
+
         let str = "";
         switch (v.type) {
             case constants.type.MATERIALIZED_SET: {
-                str =  await this.toStringMaterializedSet(v, vars, rename);
+                str =  await this.toStringMaterializedSet(v, vars, rename, constraints, stop);
                 break;
             }
 
@@ -403,7 +418,7 @@ class BranchContext {
                 const el = [];
                 for (let i=0; i<v.data.length; i++) {
                     const eID = v.data[i];
-                    el.push(await this.toStringRec(eID, vars, rename))
+                    el.push(await this.toStringRec(eID, vars, rename, constraints, stop))
                 }
 
                 const d = v.domain ? await this.getVariable(v.domain) : null;
@@ -429,12 +444,12 @@ class BranchContext {
             }
 
             case constants.type.CONSTRAINT: {
-                str =  this.toStringConstraint(v, vars, rename);
+                str = await this.toStringConstraint(v, vars, rename, constraints, stop);
                 break;
             }
 
             case constants.type.SET_SIZE: {
-                str = this.toStringSetSize(v, vars, rename);
+                str = this.toStringSetSize(v, vars, rename, constraints, stop);
                 break;
             }
 
@@ -467,6 +482,8 @@ class BranchContext {
                 throw 'toString ' + v.type + ' is not defined!';
         }
 
+        stop.set(v.id, str);
+
         return  str;
     }
 
@@ -495,19 +512,27 @@ class BranchContext {
     }
 
     async toString (id=this._ctx.root) {
+        console.log("---------- Start ToString");
         const rename = this.renameGen();
 
         const vars = new Map();
-        const str = await this.toStringRec(id, vars, rename);
+        const constraints = new Set();
+        const str = await this.toStringRec(id, vars, rename, constraints, new Map());
 
         let domains = [];
         for (let [domain, def] of vars) {
             domains.push(`${domain} = ${def}`);
         }
 
+        for (let c of constraints) {
+            console.log("---> CCCC -> ", c);
+        }
+
         const domainsStr = domains.length ? `\n\n# == Domains == \n${domains.join("\n")}\n` : "";
 
         const s = `${str}${domainsStr}`;
+
+        console.log("---------- End ToString -- ", s);
 
         return s;
     }

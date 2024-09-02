@@ -696,6 +696,10 @@ async function copy (destCtxA, srcCtxB, id) {
 }
 
 async function copyAux (destCtxA, srcCtxB, id, done, getVar) {
+    if (!id) {
+        return id;
+    }
+
     const dataB = await srcCtxB.getVariable(id);
 
     id = dataB.id;
@@ -705,9 +709,19 @@ async function copyAux (destCtxA, srcCtxB, id, done, getVar) {
         done.add(id);
 
         let domain;
+        let constraints;
 
         if (dataB.domain) {
             domain = await copyAux(destCtxA, srcCtxB, dataB.domain, done, getVar);
+        }
+
+        if (dataB.constraints && await dataB.constraints.size > 0) {
+            constraints = destCtxA.rDB.iSet();
+
+            for await (let cID of dataB.constraints.values()) {
+                const vID = await copyAux(destCtxA, srcCtxB, cID, done, getVar);
+                constraints = await constraints.add(vID);
+            }
         }
 
         switch (dataB.type) {
@@ -745,6 +759,24 @@ async function copyAux (destCtxA, srcCtxB, id, done, getVar) {
                 break;
             }
 
+            case constants.type.CONSTRAINT: {
+                const {a, b, root} = dataB; 
+
+                const na = await copyAux(destCtxA, srcCtxB, a, done, getVar);
+                const nb = await copyAux(destCtxA, srcCtxB, b, done, getVar);
+                const nRoot = await copyAux(destCtxA, srcCtxB, root, done, getVar);
+
+                await destCtxA.setVariableValue(newID, {
+                    ...dataB,
+                    id: newID,
+                    a: na,
+                    b: nb,
+                    root: nRoot
+                });
+
+                break;
+            }
+
             case constants.type.LOCAL_VAR: 
             case constants.type.GLOBAL_VAR: {
                 await destCtxA.setVariableValue(newID, {
@@ -758,6 +790,30 @@ async function copyAux (destCtxA, srcCtxB, id, done, getVar) {
             case constants.type.CONSTANT:
                 await destCtxA.setVariableValue(newID, dataB);
                 break;
+
+            case constants.type.INDEX: {
+                const {setID, eID, values} = dataB;
+
+                const nSetID = await copyAux(destCtxA, srcCtxB, setID, done, getVar);
+                const nEiD = await copyAux(destCtxA, srcCtxB, eID, done, getVar);
+
+                const nValues = []; 
+                for (let i=0; i<values.length; i++) {
+                    nValues.push(await copyAux(
+                        destCtxA, srcCtxB, values[i], done, getVar
+                    ));
+                }
+
+                await destCtxA.setVariableValue(newID, {
+                    ...dataB,
+                    id: newID, 
+                    setID: nSetID,
+                    eID: nEiD,
+                    values: nValues
+                });
+
+                break;
+            }
 
             default:
                 throw 'copy unkown type ' + dataB.type
