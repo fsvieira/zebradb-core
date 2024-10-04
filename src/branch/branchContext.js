@@ -27,8 +27,13 @@ class BranchContext {
         rDB=branch?.table.db, 
         ctx={}
     ) {
+        let commit = await branch.data.head;
+
+        if (commit) {
+            commit = await commit.snapshot();
+        }
+
         const p = async (field, defaultValue) => {
-            const commit = await branch.data.head;
 
             return ctx[field] 
                 || (

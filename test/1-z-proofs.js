@@ -6,7 +6,7 @@ const test = require("../test-utils/test");
 // NOT THE SAME HAS {'s:$S | forall 'u in 'U, 's != 'u} , 
 
 describe("Zebra Proofs", () => {
-    xit("Simple Constant", test(`
+    it("Simple Constant", test(`
         $DIGIT = {0 1 2 3 4 5 6 7 8 9}
         $TYPES = {
             (CONSTANT 'c:$DIGIT) ...
@@ -39,7 +39,7 @@ describe("Zebra Proofs", () => {
         }
     ));
 
-    xit ("Constants Unify", test (`
+    it ("Constants Unify", test (`
         $TYPES = {
             (CONSTANT 'c) ...
         }
@@ -72,7 +72,7 @@ describe("Zebra Proofs", () => {
         }
     ));
 
-    xit ("Constants Unify Proofs (1)", test (`
+    it ("Constants Unify Proofs (1)", test (`
         $TYPES = {
             (CONSTANT 'c) ...
         }
@@ -100,7 +100,7 @@ describe("Zebra Proofs", () => {
         }
     ));
 
-    xit ("Constants Unify Proposition", test (`
+    it ("Constants Unify Proposition", test (`
         $TYPES = {
             (CONSTANT 'c) ...
         }
@@ -171,7 +171,7 @@ describe("Zebra Proofs", () => {
         }
     ));
 
-    it('Set difference (1)', test (`
+    xit('Set difference (1)', test (`
         $S = {('x = 'x) ...}
         $U = {('x = 'y) ...}
 

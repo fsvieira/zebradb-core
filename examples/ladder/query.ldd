@@ -1,0 +1,6 @@
+assume local fsvieira.ladder
+# assume fsvieira.ladder@1.0.0
+
+
+Query «Filter Constant Types Range» {(CONSTANT 'x):$TYPES | 'x > 4, 'x < 8}
+

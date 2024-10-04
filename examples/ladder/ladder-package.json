@@ -1,0 +1,17 @@
+{
+    "name": "fsvieira.ladder",
+    "version": "1.0.0",
+    "description": "Ladder Definitions on ladder.",
+    "author": "Your Name",
+    "license": "MIT",
+    "entry": "ladder.ldd",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/your-username/ladder-repo"
+    },
+    "bugs": {
+      "url": "https://github.com/your-username/ladder-repo/issues"
+    },
+    "homepage": "https://github.com/your-username/ladder-repo",
+    "keywords": ["ladder", "example", "package"]
+}

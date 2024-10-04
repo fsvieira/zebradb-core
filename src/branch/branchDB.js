@@ -47,51 +47,30 @@ class BranchDB {
         }, null);
 
         const state = await commit.data.state;
+
+        const b = await branch.snapshot();
+        b.data.head = commit;
+        b.data.state = state;
+
+        try {
+            await b.update();
+        }
+        catch (e) {
+            console.log(e);
+            process.exit();
+        }
+
+        /*
+        const state = await commit.data.state;
         await branch.update({
             head: commit,
             state
-        });
+        });*/
+
 
         return commit;
     }
 }
-
-/*
-async function main () {
-    const db = new BranchDB();
-    await db.init();
-    
-    const root = await db.createBranch();
-
-    {
-        const variables = await db.rDB.iMap().set('a', 0).set('b', 0); 
-        await db.commit(root, {data: {
-            variables
-        }});
-    }
-    
-    {
-        const a = await db.createBranch(root);
-        const data = await a.data.data;
-
-        data.variables = await data.variables.set('a', 1);
-        data.changes = ['a'];
-        await db.commit(a, {data});
-    }
-
-    {
-        const b = await db.createBranch(root);
-        const data = await b.data.data;
-
-        data.variables = await data.variables.set('b', 2);
-        data.changes = ['b'];
-        await db.commit(b, {data});
-    }
-
-    await db.merge(root, a);
-    await db.merge(root, b);
-
-}*/
 
 module.exports = BranchDB;
 
