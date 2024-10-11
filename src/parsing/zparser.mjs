@@ -2,7 +2,39 @@
 //
 // https://peggyjs.org/
 
-"use strict";
+
+  /* 
+    peggy --cache zparser.pegjs
+    peggy --cache --format es -o zparser.mjs zparser.peggy
+  */
+  
+  import { type, operation } from "../branch/operations/constants.mjs";
+  
+
+  
+ 
+  const opCode = op => {
+    switch (op) {
+      case '=': return operation.UNIFY;
+      case '!=': return operation.NOT_UNIFY;
+      case 'in': return operation.IN;
+      case 'and': 
+      case ',': return operation.AND;
+      case 'or': 
+      case ';': return operation.OR;
+      case 'union': return operation.UNION;
+      case 'subset': return operation.SUBSET;
+      case '+': return operation.ADD;
+      case '-': return operation.SUB;
+      case '*': return operation.MUL;
+      case '/': return operation.DIV;
+      case '%': return operation.MOD;
+      case '<': return operation.BELOW;
+      case '<=': return operation.BELOW_OR_EQUAL;
+      case '>': return operation.ABOVE;
+      case '>=': return operation.ABOVE_OR_EQUAL;
+    }
+  }
 
 function peg$subclass(child, parent) {
   function C() { this.constructor = child; }
@@ -294,10 +326,10 @@ function peg$parse(input, options) {
   var peg$f0 = function(imports, definitions) {return imports.concat(definitions)};
   var peg$f1 = function(imp) {return imp};
   var peg$f2 = function(packageID) {
-    	return {type: ASSUME, packageID}
+    	return {type: type.ASSUME, packageID}
     };
   var peg$f3 = function(filepath) {
-    	return {type: CONSIDER, filepath}
+    	return {type: type.CONSIDER, filepath}
     };
   var peg$f4 = function(packageName, semVersion) {
   return {packageName, semVersion}
@@ -328,7 +360,7 @@ function peg$parse(input, options) {
 };
   var peg$f14 = function(variable, property, statement, proof) {
     	return {
-        	type: PROPOSITION,
+        	type: type.PROPOSITION,
           variable,
           property: property.data,
           statement: statement.data,
@@ -337,39 +369,39 @@ function peg$parse(input, options) {
     };
   var peg$f15 = function(statement, query) {
     	return {
-          type: QUERY,
+          type: type.QUERY,
           statement: statement.data,
           query
         }
     };
   var peg$f16 = function(terms, domain) {return domain};
-  var peg$f17 = function(terms, domain) { return { type: TUPLE, data: terms, domain } };
-  var peg$f18 = function() { return { type: TUPLE, data: [] } };
+  var peg$f17 = function(terms, domain) { return { type: type.TUPLE, data: terms, domain } };
+  var peg$f18 = function() { return { type: type.TUPLE, data: [] } };
   var peg$f19 = function(tupleTerm, terms) {return terms};
   var peg$f20 = function(tupleTerm, terms) { return [tupleTerm].concat(terms) };
-  var peg$f21 = function(varname) {return { type: GLOBAL_VAR, varname: varname.join("") } };
+  var peg$f21 = function(varname) {return { type: type.GLOBAL_VAR, varname: varname.join("") } };
   var peg$f22 = function(varname, variable) {return variable};
   var peg$f23 = function(varname, domain) {
   	return { 
-    	type: LOCAL_VAR, 
+    	type: type.LOCAL_VAR, 
   		varname: varname.length ? varname.join(""):undefined,
       domain
     } 
   };
   var peg$f24 = function(constant) {
     	return {
-        	type: CONSTANT,
+        	type: type.CONSTANT,
             data: constant.join("")
         }
     };
   var peg$f25 = function(sign, int, float) {return '.' + float.join('')};
   var peg$f26 = function(sign, int, float) {
   const n = (sign || '') + int.join('') + (float || '');
-  return {type: CONSTANT, data: n }
+  return {type: type.CONSTANT, data: n }
 };
   var peg$f27 = function(constant) {
    return {
-      type: CONSTANT,
+      type: type.CONSTANT,
       data: constant.join("")
    }
 };
@@ -379,7 +411,7 @@ function peg$parse(input, options) {
   var peg$f31 = function(variable) {return variable};
   var peg$f32 = function(variables) {return variables};
   var peg$f33 = function(variables, op) {return {
-	type: INDEX,
+	type: type.INDEX,
     op,
     variables
 }};
@@ -393,7 +425,7 @@ function peg$parse(input, options) {
   var peg$f39 = function(element, expression, variable) {return variable};
   var peg$f40 = function(element, expression, domain, alias, indexes) {
        return {
-         type: SET,
+         type: type.SET,
          elements: [element],
          indexes,
          domain,
@@ -405,7 +437,7 @@ function peg$parse(input, options) {
   var peg$f41 = function(elements, variable) {return variable};
   var peg$f42 = function(elements, domain) {
        return {
-         type: SET,
+         type: type.SET,
          elements,
          domain,
          size: -1
@@ -413,7 +445,7 @@ function peg$parse(input, options) {
      };
   var peg$f43 = function(elements) {
        return {
-         type: SET,
+         type: type.SET,
          elements,
          expression: null,
          size: elements.length
@@ -422,21 +454,21 @@ function peg$parse(input, options) {
   var peg$f44 = function(set) {return set};
   var peg$f45 = function(a, op, b) {
   	return {
-       type: SET_EXP,
+       type: type.SET_EXP,
        a,
        op: opCode(op),
        b
     }
   };
   var peg$f46 = function(set) {return set};
-  var peg$f47 = function(variable) {return {type: SET_SIZE, variable}};
-  var peg$f48 = function(a, op, b) { return { type: CONSTRAINT, op: opCode(op), a, b }; };
-  var peg$f49 = function(a, op, b) { return { type: CONSTRAINT, op: opCode(op), a, b }; };
-  var peg$f50 = function(a, op, b) { return { type: CONSTRAINT, op: opCode(op), a, b }; };
-  var peg$f51 = function(a, op, b) { return { type: CONSTRAINT, op: opCode(op), a, b }; };
-  var peg$f52 = function(a, op, b) { return { type: CONSTRAINT, op: opCode(op), a, b }; };
-  var peg$f53 = function(a, op, b) { return { type: CONSTRAINT, op: opCode(op), a, b }; };
-  var peg$f54 = function(a, op, b) {return {type: CONSTRAINT, op: opCode(op), a, b }; };
+  var peg$f47 = function(variable) {return {type: type.SET_SIZE, variable}};
+  var peg$f48 = function(a, op, b) { return { type: type.CONSTRAINT, op: opCode(op), a, b }; };
+  var peg$f49 = function(a, op, b) { return { type: type.CONSTRAINT, op: opCode(op), a, b }; };
+  var peg$f50 = function(a, op, b) { return { type: type.CONSTRAINT, op: opCode(op), a, b }; };
+  var peg$f51 = function(a, op, b) { return { type: type.CONSTRAINT, op: opCode(op), a, b }; };
+  var peg$f52 = function(a, op, b) { return { type: type.CONSTRAINT, op: opCode(op), a, b }; };
+  var peg$f53 = function(a, op, b) { return { type: type.CONSTRAINT, op: opCode(op), a, b }; };
+  var peg$f54 = function(a, op, b) {return {type: type.CONSTRAINT, op: opCode(op), a, b }; };
   var peg$f55 = function(expression) {return expression};
   var peg$f56 = function() {return null};
   var peg$f57 = function() {return null};
@@ -3659,71 +3691,6 @@ function peg$parse(input, options) {
     return s0;
   }
 
-
-  /* 
-    peggy --cache zparser.pegjs
-  */
-  const {
-      type: {
-          CONSTANT,
-          TUPLE,
-          CONSTRAINT,
-          SET,
-          SET_EXP,
-          LOCAL_VAR,
-          GLOBAL_VAR,
-          INDEX,
-          SET_SIZE,
-          PROPOSITION,
-          QUERY,
-          ASSUME,
-          CONSIDER          
-      },
-      operation: {
-          OR,
-          AND,
-          IN,
-          UNIFY,
-          NOT_UNIFY,
-          UNION,
-          ADD,
-          SUB,
-          MUL,
-          DIV,
-          MOD,
-          FUNCTION,
-          BELOW,
-      	  BELOW_OR_EQUAL,
-          ABOVE,
-          ABOVE_OR_EQUAL,
-          UNIQUE,
-          SUBSET
-      }
-  } = require("../branch/operations/constants");
-
-  const opCode = op => {
-    switch (op) {
-      case '=': return UNIFY;
-      case '!=': return NOT_UNIFY;
-      case 'in': return IN;
-      case 'and': return AND;
-      case ',': return AND;
-      case 'or': return OR;
-      case ';': return OR;
-      case 'union': return UNION;
-      case 'subset': return SUBSET;
-      case '+': return ADD;
-      case '-': return SUB;
-      case '*': return MUL;
-      case '/': return DIV;
-      case '%': return MOD;
-      case '<': return BELOW;
-      case '<=': return BELOW_OR_EQUAL;
-      case '>': return ABOVE;
-      case '>=': return ABOVE_OR_EQUAL;
-    }
-  }
-
   peg$result = peg$startRuleFunction();
 
   if (peg$result !== peg$FAILED && peg$currPos === input.length) {
@@ -3743,7 +3710,8 @@ function peg$parse(input, options) {
   }
 }
 
-module.exports = {
-  SyntaxError: peg$SyntaxError,
-  parse: peg$parse
+export {
+  peg$SyntaxError as SyntaxError,
+
+  peg$parse as parse
 };
