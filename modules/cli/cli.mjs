@@ -1,25 +1,30 @@
 import { Command } from 'commander';
+import {packageRun} from './commands/package.mjs'
+import {startServer} from './commands/node.mjs'
+import pkgJSON from '../../package.json' assert { type: 'json' };
+
 const program = new Command();
 
 program
   .name('ladder')
   .description('Ladder CLI tool for managing databases and packages')
-  .version('1.0.0');
+  .version(pkgJSON.version);
 
 // dbnode commands
-const dbnode = new Command('dbnode')
+const node = new Command('node')
   .description('Manage the database node');
 
-dbnode
-  .command('start')
+node
+  .command('start <name>')
   .description('Start the database node')
   .option('-p, --port <number>', 'Port to run the node on')
-  .option('-d, --datadir <path>', 'Directory to store databases')
-  .action((options) => {
-    console.log('Starting the dbnode on port', options.port);
+  .option('-d, --data-dir <path>', 'Directory to store databases')
+  .action((name, options) => {
+    // console.log('Starting the dbnode on port', name, options);
+    startServer(name, options);
   });
 
-dbnode
+node
   .command('stop')
   .description('Stop the database node')
   .action(() => {
@@ -33,8 +38,8 @@ const pkg = new Command('package')
 pkg
   .command('run <file>')
   .description('Run a local package file')
-  .action((file) => {
-    console.log('Running package from file', file);
+  .action(async (file) => {
+    return await packageRun(file);
   });
 
 pkg
@@ -45,7 +50,7 @@ pkg
   });
 
 // Add subcommands
-program.addCommand(dbnode);
+program.addCommand(node);
 program.addCommand(pkg);
 
 // Override default help behavior

@@ -1,23 +1,15 @@
-// commands/package.js
+import { promises as fsPromises } from 'fs';
+import path from 'path';
 
-// import { createPackage, runPackage, publishPackage, listPackages } from '../lib/package.js';
+export async function packageRun (file) {
+    try {
+        const filePath = path.join(process.cwd(), file);
+        console.log(filePath);
+        const data = await fsPromises.readFile(filePath, 'utf8');
+        console.log('File content:', data);
 
-export default function packageCommands(action, options) {
-    console.log("PACKAGE ", action, options);
-    /*switch (action) {
-        case 'create':
-            createPackage(options);
-            break;
-        case 'run':
-            runPackage(options);
-            break;
-        case 'publish':
-            publishPackage(options);
-            break;
-        case 'list':
-            listPackages();
-            break;
-        default:
-            console.log('Invalid action. Use --help for a list of available commands.');
-    }*/
+        
+    } catch (err) {
+        console.error('Error reading file:', err);
+    }
 }
