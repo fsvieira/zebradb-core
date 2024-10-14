@@ -43,6 +43,10 @@ export const values = {
     C_UNKNOWN: 3
 }
 
-
+export default {
+    type,
+    operation,
+    values
+}
 
 
